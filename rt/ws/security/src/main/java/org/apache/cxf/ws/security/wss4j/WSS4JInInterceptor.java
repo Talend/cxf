@@ -74,6 +74,8 @@ import org.apache.wss4j.common.crypto.Crypto;
 import org.apache.wss4j.common.crypto.ThreadLocalSecurityProvider;
 import org.apache.wss4j.common.ext.WSSecurityException;
 import org.apache.wss4j.common.saml.SamlAssertionWrapper;
+import org.apache.wss4j.common.token.PKIPathSecurity;
+import org.apache.wss4j.common.token.X509Security;
 import org.apache.wss4j.dom.WSConstants;
 import org.apache.wss4j.dom.engine.WSSConfig;
 import org.apache.wss4j.dom.engine.WSSecurityEngine;
@@ -81,7 +83,6 @@ import org.apache.wss4j.dom.engine.WSSecurityEngineResult;
 import org.apache.wss4j.dom.handler.RequestData;
 import org.apache.wss4j.dom.handler.WSHandlerConstants;
 import org.apache.wss4j.dom.handler.WSHandlerResult;
-import org.apache.wss4j.dom.message.token.KerberosSecurity;
 import org.apache.wss4j.dom.processor.Processor;
 import org.apache.wss4j.dom.util.WSSecurityUtil;
 import org.apache.wss4j.dom.validate.NoOpValidator;
@@ -535,25 +536,29 @@ public class WSS4JInInterceptor extends AbstractWSS4JInterceptor {
             List<WSSecurityEngineResult> foundResults = actionResults.get(resultPriority);
             if (foundResults != null && !foundResults.isEmpty()) {
                 for (WSSecurityEngineResult result : foundResults) {
-                    final Object binarySecurity = result.get(WSSecurityEngineResult.TAG_BINARY_SECURITY_TOKEN);
-                    PublicKey publickey = 
-                        (PublicKey)result.get(WSSecurityEngineResult.TAG_PUBLIC_KEY);
-                    X509Certificate cert = 
-                        (X509Certificate)result.get(WSSecurityEngineResult.TAG_X509_CERTIFICATE);
-                    
-                    if ((resultPriority == WSConstants.BST && !(binarySecurity instanceof KerberosSecurity))
-                        || (resultPriority == WSConstants.SIGN && publickey == null && cert == null)) {
-                        continue;
-                    }
-                    SecurityContext context = 
-                        createSecurityContext(msg, useJAASSubject, result, utWithCallbacks);
-                    if (context != null) {
-                        msg.put(SecurityContext.class, context);
-                        return;
+                    if (!skipResult(resultPriority, result)) {
+                        SecurityContext context = 
+                            createSecurityContext(msg, useJAASSubject, result, utWithCallbacks);
+                        if (context != null) {
+                            msg.put(SecurityContext.class, context);
+                            return;
+                        }
                     }
                 }
             }
         }
+    }
+
+    private boolean skipResult(Integer resultPriority, WSSecurityEngineResult result) {
+        Object binarySecurity = result.get(WSSecurityEngineResult.TAG_BINARY_SECURITY_TOKEN);
+        PublicKey publickey =
+            (PublicKey)result.get(WSSecurityEngineResult.TAG_PUBLIC_KEY);
+        X509Certificate cert =
+            (X509Certificate)result.get(WSSecurityEngineResult.TAG_X509_CERTIFICATE);
+
+        return resultPriority == WSConstants.BST
+            && (binarySecurity instanceof X509Security || binarySecurity instanceof PKIPathSecurity)
+            || resultPriority == WSConstants.SIGN && publickey == null && cert == null;
     }
     
     private SecurityContext createSecurityContext(
