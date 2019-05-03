@@ -19,8 +19,10 @@
 package org.apache.cxf.systest.jaxrs.description.openapi;
 
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
 
+@Ignore("TESB")
 public class OpenApiRegularServiceDescriptionTest extends AbstractOpenApiServiceDescriptionTest {
     private static final String PORT = allocatePort(OpenApiRegularServiceDescriptionTest.class);
 

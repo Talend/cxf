@@ -43,7 +43,7 @@
         <dependency>
             <groupId>org.apache.cxf</groupId>
             <artifactId>cxf-rt-frontend-jaxrs</artifactId>
-            <version>${project.version}</version>
+            <version>${upstream.version}</version>
             <exclusions>
                <exclusion>
                     <groupId>javax.validation</groupId>
@@ -54,7 +54,7 @@
         <dependency>
             <groupId>org.apache.cxf</groupId>
             <artifactId>cxf-rt-rs-client</artifactId>
-            <version>${project.version}</version>
+            <version>${upstream.version}</version>
             <optional>true</optional>
         </dependency>
         <dependency>
@@ -100,8 +100,8 @@
             <exclusions>
                 <exclusion>
                     <groupId>org.apache.poi</groupId>
-                    <artifactId>poi-ooxml</artifactId>                
-                </exclusion>       
+                    <artifactId>poi-ooxml</artifactId>
+                </exclusion>
             </exclusions>
         </dependency>
         <dependency>
@@ -130,7 +130,7 @@
             <exclusions>
                 <exclusion>
                     <groupId>xml-apis</groupId>
-                    <artifactId>xml-apis</artifactId>                
+                    <artifactId>xml-apis</artifactId>
                 </exclusion>
             </exclusions>
         </dependency>

@@ -49,6 +49,7 @@ import org.apache.cxf.ws.discovery.wsdl.ResolveMatchType;
 import org.apache.cxf.ws.discovery.wsdl.ScopesType;
 
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 
 
@@ -78,6 +79,7 @@ public final class WSDiscoveryClientTest {
     }
 
     @Test
+    @Ignore("TESB")
     public void testMultiResponses() throws Exception {
         // Disable the test on Redhat Enterprise Linux which doesn't enable the UDP broadcast by default
         if (System.getProperties().getProperty("os.name").equals("Linux")

@@ -19,8 +19,10 @@
 package org.apache.cxf.systest.jaxrs.description;
 
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
 
+@Ignore("TESB")
 public class Swagger2FilterServiceDescriptionTest extends AbstractSwagger2ServiceDescriptionTest {
     private static final String PORT = allocatePort(Swagger2FilterServiceDescriptionTest.class);
 

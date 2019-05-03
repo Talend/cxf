@@ -44,10 +44,12 @@ import org.apache.hello_world.services.SOAPService;
 
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 
 /**
  * A set of tests for TLS ciphersuites
  */
+@Ignore("TESB")
 public class CipherSuitesTest extends AbstractBusClientServerTestBase {
     static final boolean UNRESTRICTED_POLICIES_INSTALLED;
     static {

@@ -44,6 +44,7 @@ import org.apache.wss4j.common.WSS4JConstants;
 import org.example.contract.doubleit.DoubleItPortType;
 
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 
 /**
  * A set of tests for (signing and encrypting) SOAP Faults.
@@ -156,6 +157,7 @@ public class FaultTest extends AbstractBusClientServerTestBase {
     }
 
     @org.junit.Test
+    @Ignore
     public void testSoap12Mtom() throws Exception {
         SpringBusFactory bf = new SpringBusFactory();
         URL busFile = FaultTest.class.getResource("client.xml");

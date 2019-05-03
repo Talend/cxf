@@ -19,19 +19,19 @@
 -->
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
-    
+
     <artifactId>cxf-systests-ws-transfer</artifactId>
     <name>Apache CXF WS-Transfer System Tests</name>
     <description>Apache CXF WS-Transfer System Tests</description>
     <url>http://cxf.apache.org</url>
-    
+
     <parent>
         <artifactId>cxf-parent</artifactId>
         <groupId>org.apache.cxf</groupId>
         <version>3.2.4</version>
         <relativePath>../../parent/pom.xml</relativePath>
     </parent>
-    
+
     <dependencies>
         <dependency>
           <groupId>junit</groupId>
@@ -41,27 +41,27 @@
         <dependency>
           <groupId>${project.groupId}</groupId>
           <artifactId>cxf-rt-frontend-jaxws</artifactId>
-          <version>${project.version}</version>
+          <version>${upstream.version}</version>
           <scope>test</scope>
         </dependency>
         <dependency>
           <groupId>${project.groupId}</groupId>
           <artifactId>cxf-rt-ws-transfer</artifactId>
-          <version>${project.version}</version>
+          <version>${upstream.version}</version>
           <scope>test</scope>
         </dependency>
         <dependency>
           <groupId>${project.groupId}</groupId>
           <artifactId>cxf-rt-transports-http-jetty</artifactId>
-          <version>${project.version}</version>
+          <version>${upstream.version}</version>
           <scope>test</scope>
         </dependency>
         <dependency>
           <groupId>org.apache.cxf</groupId>
           <artifactId>cxf-testutils</artifactId>
-          <version>${project.version}</version>
+          <version>${upstream.version}</version>
           <scope>test</scope>
         </dependency>
     </dependencies>
-    
+
 </project>

@@ -30,8 +30,10 @@ import org.apache.cxf.systest.jaxrs.description.group1.BookStore;
 import org.apache.cxf.systest.jaxrs.description.group1.BookStoreStylesheetsOpenApi;
 
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
 
+@Ignore("TESB")
 public class OpenApiNonAnnotatedServiceDescriptionTest extends AbstractOpenApiServiceDescriptionTest {
     private static final String PORT = allocatePort(OpenApiNonAnnotatedServiceDescriptionTest.class);
 

@@ -39,12 +39,12 @@
     <dependency>
       <groupId>org.apache.cxf</groupId>
       <artifactId>cxf-rt-rs-security-oauth2</artifactId>
-      <version>${project.version}</version>
+      <version>${upstream.version}</version>
     </dependency>
     <dependency>
       <groupId>org.apache.cxf</groupId>
       <artifactId>cxf-rt-rs-security-jose-jaxrs</artifactId>
-      <version>${project.version}</version>
+      <version>${upstream.version}</version>
     </dependency>
     <dependency>
       <groupId>org.apache.geronimo.specs</groupId>
@@ -250,7 +250,7 @@
                                         <artifactItem>
                                             <groupId>javax.annotation</groupId>
                                             <artifactId>javax.annotation-api</artifactId>
-                                            <version>${cxf.javax.annotation-api.version}</version> 
+                                            <version>${cxf.javax.annotation-api.version}</version>
                                             <type>jar</type>
                                             <overWrite>false</overWrite>
                                             <outputDirectory>${project.basedir}/target/java9</outputDirectory>

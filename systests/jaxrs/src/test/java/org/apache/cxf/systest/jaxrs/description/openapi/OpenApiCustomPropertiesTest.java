@@ -26,9 +26,10 @@ import io.swagger.v3.oas.models.security.SecurityScheme;
 import io.swagger.v3.oas.models.security.SecurityScheme.Type;
 
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
 
-
+@Ignore("TESB")
 public class OpenApiCustomPropertiesTest extends AbstractOpenApiServiceDescriptionTest {
     private static final String PORT = allocatePort(OpenApiCustomPropertiesTest.class);
 
@@ -40,7 +41,7 @@ public class OpenApiCustomPropertiesTest extends AbstractOpenApiServiceDescripti
         public static void main(String[] args) {
             start(new OpenApiRegular());
         }
-        
+
         @Override
         protected OpenApiFeature createOpenApiFeature() {
             final OpenApiFeature feature = new OpenApiFeature();

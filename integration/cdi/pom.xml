@@ -30,25 +30,25 @@
         <version>3.2.4</version>
         <relativePath>../../parent/pom.xml</relativePath>
     </parent>
-    
+
     <properties>
         <cxf.osgi.import>
             javax.servlet*;version="${cxf.osgi.javax.servlet.version}",
             javax.enterprise*;version="${cxf.cda.api.osgi.range}",
             javax.ws.rs*;version="[1.0,3)",
             org.apache.cxf.interceptor;resolution:=optional,
-            *          
+            *
         </cxf.osgi.import>
         <cxf.osgi.export>
             org.apache.cxf.cdi
         </cxf.osgi.export>
     </properties>
-    
+
     <dependencies>
         <dependency>
             <groupId>javax.enterprise</groupId>
             <artifactId>cdi-api</artifactId>
-        </dependency>                
+        </dependency>
         <dependency>
             <groupId>javax.inject</groupId>
             <artifactId>javax.inject</artifactId>
@@ -62,7 +62,7 @@
         <dependency>
             <groupId>org.apache.cxf</groupId>
             <artifactId>cxf-core</artifactId>
-            <version>${project.version}</version>
+            <version>${upstream.version}</version>
         </dependency>
         <dependency>
             <groupId>${cxf.servlet-api.group}</groupId>
@@ -73,7 +73,7 @@
         <dependency>
             <groupId>org.apache.cxf</groupId>
             <artifactId>cxf-rt-frontend-jaxrs</artifactId>
-            <version>${project.version}</version>
+            <version>${upstream.version}</version>
         </dependency>
         <dependency>
             <groupId>org.slf4j</groupId>
@@ -93,7 +93,7 @@
             <scope>test</scope>
         </dependency>
     </dependencies>
-    
+
     <build>
         <plugins>
             <!-- Generate Manifest file required for OSGI bundles -->
@@ -126,10 +126,10 @@
                         </Require-Capability>
                         <Provide-Capability>
                             org.ops4j.pax.cdi.extension; extension="cxf-integration-cdi"
-                        </Provide-Capability>        
+                        </Provide-Capability>
                     </instructions>
                 </configuration>
-            </plugin>            
+            </plugin>
         </plugins>
     </build>
 </project>

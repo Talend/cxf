@@ -28,8 +28,10 @@ import org.apache.cxf.jaxrs.swagger.Swagger2Feature;
 import org.apache.cxf.systest.jaxrs.description.group1.BookStore;
 
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
 
+@Ignore("TESB")
 public class Swagger2NonAnnotatedServiceDescriptionTest extends AbstractSwagger2ServiceDescriptionTest {
     private static final String PORT = allocatePort(Swagger2NonAnnotatedServiceDescriptionTest.class);
 

@@ -23,15 +23,15 @@
     <artifactId>cxf</artifactId>
     <version>3.2.4</version>
     <name>Apache CXF</name>
-    <description>Apache CXF is an open-source services framework that aids in 
-    the development of services using front-end programming APIs, like JAX-WS 
+    <description>Apache CXF is an open-source services framework that aids in
+    the development of services using front-end programming APIs, like JAX-WS
     and JAX-RS.</description>
     <url>http://cxf.apache.org</url>
     <packaging>pom</packaging>
     <scm>
-        <connection>scm:git:http://gitbox.apache.org/repos/asf/cxf.git</connection>
-        <developerConnection>scm:git:https://gitbox.apache.org/repos/asf/cxf.git</developerConnection>
-        <url>https://gitbox.apache.org/repos/asf?p=cxf.git;a=summary</url>
+        <connection>scm:git:https://github.com/Talend/cxf.git</connection>
+        <developerConnection>scm:git:https://github.com/Talend/cxf.git</developerConnection>
+        <url>https://github.com/Talend/cxf</url>
         <tag>cxf-3.2.4</tag>
     </scm>
     <issueManagement>
@@ -39,6 +39,7 @@
         <url>https://issues.apache.org/jira/browse/CXF</url>
     </issueManagement>
     <properties>
+        <upstream.version>3.2.4</upstream.version>
         <cxf.compiler.fork>false</cxf.compiler.fork>
         <cxf.build-utils.version>3.4.0</cxf.build-utils.version>
         <cxf.xjc-utils.version>3.2.1</cxf.xjc-utils.version>
@@ -611,7 +612,7 @@
                         <dependencyDetailsEnabled>false</dependencyDetailsEnabled>
                         <dependencyLocationsEnabled>false</dependencyLocationsEnabled>
                         <stagingRepositoryId>apache.cxf.site</stagingRepositoryId>
-                        <stagingSiteURL>scp://people.apache.org/www/cxf.apache.org/maven-site-${project.version}</stagingSiteURL>
+                        <stagingSiteURL>scp://people.apache.org/www/cxf.apache.org/maven-site-${upstream.version}</stagingSiteURL>
                     </configuration>
                     <dependencies>
                         <dependency>

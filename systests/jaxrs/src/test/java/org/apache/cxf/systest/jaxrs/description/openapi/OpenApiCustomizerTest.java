@@ -31,8 +31,10 @@ import org.apache.cxf.jaxrs.openapi.OpenApiCustomizer;
 import org.apache.cxf.jaxrs.openapi.OpenApiFeature;
 
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
 
+@Ignore("TESB")
 public class OpenApiCustomizerTest extends AbstractOpenApiServiceDescriptionTest {
     private static final String PORT = allocatePort(OpenApiCustomizerTest.class);
 
@@ -44,7 +46,7 @@ public class OpenApiCustomizerTest extends AbstractOpenApiServiceDescriptionTest
         public static void main(String[] args) {
             start(new OpenApiRegular());
         }
-        
+
         @Override
         protected void run() {
             final JAXRSServerFactoryBean sf = RuntimeDelegate
@@ -61,12 +63,12 @@ public class OpenApiCustomizerTest extends AbstractOpenApiServiceDescriptionTest
             sf.create();
         }
 
-        
+
         @Override
         protected OpenApiFeature createOpenApiFeature() {
             final OpenApiCustomizer customizer = new OpenApiCustomizer();
             customizer.setDynamicBasePath(true);
-            
+
             final OpenApiFeature feature = super.createOpenApiFeature();
             feature.setCustomizer(customizer);
             feature.setScan(false);

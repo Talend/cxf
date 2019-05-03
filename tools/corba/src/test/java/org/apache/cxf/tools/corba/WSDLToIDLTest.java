@@ -41,6 +41,7 @@ import org.apache.cxf.tools.corba.utils.TestUtils;
 
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 public class WSDLToIDLTest extends ToolTestBase {
@@ -304,6 +305,7 @@ public class WSDLToIDLTest extends ToolTestBase {
     }
 
     @Test
+    @Ignore
     public void testMissingBindingName() throws Exception {
         String[] cmdArgs = {"-d", output.getAbsolutePath(),
                             "-i", "BasePortType",

@@ -23,8 +23,10 @@ import java.util.Collections;
 import org.apache.cxf.jaxrs.swagger.Swagger2Feature;
 
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
 
+@Ignore("TESB")
 public class Swagger2CustomPropertiesTest extends AbstractSwagger2ServiceDescriptionTest {
     private static final String PORT = allocatePort(Swagger2CustomPropertiesTest.class);
 
@@ -36,7 +38,7 @@ public class Swagger2CustomPropertiesTest extends AbstractSwagger2ServiceDescrip
         public static void main(String[] args) {
             start(new SwaggerRegular());
         }
-        
+
         protected Swagger2Feature createSwagger2Feature() {
             final Swagger2Feature feature = new Swagger2Feature();
             feature.setRunAsFilter(runAsFilter);

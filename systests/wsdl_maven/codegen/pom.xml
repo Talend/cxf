@@ -7,9 +7,9 @@
   to you under the Apache License, Version 2.0 (the
   "License"); you may not use this file except in compliance
   with the License. You may obtain a copy of the License at
- 
+
   http://www.apache.org/licenses/LICENSE-2.0
- 
+
   Unless required by applicable law or agreed to in writing,
   software distributed under the License is distributed on an
   "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
@@ -34,10 +34,10 @@
             <plugin>
                 <groupId>org.apache.cxf</groupId>
                 <artifactId>cxf-codegen-plugin</artifactId>
-                <version>${project.version}</version>
+                <version>${upstream.version}</version>
                 <executions>
                     <!-- Codegen with default settings.
-                         This test shows some of the defaults that work without configuration.  
+                         This test shows some of the defaults that work without configuration.
                          In this case the wsdl dependency to the service "cxf-systests-java2ws"
                          will be processed.
                          As we have a file named defaultBinding.xml in the classpath
@@ -60,7 +60,7 @@
                     </execution>
                     <execution>
                         <!-- Codegen with default settings.
-                             This test shows some of the defaults that work without configuration.  
+                             This test shows some of the defaults that work without configuration.
                              In this case the wsdl dependency to the service "cxf-systests-java2ws"
                              will be processed.
                              As we have a file named defaultBinding.xml in the classpath
@@ -88,7 +88,7 @@
                                     <wsdlArtifact>
                                         <groupId>org.apache.cxf.systests.wsdl_maven</groupId>
                                         <artifactId>cxf-systests-java2ws</artifactId>
-                                        <version>${project.version}</version>
+                                        <version>${upstream.version}</version>
                                         <classifier>test</classifier>
                                     </wsdlArtifact>
                                 </wsdlOption>
@@ -134,14 +134,14 @@
         <dependency>
             <groupId>org.apache.cxf.systests.wsdl_maven</groupId>
             <artifactId>cxf-systests-java2ws</artifactId>
-            <version>${project.version}</version>
+            <version>${upstream.version}</version>
             <classifier>test</classifier>
             <type>wsdl</type>
         </dependency>
         <dependency>
             <groupId>org.apache.cxf</groupId>
             <artifactId>cxf-rt-frontend-jaxws</artifactId>
-            <version>${project.version}</version>
+            <version>${upstream.version}</version>
         </dependency>
         <dependency>
             <groupId>org.apache.cxf.xjc-utils</groupId>
@@ -151,7 +151,7 @@
         <dependency>
             <groupId>org.apache.cxf.systests.wsdl_maven</groupId>
             <artifactId>cxf-systests-java2ws</artifactId>
-            <version>${project.version}</version>
+            <version>${upstream.version}</version>
         </dependency>
     </dependencies>
 </project>

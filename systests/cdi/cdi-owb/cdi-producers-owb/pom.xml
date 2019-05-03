@@ -30,12 +30,12 @@
     <name>Apache CXF CDI Integration System Tests - OWB with producers</name>
     <description>Apache CXF CDI Integration System Tests - OpenWebBeans with producers</description>
     <url>http://cxf.apache.org</url>
-    
+
     <dependencies>
         <dependency>
              <groupId>org.apache.cxf</groupId>
              <artifactId>cxf-rt-rs-extension-providers</artifactId>
-             <version>${project.version}</version>
+             <version>${upstream.version}</version>
         </dependency>
         <dependency>
              <groupId>org.apache.abdera</groupId>
