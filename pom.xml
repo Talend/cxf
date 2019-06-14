@@ -46,6 +46,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <site.deploy.url>scp://people.apache.org/www/cxf.apache.org/maven-site</site.deploy.url>
         <maven-owasp-plugin-version>4.0.2</maven-owasp-plugin-version>
+        <upstream.version>3.3.1</upstream.version>
     </properties>
     <distributionManagement>
         <repository>
