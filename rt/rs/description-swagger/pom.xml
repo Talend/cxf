@@ -24,6 +24,7 @@
     <name>Apache CXF JAX-RS Service Description Swagger</name>
     <description>Apache CXF JAX-RS Service Description Swagger</description>
     <url>http://cxf.apache.org</url>
+    <version>${revision}</version>
     <parent>
         <groupId>org.apache.cxf</groupId>
         <artifactId>cxf-parent</artifactId>
@@ -31,6 +32,7 @@
         <relativePath>../../../parent/pom.xml</relativePath>
     </parent>
     <properties>
+        <revision>${cxf-rt-rs-service-description-swagger.tesb.version}</revision>
         <cxf.osgi.import>
             javax.servlet*;version="${cxf.osgi.javax.servlet.version}",
             javax.annotation;version="${cxf.osgi.javax.annotation.version}",
@@ -56,7 +58,7 @@
         <dependency>
             <groupId>org.apache.cxf</groupId>
             <artifactId>cxf-rt-rs-service-description-swagger-ui</artifactId>
-            <version>${upstream.version}</version>
+            <version>${cxf-rt-rs-service-description-swagger-ui.tesb.version}</version>
         </dependency>
         <dependency>
             <groupId>io.swagger</groupId>
