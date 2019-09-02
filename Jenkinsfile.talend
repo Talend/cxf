@@ -1,12 +1,12 @@
 def GIT_URL = 'https://github.com/Talend/cxf.git'
 def DEFAULT_BRANCH = 'tesb/cxf-3.2.4.x'
-def DEFAULT_MVN_MODULES = ':cxf-rt-rs-service-description-swagger-ui'
+def DEFAULT_MVN_MODULES = ':cxf-rt-rs-service-description-swagger-ui,:cxf-rt-features-clustering'
 
 pipeline {
 
     agent {
         kubernetes {
-            label 'karaf'
+            label 'cxf'
             yaml """
                 apiVersion: v1
                 kind: Pod
@@ -31,7 +31,7 @@ pipeline {
     options {
         buildDiscarder(logRotator(numToKeepStr: '5'))
         disableConcurrentBuilds()
-        timeout(time: 15, unit: 'MINUTES')
+        timeout(time: 24, unit: 'HOURS')
     }
 
     parameters {
