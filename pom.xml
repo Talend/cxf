@@ -43,6 +43,9 @@
         <cxf-rt-rs-service-description-swagger-ui.tesb.version>3.2.4.tesb1</cxf-rt-rs-service-description-swagger-ui.tesb.version>
         <cxf-rt-rs-service-description-swagger.tesb.version>3.2.4.tesb1</cxf-rt-rs-service-description-swagger.tesb.version>
         <cxf-rt-features-clustering.tesb.version>3.2.4.tesb1</cxf-rt-features-clustering.tesb.version>
+        <jackson-databind.tesb.version>2.9.3</jackson-databind.tesb.version>
+        <activemq-osgi.tesb.version>5.15.2.tesb1</activemq-osgi.tesb.version>
+        <apache-cxf.features.tesb.version>3.2.4.tesb1</apache-cxf.features.tesb.version>
         <cxf.compiler.fork>false</cxf.compiler.fork>
         <cxf.build-utils.version>3.4.0</cxf.build-utils.version>
         <cxf.xjc-utils.version>3.2.1</cxf.xjc-utils.version>

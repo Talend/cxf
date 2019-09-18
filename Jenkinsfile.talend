@@ -1,6 +1,6 @@
 def GIT_URL = 'https://github.com/Talend/cxf.git'
 def DEFAULT_BRANCH = 'tesb/cxf-3.2.4.x'
-def DEFAULT_MVN_MODULES = ':cxf-rt-rs-service-description-swagger-ui,:cxf-rt-rs-service-description-swagger,:cxf-rt-features-clustering'
+def DEFAULT_MVN_MODULES = ':cxf-rt-rs-service-description-swagger-ui,:cxf-rt-rs-service-description-swagger,:cxf-rt-features-clustering,org.apache.cxf.karaf:apache-cxf'
 
 pipeline {
 

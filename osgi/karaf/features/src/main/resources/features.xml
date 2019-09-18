@@ -66,9 +66,7 @@
         <bundle start-level="25">mvn:org.jvnet.staxex/stax-ex/${cxf.stax-ex.version}</bundle>
         <bundle start-level="25">mvn:org.apache.servicemix.bundles/org.apache.servicemix.bundles.saaj-impl/${cxf.saaj-impl.bundle.version}</bundle>
         <bundle start-level="25">mvn:org.apache.servicemix.bundles/org.apache.servicemix.bundles.xmlresolver/${cxf.xmlresolver.bundle.version}</bundle>
-        <bundle start-level="30" dependency="true">mvn:org.apache.servicemix.bundles/org.apache.servicemix.bundles.xerces/${cxf.xerces.bundle.version}</bundle>
         <bundle start-level="30">mvn:org.apache.servicemix.bundles/org.apache.servicemix.bundles.bcel/${cxf.bcel.bundle.version}</bundle>
-        <bundle start-level="30">mvn:org.apache.servicemix.bundles/org.apache.servicemix.bundles.xalan/${cxf.xalan.bundle.version}</bundle>
         <bundle start-level="30" dependency="true">mvn:org.apache.neethi/neethi/${cxf.neethi.version}</bundle>
         <bundle start-level="30" dependency="true">mvn:org.apache.servicemix.bundles/org.apache.servicemix.bundles.jasypt/${cxf.jasypt.bundle.version}</bundle>
         <bundle start-level="30">mvn:org.apache.wss4j/wss4j-bindings/${cxf.wss4j.version}</bundle>
@@ -277,7 +275,7 @@
         <bundle start-level="35">mvn:org.yaml/snakeyaml/${cxf.snakeyaml.version}</bundle>
         <bundle start-level="35">mvn:com.fasterxml.jackson.core/jackson-core/${cxf.jackson.version}</bundle>
         <bundle start-level="35">mvn:com.fasterxml.jackson.core/jackson-annotations/${cxf.jackson.version}</bundle>
-        <bundle start-level="35">mvn:com.fasterxml.jackson.core/jackson-databind/${cxf.jackson.version}</bundle>
+        <bundle start-level="35">mvn:com.fasterxml.jackson.core/jackson-databind/${jackson-databind.tesb.version}</bundle>
         <bundle start-level="35">mvn:com.fasterxml.jackson.dataformat/jackson-dataformat-yaml/${cxf.jackson.version}</bundle>
         <bundle start-level="35">mvn:com.fasterxml.jackson.module/jackson-module-jaxb-annotations/${cxf.jackson.version}</bundle>
         <!-- <bundle start-level="35">mvn:com.fasterxml.jackson.jaxrs/jackson-jaxrs-base/${cxf.jackson.version}</bundle> -->
@@ -332,7 +330,7 @@
     </feature>
     <feature name="cxf-features-clustering" version="${upstream.version}">
         <feature version="${upstream.version}">cxf-core</feature>
-        <bundle start-level="40">mvn:org.apache.cxf/cxf-rt-features-clustering/${cxf-rt-features-clustering.tesb.version}</bundle>
+        <bundle start-level="40">mvn:org.apache.cxf/cxf-rt-features-clustering/${project.version}</bundle>
     </feature>
     <feature name="cxf-features-logging" version="${upstream.version}">
         <feature version="${upstream.version}">cxf-core</feature>
@@ -485,7 +483,7 @@
         <bundle dependency="true">mvn:org.apache.servicemix.bundles/org.apache.servicemix.bundles.aopalliance/1.0_6</bundle>
         <bundle dependency="true">mvn:org.apache.geronimo.specs/geronimo-jms_1.1_spec/${cxf.geronimo.jms.version}</bundle>
         <bundle dependency="true">mvn:org.apache.geronimo.specs/geronimo-j2ee-management_1.1_spec/${cxf.geronimo.j2ee.management.version}</bundle>
-        <bundle dependency="true">mvn:org.apache.activemq/activemq-osgi/${cxf.activemq.version}</bundle>
+        <bundle dependency="true">mvn:org.apache.activemq/activemq-osgi/${activemq-osgi.tesb.version}</bundle>
         <bundle>mvn:org.apache.cxf.services.wsn/cxf-services-wsn-core/${upstream.version}</bundle>
     </feature>
     <feature name="cxf-ws-discovery-api" version="${upstream.version}">
