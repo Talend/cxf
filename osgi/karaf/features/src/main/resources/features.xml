@@ -306,8 +306,8 @@
     <feature name="cxf-rs-description-swagger2" version="${upstream.version}">
         <feature version="${upstream.version}">cxf-jaxrs</feature>
         <feature version="${upstream.version}">cxf-jackson</feature>
-        <bundle start-level="35">mvn:org.apache.cxf/cxf-rt-rs-service-description-swagger-ui/${cxf-rt-rs-service-description-swagger-ui.tesb.version}</bundle>
-        <bundle start-level="40">mvn:org.apache.cxf/cxf-rt-rs-service-description-swagger/${cxf-rt-rs-service-description-swagger.tesb.version}</bundle>
+        <bundle start-level="35">mvn:org.apache.cxf/cxf-rt-rs-service-description-swagger-ui/${upstream.version}/jar/TESB</bundle>
+        <bundle start-level="40">mvn:org.apache.cxf/cxf-rt-rs-service-description-swagger/${upstream.version}/jar/TESB</bundle>
         <bundle start-level="10" dependency="true">mvn:javax.validation/validation-api/${cxf.validation.api.version}</bundle>
         <bundle start-level="35" dependency="true">mvn:org.apache.commons/commons-lang3/${cxf.commons-lang3.version}</bundle>
         <bundle start-level="30" dependency="true">mvn:org.javassist/javassist/${cxf.javassist.version}</bundle>
@@ -330,7 +330,7 @@
     </feature>
     <feature name="cxf-features-clustering" version="${upstream.version}">
         <feature version="${upstream.version}">cxf-core</feature>
-        <bundle start-level="40">mvn:org.apache.cxf/cxf-rt-features-clustering/${project.version}</bundle>
+        <bundle start-level="40">mvn:org.apache.cxf/cxf-rt-features-clustering/${upstream.version}</bundle>
     </feature>
     <feature name="cxf-features-logging" version="${upstream.version}">
         <feature version="${upstream.version}">cxf-core</feature>
