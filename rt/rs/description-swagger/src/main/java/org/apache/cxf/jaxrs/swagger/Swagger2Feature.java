@@ -25,8 +25,10 @@ import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Properties;
 import java.util.Set;
+import java.util.UUID;
 
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletContext;
@@ -113,7 +115,7 @@ public class Swagger2Feature extends AbstractSwaggerFeature implements SwaggerUi
 
         ServerProviderFactory factory =
             (ServerProviderFactory)server.getEndpoint().get(ServerProviderFactory.class.getName());
-        final ApplicationInfo appInfo = DefaultApplicationFactory.createApplicationInfoOrDefault(server, 
+        final ApplicationInfo appInfo = DefaultApplicationFactory.createApplicationInfoOrDefault(server,
             factory, sfb, bus, isScan());
 
         List<Object> swaggerResources = new LinkedList<>();
@@ -409,11 +411,11 @@ public class Swagger2Feature extends AbstractSwaggerFeature implements SwaggerUi
     public void setScan(boolean scan) {
         this.scan = scan;
     }
-    
+
     public void setSwaggerUiConfig(final SwaggerUiConfig swaggerUiConfig) {
         this.swaggerUiConfig = swaggerUiConfig;
     }
-    
+
     @Override
     public SwaggerUiConfig getSwaggerUiConfig() {
         return swaggerUiConfig;
@@ -426,6 +428,8 @@ public class Swagger2Feature extends AbstractSwaggerFeature implements SwaggerUi
 
     private class ServletConfigProvider implements ContextProvider<ServletConfig> {
 
+        private String id = UUID.randomUUID().toString();
+
         @Override
         public ServletConfig createContext(Message message) {
             final ServletConfig sc = (ServletConfig)message.get("HTTP.CONFIG");
@@ -437,10 +441,32 @@ public class Swagger2Feature extends AbstractSwaggerFeature implements SwaggerUi
             if (sc == null) {
                 final ServletContext context = (ServletContext)message.get("HTTP.CONTEXT");
                 if (context != null) {
-                    return new SyntheticServletConfig(context);
+                    return new SyntheticServletConfig(context) {
+                        @Override
+                        public String getInitParameter(String name) {
+                            if (Objects.equals(SwaggerContextService.USE_PATH_BASED_CONFIG, name)) {
+                                return "true";
+                            } else if (SwaggerContextService.CONFIG_ID_KEY.equals(name)) {
+                                return id;
+                            } else {
+                                return super.getInitParameter(name);
+                            }
+                        }
+                    };
                 }
             } else if (sc.getInitParameter(SwaggerContextService.USE_PATH_BASED_CONFIG) == null) {
-                return new DelegatingServletConfig(sc);
+                return new DelegatingServletConfig(sc) {
+                    @Override
+                    public String getInitParameter(String name) {
+                        if (Objects.equals(SwaggerContextService.USE_PATH_BASED_CONFIG, name)) {
+                            return "true";
+                        } else if (SwaggerContextService.CONFIG_ID_KEY.equals(name)) {
+                            return id;
+                        } else {
+                            return super.getInitParameter(name);
+                        }
+                    }
+                };
             }
 
             return sc;

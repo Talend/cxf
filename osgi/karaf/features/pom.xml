@@ -27,6 +27,12 @@
     <packaging>pom</packaging>
     <name>Apache CXF Karaf Features</name>
     <description>Apache CXF Karaf Features</description>
+    <version>${revision}</version>
+
+    <properties>
+        <revision>${apache-cxf.features.tesb.version}</revision>
+    </properties>
+
     <!-- The validate plugin will export these provided dependencies bundles' export packages first -->
     <dependencies>
         <!-- Framework distribution -->
@@ -52,7 +58,7 @@
             <type>xml</type>
             <scope>provided</scope>
         </dependency>
-		
+
 		<dependency>
 	        <groupId>org.apache.cxf.karaf</groupId>
 		    <artifactId>cxf-karaf-commands</artifactId>
