@@ -7,9 +7,9 @@
   to you under the Apache License, Version 2.0 (the
   "License"); you may not use this file except in compliance
   with the License. You may obtain a copy of the License at
- 
+
   http://www.apache.org/licenses/LICENSE-2.0
- 
+
   Unless required by applicable law or agreed to in writing,
   software distributed under the License is distributed on an
   "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
@@ -184,7 +184,7 @@
                         <argument>org.eclipse.osgi-${equinox.version}.jar</argument>
                         <argument>-console</argument>
                     </arguments>
-                    <workingDirectory>${project.build.directory}/delivery/${project.artifactId}-${project.version}-equinox/${project.artifactId}-${project.version}/</workingDirectory>
+                    <workingDirectory>${project.build.directory}/delivery/${project.artifactId}-${upstream.version}-equinox/${project.artifactId}-${upstream.version}/</workingDirectory>
                 </configuration>
             </plugin>
         </plugins>

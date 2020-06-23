@@ -19,3 +19,4 @@ node_modules/
 derby.log
 .pmdruleset.xml
 .sts4-cache/
+.resolved-pom.xml

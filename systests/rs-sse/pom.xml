@@ -31,7 +31,7 @@
     <name>Apache CXF SSE Integration System Tests</name>
     <description>Apache CXF SSE Integration System Tests</description>
     <url>https://cxf.apache.org</url>
-    
+
     <dependencies>
         <dependency>
             <groupId>ch.qos.logback</groupId>
@@ -41,27 +41,27 @@
         <dependency>
             <groupId>org.apache.cxf</groupId>
             <artifactId>cxf-core</artifactId>
-            <version>${project.version}</version>
+            <version>${upstream.version}</version>
         </dependency>
         <dependency>
             <groupId>org.apache.cxf</groupId>
             <artifactId>cxf-rt-transports-http-jetty</artifactId>
-            <version>${project.version}</version>
+            <version>${upstream.version}</version>
         </dependency>
         <dependency>
             <groupId>org.apache.cxf</groupId>
             <artifactId>cxf-rt-frontend-jaxrs</artifactId>
-            <version>${project.version}</version>
+            <version>${upstream.version}</version>
         </dependency>
         <dependency>
             <groupId>org.apache.cxf</groupId>
             <artifactId>cxf-rt-rs-client</artifactId>
-            <version>${project.version}</version>
+            <version>${upstream.version}</version>
         </dependency>
         <dependency>
             <groupId>org.apache.cxf</groupId>
             <artifactId>cxf-rt-rs-sse</artifactId>
-            <version>${project.version}</version>
+            <version>${upstream.version}</version>
         </dependency>
         <dependency>
             <groupId>junit</groupId>
@@ -86,7 +86,7 @@
             <scope>test</scope>
         </dependency>
     </dependencies>
-    
+
     <build>
         <pluginManagement>
             <plugins>
@@ -111,7 +111,7 @@
             </plugins>
         </pluginManagement>
     </build>
-    
+
     <modules>
         <module>rs-sse-base</module>
         <module>rs-sse-tomcat</module>

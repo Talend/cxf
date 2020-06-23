@@ -20,19 +20,19 @@
         <dependency>
             <groupId>org.apache.cxf</groupId>
             <artifactId>cxf-integration-cdi</artifactId>
-            <version>${project.version}</version>
+            <version>${upstream.version}</version>
         </dependency>
 
         <dependency>
             <groupId>org.apache.cxf</groupId>
             <artifactId>cxf-rt-frontend-jaxrs</artifactId>
-            <version>${project.version}</version>
+            <version>${upstream.version}</version>
         </dependency>
 
         <dependency>
             <groupId>org.apache.cxf</groupId>
             <artifactId>cxf-rt-rs-sse</artifactId>
-            <version>${project.version}</version>
+            <version>${upstream.version}</version>
         </dependency>
 
         <dependency>
@@ -83,13 +83,13 @@
             <artifactId>websocket-server</artifactId>
             <version>${cxf.jetty9.version}</version>
         </dependency>
-        
+
         <dependency>
             <groupId>io.reactivex.rxjava2</groupId>
             <artifactId>rxjava</artifactId>
         </dependency>
     </dependencies>
-    
+
     <profiles>
         <profile>
             <id>server</id>

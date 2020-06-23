@@ -62,7 +62,7 @@
             <scope>test</scope>
         </dependency>
 
-        
+
         <!-- Annotation processing -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -77,21 +77,21 @@
         <dependency>
             <groupId>org.apache.cxf</groupId>
             <artifactId>cxf-rt-transports-http</artifactId>
-            <version>${project.version}</version>
+            <version>${upstream.version}</version>
             <optional>true</optional>
         </dependency>
         <dependency>
             <groupId>org.apache.cxf</groupId>
             <artifactId>cxf-rt-frontend-jaxrs</artifactId>
-            <version>${project.version}</version>
+            <version>${upstream.version}</version>
             <optional>true</optional>
         </dependency>
         <dependency>
             <groupId>org.apache.cxf</groupId>
             <artifactId>cxf-rt-rs-service-description-openapi-v3</artifactId>
-            <version>${project.version}</version>
+            <version>${upstream.version}</version>
             <optional>true</optional>
-        </dependency> 
+        </dependency>
         <dependency>
             <groupId>${cxf.servlet-api.group}</groupId>
             <artifactId>${cxf.servlet-api.artifact}</artifactId>

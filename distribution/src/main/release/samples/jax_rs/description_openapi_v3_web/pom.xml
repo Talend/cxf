@@ -20,7 +20,7 @@ under the License.
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <artifactId>jax_rs_description_openapi_v3_web</artifactId>
-    <packaging>war</packaging>    
+    <packaging>war</packaging>
     <name>JAX-RS Open API 3.0 Demo</name>
     <description>JAX-RS Open API 3.0 Basic Demo using Tomcat and WAR-based deployment</description>
     <parent>
@@ -31,7 +31,7 @@ under the License.
     </parent>
 
     <properties>
-        <cxf.version>${project.version}</cxf.version>
+        <cxf.version>${upstream.version}</cxf.version>
     </properties>
 
     <build>
@@ -51,7 +51,7 @@ under the License.
             </plugin>
         </plugins>
     </build>
-    
+
     <dependencies>
         <dependency>
             <groupId>org.webjars</groupId>

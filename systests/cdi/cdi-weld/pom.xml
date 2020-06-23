@@ -30,13 +30,13 @@
     <name>Apache CXF CDI Integration System Tests - Weld</name>
     <description>Apache CXF CDI Integration System Tests - Weld</description>
     <url>https://cxf.apache.org</url>
-	
+
 	<modules>
         <module>cdi-multiple-apps-weld</module>
         <module>cdi-no-apps-weld</module>
         <module>cdi-producers-weld</module>
     </modules>
-    
+
     <dependencies>
         <dependency>
             <groupId>javax.validation</groupId>
@@ -50,7 +50,7 @@
             <groupId>org.jboss.weld.servlet</groupId>
             <artifactId>weld-servlet</artifactId>
             <version>${cxf.jboss.weld.version}</version>
-        </dependency>        
+        </dependency>
         <dependency>
             <groupId>org.jboss.weld</groupId>
             <artifactId>weld-core</artifactId>
@@ -107,7 +107,7 @@
         <dependency>
             <groupId>org.apache.cxf.systests</groupId>
             <artifactId>cxf-systests-cdi-base</artifactId>
-            <version>${project.version}</version>
+            <version>${upstream.version}</version>
         </dependency>
     </dependencies>
 </project>
