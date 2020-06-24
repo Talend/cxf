@@ -1,5 +1,5 @@
 @Library('esb') _
 
 Fork(
-        MVN_MODULES: '<NOTHING YET>'
+        MVN_MODULES: ':cxf-rt-rs-service-description-swagger,org.apache.cxf.karaf:apache-cxf'
 )
