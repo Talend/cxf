@@ -31,6 +31,7 @@
 
     <properties>
         <revision>${apache-cxf.features.tesb.version}</revision>
+        <cxf.jackson.version>2.9.9</cxf.jackson.version>
     </properties>
 
     <!-- The validate plugin will export these provided dependencies bundles' export packages first -->
