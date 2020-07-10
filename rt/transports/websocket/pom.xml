@@ -34,7 +34,7 @@
 <!--
         <cxf.bundle.activator>org.apache.cxf.transport.websocket.osgi.WebSocketTransportActivator</cxf.bundle.activator>
                     org.eclipse.jetty.websocket;version="${cxf.jetty.osgi.version}";resolution:=optional,
-        
+
 -->
         <cxf.module.name>org.apache.cxf.transport.websocket</cxf.module.name>
         <cxf.osgi.import>
@@ -71,17 +71,17 @@
         <dependency>
             <groupId>org.apache.cxf</groupId>
             <artifactId>cxf-core</artifactId>
-            <version>${project.version}</version>
+            <version>${upstream.version}</version>
         </dependency>
         <dependency>
             <groupId>org.apache.cxf</groupId>
             <artifactId>cxf-rt-transports-http</artifactId>
-            <version>${project.version}</version>
+            <version>${upstream.version}</version>
         </dependency>
         <dependency>
             <groupId>org.apache.cxf</groupId>
             <artifactId>cxf-rt-transports-http-jetty</artifactId>
-            <version>${project.version}</version>
+            <version>${upstream.version}</version>
             <exclusions>
                 <exclusion>
                     <groupId>javax.servlet</groupId>
@@ -97,7 +97,7 @@
         <dependency>
             <groupId>org.apache.cxf</groupId>
             <artifactId>cxf-rt-transports-http-undertow</artifactId>
-            <version>${project.version}</version>
+            <version>${upstream.version}</version>
             <optional>true</optional>
         </dependency>
         <dependency>
@@ -170,7 +170,7 @@
             <artifactId>jetty-continuation</artifactId>
             <optional>true</optional>
         </dependency>
-        
+
         <dependency>
             <groupId>org.eclipse.jetty.websocket</groupId>
             <artifactId>websocket-server</artifactId>
@@ -239,13 +239,13 @@
         <dependency>
             <groupId>org.apache.cxf</groupId>
             <artifactId>cxf-testutils</artifactId>
-            <version>${project.version}</version>
+            <version>${upstream.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.apache.cxf</groupId>
             <artifactId>cxf-rt-wsdl</artifactId>
-            <version>${project.version}</version>
+            <version>${upstream.version}</version>
             <scope>test</scope>
         </dependency>
     </dependencies>

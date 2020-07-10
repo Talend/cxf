@@ -39,7 +39,7 @@
             <groupId>org.eclipse.jetty</groupId>
             <artifactId>jetty-annotations</artifactId>
             <version>${cxf.jetty.version}</version>
-        </dependency>    
+        </dependency>
         <dependency>
             <groupId>org.eclipse.jetty</groupId>
             <artifactId>jetty-server</artifactId>
@@ -65,32 +65,32 @@
         <dependency>
             <groupId>org.apache.cxf</groupId>
             <artifactId>cxf-core</artifactId>
-            <version>${project.version}</version>
+            <version>${upstream.version}</version>
         </dependency>
         <dependency>
             <groupId>org.apache.cxf</groupId>
             <artifactId>cxf-rt-transports-http-jetty</artifactId>
-            <version>${project.version}</version>
+            <version>${upstream.version}</version>
         </dependency>
         <dependency>
             <groupId>org.apache.cxf</groupId>
             <artifactId>cxf-rt-frontend-jaxrs</artifactId>
-            <version>${project.version}</version>
+            <version>${upstream.version}</version>
         </dependency>
         <dependency>
             <groupId>org.apache.cxf</groupId>
             <artifactId>cxf-rt-rs-client</artifactId>
-            <version>${project.version}</version>
+            <version>${upstream.version}</version>
         </dependency>
         <dependency>
             <groupId>org.apache.cxf</groupId>
             <artifactId>cxf-rt-rs-http-sci</artifactId>
-            <version>${project.version}</version>
-        </dependency>                
+            <version>${upstream.version}</version>
+        </dependency>
         <dependency>
             <groupId>org.apache.cxf</groupId>
             <artifactId>cxf-testutils</artifactId>
-            <version>${project.version}</version>
+            <version>${upstream.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -112,7 +112,7 @@
             <groupId>org.apache.httpcomponents</groupId>
             <artifactId>httpclient</artifactId>
             <scope>test</scope>
-        </dependency>              
+        </dependency>
         <dependency>
             <groupId>com.ning</groupId>
             <artifactId>async-http-client</artifactId>
