@@ -41,7 +41,7 @@
     <properties>
         <upstream.version>3.3.4</upstream.version>
         <cxf-rt-rs-service-description-swagger.tesb.version>3.3.4.tesb1</cxf-rt-rs-service-description-swagger.tesb.version>
-        <apache-cxf.features.tesb.version>3.3.4.tesb1</apache-cxf.features.tesb.version>
+        <apache-cxf.features.tesb.version>3.3.4.tesb2</apache-cxf.features.tesb.version>
         <cxf.compiler.fork>false</cxf.compiler.fork>
         <cxf.build-utils.version>3.4.3</cxf.build-utils.version>
         <cxf.xjc-utils.version>3.3.0</cxf.xjc-utils.version>
