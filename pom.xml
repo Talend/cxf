@@ -39,7 +39,12 @@
         <url>https://issues.apache.org/jira/browse/CXF</url>
     </issueManagement>
     <properties>
+        <!-- custom versions -->
         <upstream.version>3.2.6</upstream.version>
+        <apache-cxf.features.tesb.version>3.2.6.tesb1</apache-cxf.features.tesb.version>
+        <cxf-core.tesb.version>3.2.6/jar/TESB</cxf-core.tesb.version>
+        <cxf-rt-transports-http.tesb.version>3.2.6/jar/TESB</cxf-rt-transports-http.tesb.version>
+
         <cxf.compiler.fork>false</cxf.compiler.fork>
         <cxf.build-utils.version>3.4.1</cxf.build-utils.version>
         <cxf.xjc-utils.version>3.2.2</cxf.xjc-utils.version>
@@ -425,6 +430,9 @@
                             <!-- something like :
                             <my.custom.property>${my.custom.property}</my.custom.property>
                             -->
+                            <apache-cxf.features.tesb.version>${apache-cxf.features.tesb.version}</apache-cxf.features.tesb.version>
+                            <cxf-core.tesb.version>${cxf-core.tesb.version}</cxf-core.tesb.version>
+                            <cxf-rt-transports-http.tesb.version>${cxf-rt-transports-http.tesb.version}</cxf-rt-transports-http.tesb.version>
                         </properties>
                     </configuration>
                     <executions>

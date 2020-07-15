@@ -67,9 +67,7 @@
         <bundle start-level="25">mvn:org.jvnet.staxex/stax-ex/${cxf.stax-ex.version}</bundle>
         <bundle start-level="25">mvn:org.apache.servicemix.bundles/org.apache.servicemix.bundles.saaj-impl/${cxf.saaj-impl.bundle.version}</bundle>
         <bundle start-level="25">mvn:org.apache.servicemix.bundles/org.apache.servicemix.bundles.xmlresolver/${cxf.xmlresolver.bundle.version}</bundle>
-        <bundle start-level="30" dependency="true">mvn:org.apache.servicemix.bundles/org.apache.servicemix.bundles.xerces/${cxf.xerces.bundle.version}</bundle>
         <bundle start-level="30">mvn:org.apache.servicemix.bundles/org.apache.servicemix.bundles.bcel/${cxf.bcel.bundle.version}</bundle>
-        <bundle start-level="30">mvn:org.apache.servicemix.bundles/org.apache.servicemix.bundles.xalan/${cxf.xalan.bundle.version}</bundle>
         <bundle start-level="30" dependency="true">mvn:org.apache.neethi/neethi/${cxf.neethi.version}</bundle>
         <bundle start-level="30" dependency="true">mvn:org.apache.servicemix.bundles/org.apache.servicemix.bundles.jasypt/${cxf.jasypt.bundle.version}</bundle>
         <bundle start-level="30">mvn:org.apache.wss4j/wss4j-bindings/${cxf.wss4j.version}</bundle>
@@ -84,7 +82,7 @@
         <bundle start-level="30" dependency="true">mvn:org.apache.ws.xmlschema/xmlschema-core/${cxf.xmlschema.version}</bundle>
         <bundle start-level="25" dependency="true">mvn:org.apache.servicemix.bundles/org.apache.servicemix.bundles.xmlresolver/${cxf.xmlresolver.bundle.version}</bundle>
         <bundle start-level="30" dependency="true">mvn:org.apache.servicemix.bundles/org.apache.servicemix.bundles.fastinfoset/${cxf.fastinfoset.bundle.version}</bundle>
-        <bundle start-level="40">mvn:org.apache.cxf/cxf-core/${upstream.version}</bundle>
+        <bundle start-level="40">mvn:org.apache.cxf/cxf-core/${cxf-core.tesb.version}</bundle>
         <bundle start-level="40">mvn:org.apache.cxf/cxf-rt-management/${upstream.version}</bundle>
         <conditional>
             <condition>shell</condition>
@@ -148,13 +146,13 @@
         <!-- Can be used instead cxf-http for a smaller footprint -->
         <feature version="${upstream.version}">cxf-core</feature>
         <bundle start-level="40">mvn:${cxf.servlet-api.group}/${cxf.servlet-api.artifact}/${cxf.servlet-api.version}</bundle>
-        <bundle start-level="40">mvn:org.apache.cxf/cxf-rt-transports-http/${upstream.version}</bundle>
+        <bundle start-level="40">mvn:org.apache.cxf/cxf-rt-transports-http/${cxf-rt-transports-http.tesb.version}</bundle>
     </feature>
 
     <feature name="cxf-http" version="${upstream.version}">
         <feature version="${upstream.version}">cxf-core</feature>
         <feature>http</feature>
-        <bundle start-level="40">mvn:org.apache.cxf/cxf-rt-transports-http/${upstream.version}</bundle>
+        <bundle start-level="40">mvn:org.apache.cxf/cxf-rt-transports-http/${cxf-rt-transports-http.tesb.version}</bundle>
     </feature>
     <!--
       This feature can be used to depend on the feature providing a HttpDestinationFactory extension
