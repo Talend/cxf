@@ -46,8 +46,8 @@
         <cxf-rt-features-clustering.tesb.version>3.2.4.tesb1</cxf-rt-features-clustering.tesb.version>
 
         <jackson-databind.tesb.version>2.9.3</jackson-databind.tesb.version>
-        <activemq-osgi.tesb.version>5.15.2-tesb1</activemq-osgi.tesb.version>
-        <apache-cxf.features.tesb.version>3.2.4.tesb2</apache-cxf.features.tesb.version>
+        <activemq-osgi.tesb.version>5.15.2.tesb1</activemq-osgi.tesb.version>
+        <apache-cxf.features.tesb.version>3.2.4.tesb3</apache-cxf.features.tesb.version>
         <cxf.compiler.fork>false</cxf.compiler.fork>
         <cxf.build-utils.version>3.4.0</cxf.build-utils.version>
         <cxf.xjc-utils.version>3.2.1</cxf.xjc-utils.version>
@@ -421,6 +421,41 @@
         <pluginManagement>
             <plugins>
                 <plugin>
+                    <groupId>io.paradoxical</groupId>
+                    <artifactId>resolved-pom-maven-plugin</artifactId>
+                    <version>1.0</version>
+                    <configuration>
+                        <properties>
+                            <revision>${revision}</revision>
+                            <upstream.version>${upstream.version}</upstream.version>
+
+                            <!-- ADD HERE ALL THE CUSTOM PROPERTIES declared in the above <properties> part -->
+                            <!-- something like :
+                            <my.custom.property>${my.custom.property}</my.custom.property>
+                            -->
+                            <cxf-rt-rs-service-description-swagger-ui.tesb.version>${cxf-rt-rs-service-description-swagger-ui.tesb.version}</cxf-rt-rs-service-description-swagger-ui.tesb.version>
+                            <cxf-rt-rs-service-description-swagger.tesb.version>${cxf-rt-rs-service-description-swagger.tesb.version}</cxf-rt-rs-service-description-swagger.tesb.version>
+                            <cxf-rt-features-clustering.tesb.version>${cxf-rt-features-clustering.tesb.version}</cxf-rt-features-clustering.tesb.version>
+
+                            <jackson-databind.tesb.version>${jackson-databind.tesb.version}</jackson-databind.tesb.version>
+                            <activemq-osgi.tesb.version>${activemq-osgi.tesb.version}</activemq-osgi.tesb.version>
+                            <apache-cxf.features.tesb.version>${apache-cxf.features.tesb.version}</apache-cxf.features.tesb.version>
+                        </properties>
+                    </configuration>
+                    <executions>
+                        <execution>
+                            <id>resolve-my-pom</id>
+                            <phase>initialize</phase>
+                            <goals>
+                                <goal>resolve-pom</goal>
+                            </goals>
+                            <configuration>
+                                <resolvedPomFile>.resolved-pom.xml</resolvedPomFile>
+                            </configuration>
+                        </execution>
+                    </executions>
+                </plugin>
+                <plugin>
                     <groupId>org.codehaus.mojo</groupId>
                     <artifactId>properties-maven-plugin </artifactId>
                     <version>1.0.0</version>
@@ -669,6 +704,10 @@
             </plugins>
         </pluginManagement>
         <plugins>
+            <plugin>
+                <groupId>io.paradoxical</groupId>
+                <artifactId>resolved-pom-maven-plugin</artifactId>
+            </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-enforcer-plugin</artifactId>
