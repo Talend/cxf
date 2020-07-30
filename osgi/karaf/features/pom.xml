@@ -178,11 +178,12 @@
                             <goal>verify</goal>
                         </goals>
                         <configuration>
+                            <skip>true</skip>
                             <descriptors>
                                 <descriptor>mvn:org.apache.karaf.features/framework/${cxf.karaf.version}/xml/features</descriptor>
                                 <descriptor>mvn:org.apache.karaf.features/standard/${cxf.karaf.version}/xml/features</descriptor>
                                 <descriptor>mvn:org.apache.karaf.features/spring/${cxf.karaf.version}/xml/features</descriptor>
-				<descriptor>mvn:org.ops4j.pax.web/pax-web-features/6.0.2/xml/features</descriptor>
+				                <descriptor>mvn:org.ops4j.pax.web/pax-web-features/6.0.2/xml/features</descriptor>
                                 <descriptor>file:${project.build.directory}/classes/features.xml</descriptor>
                             </descriptors>
                             <distribution>org.apache.karaf.features:framework</distribution>
