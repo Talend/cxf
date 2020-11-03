@@ -37,17 +37,17 @@
         <dependency>
             <groupId>org.apache.cxf</groupId>
             <artifactId>cxf-tools-common</artifactId>
-            <version>${project.version}</version>
+            <version>${upstream.version}</version>
         </dependency>
         <dependency>
             <groupId>org.apache.cxf</groupId>
             <artifactId>cxf-tools-validator</artifactId>
-            <version>${project.version}</version>
+            <version>${upstream.version}</version>
         </dependency>
         <dependency>
             <groupId>org.apache.cxf</groupId>
             <artifactId>cxf-tools-wsdlto-core</artifactId>
-            <version>${project.version}</version>
+            <version>${upstream.version}</version>
         </dependency>
         
         <dependency>
@@ -438,7 +438,7 @@
                     <maxmemory>768m</maxmemory>
                     <header>Apache CXF API</header>
                     <footer>Apache CXF API</footer>
-                    <doctitle>Apache CXF ${project.version} API</doctitle>
+                    <doctitle>Apache CXF ${upstream.version} API</doctitle>
                     <notimestamp>true</notimestamp>
                 </configuration>
             </plugin>

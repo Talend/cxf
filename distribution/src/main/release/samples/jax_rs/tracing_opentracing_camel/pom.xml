@@ -30,7 +30,7 @@
     </parent>
     
     <properties>
-        <cxf.version>${project.version}</cxf.version>
+        <cxf.version>${upstream.version}</cxf.version>
         <cxf.camel.version>2.24.0</cxf.camel.version>
     </properties>
     

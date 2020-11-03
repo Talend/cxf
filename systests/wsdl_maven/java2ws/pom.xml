@@ -39,17 +39,17 @@
             <plugin>
                 <groupId>org.apache.cxf</groupId>
                 <artifactId>cxf-java2ws-plugin</artifactId>
-                <version>${project.version}</version>
+                <version>${upstream.version}</version>
                 <dependencies>
                     <dependency>
                         <groupId>org.apache.cxf</groupId>
                         <artifactId>cxf-rt-frontend-jaxws</artifactId>
-                        <version>${project.version}</version>
+                        <version>${upstream.version}</version>
                     </dependency>
                     <dependency>
                         <groupId>org.apache.cxf</groupId>
                         <artifactId>cxf-rt-frontend-simple</artifactId>
-                        <version>${project.version}</version>
+                        <version>${upstream.version}</version>
                     </dependency>
                 </dependencies>
                 <executions>
@@ -130,12 +130,12 @@
         <dependency>
             <groupId>org.apache.cxf</groupId>
             <artifactId>cxf-rt-frontend-jaxws</artifactId>
-            <version>${project.version}</version>
+            <version>${upstream.version}</version>
         </dependency>
         <dependency>
             <groupId>org.apache.cxf</groupId>
             <artifactId>cxf-tools-common</artifactId>
-            <version>${project.version}</version>
+            <version>${upstream.version}</version>
         </dependency>
     </dependencies>
 </project>
