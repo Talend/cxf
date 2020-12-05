@@ -452,6 +452,8 @@
                             <activemq-osgi.tesb.version>${activemq-osgi.tesb.version}</activemq-osgi.tesb.version>
                             <cxf.dom4j.bundle.tesb.version>${cxf.dom4j.bundle.tesb.version}</cxf.dom4j.bundle.tesb.version>
                             <cxf.jackson.tesb.version>${cxf.jackson.tesb.version}</cxf.jackson.tesb.version>
+                            <cxf.joda.time.tesb.version>${cxf.joda.time.tesb.version}</cxf.joda.time.tesb.version>
+                            <cxf.javax.mail.tesb.version>${cxf.javax.mail.tesb.version}</cxf.javax.mail.tesb.version>
                         </properties>
                     </configuration>
                     <executions>
