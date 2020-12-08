@@ -41,11 +41,13 @@
     <properties>
         <upstream.version>3.3.4</upstream.version>
         <cxf-rt-rs-service-description-swagger.tesb.version>3.3.4.tesb1</cxf-rt-rs-service-description-swagger.tesb.version>
-        <apache-cxf.features.tesb.version>3.3.4.tesb2</apache-cxf.features.tesb.version>
+        <apache-cxf.features.tesb.version>3.3.4.tesb3</apache-cxf.features.tesb.version>
 
         <activemq-osgi.tesb.version>5.15.10.tesb1</activemq-osgi.tesb.version>
         <cxf.dom4j.bundle.tesb.version>2.1.3_1</cxf.dom4j.bundle.tesb.version>
         <cxf.jackson.tesb.version>2.10.1</cxf.jackson.tesb.version>
+        <cxf.joda.time.tesb.version>2.10.1</cxf.joda.time.tesb.version>
+        <cxf.javax.mail.tesb.version>1.6.1</cxf.javax.mail.tesb.version>
 
         <cxf.compiler.fork>false</cxf.compiler.fork>
         <cxf.build-utils.version>3.4.3</cxf.build-utils.version>
@@ -450,6 +452,8 @@
                             <activemq-osgi.tesb.version>${activemq-osgi.tesb.version}</activemq-osgi.tesb.version>
                             <cxf.dom4j.bundle.tesb.version>${cxf.dom4j.bundle.tesb.version}</cxf.dom4j.bundle.tesb.version>
                             <cxf.jackson.tesb.version>${cxf.jackson.tesb.version}</cxf.jackson.tesb.version>
+                            <cxf.joda.time.tesb.version>${cxf.joda.time.tesb.version}</cxf.joda.time.tesb.version>
+                            <cxf.javax.mail.tesb.version>${cxf.javax.mail.tesb.version}</cxf.javax.mail.tesb.version>
                         </properties>
                     </configuration>
                     <executions>
