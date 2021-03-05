@@ -48,6 +48,7 @@
         <cxf.jackson.tesb.version>2.11.4</cxf.jackson.tesb.version>
         <cxf.joda.time.tesb.version>2.10.1</cxf.joda.time.tesb.version>
         <cxf.javax.mail.tesb.version>1.6.1</cxf.javax.mail.tesb.version>
+        <cxf.snakeyaml.tesb.version>1.26</cxf.snakeyaml.tesb.version>
 
         <cxf.compiler.fork>false</cxf.compiler.fork>
         <cxf.build-utils.version>3.4.3</cxf.build-utils.version>
@@ -454,6 +455,7 @@
                             <cxf.jackson.tesb.version>${cxf.jackson.tesb.version}</cxf.jackson.tesb.version>
                             <cxf.joda.time.tesb.version>${cxf.joda.time.tesb.version}</cxf.joda.time.tesb.version>
                             <cxf.javax.mail.tesb.version>${cxf.javax.mail.tesb.version}</cxf.javax.mail.tesb.version>
+                            <cxf.snakeyaml.tesb.version>${cxf.snakeyaml.tesb.version}</cxf.snakeyaml.tesb.version>
                         </properties>
                     </configuration>
                     <executions>
