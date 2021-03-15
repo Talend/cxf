@@ -23,8 +23,8 @@
     <artifactId>cxf</artifactId>
     <version>3.3.7</version>
     <name>Apache CXF</name>
-    <description>Apache CXF is an open-source services framework that aids in 
-    the development of services using front-end programming APIs, like JAX-WS 
+    <description>Apache CXF is an open-source services framework that aids in
+    the development of services using front-end programming APIs, like JAX-WS
     and JAX-RS.</description>
     <url>https://cxf.apache.org</url>
     <packaging>pom</packaging>
@@ -40,8 +40,10 @@
     </issueManagement>
     <properties>
         <upstream.version>3.3.7</upstream.version>
-        <apache-cxf.features.tesb.version>3.3.7.tesb1</apache-cxf.features.tesb.version>
+        <apache-cxf.features.tesb.version>3.3.7.tesb2</apache-cxf.features.tesb.version>
         <cxf.dom4j.bundle.tesb.version>2.1.3_1</cxf.dom4j.bundle.tesb.version>
+        <cxf.jackson.tesb.version>2.11.4</cxf.jackson.tesb.version>
+        <cxf.jackson.databind.tesb.version>${cxf.jackson.tesb.version}</cxf.jackson.databind.tesb.version>
 
         <cxf.compiler.fork>false</cxf.compiler.fork>
         <cxf.build-utils.version>3.4.4</cxf.build-utils.version>
@@ -442,6 +444,9 @@
                             -->
                             <apache-cxf.features.tesb.version>${apache-cxf.features.tesb.version}</apache-cxf.features.tesb.version>
                             <cxf.dom4j.bundle.tesb.version>${cxf.dom4j.bundle.tesb.version}</cxf.dom4j.bundle.tesb.version>
+                            <cxf.jackson.tesb.version>${cxf.jackson.tesb.version}</cxf.jackson.tesb.version>
+                            <cxf.jackson.databind.tesb.version>${cxf.jackson.databind.tesb.version}</cxf.jackson.databind.tesb.version>
+
                         </properties>
                     </configuration>
                     <executions>
@@ -536,7 +541,7 @@
                         <maxmem>256M</maxmem>
                         <fork>${cxf.compiler.fork}</fork>
                         <encoding>UTF-8</encoding>
-                        
+
                         <!--compilerId>javac-with-errorprone</compilerId>
                         <forceJavacCompilerUse>true</forceJavacCompilerUse-->
                     </configuration>
