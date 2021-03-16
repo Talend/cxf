@@ -227,7 +227,7 @@
         <cxf.aries.api.version>1.0.1</cxf.aries.api.version>
         <cxf.aries.core.version>1.10.2</cxf.aries.core.version>
         <cxf.aries.fly.version>1.2</cxf.aries.fly.version>
-        <cxf.aries.parser.version>1.6.0</cxf.aries.parser.version> 
+        <cxf.aries.parser.version>1.6.0</cxf.aries.parser.version>
         <cxf.aries.version.range>[1.0,2)</cxf.aries.version.range>
         <cxf.bcel.bundle.version>5.2_4</cxf.bcel.bundle.version>
         <cxf.cglib.osgi.version>[2.2.2,3.3)</cxf.cglib.osgi.version>
@@ -563,7 +563,7 @@
                 <plugin>
                     <groupId>org.bsc.maven</groupId>
                     <artifactId>maven-processor-plugin</artifactId>
-                    <version>3.3.3</version> 
+                    <version>3.3.3</version>
                 </plugin>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
@@ -1266,7 +1266,7 @@
                 <artifactId>cxf-xjc-runtime</artifactId>
                 <version>${cxf.xjc-utils.version}</version>
             </dependency>
-            
+
             <dependency>
                 <groupId>log4j</groupId>
                 <artifactId>log4j</artifactId>
@@ -2761,7 +2761,7 @@
                     <name>ekstazi</name>
                 </property>
             </activation>
-          
+
             <build>
                 <plugins>
                     <plugin>
@@ -2782,7 +2782,7 @@
                             </execution>
                         </executions>
                     </plugin>
-              
+
                     <plugin>
                         <artifactId>maven-surefire-plugin</artifactId>
                         <configuration>

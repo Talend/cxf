@@ -1,15 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
- 
+
       Licensed to the Apache Software Foundation (ASF) under one or more
       contributor license agreements.  See the NOTICE file distributed with
       this work for additional information regarding copyright ownership.
       The ASF licenses this file to You under the Apache License, Version 2.0
       (the "License"); you may not use this file except in compliance with
       the License.  You may obtain a copy of the License at
- 
+
       http://www.apache.org/licenses/LICENSE-2.0
- 
+
       Unless required by applicable law or agreed to in writing, software
       distributed under the License is distributed on an "AS IS" BASIS,
       WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -266,12 +266,12 @@
         <bundle start-level="10" dependency="true">mvn:org.apache.servicemix.specs/org.apache.servicemix.specs.jaxrs-api-2.1/${cxf.servicemix.jaxrs.specs.version}</bundle>
         <bundle start-level="10" dependency="true">mvn:javax.annotation/javax.annotation-api/${cxf.javax.annotation-api.version}</bundle>
         <bundle start-level="35">mvn:org.yaml/snakeyaml/${cxf.snakeyaml.version}</bundle>
-        <bundle start-level="35">mvn:com.fasterxml.jackson.core/jackson-core/${cxf.jackson.version}</bundle>
-        <bundle start-level="35">mvn:com.fasterxml.jackson.core/jackson-annotations/${cxf.jackson.version}</bundle>
-        <bundle start-level="35">mvn:com.fasterxml.jackson.core/jackson-databind/${cxf.jackson.databind.version}</bundle>
-        <bundle start-level="35">mvn:com.fasterxml.jackson.dataformat/jackson-dataformat-yaml/${cxf.jackson.version}</bundle>
-        <bundle start-level="35">mvn:com.fasterxml.jackson.jaxrs/jackson-jaxrs-base/${cxf.jackson.version}</bundle>
-        <bundle start-level="35">mvn:com.fasterxml.jackson.jaxrs/jackson-jaxrs-json-provider/${cxf.jackson.version}</bundle>
+        <bundle start-level="35">mvn:com.fasterxml.jackson.core/jackson-core/${cxf.jackson.tesb.version}</bundle>
+        <bundle start-level="35">mvn:com.fasterxml.jackson.core/jackson-annotations/${cxf.jackson.tesb.version}</bundle>
+        <bundle start-level="35">mvn:com.fasterxml.jackson.core/jackson-databind/${cxf.jackson.databind.tesb.version}</bundle>
+        <bundle start-level="35">mvn:com.fasterxml.jackson.dataformat/jackson-dataformat-yaml/${cxf.jackson.tesb.version}</bundle>
+        <bundle start-level="35">mvn:com.fasterxml.jackson.jaxrs/jackson-jaxrs-base/${cxf.jackson.tesb.version}</bundle>
+        <bundle start-level="35">mvn:com.fasterxml.jackson.jaxrs/jackson-jaxrs-json-provider/${cxf.jackson.tesb.version}</bundle>
     </feature>
     <feature name="cxf-jsr-json" version="${upstream.version}">
         <bundle dependency="true" start-level="30">mvn:org.apache.aries.spifly/org.apache.aries.spifly.dynamic.bundle/${cxf.aries.fly.version}</bundle>
@@ -299,7 +299,7 @@
         <bundle start-level="40">mvn:org.apache.cxf/cxf-rt-rs-service-description-common-openapi/${upstream.version}</bundle>
         <bundle start-level="35">mvn:org.apache.cxf/cxf-rt-rs-service-description-swagger-ui/${upstream.version}</bundle>
         <bundle start-level="40">mvn:org.apache.cxf/cxf-rt-rs-service-description-swagger/${upstream.version}</bundle>
-        <bundle start-level="35" dependency="true">mvn:com.fasterxml.jackson.datatype/jackson-datatype-jsr310/${cxf.jackson.version}</bundle>
+        <bundle start-level="35" dependency="true">mvn:com.fasterxml.jackson.datatype/jackson-datatype-jsr310/${cxf.jackson.tesb.version}</bundle>
         <bundle start-level="10" dependency="true">mvn:javax.validation/validation-api/${cxf.validation.api.version}</bundle>
         <bundle start-level="35" dependency="true">mvn:org.apache.commons/commons-lang3/${cxf.commons-lang3.version}</bundle>
         <bundle start-level="30" dependency="true">mvn:org.javassist/javassist/${cxf.javassist.version}</bundle>
@@ -316,7 +316,7 @@
         <bundle start-level="40">mvn:org.apache.cxf/cxf-rt-rs-service-description-common-openapi/${upstream.version}</bundle>
         <bundle start-level="35">mvn:org.apache.cxf/cxf-rt-rs-service-description-swagger-ui/${upstream.version}</bundle>
         <bundle start-level="40">mvn:org.apache.cxf/cxf-rt-rs-service-description-openapi-v3/${upstream.version}</bundle>
-        <bundle start-level="35" dependency="true">mvn:com.fasterxml.jackson.datatype/jackson-datatype-jsr310/${cxf.jackson.version}</bundle>
+        <bundle start-level="35" dependency="true">mvn:com.fasterxml.jackson.datatype/jackson-datatype-jsr310/${cxf.jackson.tesb.version}</bundle>
         <bundle start-level="35" dependency="true">mvn:${cxf.servlet-api.group}/${cxf.servlet-api.artifact}/${cxf.servlet-api.version}</bundle>
         <bundle start-level="10" dependency="true">mvn:javax.validation/validation-api/${cxf.validation.api.version}</bundle>
         <bundle start-level="35" dependency="true">mvn:org.apache.commons/commons-lang3/${cxf.commons-lang3.version}</bundle>
@@ -547,7 +547,7 @@
 
     <feature name="cxf-bean-validation" version="${upstream.version}">
         <feature version="${upstream.version}">cxf-bean-validation-core</feature>
-        <bundle start-level="30" dependency="true">mvn:org.apache.servicemix.specs/org.apache.servicemix.specs.javax-el-api-3.0.0/${cxf.servicemix.javax.el.version}</bundle> 
+        <bundle start-level="30" dependency="true">mvn:org.apache.servicemix.specs/org.apache.servicemix.specs.javax-el-api-3.0.0/${cxf.servicemix.javax.el.version}</bundle>
         <bundle start-level="30" dependency="true">mvn:org.apache.servicemix.bundles/org.apache.servicemix.bundles.javax-el-impl/${cxf.servicemix.javax.el.version}</bundle>
     </feature>
 
