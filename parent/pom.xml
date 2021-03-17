@@ -2402,7 +2402,7 @@
             <dependency>
                 <groupId>io.swagger</groupId>
                 <artifactId>swagger-jaxrs</artifactId>
-                <version>${cxf.swagger2.version}</version>
+                <version>${cxf.swagger2.tesb.version}</version>
             </dependency>
             <dependency>
                 <groupId>io.swagger.core.v3</groupId>
