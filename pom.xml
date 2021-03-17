@@ -44,6 +44,7 @@
         <cxf.dom4j.bundle.tesb.version>2.1.3_1</cxf.dom4j.bundle.tesb.version>
         <cxf.jackson.tesb.version>2.11.4</cxf.jackson.tesb.version>
         <cxf.jackson.databind.tesb.version>${cxf.jackson.tesb.version}</cxf.jackson.databind.tesb.version>
+        <cxf.swagger2.tesb.version>1.6.2</cxf.swagger2.tesb.version>
 
         <cxf.compiler.fork>false</cxf.compiler.fork>
         <cxf.build-utils.version>3.4.4</cxf.build-utils.version>
@@ -446,7 +447,7 @@
                             <cxf.dom4j.bundle.tesb.version>${cxf.dom4j.bundle.tesb.version}</cxf.dom4j.bundle.tesb.version>
                             <cxf.jackson.tesb.version>${cxf.jackson.tesb.version}</cxf.jackson.tesb.version>
                             <cxf.jackson.databind.tesb.version>${cxf.jackson.databind.tesb.version}</cxf.jackson.databind.tesb.version>
-
+                            <cxf.swagger2.tesb.version>${cxf.swagger2.tesb.version}</cxf.swagger2.tesb.version>
                         </properties>
                     </configuration>
                     <executions>
