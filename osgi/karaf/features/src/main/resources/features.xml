@@ -30,7 +30,8 @@
         <bundle start-level="10" dependency="true">mvn:org.apache.servicemix.specs/org.apache.servicemix.specs.jaxws-api-2.2/${cxf.servicemix.specs.version}</bundle>
         <!-- <bundle start-level="10" dependency="true">mvn:org.apache.servicemix.specs/org.apache.servicemix.specs.saaj-api-1.3/${cxf.servicemix.specs.version}</bundle> -->
         <bundle start-level="10" dependency="true">mvn:org.apache.servicemix.specs/org.apache.servicemix.specs.jaxrs-api-2.1/${cxf.servicemix.jaxrs.specs.version}</bundle>
-        <bundle start-level="10" dependency="true">mvn:javax.mail/mail/${cxf.javax.mail.version}</bundle>
+        <!-- <bundle start-level="10" dependency="true">mvn:javax.mail/mail/${cxf.javax.mail.version}</bundle> -->
+        <bundle start-level="10" dependency="true">mvn:com.sun.mail/javax.mail/${cxf.javax.mail.tesb.version}</bundle>
         <bundle start-level="20">mvn:org.codehaus.woodstox/stax2-api/${cxf.woodstox.stax2-api.version}</bundle>
         <bundle start-level="20">mvn:com.fasterxml.woodstox/woodstox-core/${cxf.woodstox.core.version}</bundle>
         <!-- <bundle start-level="20">mvn:org.apache.servicemix.bundles/org.apache.servicemix.bundles.jaxb-runtime/${cxf.jaxb.bundle.version}</bundle> -->
@@ -60,7 +61,7 @@
     </feature>
     <feature name="wss4j" version="${cxf.wss4j.version}">
         <feature version="${upstream.version}">cxf-specs</feature>
-        <bundle start-level="25" dependency="true">mvn:joda-time/joda-time/${cxf.joda.time.version}</bundle>
+        <bundle start-level="25" dependency="true">mvn:joda-time/joda-time/${cxf.joda.time.tesb.version}</bundle>
         <bundle start-level="25" dependency="true">mvn:commons-codec/commons-codec/${cxf.commons-codec.version}</bundle>
         <bundle start-level="25" dependency="true">mvn:org.apache.santuario/xmlsec/${cxf.xmlsec.bundle.version}</bundle>
         <bundle start-level="25" dependency="true">mvn:com.google.guava/guava/${cxf.guava.version}</bundle>
@@ -313,7 +314,7 @@
         <feature version="${upstream.version}">cxf-jackson</feature>
         <bundle start-level="40">mvn:org.apache.cxf/cxf-rt-rs-service-description-common-openapi/${upstream.version}</bundle>
         <bundle start-level="35">mvn:org.apache.cxf/cxf-rt-rs-service-description-swagger-ui/${upstream.version}</bundle>
-        <bundle start-level="40">mvn:org.apache.cxf/cxf-rt-rs-service-description-swagger/${upstream.version}</bundle>
+        <bundle start-level="40">mvn:org.apache.cxf/cxf-rt-rs-service-description-swagger/${cxf-rt-rs-service-description-swagger.tesb.version}</bundle>
         <bundle start-level="35" dependency="true">mvn:com.fasterxml.jackson.datatype/jackson-datatype-jsr310/${cxf.jackson.tesb.version}</bundle>
         <bundle start-level="10" dependency="true">mvn:javax.validation/validation-api/${cxf.validation.api.version}</bundle>
         <bundle start-level="35" dependency="true">mvn:org.apache.commons/commons-lang3/${cxf.commons-lang3.version}</bundle>
