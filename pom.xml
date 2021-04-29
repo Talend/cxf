@@ -48,6 +48,7 @@
         <cxf.swagger2.tesb.version>1.6.2</cxf.swagger2.tesb.version>
         <cxf.joda.time.tesb.version>2.10.1</cxf.joda.time.tesb.version>
         <cxf.javax.mail.tesb.version>1.6.1</cxf.javax.mail.tesb.version>
+        <cxf.activemq.tesb.version>5.15.15</cxf.activemq.tesb.version>
 
         <cxf.compiler.fork>false</cxf.compiler.fork>
         <cxf.build-utils.version>3.4.4</cxf.build-utils.version>
@@ -454,6 +455,7 @@
                             <cxf.swagger2.tesb.version>${cxf.swagger2.tesb.version}</cxf.swagger2.tesb.version>
                             <cxf.joda.time.tesb.version>${cxf.joda.time.tesb.version}</cxf.joda.time.tesb.version>
                             <cxf.javax.mail.tesb.version>${cxf.javax.mail.tesb.version}</cxf.javax.mail.tesb.version>
+                            <cxf.activemq.tesb.version>${cxf.activemq.tesb.version>}</cxf.activemq.tesb.version>
                         </properties>
                     </configuration>
                     <executions>
