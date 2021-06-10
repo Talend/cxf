@@ -29,16 +29,19 @@
     <url>https://cxf.apache.org</url>
     <packaging>pom</packaging>
     <scm>
-        <connection>scm:git:https://gitbox.apache.org/repos/asf/cxf.git</connection>
-        <developerConnection>scm:git:https://gitbox.apache.org/repos/asf/cxf.git</developerConnection>
-        <url>https://gitbox.apache.org/repos/asf?p=cxf.git;a=summary</url>
-        <tag>cxf-3.3.11</tag>
+        <connection>scm:git:https://github.com/Talend/cxf.git</connection>
+        <developerConnection>scm:git:https://github.com/Talend/cxf.git</developerConnection>
+        <url>https://github.Com/Talend/cxf</url>
+        <tag>HEAD</tag>
     </scm>
     <issueManagement>
         <system>jira</system>
         <url>https://issues.apache.org/jira/browse/CXF</url>
     </issueManagement>
     <properties>
+        <upstream.version>3.3.11</upstream.version>
+        <apache-cxf.features.tesb.version>3.3.11.tesb1</apache-cxf.features.tesb.version>
+
         <cxf.compiler.fork>false</cxf.compiler.fork>
         <cxf.build-utils.version>3.4.4</cxf.build-utils.version>
         <cxf.xjc-utils.version>3.3.1</cxf.xjc-utils.version>
@@ -628,7 +631,7 @@
                         <dependencyDetailsEnabled>false</dependencyDetailsEnabled>
                         <dependencyLocationsEnabled>false</dependencyLocationsEnabled>
                         <stagingRepositoryId>apache.cxf.site</stagingRepositoryId>
-                        <stagingSiteURL>scp://people.apache.org/www/cxf.apache.org/maven-site-${project.version}</stagingSiteURL>
+                        <stagingSiteURL>scp://people.apache.org/www/cxf.apache.org/maven-site-${upstream.version}</stagingSiteURL>
                     </configuration>
                 </plugin>
                 <!--This plugin's configuration is used to store Eclipse m2e settings only. It has no influence on the Maven build itself.-->

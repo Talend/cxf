@@ -50,12 +50,12 @@
         <dependency>
             <groupId>org.apache.cxf</groupId>
             <artifactId>cxf-core</artifactId>
-            <version>${project.version}</version>
+            <version>${upstream.version}</version>
         </dependency>
         <dependency>
             <groupId>org.apache.cxf</groupId>
             <artifactId>cxf-rt-wsdl</artifactId>
-            <version>${project.version}</version>
+            <version>${upstream.version}</version>
         </dependency>
         <dependency>
             <groupId>org.apache.activemq</groupId>
@@ -156,7 +156,7 @@
             <plugin>
                 <groupId>org.apache.cxf</groupId>
                 <artifactId>cxf-wsdl-validator-plugin</artifactId>
-                <version>${project.version}</version>
+                <version>${upstream.version}</version>
                 <configuration>
                     <wsdlRoot>${basedir}/src/main/resources/wsdl</wsdlRoot>
                 </configuration>
@@ -173,7 +173,7 @@
             <plugin>
                 <groupId>org.apache.cxf</groupId>
                 <artifactId>cxf-codegen-plugin</artifactId>
-                <version>${project.version}</version>
+                <version>${upstream.version}</version>
                 <dependencies>
                     <dependency>
                         <groupId>org.apache.cxf.xjcplugins</groupId>
