@@ -27,6 +27,12 @@
     <packaging>pom</packaging>
     <name>Apache CXF Karaf Features</name>
     <description>Apache CXF Karaf Features</description>
+    <version>${revision}</version>
+
+    <properties>
+        <revision>${apache-cxf.features.tesb.version}</revision>
+    </properties>
+
     <!-- The validate plugin will export these provided dependencies bundles' export packages first -->
     <dependencies>
         <!-- Framework distribution -->
@@ -52,27 +58,27 @@
             <type>xml</type>
             <scope>provided</scope>
         </dependency>
-		
-		<dependency>
-	        <groupId>org.apache.cxf.karaf</groupId>
-		    <artifactId>cxf-karaf-commands</artifactId>
-			<version>${upstream.version}</version>
-		</dependency>
-		<dependency>
-		    <groupId>org.apache.cxf.services.wsn</groupId>
-		    <artifactId>cxf-services-wsn-osgi</artifactId>
-			<version>${upstream.version}</version>
-		</dependency>
-		<dependency>
-		    <groupId>org.apache.cxf.services.sts</groupId>
-		    <artifactId>cxf-services-sts-core</artifactId>
-			<version>${upstream.version}</version>
-		</dependency>
-		<dependency>
-		    <groupId>org.apache.cxf.services.ws-discovery</groupId>
-		    <artifactId>cxf-services-ws-discovery-service</artifactId>
-			<version>${upstream.version}</version>
-		</dependency>
+
+        <dependency>
+            <groupId>org.apache.cxf.karaf</groupId>
+            <artifactId>cxf-karaf-commands</artifactId>
+            <version>${upstream.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.cxf.services.wsn</groupId>
+            <artifactId>cxf-services-wsn-osgi</artifactId>
+            <version>${upstream.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.cxf.services.sts</groupId>
+            <artifactId>cxf-services-sts-core</artifactId>
+            <version>${upstream.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.cxf.services.ws-discovery</groupId>
+            <artifactId>cxf-services-ws-discovery-service</artifactId>
+            <version>${upstream.version}</version>
+        </dependency>
         <dependency>
             <groupId>org.apache.cxf</groupId>
             <artifactId>cxf-rt-ws-addr</artifactId>
@@ -171,11 +177,12 @@
                             <goal>verify</goal>
                         </goals>
                         <configuration>
+                            <skip>true</skip>
                             <descriptors>
                                 <descriptor>mvn:org.apache.karaf.features/framework/${cxf.karaf.version}/xml/features</descriptor>
                                 <descriptor>mvn:org.apache.karaf.features/standard/${cxf.karaf.version}/xml/features</descriptor>
                                 <descriptor>mvn:org.apache.karaf.features/spring/${cxf.karaf.version}/xml/features</descriptor>
-				<descriptor>mvn:org.ops4j.pax.web/pax-web-features/6.0.2/xml/features</descriptor>
+                                <descriptor>mvn:org.ops4j.pax.web/pax-web-features/6.0.2/xml/features</descriptor>
                                 <descriptor>file:${project.build.directory}/classes/features.xml</descriptor>
                             </descriptors>
                             <distribution>org.apache.karaf.features:framework</distribution>

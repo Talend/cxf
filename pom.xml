@@ -41,6 +41,15 @@
     <properties>
         <upstream.version>3.3.11</upstream.version>
         <apache-cxf.features.tesb.version>3.3.11.tesb1</apache-cxf.features.tesb.version>
+        <cxf-services-xkms-features.tesb.version>3.3.11.tesb1</cxf-services-xkms-features.tesb.version>
+        <cxf-rt-rs-service-description-swagger.tesb.version>3.3.11.tesb1</cxf-rt-rs-service-description-swagger.tesb.version>
+        <cxf.jackson.tesb.version>2.11.4</cxf.jackson.tesb.version>
+        <cxf.jackson.databind.tesb.version>${cxf.jackson.tesb.version}</cxf.jackson.databind.tesb.version>
+        <cxf.swagger2.tesb.version>1.6.2</cxf.swagger2.tesb.version>
+        <cxf.joda.time.tesb.version>2.10.1</cxf.joda.time.tesb.version>
+        <cxf.javax.mail.tesb.version>1.6.1</cxf.javax.mail.tesb.version>
+        <cxf.activemq.tesb.version>5.15.15</cxf.activemq.tesb.version>
+        <cxf.aries.fly.tesb.version>1.2.3</cxf.aries.fly.tesb.version>
 
         <cxf.compiler.fork>false</cxf.compiler.fork>
         <cxf.build-utils.version>3.4.4</cxf.build-utils.version>
@@ -427,6 +436,44 @@
         <pluginManagement>
             <plugins>
                 <plugin>
+                    <groupId>io.paradoxical</groupId>
+                    <artifactId>resolved-pom-maven-plugin</artifactId>
+                    <version>1.0</version>
+                    <configuration>
+                        <properties>
+                            <revision>${revision}</revision>
+                            <upstream.version>${upstream.version}</upstream.version>
+
+                            <!-- ADD HERE ALL THE CUSTOM PROPERTIES declared in the above <properties> part -->
+                            <!-- something like :
+                            <my.custom.property>${my.custom.property}</my.custom.property>
+                            -->
+                            <apache-cxf.features.tesb.version>${apache-cxf.features.tesb.version}</apache-cxf.features.tesb.version>
+                            <cxf-services-xkms-features.tesb.version>${cxf-services-xkms-features.tesb.version}</cxf-services-xkms-features.tesb.version>
+                            <cxf-rt-rs-service-description-swagger.tesb.version>${cxf-rt-rs-service-description-swagger.tesb.version}</cxf-rt-rs-service-description-swagger.tesb.version>
+                            <cxf.jackson.tesb.version>${cxf.jackson.tesb.version}</cxf.jackson.tesb.version>
+                            <cxf.jackson.databind.tesb.version>${cxf.jackson.databind.tesb.version}</cxf.jackson.databind.tesb.version>
+                            <cxf.swagger2.tesb.version>${cxf.swagger2.tesb.version}</cxf.swagger2.tesb.version>
+                            <cxf.joda.time.tesb.version>${cxf.joda.time.tesb.version}</cxf.joda.time.tesb.version>
+                            <cxf.javax.mail.tesb.version>${cxf.javax.mail.tesb.version}</cxf.javax.mail.tesb.version>
+                            <cxf.activemq.tesb.version>${cxf.activemq.tesb.version>}</cxf.activemq.tesb.version>
+                            <cxf.aries.fly.tesb.version>${cxf.aries.fly.tesb.version>}</cxf.aries.fly.tesb.version>
+                        </properties>
+                    </configuration>
+                    <executions>
+                        <execution>
+                            <id>resolve-my-pom</id>
+                            <phase>initialize</phase>
+                            <goals>
+                                <goal>resolve-pom</goal>
+                            </goals>
+                            <configuration>
+                                <resolvedPomFile>.resolved-pom.xml</resolvedPomFile>
+                            </configuration>
+                        </execution>
+                    </executions>
+                </plugin>
+                <plugin>
                     <groupId>org.codehaus.mojo</groupId>
                     <artifactId>properties-maven-plugin </artifactId>
                     <version>1.0.0</version>
@@ -505,7 +552,7 @@
                         <maxmem>256M</maxmem>
                         <fork>${cxf.compiler.fork}</fork>
                         <encoding>UTF-8</encoding>
-                        
+
                         <!--compilerId>javac-with-errorprone</compilerId>
                         <forceJavacCompilerUse>true</forceJavacCompilerUse-->
                     </configuration>
@@ -704,6 +751,10 @@
             </plugins>
         </pluginManagement>
         <plugins>
+            <plugin>
+                <groupId>io.paradoxical</groupId>
+                <artifactId>resolved-pom-maven-plugin</artifactId>
+            </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-enforcer-plugin</artifactId>
