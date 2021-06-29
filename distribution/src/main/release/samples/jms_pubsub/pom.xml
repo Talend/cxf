@@ -29,7 +29,7 @@
     </parent>
     <properties>
         <cxf.artemis.version>2.10.1</cxf.artemis.version>
-        <cxf.version>${project.version}</cxf.version>
+        <cxf.version>${upstream.version}</cxf.version>
         <wsdl.file>${basedir}/src/main/config/jms_greeter.wsdl</wsdl.file>
     </properties>
     <build>
