@@ -255,7 +255,9 @@ public class JAXRSServerFactoryBean extends AbstractJAXRSFactoryBean {
     protected void applyBusFeatures(final Bus bus) {
         if (bus.getFeatures() != null) {
             for (Feature feature : bus.getFeatures()) {
-                feature.initialize(server, bus);
+                if (feature != null) {
+                    feature.initialize(server, bus);
+                }
             }
         }
     }
@@ -263,7 +265,9 @@ public class JAXRSServerFactoryBean extends AbstractJAXRSFactoryBean {
     protected void applyFeatures() {
         if (getFeatures() != null) {
             for (Feature feature : getFeatures()) {
-                feature.initialize(server, getBus());
+                if (feature != null) {
+                    feature.initialize(server, getBus());
+                }
             }
         }
     }

@@ -41,7 +41,8 @@
     <properties>
         <!-- custom versions -->
         <upstream.version>3.2.6</upstream.version>
-        <apache-cxf.features.tesb.version>3.2.6.tesb1</apache-cxf.features.tesb.version>
+        <apache-cxf.features.tesb.version>3.2.6.tesb2</apache-cxf.features.tesb.version>
+        <cxf-rt-frontend-jaxrs.tesb.version>3.2.6.tesb1</cxf-rt-frontend-jaxrs.tesb.version>
         <cxf-core.tesb.version>3.2.6/jar/TESB</cxf-core.tesb.version>
         <cxf-rt-transports-http.tesb.version>3.2.6/jar/TESB</cxf-rt-transports-http.tesb.version>
 
@@ -431,6 +432,7 @@
                             <my.custom.property>${my.custom.property}</my.custom.property>
                             -->
                             <apache-cxf.features.tesb.version>${apache-cxf.features.tesb.version}</apache-cxf.features.tesb.version>
+                            <cxf-rt-frontend-jaxrs.tesb.version>${cxf-rt-frontend-jaxrs.tesb.version}</cxf-rt-frontend-jaxrs.tesb.version>
                             <cxf-core.tesb.version>${cxf-core.tesb.version}</cxf-core.tesb.version>
                             <cxf-rt-transports-http.tesb.version>${cxf-rt-transports-http.tesb.version}</cxf-rt-transports-http.tesb.version>
                         </properties>
