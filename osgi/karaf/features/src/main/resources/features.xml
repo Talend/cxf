@@ -30,8 +30,8 @@
         <bundle start-level="10" dependency="true">mvn:org.apache.servicemix.specs/org.apache.servicemix.specs.jaxrs-api-2.1/${cxf.servicemix.jaxrs.specs.version}</bundle>
         <bundle start-level="10" dependency="true">mvn:org.apache.servicemix.specs/org.apache.servicemix.specs.saaj-api-1.4/1.4_1</bundle>
         <bundle start-level="10" dependency="true">mvn:jakarta.jws/jakarta.jws-api/1.1.1</bundle>
-        <bundle start-level="10" dependency="true">mvn:jakarta.mail/jakarta.mail-api/${cxf.jakarta.mail.version}</bundle>
-        <bundle start-level="20">mvn:org.codehaus.woodstox/stax2-api/${cxf.woodstox.stax2-api.version}</bundle>
+        <bundle start-level="10" dependency="true">mvn:com.sun.mail/jakarta.mail/${cxf.jakarta.mail.tesb.version}</bundle>
+        <bundle start-level="20" dependency="true">mvn:org.codehaus.woodstox/stax2-api/${cxf.woodstox.stax2-api.version}</bundle>
         <bundle start-level="20">mvn:com.fasterxml.woodstox/woodstox-core/${cxf.woodstox.core.version}</bundle>
         <bundle start-level="20">mvn:org.apache.servicemix.bundles/org.apache.servicemix.bundles.jaxb-runtime/${cxf.jaxb.bundle.version}</bundle>
         <bundle start-level="20">mvn:org.apache.servicemix.bundles/org.apache.servicemix.bundles.jaxb-xjc/${cxf.jaxb.bundle.version}</bundle>
@@ -139,7 +139,7 @@
         <feature version="${upstream.version}">cxf-ws-addr</feature>
         <bundle dependency="true">mvn:org.apache.geronimo.specs/geronimo-jta_1.1_spec/${cxf.geronimo.jta.version}</bundle>
         <bundle start-level="40" dependency="true">wrap:mvn:org.ehcache/ehcache/${cxf.ehcache3.version}$overwrite=merge&amp;Import-Package=javax.xml.bind*,*;resolution:=optional</bundle>
-        <bundle start-level="40">mvn:org.apache.cxf/cxf-rt-ws-security/${upstream.version}</bundle>
+        <bundle start-level="40">mvn:org.apache.cxf/cxf-rt-ws-security/${cxf-rt-ws-security.tesb.version}</bundle>
     </feature>
     <feature name="cxf-rt-security" version="${upstream.version}">
         <feature version="${upstream.version}">cxf-core</feature>
