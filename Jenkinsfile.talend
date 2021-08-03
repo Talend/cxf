@@ -1,0 +1,5 @@
+@Library('esb') _
+
+Fork(
+        MVN_MODULES: ':cxf-services-wsn-core,:cxf-rt-ws-security,:apache-cxf'
+)
