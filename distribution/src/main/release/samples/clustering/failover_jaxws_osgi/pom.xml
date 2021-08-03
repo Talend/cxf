@@ -31,7 +31,7 @@ under the License.
     </parent>
 
     <properties>
-        <cxf.version>${project.version}</cxf.version>
+        <cxf.version>${upstream.version}</cxf.version>
     </properties>
 
     <build>

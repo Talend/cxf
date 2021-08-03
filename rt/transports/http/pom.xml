@@ -88,19 +88,19 @@
         <dependency>
             <groupId>org.apache.cxf</groupId>
             <artifactId>cxf-core</artifactId>
-            <version>${project.version}</version>
+            <version>${upstream.version}</version>
         </dependency>
         <dependency>
             <groupId>org.apache.cxf</groupId>
             <artifactId>cxf-rt-wsdl</artifactId>
-            <version>${project.version}</version>
+            <version>${upstream.version}</version>
             <scope>provided</scope>
             <optional>true</optional>
         </dependency>
         <dependency>
             <groupId>org.apache.cxf</groupId>
             <artifactId>cxf-rt-ws-policy</artifactId>
-            <version>${project.version}</version>
+            <version>${upstream.version}</version>
             <scope>provided</scope>
             <optional>true</optional>
         </dependency>
@@ -199,7 +199,7 @@
                         </goals>
                         <configuration>
                             <versions>
-                                <cxf.osgi.version.clean>${project.version}</cxf.osgi.version.clean>
+                                <cxf.osgi.version.clean>${upstream.version}</cxf.osgi.version.clean>
                             </versions>
                         </configuration>
                     </execution>
