@@ -25,6 +25,7 @@
     <name>Apache CXF WSN Core</name>
     <description>Apache CXF WSN Core Service</description>
     <url>https://cxf.apache.org</url>
+    <version>${revision}</version>
     <parent>
         <groupId>org.apache.cxf</groupId>
         <artifactId>cxf-parent</artifactId>
@@ -32,6 +33,7 @@
         <relativePath>../../../parent/pom.xml</relativePath>
     </parent>
     <properties>
+        <revision>${cxf-services-wsn-core.tesb.version}</revision>
         <cxf.module.name>org.apache.cxf.wsn.core</cxf.module.name>
         <cxf.server.launcher.vmargs />
         <cxf.surefire.enable.assertions>false</cxf.surefire.enable.assertions>
@@ -131,6 +133,7 @@
                             org.apache.cxf.services.wsn.cxf-services-wsn-api
                         </Require-Bundle>
                         <Import-Package>
+                            javax.jms;version="[1.1,3)",
                             org.apache.cxf.wsn.util.*;version=${cxf.osgi.version.clean},
                             !org.apache.cxf.wsn*,
                             javax.xml.bind*;version="${cxf.osgi.javax.bind.version}",
