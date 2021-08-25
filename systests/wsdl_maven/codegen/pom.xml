@@ -39,7 +39,7 @@
             <plugin>
                 <groupId>org.apache.cxf</groupId>
                 <artifactId>cxf-codegen-plugin</artifactId>
-                <version>${project.version}</version>
+                <version>${upstream.version}</version>
                 <executions>
                     <!-- Codegen with default settings.
                          This test shows some of the defaults that work without configuration.  
@@ -93,7 +93,7 @@
                                     <wsdlArtifact>
                                         <groupId>org.apache.cxf.systests.wsdl_maven</groupId>
                                         <artifactId>cxf-systests-java2ws</artifactId>
-                                        <version>${project.version}</version>
+                                        <version>${upstream.version}</version>
                                         <classifier>test</classifier>
                                         <type>HelloWorld.wsdl</type>
                                     </wsdlArtifact>
@@ -140,14 +140,14 @@
         <dependency>
             <groupId>org.apache.cxf.systests.wsdl_maven</groupId>
             <artifactId>cxf-systests-java2ws</artifactId>
-            <version>${project.version}</version>
+            <version>${upstream.version}</version>
             <classifier>test</classifier>
             <type>HelloWorld.wsdl</type>
         </dependency>
         <dependency>
             <groupId>org.apache.cxf</groupId>
             <artifactId>cxf-rt-frontend-jaxws</artifactId>
-            <version>${project.version}</version>
+            <version>${upstream.version}</version>
         </dependency>
         <dependency>
             <groupId>org.apache.cxf.xjc-utils</groupId>
@@ -157,7 +157,7 @@
         <dependency>
             <groupId>org.apache.cxf.systests.wsdl_maven</groupId>
             <artifactId>cxf-systests-java2ws</artifactId>
-            <version>${project.version}</version>
+            <version>${upstream.version}</version>
         </dependency>
     </dependencies>
 </project>
