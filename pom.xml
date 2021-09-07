@@ -41,11 +41,11 @@
     <properties>
         <upstream.version>3.4.4</upstream.version>
         <apache-cxf.features.tesb.version>3.4.4.tesb1</apache-cxf.features.tesb.version>
-        <cxf-services-wsn-core.tesb.version>3.4.4.tesb1</cxf-services-wsn-core.tesb.version>
         <cxf-rt-ws-security.tesb.version>3.4.4.tesb1</cxf-rt-ws-security.tesb.version>
-        <cxf.geronimo.jms2.version>1.0-alpha-2</cxf.geronimo.jms2.version>
-        <cxf.jakarta.mail.tesb.version>1.6.6</cxf.jakarta.mail.tesb.version>
-
+        <cxf-services-wsn-core.tesb.version>3.4.4.tesb1</cxf-services-wsn-core.tesb.version>
+        <cxf.jakarta.mail.version.tesb.version>1.6.6</cxf.jakarta.mail.version.tesb.version>
+        <cxf.geronimo.jms2.tesb.version>1.0-alpha-2</cxf.geronimo.jms2.tesb.version>
+        
         <cxf.compiler.fork>false</cxf.compiler.fork>
         <cxf.build-utils.version>3.4.4</cxf.build-utils.version>
         <cxf.xjc-utils.version>3.3.1</cxf.xjc-utils.version>
@@ -445,10 +445,9 @@
                             <my.custom.property>${my.custom.property}</my.custom.property>
                             -->
                             <apache-cxf.features.tesb.version>${apache-cxf.features.tesb.version}</apache-cxf.features.tesb.version>
-                            <cxf-services-wsn-core.tesb.version>${cxf-services-wsn-core.tesb.version}</cxf-services-wsn-core.tesb.version>
                             <cxf-rt-ws-security.tesb.version>${cxf-rt-ws-security.tesb.version}</cxf-rt-ws-security.tesb.version>
-                            <cxf.geronimo.jms2.version>${cxf.geronimo.jms2.version}</cxf.geronimo.jms2.version>
-                            <cxf.jakarta.mail.tesb.version>${cxf.jakarta.mail.tesb.version}</cxf.jakarta.mail.tesb.version>
+                            <cxf.jakarta.mail.version.tesb.version>${cxf.jakarta.mail.version.tesb.version}</cxf.jakarta.mail.version.tesb.version>
+                            <cxf.geronimo.jms2.tesb.version>${cxf.geronimo.jms2.tesb.version}</cxf.geronimo.jms2.tesb.version>
                         </properties>
                     </configuration>
                     <executions>
@@ -730,6 +729,10 @@
         </pluginManagement>
         <plugins>
             <plugin>
+                <groupId>io.paradoxical</groupId>
+                <artifactId>resolved-pom-maven-plugin</artifactId>
+            </plugin>
+            <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-enforcer-plugin</artifactId>
                 <executions>
@@ -740,10 +743,6 @@
                         </goals>
                     </execution>
                 </executions>
-            </plugin>
-            <plugin>
-                <groupId>io.paradoxical</groupId>
-                <artifactId>resolved-pom-maven-plugin</artifactId>
             </plugin>
         </plugins>
     </build>
