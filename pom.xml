@@ -40,7 +40,7 @@
     </issueManagement>
     <properties>
         <upstream.version>3.3.11</upstream.version>
-        <apache-cxf.features.tesb.version>3.3.11.tesb1</apache-cxf.features.tesb.version>
+        <apache-cxf.features.tesb.version>3.3.11.tesb2</apache-cxf.features.tesb.version>
         <cxf-services-xkms-features.tesb.version>3.3.11.tesb1</cxf-services-xkms-features.tesb.version>
         <cxf-rt-rs-service-description-swagger.tesb.version>3.3.11.tesb1</cxf-rt-rs-service-description-swagger.tesb.version>
         <cxf.jackson.tesb.version>2.11.4</cxf.jackson.tesb.version>
@@ -50,6 +50,7 @@
         <cxf.javax.mail.tesb.version>1.6.1</cxf.javax.mail.tesb.version>
         <cxf.activemq.tesb.version>5.15.15</cxf.activemq.tesb.version>
         <cxf.aries.fly.tesb.version>1.2.3</cxf.aries.fly.tesb.version>
+        <cxf.xmlsec.bundle.tesb.version>2.1.7</cxf.xmlsec.bundle.tesb.version>
 
         <cxf.compiler.fork>false</cxf.compiler.fork>
         <cxf.build-utils.version>3.4.4</cxf.build-utils.version>
@@ -458,6 +459,7 @@
                             <cxf.javax.mail.tesb.version>${cxf.javax.mail.tesb.version}</cxf.javax.mail.tesb.version>
                             <cxf.activemq.tesb.version>${cxf.activemq.tesb.version>}</cxf.activemq.tesb.version>
                             <cxf.aries.fly.tesb.version>${cxf.aries.fly.tesb.version>}</cxf.aries.fly.tesb.version>
+                            <cxf.xmlsec.bundle.tesb.version>${cxf.xmlsec.bundle.tesb.version}</cxf.xmlsec.bundle.tesb.version>
                         </properties>
                     </configuration>
                     <executions>
