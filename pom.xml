@@ -40,7 +40,7 @@
     </issueManagement>
     <properties>
         <upstream.version>3.3.11</upstream.version>
-        <apache-cxf.features.tesb.version>3.3.11.tesb3</apache-cxf.features.tesb.version>
+        <apache-cxf.features.tesb.version>3.3.11.tesb2</apache-cxf.features.tesb.version>
         <cxf-services-xkms-features.tesb.version>3.3.11.tesb2</cxf-services-xkms-features.tesb.version>
         <cxf-rt-rs-service-description-swagger.tesb.version>3.3.11.tesb1</cxf-rt-rs-service-description-swagger.tesb.version>
         <cxf.jackson.tesb.version>2.11.4</cxf.jackson.tesb.version>
