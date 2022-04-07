@@ -461,6 +461,7 @@
                             <cxf.activemq.tesb.version>${cxf.activemq.tesb.version>}</cxf.activemq.tesb.version>
                             <cxf.aries.fly.tesb.version>${cxf.aries.fly.tesb.version>}</cxf.aries.fly.tesb.version>
                             <cxf.xmlsec.bundle.tesb.version>${cxf.xmlsec.bundle.tesb.version}</cxf.xmlsec.bundle.tesb.version>
+                            <cxf.snakeyaml.tesb.version>${cxf.snakeyaml.tesb.version}</cxf.snakeyaml.tesb.version>
                         </properties>
                     </configuration>
                     <executions>
