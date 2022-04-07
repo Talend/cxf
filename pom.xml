@@ -51,6 +51,7 @@
         <cxf.activemq.tesb.version>5.15.15</cxf.activemq.tesb.version>
         <cxf.aries.fly.tesb.version>1.2.3</cxf.aries.fly.tesb.version>
         <cxf.xmlsec.bundle.tesb.version>2.1.7</cxf.xmlsec.bundle.tesb.version>
+        <cxf.snakeyaml.tesb.version>1.30</cxf.snakeyaml.tesb.version>
 
         <cxf.compiler.fork>false</cxf.compiler.fork>
         <cxf.build-utils.version>3.4.4</cxf.build-utils.version>
