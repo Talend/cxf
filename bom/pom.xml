@@ -27,6 +27,12 @@
     <name>Apache CXF BOM</name>
     <description>Apache CXF Build of Materials POM</description>
     <packaging>pom</packaging>
+    <version>${revision}</version>
+    
+    <properties>
+        <revision>${cxf-bom.tesb.version}</revision>
+    </properties>
+    
     <dependencyManagement>
         <dependencies>
             <dependency>
