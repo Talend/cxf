@@ -8,7 +8,7 @@
     </parent>
     <artifactId>cxf-rt-features-logging</artifactId>
     <packaging>bundle</packaging>
-    
+
     <properties>
         <revision>${cxf-rt-features-logging.tesb.version}</revision>
         <cxf.module.name>org.apache.cxf.logging</cxf.module.name>
@@ -30,7 +30,7 @@
             <artifactId>osgi.cmpn</artifactId>
             <scope>provided</scope>
         </dependency>
-        
+
         <dependency>
             <groupId>org.apache.cxf</groupId>
             <artifactId>cxf-core</artifactId>
@@ -56,4 +56,61 @@
             <scope>test</scope>
         </dependency>
     </dependencies>
+
+    <!-- dependencies retrieved from cxf-pârent -->
+    <!-- redeclaring them in customized modules ensure to use upstream.version ( == ${upstream.version}) instead of project.version declared in cxf-parent -->
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>org.apache.cxf</groupId>
+                <artifactId>cxf-bom</artifactId>
+                <version>${upstream.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+
+            <!-- cxf internal test modules -->
+            <dependency>
+                <groupId>org.apache.cxf</groupId>
+                <artifactId>cxf-rt-javascript-tests</artifactId>
+                <version>${upstream.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.cxf</groupId>
+                <artifactId>cxf-tools-wsdlto-test</artifactId>
+                <version>${upstream.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.cxf.osgi.itests</groupId>
+                <artifactId>org.apache.cxf.osgi.itests</artifactId>
+                <version>${upstream.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.cxf.osgi.itests</groupId>
+                <artifactId>org.apache.cxf.osgi.itests-felix</artifactId>
+                <version>${upstream.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.cxf.services.sts.systests</groupId>
+                <artifactId>cxf-services-sts-systests-advanced</artifactId>
+                <version>${upstream.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.cxf.services.sts.systests</groupId>
+                <artifactId>cxf-services-sts-systests-itests</artifactId>
+                <version>${upstream.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.cxf.services.sts.systests</groupId>
+                <artifactId>cxf-services-sts-systests-osgi</artifactId>
+                <version>${upstream.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.cxf.services.xkms</groupId>
+                <artifactId>cxf-services-xkms-itests</artifactId>
+                <version>${upstream.version}</version>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
 </project>
