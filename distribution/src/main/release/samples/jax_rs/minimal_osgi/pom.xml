@@ -183,7 +183,7 @@
                         <argument>org.eclipse.osgi-${equinox.version}.jar</argument>
                         <argument>-console</argument>
                     </arguments>
-                    <workingDirectory>${project.build.directory}/delivery/${project.artifactId}-${project.version}-equinox/${project.artifactId}-${project.version}/</workingDirectory>
+                    <workingDirectory>${project.build.directory}/delivery/${project.artifactId}-${upstream.version}-equinox/${project.artifactId}-${upstream.version}/</workingDirectory>
                 </configuration>
             </plugin>
         </plugins>

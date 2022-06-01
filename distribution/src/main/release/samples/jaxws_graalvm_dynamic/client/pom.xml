@@ -29,7 +29,7 @@
         <relativePath>../..</relativePath>
     </parent>
     <properties>
-        <cxf.version>${project.version}</cxf.version>
+        <cxf.version>${upstream.version}</cxf.version>
         <wsdl.file>${basedir}/src/main/resources/addNumbers.wsdl</wsdl.file>
     </properties>
 
