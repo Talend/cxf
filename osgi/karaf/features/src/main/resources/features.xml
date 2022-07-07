@@ -324,7 +324,7 @@
         <bundle start-level="10" dependency="true">mvn:jakarta.validation/jakarta.validation-api/${cxf.validation.api.version}</bundle>
         <bundle start-level="35" dependency="true">mvn:org.apache.commons/commons-lang3/${cxf.commons-lang3.version}</bundle>
         <bundle start-level="30" dependency="true">mvn:org.javassist/javassist/${cxf.javassist.version}</bundle>
-        <bundle start-level="30" dependency="true">mvn:org.apache.servicemix.bundles/org.apache.servicemix.bundles.reflections/${cxf.reflections.bundle.version}</bundle>
+        <bundle start-level="30" dependency="true">wrap:mvn:org.apache.servicemix.bundles/org.apache.servicemix.bundles.reflections/${cxf.reflections.bundle.version}$overwrite=merge&amp;Import-Package=com.google.common.*;version="[20.0,32)";resolution:=optional,*;resolution:=optional</bundle>
         <bundle start-level="25" dependency="true">mvn:com.google.guava/failureaccess/${cxf.swagger2.guava.failureaccess.version}</bundle>
         <bundle start-level="25" dependency="true">mvn:com.google.guava/guava/${cxf.swagger2.guava.version}</bundle>
         <bundle start-level="35" dependency="true">mvn:io.swagger/swagger-annotations/${cxf.swagger2.version}</bundle>
@@ -366,11 +366,11 @@
     </feature>
     <feature name="cxf-features-logging" version="${upstream.version}">
         <feature version="${upstream.version}">cxf-core</feature>
-        <bundle start-level="40">mvn:org.apache.cxf/cxf-rt-features-logging/${upstream.version}</bundle>
+        <bundle start-level="40">mvn:org.apache.cxf/cxf-rt-features-logging/${cxf-rt-features-logging.tesb.version}</bundle>
     </feature>
     <feature name="cxf-features-throttling" version="${upstream.version}">
         <feature version="${upstream.version}">cxf-core</feature>
-        <bundle start-level="40">mvn:org.apache.cxf/cxf-rt-features-throttling/${cxf-rt-features-logging.tesb.version}</bundle>
+        <bundle start-level="40">mvn:org.apache.cxf/cxf-rt-features-throttling/${upstream.version}</bundle>
     </feature>
     <feature name="cxf-features-metrics" version="${upstream.version}">
         <feature version="${upstream.version}">cxf-core</feature>
