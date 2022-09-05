@@ -28,22 +28,22 @@
         <bundle start-level="10" dependency="true">mvn:org.apache.servicemix.specs/org.apache.servicemix.specs.jaxb-api-2.3/${cxf.servicemix.specs.jaxb.version}</bundle>
         <bundle start-level="10" dependency="true">mvn:org.apache.servicemix.specs/org.apache.servicemix.specs.jaxws-api-2.3/${cxf.specs.jaxws.api.version}</bundle>
         <bundle start-level="10" dependency="true">mvn:org.apache.servicemix.specs/org.apache.servicemix.specs.jaxrs-api-2.1/${cxf.servicemix.jaxrs.specs.version}</bundle>
-        <bundle start-level="10" dependency="true">mvn:org.apache.servicemix.specs/org.apache.servicemix.specs.saaj-api-1.4/1.4_1</bundle>
+        <!-- <bundle start-level="10" dependency="true">mvn:org.apache.servicemix.specs/org.apache.servicemix.specs.saaj-api-1.4/1.4_1</bundle> -->
         <bundle start-level="10" dependency="true">mvn:jakarta.jws/jakarta.jws-api/1.1.1</bundle>
         <!-- <bundle start-level="10" dependency="true">mvn:jakarta.mail/jakarta.mail-api/${cxf.jakarta.mail.version}</bundle> -->
         <bundle start-level="10" dependency="true">mvn:com.sun.mail/jakarta.mail/${cxf.jakarta.mail.tesb.version}</bundle>
         <bundle start-level="20" dependency="true">mvn:org.codehaus.woodstox/stax2-api/${cxf.woodstox.stax2-api.version}</bundle>
         <bundle start-level="20">mvn:com.fasterxml.woodstox/woodstox-core/${cxf.woodstox.core.version}</bundle>
-        <bundle start-level="20">mvn:org.apache.servicemix.bundles/org.apache.servicemix.bundles.jaxb-runtime/${cxf.jaxb.bundle.version}</bundle>
-        <bundle start-level="20">mvn:org.apache.servicemix.bundles/org.apache.servicemix.bundles.jaxb-xjc/${cxf.jaxb.bundle.version}</bundle>
-        <bundle start-level="20">mvn:com.sun.istack/istack-commons-runtime/${cxf.istack.bundle.version}</bundle>
+        <!-- <bundle start-level="20">mvn:org.apache.servicemix.bundles/org.apache.servicemix.bundles.jaxb-runtime/${cxf.jaxb.bundle.version}</bundle> -->
+        <!-- <bundle start-level="20">mvn:org.apache.servicemix.bundles/org.apache.servicemix.bundles.jaxb-xjc/${cxf.jaxb.bundle.version}</bundle> -->
+        <!-- <bundle start-level="20">mvn:com.sun.istack/istack-commons-runtime/${cxf.istack.bundle.version}</bundle> -->
     </feature>
     <feature name="cxf-jaxb" version="${upstream.version}">
         <feature version="${upstream.version}">cxf-specs</feature>
         <feature version="${upstream.version}">cxf-wsdl</feature>
-        <bundle start-level="20">mvn:org.apache.servicemix.bundles/org.apache.servicemix.bundles.jaxb-runtime/${cxf.jaxb.bundle.version}</bundle>
-        <bundle start-level="20">mvn:org.apache.servicemix.bundles/org.apache.servicemix.bundles.jaxb-xjc/${cxf.jaxb.bundle.version}</bundle>
-        <bundle start-level="20">mvn:com.sun.istack/istack-commons-runtime/${cxf.istack.bundle.version}</bundle>
+        <!-- <bundle start-level="20">mvn:org.apache.servicemix.bundles/org.apache.servicemix.bundles.jaxb-runtime/${cxf.jaxb.bundle.version}</bundle> -->
+        <!-- <bundle start-level="20">mvn:org.apache.servicemix.bundles/org.apache.servicemix.bundles.jaxb-xjc/${cxf.jaxb.bundle.version}</bundle> -->
+        <!-- <bundle start-level="20">mvn:com.sun.istack/istack-commons-runtime/${cxf.istack.bundle.version}</bundle> -->
     </feature>
     <!-- Current the abdera bundle is not working as we expect -->
     <feature name="cxf-abdera" version="${upstream.version}">
@@ -65,7 +65,7 @@
     </feature>
     <feature name="wss4j" version="${cxf.wss4j.version}">
         <feature version="${upstream.version}">cxf-specs</feature>
-        <feature version="${cxf.saaj-impl.version}">saaj-impl</feature>
+        <!-- <feature version="${cxf.saaj-impl.version}">saaj-impl</feature> -->
         <bundle start-level="25" dependency="true">mvn:joda-time/joda-time/${cxf.joda.time.version}</bundle>
         <bundle start-level="25" dependency="true">mvn:commons-codec/commons-codec/${cxf.commons-codec.version}</bundle>
         <bundle start-level="25" dependency="true">mvn:org.apache.santuario/xmlsec/${cxf.xmlsec.bundle.version}</bundle>
@@ -74,9 +74,9 @@
         <bundle start-level="25" dependency='true'>mvn:io.dropwizard.metrics/metrics-core/${cxf.dropwizard3.version}</bundle>
         <bundle start-level="25" dependency="true">mvn:org.apache.servicemix.bundles/org.apache.servicemix.bundles.opensaml/${cxf.opensaml.osgi.version}</bundle>
         <bundle start-level="25">mvn:org.apache.servicemix.bundles/org.apache.servicemix.bundles.xmlresolver/${cxf.xmlresolver.bundle.version}</bundle>
-        <bundle start-level="30" dependency="true">mvn:org.apache.servicemix.bundles/org.apache.servicemix.bundles.xerces/${cxf.xerces.bundle.version}</bundle>
+        <!-- <bundle start-level="30" dependency="true">mvn:org.apache.servicemix.bundles/org.apache.servicemix.bundles.xerces/${cxf.xerces.bundle.version}</bundle> -->
         <bundle start-level="30">mvn:org.apache.servicemix.bundles/org.apache.servicemix.bundles.bcel/${cxf.bcel.bundle.version}</bundle>
-        <bundle start-level="30">mvn:org.apache.servicemix.bundles/org.apache.servicemix.bundles.xalan/${cxf.xalan.bundle.version}</bundle>
+        <!-- <bundle start-level="30">mvn:org.apache.servicemix.bundles/org.apache.servicemix.bundles.xalan/${cxf.xalan.bundle.version}</bundle> -->
         <bundle start-level="30" dependency="true">mvn:org.apache.neethi/neethi/${cxf.neethi.version}</bundle>
         <bundle start-level="30" dependency="true">mvn:org.apache.servicemix.bundles/org.apache.servicemix.bundles.jasypt/${cxf.jasypt.bundle.version}</bundle>
         <bundle start-level="30">mvn:org.apache.wss4j/wss4j-bindings/${cxf.wss4j.version}</bundle>
@@ -228,7 +228,7 @@
     </feature>
     <feature name="cxf-bindings-soap" version="${upstream.version}">
         <feature version="${upstream.version}">cxf-wsdl</feature>
-        <feature version="${cxf.saaj-impl.version}">saaj-impl</feature>
+        <!-- <feature version="${cxf.saaj-impl.version}">saaj-impl</feature> -->
         <bundle start-level="40">mvn:org.apache.cxf/cxf-rt-bindings-xml/${upstream.version}</bundle>
         <bundle start-level="40">mvn:org.apache.cxf/cxf-rt-bindings-soap/${upstream.version}</bundle>
     </feature>
