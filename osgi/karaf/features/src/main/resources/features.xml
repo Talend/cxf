@@ -245,7 +245,7 @@
         <feature version="${upstream.version}">cxf-http</feature>
         <feature version="${upstream.version}">cxf-jackson</feature>
         <feature version="${upstream.version}">cxf-rt-security</feature>
-        <bundle start-level="30" dependency="true">mvn:org.codehaus.jettison/jettison/${cxf.jettison.version}</bundle>
+        <bundle start-level="30" dependency="true">mvn:org.codehaus.jettison/jettison/${cxf.jettison.tesb.version}</bundle>
         <bundle start-level="40">mvn:org.apache.cxf/cxf-rt-rs-extension-providers/${upstream.version}</bundle>
         <bundle start-level="40">mvn:org.apache.cxf/cxf-rt-rs-extension-search/${upstream.version}</bundle>
         <bundle start-level="40">mvn:org.apache.cxf/cxf-rt-rs-json-basic/${upstream.version}</bundle>
@@ -286,7 +286,7 @@
         <!-- Required by jackson-dataformat-yaml -->
         <bundle start-level="10" dependency="true">mvn:org.apache.servicemix.specs/org.apache.servicemix.specs.jaxrs-api-2.1/${cxf.servicemix.jaxrs.specs.version}</bundle>
         <bundle start-level="10" dependency="true">mvn:jakarta.annotation/jakarta.annotation-api/${cxf.javax.annotation-api.version}</bundle>
-        <bundle start-level="35">mvn:org.yaml/snakeyaml/${cxf.snakeyaml.version}</bundle>
+        <bundle start-level="35">mvn:org.yaml/snakeyaml/${cxf.snakeyaml.tesb.version}</bundle>
         <bundle start-level="35">mvn:com.fasterxml.jackson.core/jackson-core/${cxf.jackson.version}</bundle>
         <bundle start-level="35">mvn:com.fasterxml.jackson.core/jackson-annotations/${cxf.jackson.version}</bundle>
         <bundle start-level="35">mvn:com.fasterxml.jackson.core/jackson-databind/${cxf.jackson.databind.version}</bundle>
