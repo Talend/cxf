@@ -50,7 +50,7 @@
         <cxf.geronimo.jms2.tesb.version>1.0-alpha-2</cxf.geronimo.jms2.tesb.version>
         <cxf.jackson.tesb.version>2.13.4</cxf.jackson.tesb.version>
         <cxf.jackson-databind.tesb.version>2.13.4.2</cxf.jackson-databind.tesb.version>
-        <cxf.snakeyaml.tesb.version>1.30</cxf.snakeyaml.tesb.version>
+        <cxf.snakeyaml.tesb.version>1.33</cxf.snakeyaml.tesb.version>
         <cxf.xmlsec.bundle.tesb.version>2.2.3</cxf.xmlsec.bundle.tesb.version>
         <cxf.netty.tesb.version>4.1.77.Final</cxf.netty.tesb.version>
         <cxf.jettison.tesb.version>1.5.1</cxf.jettison.tesb.version>
