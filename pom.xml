@@ -54,6 +54,7 @@
         <cxf.xmlsec.bundle.tesb.version>2.2.3</cxf.xmlsec.bundle.tesb.version>
         <cxf.netty.tesb.version>4.1.77.Final</cxf.netty.tesb.version>
         <cxf.jettison.tesb.version>1.5.1</cxf.jettison.tesb.version>
+        <cxf.commons-text.tesb.version>1.10.0</cxf.commons-text.tesb.version>
 
         <cxf.compiler.fork>false</cxf.compiler.fork>
         <cxf.build-utils.version>3.4.4</cxf.build-utils.version>
@@ -465,6 +466,7 @@
                             <cxf.xmlsec.bundle.tesb.version>${cxf.xmlsec.bundle.tesb.version}</cxf.xmlsec.bundle.tesb.version>
                             <cxf.netty.tesb.version>${cxf.netty.tesb.version}</cxf.netty.tesb.version>
                             <cxf.jettison.tesb.version>${cxf.jettison.tesb.version}</cxf.jettison.tesb.version>
+                            <cxf.commons-text.tesb.version>${cxf.commons-text.tesb.version}</cxf.commons-text.tesb.version>
                         </properties>
                     </configuration>
                     <executions>
