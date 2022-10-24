@@ -40,7 +40,7 @@
     </issueManagement>
     <properties>
         <upstream.version>3.4.4</upstream.version>
-        <apache-cxf.features.tesb.version>3.4.4.20220915</apache-cxf.features.tesb.version>
+        <apache-cxf.features.tesb.version>3.4.4.20221020</apache-cxf.features.tesb.version>
         <cxf-services-xkms.features.tesb.version>3.4.4.20220422</cxf-services-xkms.features.tesb.version>
 
         <cxf-rt-ws-security.tesb.version>3.4.4.tesb1</cxf-rt-ws-security.tesb.version>
@@ -48,11 +48,13 @@
         <cxf-rt-features-logging.tesb.version>3.4.4.20220520</cxf-rt-features-logging.tesb.version>
         <cxf.jakarta.mail.version.tesb.version>1.6.6</cxf.jakarta.mail.version.tesb.version>
         <cxf.geronimo.jms2.tesb.version>1.0-alpha-2</cxf.geronimo.jms2.tesb.version>
-        <cxf.jackson.tesb.version>2.13.2</cxf.jackson.tesb.version>
-        <cxf.jackson-databind.tesb.version>2.13.2.2</cxf.jackson-databind.tesb.version>
-        <cxf.snakeyaml.tesb.version>1.30</cxf.snakeyaml.tesb.version>
+        <cxf.jackson.tesb.version>2.13.4</cxf.jackson.tesb.version>
+        <cxf.jackson-databind.tesb.version>2.13.4.2</cxf.jackson-databind.tesb.version>
+        <cxf.snakeyaml.tesb.version>1.33</cxf.snakeyaml.tesb.version>
         <cxf.xmlsec.bundle.tesb.version>2.2.3</cxf.xmlsec.bundle.tesb.version>
         <cxf.netty.tesb.version>4.1.77.Final</cxf.netty.tesb.version>
+        <cxf.jettison.tesb.version>1.5.1</cxf.jettison.tesb.version>
+        <cxf.commons-text.tesb.version>1.10.0</cxf.commons-text.tesb.version>
 
         <cxf.compiler.fork>false</cxf.compiler.fork>
         <cxf.build-utils.version>3.4.4</cxf.build-utils.version>
@@ -463,6 +465,8 @@
                             <cxf.snakeyaml.tesb.version>${cxf.snakeyaml.tesb.version}</cxf.snakeyaml.tesb.version>
                             <cxf.xmlsec.bundle.tesb.version>${cxf.xmlsec.bundle.tesb.version}</cxf.xmlsec.bundle.tesb.version>
                             <cxf.netty.tesb.version>${cxf.netty.tesb.version}</cxf.netty.tesb.version>
+                            <cxf.jettison.tesb.version>${cxf.jettison.tesb.version}</cxf.jettison.tesb.version>
+                            <cxf.commons-text.tesb.version>${cxf.commons-text.tesb.version}</cxf.commons-text.tesb.version>
                         </properties>
                     </configuration>
                     <executions>
