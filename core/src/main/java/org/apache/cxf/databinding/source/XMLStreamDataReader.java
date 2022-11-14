@@ -236,6 +236,7 @@ public class XMLStreamDataReader implements DataReader<XMLStreamReader> {
                             new StaxStreamFilter(new QName[] {XOP}));
 
             rootElement =  StaxUtils.read(filteredReader).getDocumentElement();
+            filteredReader.close();
 
         } else {
 
