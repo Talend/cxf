@@ -215,11 +215,14 @@ public class XMLStreamDataReader implements DataReader<XMLStreamReader> {
     }
 
     private Element validate(XMLStreamReader input) throws XMLStreamException, IOException {
+
         Element rootElement;
         WoodstoxValidationImpl impl = new WoodstoxValidationImpl();
+        XMLStreamReader input2 = null;
         if (impl.canValidate()) {
 
-            impl.setupValidation(input, message.getExchange().getEndpoint(),
+            input2 = StaxUtils.createXMLStreamReader(getInputStream(input));
+            impl.setupValidation(input2, message.getExchange().getEndpoint(),
                     message.getExchange().getService().getServiceInfos().get(0));
         }
         //check if the impl can still validate after the setup, possible issue loading schemas or similar
@@ -229,10 +232,11 @@ public class XMLStreamDataReader implements DataReader<XMLStreamReader> {
             //filter xop node
 
             XMLStreamReader filteredReader =
-                    StaxUtils.createFilteredReader(input,
+                    StaxUtils.createFilteredReader(input2,
                             new StaxStreamFilter(new QName[] {XOP}));
 
             rootElement =  StaxUtils.read(filteredReader).getDocumentElement();
+            filteredReader.close();
 
         } else {
 
@@ -242,7 +246,6 @@ public class XMLStreamDataReader implements DataReader<XMLStreamReader> {
             } else {
                 rootElement = (Element)ds.getNode();
             }
-
 
             //MSV not available, use a slower method of cloning the data, replace the xop's, validate
             LOG.fine("NO_MSV_AVAILABLE");
