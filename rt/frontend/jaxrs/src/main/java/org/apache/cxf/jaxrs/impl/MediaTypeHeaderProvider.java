@@ -88,6 +88,12 @@ public class MediaTypeHeaderProvider implements HeaderDelegate<MediaType> {
         String type = mType.substring(0, i).trim();
         String subtype = mType.substring(i + 1, end).trim();
         if (!isValid(type) || !isValid(subtype)) {
+            if (type.startsWith("charset") && paramsStart != -1) {
+                String mTypeC = mType.substring(paramsStart + 1).trim() + ";" + mType.substring(0, paramsStart).trim();
+                if (!mTypeC.startsWith("charset")) { // do not allow a DOS attack
+                    return internalValueOf(mTypeC);
+                }
+            }
             throw new IllegalArgumentException("Invalid media type string: " + mType);
         }
 

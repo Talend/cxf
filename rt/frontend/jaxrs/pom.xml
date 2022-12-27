@@ -20,6 +20,7 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <artifactId>cxf-rt-frontend-jaxrs</artifactId>
+    <version>${revision}</version>
     <packaging>bundle</packaging>
     <name>Apache CXF Runtime JAX-RS Frontend</name>
     <description>Apache CXF Runtime JAX-RS Frontend</description>
@@ -31,6 +32,7 @@
         <relativePath>../../../parent/pom.xml</relativePath>
     </parent>
     <properties>
+        <revision>${cxf-rt-frontend-jaxrs.tesb.version}</revision>
         <cxf.module.name>org.apache.cxf.frontend.jaxrs</cxf.module.name>
         <cxf.osgi.import>
             javax.servlet*;version="${cxf.osgi.javax.servlet.version}",
