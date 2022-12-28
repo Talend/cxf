@@ -215,6 +215,17 @@ public class MediaTypeHeaderProviderTest {
     }
 
     @Test
+    public void testTypeWithCharsetParameters() {
+        MediaType mt = MediaType.valueOf("charset=utf8;application/json");
+
+        assertEquals("application", mt.getType());
+        assertEquals("json", mt.getSubtype());
+        Map<String, String> params2 = mt.getParameters();
+        assertEquals(1, params2.size());
+        assertEquals("utf8", params2.get("charset"));
+    }
+
+    @Test
     public void testSimpleToString() {
         MediaTypeHeaderProvider provider =
             new MediaTypeHeaderProvider();
