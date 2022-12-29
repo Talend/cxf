@@ -23,30 +23,15 @@
     <packaging>bundle</packaging>
     <name>Apache CXF Runtime HTTP Netty Server Transport</name>
     <description>Apache CXF Runtime HTTP Netty Server Transport</description>
-    <url>http://cxf.apache.org</url>
+    <url>https://cxf.apache.org</url>
     <parent>
         <groupId>org.apache.cxf</groupId>
         <artifactId>cxf-parent</artifactId>
-        <version>3.2.5-SNAPSHOT</version>
+        <version>4.0.1-SNAPSHOT</version>
         <relativePath>../../../../parent/pom.xml</relativePath>
     </parent>
     <properties>
-        <cxf.bundle.activator>org.apache.cxf.transport.http.netty.server.blueprint.Activator</cxf.bundle.activator>
-        <cxf.osgi.import>
-            javax.servlet*;version="[2,4)",
-            io.netty.*;version="${cxf.netty.version.range}",
-            javax.annotation;version="${cxf.osgi.javax.annotation.version}",
-            org.apache.aries*;version="${cxf.aries.version.range}";resolution:=optional,
-            org.osgi.service.blueprint*;resolution:=optional,
-            org.springframework*;resolution:="optional";version="${cxf.osgi.spring.version}"
-        </cxf.osgi.import>
-        <cxf.osgi.export>
-            org.apache.cxf.*,
-        </cxf.osgi.export>
-        <!-- keep in sync with services exported in activator -->
-        <cxf.export.service>
-            org.apache.aries.blueprint.NamespaceHandler;osgi.service.blueprint.namespace="http://cxf.apache.org/transports/http-netty-server/configuration"
-        </cxf.export.service>
+        <cxf.module.name>org.apache.cxf.transport.http.netty.server</cxf.module.name>
     </properties>
     <dependencies>
         <dependency>
@@ -60,31 +45,15 @@
             <version>${cxf.netty.version}</version>
         </dependency>
         <dependency>
-            <!-- we don't implement the servlet 3.0 specification here -->
-            <groupId>org.apache.geronimo.specs</groupId>
-            <artifactId>geronimo-servlet_2.5_spec</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.aries.blueprint</groupId>
-            <artifactId>org.apache.aries.blueprint.core</artifactId>
-            <scope>provided</scope>
+            <groupId>io.netty</groupId>
+            <artifactId>netty-codec-http2</artifactId>
+            <version>${cxf.netty.version}</version>
             <optional>true</optional>
         </dependency>
         <dependency>
-            <groupId>org.apache.aries.blueprint</groupId>
-            <artifactId>blueprint-parser</artifactId>
-            <scope>provided</scope>
-            <optional>true</optional>
-        </dependency>
-        <dependency>
-            <groupId>org.osgi</groupId>
-            <artifactId>org.osgi.core</artifactId>
-            <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.osgi</groupId>
-            <artifactId>org.osgi.compendium</artifactId>
-            <scope>provided</scope>
+            <!-- we don't implement the servlet 5.0 specification here -->
+            <groupId>jakarta.servlet</groupId>
+            <artifactId>jakarta.servlet-api</artifactId>
         </dependency>
         <dependency>
             <groupId>org.springframework</groupId>
@@ -117,6 +86,13 @@
             <artifactId>cxf-testutils</artifactId>
             <version>${project.version}</version>
             <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.cxf</groupId>
+            <artifactId>cxf-testutils</artifactId>
+            <version>${project.version}</version>
+            <scope>test</scope>
+            <classifier>keys</classifier>
         </dependency>
         <!-- Need to run some integration with jaxws frond end -->
         <dependency>

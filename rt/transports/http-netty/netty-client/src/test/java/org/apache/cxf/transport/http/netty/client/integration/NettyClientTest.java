@@ -21,10 +21,9 @@ package org.apache.cxf.transport.http.netty.client.integration;
 import java.net.URL;
 import java.util.concurrent.ExecutionException;
 
-import javax.xml.ws.AsyncHandler;
-import javax.xml.ws.Endpoint;
-import javax.xml.ws.Response;
-
+import jakarta.xml.ws.AsyncHandler;
+import jakarta.xml.ws.Endpoint;
+import jakarta.xml.ws.Response;
 import org.apache.cxf.Bus;
 import org.apache.cxf.BusFactory;
 import org.apache.cxf.jaxws.JaxWsProxyFactoryBean;
@@ -37,6 +36,9 @@ import org.apache.hello_world_soap_http.types.GreetMeResponse;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 
 public class NettyClientTest extends AbstractBusClientServerTestBase {
 
@@ -113,9 +115,7 @@ public class NettyClientTest extends AbstractBusClientServerTestBase {
             public void handleResponse(Response<GreetMeResponse> res) {
                 try {
                     res.get().getResponseType();
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                } catch (ExecutionException e) {
+                } catch (InterruptedException | ExecutionException e) {
                     e.printStackTrace();
                 }
             }
@@ -136,9 +136,7 @@ public class NettyClientTest extends AbstractBusClientServerTestBase {
         public void handleResponse(Response<GreetMeLaterResponse> res) {
             try {
                 response = res.get();
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            } catch (ExecutionException e) {
+            } catch (InterruptedException | ExecutionException e) {
                 e.printStackTrace();
             }
         }

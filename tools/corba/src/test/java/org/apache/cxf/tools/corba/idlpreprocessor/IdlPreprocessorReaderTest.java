@@ -26,13 +26,16 @@ import java.io.LineNumberReader;
 import java.io.Reader;
 import java.io.UnsupportedEncodingException;
 import java.net.URL;
-import java.util.HashMap;
+import java.util.Collections;
 import java.util.regex.Pattern;
 
-import org.junit.Assert;
 import org.junit.Test;
 
-public class IdlPreprocessorReaderTest extends Assert {
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+
+public class IdlPreprocessorReaderTest {
 
     private URL findTestResource(String spec) {
         String location = "/idlpreprocessor/" + spec;
@@ -109,7 +112,7 @@ public class IdlPreprocessorReaderTest extends Assert {
         final File dir = new File(origFile.getAbsolutePath()
                                   .substring(0, origFile.getAbsolutePath().indexOf(location)));
         final DefaultIncludeResolver includeResolver = new DefaultIncludeResolver(dir);
-        final DefineState defineState = new DefineState(new HashMap<String, String>());
+        final DefineState defineState = new DefineState(Collections.emptyMap());
 
         final IdlPreprocessorReader includeReader = new IdlPreprocessorReader(orig,
                                                                              location,
@@ -122,7 +125,7 @@ public class IdlPreprocessorReaderTest extends Assert {
     private IdlPreprocessorReader createPreprocessorReader(final String location) throws IOException {
         final URL orig = findTestResource(location);
         final ClassPathIncludeResolver includeResolver = new ClassPathIncludeResolver();
-        final DefineState defineState = new DefineState(new HashMap<String, String>());
+        final DefineState defineState = new DefineState(Collections.emptyMap());
         return new IdlPreprocessorReader(orig, location, includeResolver, defineState);
     }
 
@@ -131,9 +134,9 @@ public class IdlPreprocessorReaderTest extends Assert {
         throws UnsupportedEncodingException, IOException {
         LineNumberReader oReader = new LineNumberReader(includeReader);
         InputStream resolved = findTestResource(expectedResultLocation).openStream();
-        LineNumberReader rReader = new LineNumberReader(new InputStreamReader(resolved, "ISO-8859-1"));
-        try {
-            boolean eof = false;
+        try (LineNumberReader rReader
+            = new LineNumberReader(new InputStreamReader(resolved, "ISO-8859-1"))) {
+            boolean eof;
             do {
                 int line = rReader.getLineNumber() + 1;
                 String actualLine = oReader.readLine();
@@ -141,16 +144,9 @@ public class IdlPreprocessorReaderTest extends Assert {
                 assertEquals("difference in line " + line, expectedLine, actualLine);
                 eof = actualLine == null || expectedLine == null;
             } while (!eof);
-        } finally {
-            rReader.close();
         }
     }
 
-    private void consumeReader(final Reader includeReader) throws IOException {
-        LineNumberReader oReader = new LineNumberReader(includeReader);
-        String line = null;
-        do {
-            line = oReader.readLine();
-        } while (line != null);
+    private static void consumeReader(final Reader includeReader) throws IOException {
     }
 }

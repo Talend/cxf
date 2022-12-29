@@ -29,8 +29,9 @@ import org.apache.cxf.rs.security.jose.jwt.JwtUtils;
 
 
 public class JweJwtCompactConsumer  {
-    private JweCompactConsumer jweConsumer;
-    private JweHeaders headers;
+    private final JweCompactConsumer jweConsumer;
+    private final JweHeaders headers;
+
     public JweJwtCompactConsumer(String content) {
         jweConsumer = new JweCompactConsumer(content);
         headers = jweConsumer.getJweHeaders();
@@ -51,18 +52,11 @@ public class JweJwtCompactConsumer  {
     }
     public JwtToken decryptWith(JweDecryptionProvider jwe) {
         byte[] bytes = jwe.decrypt(jweConsumer.getJweDecryptionInput());
-        JwtClaims claims = JwtUtils.jsonToClaims(toString(bytes));
+        JwtClaims claims = JwtUtils.jsonToClaims(new String(bytes, StandardCharsets.UTF_8));
         return new JwtToken(headers, claims);
     }
 
     public JweHeaders getHeaders() {
         return headers;
-    }
-    private static String toString(byte[] bytes) {
-        try {
-            return new String(bytes, StandardCharsets.UTF_8);
-        } catch (Exception ex) {
-            throw new RuntimeException(ex);
-        }
     }
 }

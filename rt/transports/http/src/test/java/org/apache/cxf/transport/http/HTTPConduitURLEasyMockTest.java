@@ -53,14 +53,19 @@ import org.easymock.EasyMock;
 import org.easymock.IMocksControl;
 import org.junit.After;
 import org.junit.AfterClass;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertSame;
+import static org.junit.Assert.assertTrue;
+
 /**
  */
-public class HTTPConduitURLEasyMockTest extends Assert {
+public class HTTPConduitURLEasyMockTest {
     private static String oldHttpProxyHost;
 
     private static final String HTTP_RESPONSE_MESSAGE = "Some Response Message I can test";
@@ -286,8 +291,22 @@ public class HTTPConduitURLEasyMockTest extends Assert {
         finalVerify();
     }
 
+    @Test
+    public void testSendHttpConnectionAllowedRedirectVerbs() throws Exception {
+        control = EasyMock.createNiceControl();
+        HTTPConduit conduit = setUpConduit(true, false, "POST");
+        Message message = createMessage();
+        message.put("http.redirect.allowed.verbs", "POST");
+        message.put(HTTPConduit.SET_HTTP_RESPONSE_MESSAGE, Boolean.TRUE);
+        conduit.prepare(message);
+        conduit.getClient().setAutoRedirect(true);
+        verifySentMessage(conduit, message, "POST");
+        assertEquals(HTTP_RESPONSE_MESSAGE, inMessage.get(HTTPConduit.HTTP_RESPONSE_MESSAGE));
+        finalVerify();
+    }
+
     private void setUpHeaders(Message message) {
-        Map<String, List<String>> headers = new TreeMap<String, List<String>>(String.CASE_INSENSITIVE_ORDER);
+        Map<String, List<String>> headers = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
         List<String> contentTypes = new ArrayList<>();
         contentTypes.add("text/xml;charset=utf8");
         headers.put("content-type", contentTypes);

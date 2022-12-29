@@ -133,7 +133,7 @@ public class GZIPOutInterceptor extends AbstractPhaseInterceptor<Message> {
         return threshold;
     }
 
-    public void handleMessage(Message message) throws Fault {
+    public void handleMessage(Message message) {
         UseGzip use = gzipPermitted(message);
         if (use != UseGzip.NO) {
             // remember the original output stream, we will write compressed
@@ -169,7 +169,7 @@ public class GZIPOutInterceptor extends AbstractPhaseInterceptor<Message> {
      * @throws Fault if the Accept-Encoding header does not allow any encoding
      *                 that we can support (identity, gzip or x-gzip).
      */
-    public UseGzip gzipPermitted(Message message) throws Fault {
+    public UseGzip gzipPermitted(Message message) {
         UseGzip permitted = UseGzip.NO;
         if (supportedPayloadContentTypes != null && message.containsKey(Message.CONTENT_TYPE)
             && !supportedPayloadContentTypes.contains(message.get(Message.CONTENT_TYPE))) {
@@ -326,7 +326,7 @@ public class GZIPOutInterceptor extends AbstractPhaseInterceptor<Message> {
         Map<String, List<String>> protocolHeaders = CastUtils.cast((Map<?, ?>)message
             .get(Message.PROTOCOL_HEADERS));
         if (protocolHeaders == null) {
-            protocolHeaders = new TreeMap<String, List<String>>(String.CASE_INSENSITIVE_ORDER);
+            protocolHeaders = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
             message.put(Message.PROTOCOL_HEADERS, protocolHeaders);
         }
         List<String> header = CastUtils.cast((List<?>)protocolHeaders.get(name));

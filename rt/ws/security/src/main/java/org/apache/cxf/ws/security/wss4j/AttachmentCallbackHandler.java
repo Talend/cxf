@@ -20,20 +20,22 @@
 package org.apache.cxf.ws.security.wss4j;
 
 import java.io.IOException;
+import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
-import javax.activation.DataHandler;
 import javax.security.auth.callback.Callback;
 import javax.security.auth.callback.CallbackHandler;
 import javax.security.auth.callback.UnsupportedCallbackException;
 
+import jakarta.activation.DataHandler;
 import org.apache.cxf.attachment.AttachmentDataSource;
-import org.apache.cxf.binding.soap.SoapMessage;
 import org.apache.cxf.message.Attachment;
+import org.apache.cxf.message.Message;
 import org.apache.wss4j.common.ext.AttachmentRemovalCallback;
 import org.apache.wss4j.common.ext.AttachmentRequestCallback;
 import org.apache.wss4j.common.ext.AttachmentResultCallback;
@@ -43,10 +45,17 @@ import org.apache.wss4j.common.ext.AttachmentResultCallback;
  */
 public class AttachmentCallbackHandler implements CallbackHandler {
 
-    private final SoapMessage soapMessage;
+    private final Collection<org.apache.cxf.message.Attachment> attachments;
 
-    public AttachmentCallbackHandler(SoapMessage soapMessage) {
-        this.soapMessage = soapMessage;
+    public AttachmentCallbackHandler(Message message) {
+        if (message.getAttachments() == null) {
+            message.setAttachments(new ArrayList<Attachment>());
+        }
+        attachments = message.getAttachments();
+    }
+
+    public AttachmentCallbackHandler(Collection<org.apache.cxf.message.Attachment> attachments) {
+        this.attachments = attachments;
     }
 
     @Override
@@ -66,12 +75,6 @@ public class AttachmentCallbackHandler implements CallbackHandler {
                 loadAttachments(attachmentList, attachmentId, attachmentRequestCallback.isRemoveAttachments());
             } else if (callback instanceof AttachmentResultCallback) {
                 AttachmentResultCallback attachmentResultCallback = (AttachmentResultCallback) callback;
-
-                if (soapMessage.getAttachments() == null) {
-                    soapMessage.setAttachments(new ArrayList<Attachment>());
-                }
-
-                final Collection<org.apache.cxf.message.Attachment> attachments = soapMessage.getAttachments();
 
                 org.apache.cxf.attachment.AttachmentImpl securedAttachment =
                     new org.apache.cxf.attachment.AttachmentImpl(
@@ -93,10 +96,9 @@ public class AttachmentCallbackHandler implements CallbackHandler {
                 AttachmentRemovalCallback attachmentRemovalCallback = (AttachmentRemovalCallback) callback;
                 String attachmentId = attachmentRemovalCallback.getAttachmentId();
                 if (attachmentId != null) {
-                    final Collection<org.apache.cxf.message.Attachment> attachments = soapMessage.getAttachments();
                     // Calling LazyAttachmentCollection.size() here to force it to load the attachments
-                    if (attachments != null && attachments.size() > 0) {
-                        for (Iterator<org.apache.cxf.message.Attachment> iterator = attachments.iterator(); 
+                    if (attachments != null && attachments.size() > 0) {  // NOPMD
+                        for (Iterator<org.apache.cxf.message.Attachment> iterator = attachments.iterator();
                             iterator.hasNext();) {
                             org.apache.cxf.message.Attachment attachment = iterator.next();
 
@@ -118,21 +120,22 @@ public class AttachmentCallbackHandler implements CallbackHandler {
         String attachmentId,
         boolean removeAttachments
     ) throws IOException {
-        final Collection<org.apache.cxf.message.Attachment> attachments = soapMessage.getAttachments();
         // Calling LazyAttachmentCollection.size() here to force it to load the attachments
-        if (attachments != null && attachments.size() > 0) {
+        if (attachments != null && attachments.size() > 0) { // NOPMD
             for (Iterator<org.apache.cxf.message.Attachment> iterator = attachments.iterator();
                 iterator.hasNext();) {
                 org.apache.cxf.message.Attachment attachment = iterator.next();
 
-                if (attachmentId != null && !attachmentId.equals(attachment.getId())) {
+                if (attachmentId != null
+                        && !(attachmentId.equals(attachment.getId())
+                            || attachmentId.equals(getDecodedAttachmentId(attachment.getId())))) {
                     continue;
                 }
 
                 org.apache.wss4j.common.ext.Attachment att =
                     new org.apache.wss4j.common.ext.Attachment();
                 att.setMimeType(attachment.getDataHandler().getContentType());
-                att.setId(attachment.getId());
+                att.setId(attachmentId == null ? attachment.getId() : attachmentId);
                 att.setSourceStream(attachment.getDataHandler().getInputStream());
                 Iterator<String> headerIterator = attachment.getHeaderNames();
                 while (headerIterator.hasNext()) {
@@ -146,6 +149,10 @@ public class AttachmentCallbackHandler implements CallbackHandler {
                 }
             }
         }
+    }
+
+    private static String getDecodedAttachmentId(String attachmentId) throws IOException {
+        return URLDecoder.decode(attachmentId, StandardCharsets.UTF_8.name());
     }
 
 }

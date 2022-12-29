@@ -22,18 +22,21 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlRootElement;
-import javax.xml.bind.annotation.XmlType;
-
+import jakarta.xml.bind.annotation.XmlAccessType;
+import jakarta.xml.bind.annotation.XmlAccessorType;
+import jakarta.xml.bind.annotation.XmlElement;
+import jakarta.xml.bind.annotation.XmlRootElement;
+import jakarta.xml.bind.annotation.XmlType;
 import org.apache.cxf.databinding.WrapperHelper;
 
-import org.junit.Assert;
 import org.junit.Test;
 
-public class JAXBWrapperHelperTest extends Assert {
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+
+public class JAXBWrapperHelperTest {
 
 
     @Test
@@ -100,7 +103,7 @@ public class JAXBWrapperHelperTest extends Assert {
         @XmlElement(name = "Parameter2")
         protected int parameter2;
         @XmlElement(name = "Parameter3")
-        protected boolean parameter3[];
+        protected boolean[] parameter3;
         @XmlElement(name = "Parameter4")
         protected String parameter4;
         @XmlElement(name = "Parameter5")
@@ -152,7 +155,7 @@ public class JAXBWrapperHelperTest extends Assert {
          * Sets the value of the parameter2 property.
          *
          */
-        public void setParameter3(boolean value[]) {
+        public void setParameter3(boolean[] value) {
             this.parameter3 = value;
         }
 
@@ -168,4 +171,3 @@ public class JAXBWrapperHelperTest extends Assert {
         }
     }
 }
-

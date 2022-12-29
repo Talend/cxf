@@ -21,19 +21,18 @@ package org.apache.cxf.microprofile.client.cdi;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
-import javax.enterprise.event.Observes;
-import javax.enterprise.inject.spi.AfterBeanDiscovery;
-import javax.enterprise.inject.spi.AfterDeploymentValidation;
-import javax.enterprise.inject.spi.BeanManager;
-import javax.enterprise.inject.spi.Extension;
-import javax.enterprise.inject.spi.ProcessAnnotatedType;
-import javax.enterprise.inject.spi.WithAnnotations;
-
+import jakarta.enterprise.event.Observes;
+import jakarta.enterprise.inject.spi.AfterBeanDiscovery;
+import jakarta.enterprise.inject.spi.AfterDeploymentValidation;
+import jakarta.enterprise.inject.spi.BeanManager;
+import jakarta.enterprise.inject.spi.Extension;
+import jakarta.enterprise.inject.spi.ProcessAnnotatedType;
+import jakarta.enterprise.inject.spi.WithAnnotations;
 import org.eclipse.microprofile.rest.client.inject.RegisterRestClient;
 
 public class RestClientExtension implements Extension {
-    private static Set<Class<?>> restClientClasses = new LinkedHashSet<>();
-    private static Set<Throwable> errors = new LinkedHashSet<>();
+    private Set<Class<?>> restClientClasses = new LinkedHashSet<>();
+    private Set<Throwable> errors = new LinkedHashSet<>();
     public void findClients(@Observes @WithAnnotations({RegisterRestClient.class}) ProcessAnnotatedType<?> pat) {
         Class<?> restClient = pat.getAnnotatedType().getJavaClass();
         if (restClient.isInterface()) {

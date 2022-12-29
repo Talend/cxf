@@ -87,6 +87,7 @@ public class CorbaStreamInInterceptor extends AbstractPhaseInterceptor<Message> 
         } else {
             destination = (CorbaDestination)msg.getExchange().getDestination();
         }
+
         service = destination.getBindingInfo().getService();
 
         CorbaMessage message = (CorbaMessage)msg;
@@ -106,7 +107,7 @@ public class CorbaStreamInInterceptor extends AbstractPhaseInterceptor<Message> 
         orb = message.getExchange().get(ORB.class);
         HandlerIterator paramIterator = new HandlerIterator(outMessage, false);
 
-        CorbaTypeEventProducer eventProducer = null;
+        final CorbaTypeEventProducer eventProducer;
         Exchange exchange = message.getExchange();
         BindingOperationInfo bindingOpInfo = exchange.getBindingOperationInfo();
         BindingMessageInfo msgInfo = bindingOpInfo.getOutput();
@@ -181,7 +182,7 @@ public class CorbaStreamInInterceptor extends AbstractPhaseInterceptor<Message> 
 
         HandlerIterator paramIterator = new HandlerIterator(message, true);
 
-        CorbaTypeEventProducer eventProducer = null;
+        final CorbaTypeEventProducer eventProducer;
         BindingMessageInfo msgInfo = bopInfo.getInput();
         boolean wrap = false;
         if (bopInfo.isUnwrappedCapable()) {
@@ -279,7 +280,7 @@ public class CorbaStreamInInterceptor extends AbstractPhaseInterceptor<Message> 
                 QName paramIdlType = param.getIdltype();
                 QName paramName;
                 ModeType paramMode = param.getMode();
-                if (paramMode.value().equals("in")) {
+                if ("in".equals(paramMode.value())) {
                     if (wrap) {
                         paramName = new QName(inWrapNSUri, param.getName());
                     } else {
@@ -298,11 +299,11 @@ public class CorbaStreamInInterceptor extends AbstractPhaseInterceptor<Message> 
                     CorbaHandlerUtils.initializeObjectHandler(orb, paramName, paramIdlType, map, service);
                 streamables[i] = corbaMsg.createStreamableObject(obj, paramName);
 
-                Any value = CorbaAnyHelper.createAny(orb);
-                if (paramMode.value().equals("in")) {
+                Any value = CorbaAnyHelper.createAny(orb, corbaMsg.getExchange().getBus());
+                if ("in".equals(paramMode.value())) {
                     streamables[i].setMode(org.omg.CORBA.ARG_IN.value);
                     streamables[i].getObject().setIntoAny(value, streamables[i], false);
-                } else if (paramMode.value().equals("out")) {
+                } else if ("out".equals(paramMode.value())) {
                     streamables[i].setMode(org.omg.CORBA.ARG_OUT.value);
                     streamables[i].getObject().setIntoAny(value, streamables[i], true);
                 } else {

@@ -19,10 +19,11 @@
 package org.apache.cxf.jaxrs.client;
 
 import java.net.URI;
+import java.util.Map;
 
-import javax.ws.rs.core.MultivaluedMap;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.UriBuilder;
+import jakarta.ws.rs.core.MultivaluedMap;
+import jakarta.ws.rs.core.Response;
+import jakarta.ws.rs.core.UriBuilder;
 
 
 /**
@@ -87,7 +88,7 @@ public interface ClientState {
      * Sets the map containing template name and value pairs
      * @param templates
      */
-    void setTemplates(MultivaluedMap<String, String> map);
+    void setTemplates(MultivaluedMap<String, String> templates);
 
     /**
      * Gets the templates map
@@ -115,4 +116,22 @@ public interface ClientState {
     ClientState newState(URI baseURI,
                          MultivaluedMap<String, String> headers,
                          MultivaluedMap<String, String> templates);
+
+    /**
+     * The factory method for creating a new state.
+     * Example, proxy and WebClient.fromClient will use this method when creating
+     * subresource proxies and new web clients respectively to ensure thet stay
+     * thread-local if needed
+     * @param baseURI baseURI
+     * @param headers request headers, can be null
+     * @param templates initial templates map, can be null
+     * @param properties additional properties, could be null
+     * @return client state
+     */
+    default ClientState newState(URI baseURI,
+                         MultivaluedMap<String, String> headers,
+                         MultivaluedMap<String, String> templates,
+                         Map<String, Object> properties) {
+        return newState(baseURI, headers, templates);
+    }
 }

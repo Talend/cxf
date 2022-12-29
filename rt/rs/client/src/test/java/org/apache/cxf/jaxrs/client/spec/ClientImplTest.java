@@ -20,14 +20,23 @@ package org.apache.cxf.jaxrs.client.spec;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
+import java.util.concurrent.BrokenBarrierException;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
+import java.util.concurrent.CyclicBarrier;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.logging.Handler;
 import java.util.logging.LogRecord;
 
-import javax.ws.rs.client.Client;
-import javax.ws.rs.client.ClientBuilder;
-import javax.ws.rs.client.WebTarget;
-
+import jakarta.ws.rs.client.Client;
+import jakarta.ws.rs.client.ClientBuilder;
+import jakarta.ws.rs.client.Invocation;
+import jakarta.ws.rs.client.WebTarget;
 import org.apache.cxf.common.logging.LogUtils;
 import org.apache.cxf.interceptor.Fault;
 import org.apache.cxf.interceptor.Interceptor;
@@ -37,10 +46,13 @@ import org.apache.cxf.jaxrs.client.spec.ClientImpl.WebTargetImpl;
 import org.apache.cxf.jaxrs.impl.ConfigurableImpl;
 import org.apache.cxf.message.Message;
 
-import org.junit.Assert;
 import org.junit.Test;
 
-public class ClientImplTest extends Assert {
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+
+public class ClientImplTest {
 
     private static final String MY_INTERCEPTOR_NAME = "MyInterceptor";
 
@@ -187,4 +199,44 @@ public class ClientImplTest extends Assert {
         }
         fail("did not log expected message");
     }
+    
+    /**
+     * This test cases creates a single WebTarget instance and than calls
+     * the request() method concurrently from different threads verifying that
+     * its behavior is thread-safe.
+     */
+    @Test
+    public void testAccessInvocationBuilderConcurrently() {
+        String address = "http://localhost:8080/bookstore/{a}/simple";
+        Client client = ClientBuilder.newClient();
+        
+        final Invocation.Builder builder = client
+                .target(address)
+                .resolveTemplate("a", "bookheaders")
+                .request("application/xml")
+                .header("a", "b");
+        
+        final ExecutorService executor = Executors.newFixedThreadPool(20);
+        final CyclicBarrier barrier = new CyclicBarrier(20);
+        
+        final Collection<CompletableFuture<?>> futures = new ArrayList<>();
+        for (int i = 0; i < 20; ++i) {
+            futures.add(CompletableFuture.supplyAsync(() -> {
+                try {
+                    barrier.await(1, TimeUnit.SECONDS);
+                    return builder.buildGet();
+                } catch (final InterruptedException ex) {
+                    Thread.interrupted();
+                    throw new CompletionException(ex);
+                } catch (BrokenBarrierException | TimeoutException ex) {
+                    throw new CompletionException(ex);
+                }
+            }, executor));
+        }
+        
+        CompletableFuture
+            .allOf(futures.toArray(new CompletableFuture<?>[0]))
+            .join();
+    }
+        
 }

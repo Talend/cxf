@@ -17,8 +17,16 @@
  specific language governing permissions and limitations
  under the License.
 -->
-<beans xmlns="http://www.springframework.org/schema/beans" xmlns:cxf="http://cxf.apache.org/core" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:sec="http://cxf.apache.org/configuration/security" xmlns:http="http://cxf.apache.org/transports/http/configuration" xmlns:httpj="http://cxf.apache.org/transports/http-jetty/configuration" xmlns:jaxws="http://cxf.apache.org/jaxws" xmlns:util="http://www.springframework.org/schema/util" xsi:schemaLocation="             http://cxf.apache.org/core             http://cxf.apache.org/schemas/core.xsd             http://cxf.apache.org/configuration/security             http://cxf.apache.org/schemas/configuration/security.xsd             http://cxf.apache.org/jaxws             http://cxf.apache.org/schemas/jaxws.xsd             http://cxf.apache.org/transports/http/configuration             http://cxf.apache.org/schemas/configuration/http-conf.xsd             http://cxf.apache.org/transports/http-jetty/configuration             http://cxf.apache.org/schemas/configuration/http-jetty.xsd             http://www.springframework.org/schema/beans             http://www.springframework.org/schema/beans/spring-beans-4.2.xsd             http://www.springframework.org/schema/util             http://www.springframework.org/schema/util/spring-util-4.2.xsd">
-    <bean class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer"/>
+<beans xmlns="http://www.springframework.org/schema/beans"
+    xmlns:cxf="http://cxf.apache.org/core"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:sec="http://cxf.apache.org/configuration/security"
+    xmlns:http="http://cxf.apache.org/transports/http/configuration"
+    xmlns:httpj="http://cxf.apache.org/transports/http-jetty/configuration"
+    xmlns:jaxws="http://cxf.apache.org/jaxws"
+    xmlns:util="http://www.springframework.org/schema/util"
+    xsi:schemaLocation="http://cxf.apache.org/core http://cxf.apache.org/schemas/core.xsd http://cxf.apache.org/configuration/security http://cxf.apache.org/schemas/configuration/security.xsd http://cxf.apache.org/jaxws http://cxf.apache.org/schemas/jaxws.xsd http://cxf.apache.org/transports/http/configuration http://cxf.apache.org/schemas/configuration/http-conf.xsd http://cxf.apache.org/transports/http-jetty/configuration http://cxf.apache.org/schemas/configuration/http-jetty.xsd http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-4.2.xsd">
+    <bean class="org.springframework.context.support.PropertySourcesPlaceholderConfigurer"/>
     <cxf:bus>
         <cxf:features>
             <cxf:logging/>
@@ -90,15 +98,15 @@
         <property name="encryptionAlgorithm" value="http://www.w3.org/2001/04/xmlenc#aes128-cbc"/>
     </bean>
     <bean id="transportSTSProperties" class="org.apache.cxf.sts.StaticSTSProperties">
-        <property name="signaturePropertiesFile" value="stsKeystore.properties"/>
+        <property name="signatureCryptoProperties" value="stsKeystore.properties"/>
         <property name="signatureUsername" value="mystskey"/>
         <property name="callbackHandlerClass" value="org.apache.cxf.systest.sts.common.CommonCallbackHandler"/>
-        <property name="encryptionPropertiesFile" value="stsKeystore.properties"/>
+        <property name="encryptionCryptoProperties" value="stsKeystore.properties"/>
         <property name="encryptionProperties" ref="encProperties"/>
         <property name="issuer" value="DoubleItSTSIssuer"/>
         <property name="encryptionUsername" value="myservicekey"/>
     </bean>
-    <jaxws:endpoint xmlns:ns1="http://docs.oasis-open.org/ws-sx/ws-trust/200512/" id="localSCTSTS" implementor="#transportSTSProviderBean" address="https://localhost:${testutil.ports.secure_conv.STSServer}/SecurityTokenService/TransportSCT" wsdlLocation="src/test/resources/org/apache/cxf/systest/sts/secure_conv/ws-trust-1.4-service.wsdl" depends-on="ClientAuthHttpsSettings" serviceName="ns1:SecurityTokenService" endpointName="ns1:Transport_Port">
+    <jaxws:endpoint xmlns:ns1="http://docs.oasis-open.org/ws-sx/ws-trust/200512/" implementor="#transportSTSProviderBean" address="https://localhost:${testutil.ports.STSServer}/SecurityTokenService/TransportSCT" wsdlLocation="src/test/resources/org/apache/cxf/systest/sts/secure_conv/ws-trust-1.4-service.wsdl" depends-on="ClientAuthHttpsSettings" serviceName="ns1:SecurityTokenService" endpointName="ns1:Transport_Port">
         <jaxws:inInterceptors>
             <ref bean="sctInterceptor"/>
         </jaxws:inInterceptors>
@@ -109,7 +117,7 @@
             <ref bean="sctOutInterceptor"/>
         </jaxws:outFaultInterceptors>
     </jaxws:endpoint>
-    <jaxws:endpoint xmlns:ns1="http://docs.oasis-open.org/ws-sx/ws-trust/200512/" id="localSCTEncryptedSTS" implementor="#transportSTSEncryptedProviderBean" address="https://localhost:${testutil.ports.secure_conv.STSServer}/SecurityTokenService/TransportSCTEncrypted" wsdlLocation="src/test/resources/org/apache/cxf/systest/sts/secure_conv/ws-trust-1.4-service.wsdl" depends-on="ClientAuthHttpsSettings" serviceName="ns1:SecurityTokenService" endpointName="ns1:Transport_Port">
+    <jaxws:endpoint xmlns:ns1="http://docs.oasis-open.org/ws-sx/ws-trust/200512/" implementor="#transportSTSEncryptedProviderBean" address="https://localhost:${testutil.ports.STSServer}/SecurityTokenService/TransportSCTEncrypted" wsdlLocation="src/test/resources/org/apache/cxf/systest/sts/secure_conv/ws-trust-1.4-service.wsdl" depends-on="ClientAuthHttpsSettings" serviceName="ns1:SecurityTokenService" endpointName="ns1:Transport_Port">
         <jaxws:inInterceptors>
             <ref bean="sctInterceptor"/>
         </jaxws:inInterceptors>
@@ -120,7 +128,7 @@
             <ref bean="sctOutInterceptor"/>
         </jaxws:outFaultInterceptors>
     </jaxws:endpoint>
-    <jaxws:endpoint xmlns:ns1="http://docs.oasis-open.org/ws-sx/ws-trust/200512/" id="localSCTEndorsingSTS" implementor="#transportSTSProviderBean" address="https://localhost:${testutil.ports.secure_conv.STSServer}/SecurityTokenService/TransportEndorsing" wsdlLocation="src/test/resources/org/apache/cxf/systest/sts/secure_conv/ws-trust-1.4-service.wsdl" depends-on="ClientAuthHttpsSettings" serviceName="ns1:SecurityTokenService" endpointName="ns1:Transport_Endorsing_Port">
+    <jaxws:endpoint xmlns:ns1="http://docs.oasis-open.org/ws-sx/ws-trust/200512/" implementor="#transportSTSProviderBean" address="https://localhost:${testutil.ports.STSServer}/SecurityTokenService/TransportEndorsing" wsdlLocation="src/test/resources/org/apache/cxf/systest/sts/secure_conv/ws-trust-1.4-service.wsdl" depends-on="ClientAuthHttpsSettings" serviceName="ns1:SecurityTokenService" endpointName="ns1:Transport_Endorsing_Port">
         <jaxws:inInterceptors>
             <ref bean="sctInterceptor"/>
         </jaxws:inInterceptors>
@@ -139,7 +147,7 @@
     <bean id="sctInterceptor" class="org.apache.cxf.sts.interceptor.SCTInInterceptor"/>
     <bean id="sctOutInterceptor" class="org.apache.cxf.sts.interceptor.SCTOutInterceptor"/>
     <httpj:engine-factory id="ClientAuthHttpsSettings" bus="cxf">
-        <httpj:engine port="${testutil.ports.secure_conv.STSServer}">
+        <httpj:engine port="${testutil.ports.STSServer}">
             <httpj:tlsServerParameters>
                 <sec:trustManagers>
                     <sec:keyStore type="jks" password="stsspass" resource="keys/stsstore.jks"/>

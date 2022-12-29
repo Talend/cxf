@@ -19,7 +19,7 @@
 
 package org.apache.cxf.systest.jaxrs;
 
-import javax.xml.bind.annotation.XmlRootElement;
+import jakarta.xml.bind.annotation.XmlRootElement;
 
 @XmlRootElement(name = "CD")
 public class CD {
@@ -60,6 +60,6 @@ public class CD {
     }
 
     public int hashCode() {
-        return name.hashCode() + new Long(id).hashCode();
+        return name.hashCode() + Long.valueOf(id).hashCode();
     }
 }

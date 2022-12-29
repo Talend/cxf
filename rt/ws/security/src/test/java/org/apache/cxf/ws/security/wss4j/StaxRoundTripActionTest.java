@@ -45,6 +45,10 @@ import org.apache.xml.security.stax.ext.XMLSecurityConstants;
 
 import org.junit.Test;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+
 /**
  * Test StaX Security actions on the inbound side
  */
@@ -56,7 +60,7 @@ public class StaxRoundTripActionTest extends AbstractSecurityTest {
         Service service = createService();
 
         WSSSecurityProperties inProperties = new WSSSecurityProperties();
-        List<WSSConstants.Action> actions = new ArrayList<WSSConstants.Action>();
+        List<WSSConstants.Action> actions = new ArrayList<>();
         actions.add(WSSConstants.USERNAMETOKEN);
         inProperties.setActions(actions);
         inProperties.setCallbackHandler(new TestPwdCallback());
@@ -75,7 +79,7 @@ public class StaxRoundTripActionTest extends AbstractSecurityTest {
         client.getOutInterceptors().add(new LoggingOutInterceptor());
 
         WSSSecurityProperties properties = new WSSSecurityProperties();
-        actions = new ArrayList<WSSConstants.Action>();
+        actions = new ArrayList<>();
         actions.add(WSSConstants.USERNAMETOKEN);
         properties.setActions(actions);
         properties.setUsernameTokenPasswordType(WSSConstants.UsernameTokenPasswordType.PASSWORD_TEXT);
@@ -86,15 +90,15 @@ public class StaxRoundTripActionTest extends AbstractSecurityTest {
 
         assertEquals("test", echo.echo("test"));
 
-        actions = new ArrayList<WSSConstants.Action>();
+        actions = new ArrayList<>();
         actions.add(WSSConstants.USERNAMETOKEN);
-        actions.add(XMLSecurityConstants.ENCRYPT);
+        actions.add(XMLSecurityConstants.ENCRYPTION);
         inProperties.setActions(actions);
 
         try {
             echo.echo("test");
             fail("Failure expected on the wrong action");
-        } catch (javax.xml.ws.soap.SOAPFaultException ex) {
+        } catch (jakarta.xml.ws.soap.SOAPFaultException ex) {
             // expected
             assertTrue(ex.getMessage().contains(WSSecurityException.UNIFIED_SECURITY_ERR));
         }
@@ -124,7 +128,7 @@ public class StaxRoundTripActionTest extends AbstractSecurityTest {
         client.getOutInterceptors().add(new LoggingOutInterceptor());
 
         WSSSecurityProperties properties = new WSSSecurityProperties();
-        List<WSSConstants.Action> actions = new ArrayList<WSSConstants.Action>();
+        List<WSSConstants.Action> actions = new ArrayList<>();
         actions.add(WSSConstants.USERNAMETOKEN);
         properties.setActions(actions);
         properties.setUsernameTokenPasswordType(WSSConstants.UsernameTokenPasswordType.PASSWORD_TEXT);
@@ -138,7 +142,7 @@ public class StaxRoundTripActionTest extends AbstractSecurityTest {
         service.getInInterceptors().remove(inhandler);
         inConfig.put(
             ConfigurationConstants.ACTION,
-            ConfigurationConstants.USERNAME_TOKEN + " " + ConfigurationConstants.ENCRYPT
+            ConfigurationConstants.USERNAME_TOKEN + " " + ConfigurationConstants.ENCRYPTION
         );
         inhandler = new WSS4JStaxInInterceptor(inConfig);
         service.getInInterceptors().add(inhandler);
@@ -146,7 +150,7 @@ public class StaxRoundTripActionTest extends AbstractSecurityTest {
         try {
             echo.echo("test");
             fail("Failure expected on the wrong action");
-        } catch (javax.xml.ws.soap.SOAPFaultException ex) {
+        } catch (jakarta.xml.ws.soap.SOAPFaultException ex) {
             // expected
             assertTrue(ex.getMessage().contains(WSSecurityException.UNIFIED_SECURITY_ERR));
         }
@@ -159,8 +163,8 @@ public class StaxRoundTripActionTest extends AbstractSecurityTest {
 
         WSSSecurityProperties inProperties = new WSSSecurityProperties();
         inProperties.setCallbackHandler(new TestPwdCallback());
-        List<WSSConstants.Action> actions = new ArrayList<WSSConstants.Action>();
-        actions.add(XMLSecurityConstants.ENCRYPT);
+        List<WSSConstants.Action> actions = new ArrayList<>();
+        actions.add(XMLSecurityConstants.ENCRYPTION);
         inProperties.setActions(actions);
         Properties cryptoProperties =
             CryptoFactory.getProperties("insecurity.properties", this.getClass().getClassLoader());
@@ -177,8 +181,8 @@ public class StaxRoundTripActionTest extends AbstractSecurityTest {
         client.getOutInterceptors().add(new LoggingOutInterceptor());
 
         WSSSecurityProperties properties = new WSSSecurityProperties();
-        actions = new ArrayList<WSSConstants.Action>();
-        actions.add(XMLSecurityConstants.ENCRYPT);
+        actions = new ArrayList<>();
+        actions.add(XMLSecurityConstants.ENCRYPTION);
         properties.setActions(actions);
         properties.setEncryptionUser("myalias");
         properties.setEncryptionSymAlgorithm(XMLSecurityConstants.NS_XENC_AES128);
@@ -192,15 +196,15 @@ public class StaxRoundTripActionTest extends AbstractSecurityTest {
 
         assertEquals("test", echo.echo("test"));
 
-        actions = new ArrayList<WSSConstants.Action>();
-        actions.add(XMLSecurityConstants.ENCRYPT);
+        actions = new ArrayList<>();
+        actions.add(XMLSecurityConstants.ENCRYPTION);
         actions.add(XMLSecurityConstants.SIGNATURE);
         inProperties.setActions(actions);
 
         try {
             echo.echo("test");
             fail("Failure expected on the wrong action");
-        } catch (javax.xml.ws.soap.SOAPFaultException ex) {
+        } catch (jakarta.xml.ws.soap.SOAPFaultException ex) {
             // expected
             assertTrue(ex.getMessage().contains(WSSecurityException.UNIFIED_SECURITY_ERR));
         }
@@ -212,7 +216,7 @@ public class StaxRoundTripActionTest extends AbstractSecurityTest {
         Service service = createService();
 
         Map<String, Object> inConfig = new HashMap<>();
-        inConfig.put(ConfigurationConstants.ACTION, ConfigurationConstants.ENCRYPT);
+        inConfig.put(ConfigurationConstants.ACTION, ConfigurationConstants.ENCRYPTION);
         inConfig.put(ConfigurationConstants.PW_CALLBACK_REF, new TestPwdCallback());
         inConfig.put(ConfigurationConstants.DEC_PROP_FILE, "insecurity.properties");
         WSS4JStaxInInterceptor inhandler = new WSS4JStaxInInterceptor(inConfig);
@@ -227,7 +231,7 @@ public class StaxRoundTripActionTest extends AbstractSecurityTest {
         client.getOutInterceptors().add(new LoggingOutInterceptor());
 
         Map<String, Object> outConfig = new HashMap<>();
-        outConfig.put(ConfigurationConstants.ACTION, ConfigurationConstants.ENCRYPT);
+        outConfig.put(ConfigurationConstants.ACTION, ConfigurationConstants.ENCRYPTION);
         outConfig.put(ConfigurationConstants.ENCRYPTION_USER, "myalias");
         outConfig.put(ConfigurationConstants.PW_CALLBACK_REF, new TestPwdCallback());
         outConfig.put(ConfigurationConstants.ENC_PROP_FILE, "outsecurity.properties");
@@ -240,7 +244,7 @@ public class StaxRoundTripActionTest extends AbstractSecurityTest {
         service.getInInterceptors().remove(inhandler);
         inConfig.put(
             ConfigurationConstants.ACTION,
-            ConfigurationConstants.ENCRYPT + " " + ConfigurationConstants.SIGNATURE
+            ConfigurationConstants.ENCRYPTION + " " + ConfigurationConstants.SIGNATURE
         );
         inhandler = new WSS4JStaxInInterceptor(inConfig);
         service.getInInterceptors().add(inhandler);
@@ -248,7 +252,7 @@ public class StaxRoundTripActionTest extends AbstractSecurityTest {
         try {
             echo.echo("test");
             fail("Failure expected on the wrong action");
-        } catch (javax.xml.ws.soap.SOAPFaultException ex) {
+        } catch (jakarta.xml.ws.soap.SOAPFaultException ex) {
             // expected
             assertTrue(ex.getMessage().contains(WSSecurityException.UNIFIED_SECURITY_ERR));
         }
@@ -261,8 +265,8 @@ public class StaxRoundTripActionTest extends AbstractSecurityTest {
 
         WSSSecurityProperties inProperties = new WSSSecurityProperties();
         inProperties.setCallbackHandler(new TestPwdCallback());
-        List<WSSConstants.Action> actions = new ArrayList<WSSConstants.Action>();
-        actions.add(XMLSecurityConstants.ENCRYPT);
+        List<WSSConstants.Action> actions = new ArrayList<>();
+        actions.add(XMLSecurityConstants.ENCRYPTION);
         actions.add(WSSConstants.USERNAMETOKEN);
         inProperties.setActions(actions);
         Properties cryptoProperties =
@@ -280,9 +284,9 @@ public class StaxRoundTripActionTest extends AbstractSecurityTest {
         client.getOutInterceptors().add(new LoggingOutInterceptor());
 
         WSSSecurityProperties properties = new WSSSecurityProperties();
-        actions = new ArrayList<WSSConstants.Action>();
+        actions = new ArrayList<>();
         actions.add(WSSConstants.USERNAMETOKEN);
-        actions.add(XMLSecurityConstants.ENCRYPT);
+        actions.add(XMLSecurityConstants.ENCRYPTION);
         properties.setActions(actions);
         properties.addEncryptionPart(
             new SecurePart(new QName(WSSConstants.NS_WSSE10, "UsernameToken"), SecurePart.Modifier.Element)
@@ -309,7 +313,7 @@ public class StaxRoundTripActionTest extends AbstractSecurityTest {
         Map<String, Object> inConfig = new HashMap<>();
         inConfig.put(
             ConfigurationConstants.ACTION,
-            ConfigurationConstants.ENCRYPT + " " + ConfigurationConstants.USERNAME_TOKEN
+            ConfigurationConstants.ENCRYPTION + " " + ConfigurationConstants.USERNAME_TOKEN
         );
         inConfig.put(ConfigurationConstants.PW_CALLBACK_REF, new TestPwdCallback());
         inConfig.put(ConfigurationConstants.DEC_PROP_FILE, "insecurity.properties");
@@ -327,7 +331,7 @@ public class StaxRoundTripActionTest extends AbstractSecurityTest {
         Map<String, Object> outConfig = new HashMap<>();
         outConfig.put(
             ConfigurationConstants.ACTION,
-            ConfigurationConstants.USERNAME_TOKEN + " " + ConfigurationConstants.ENCRYPT
+            ConfigurationConstants.USERNAME_TOKEN + " " + ConfigurationConstants.ENCRYPTION
         );
         outConfig.put(
             ConfigurationConstants.ENCRYPTION_PARTS,
@@ -353,7 +357,7 @@ public class StaxRoundTripActionTest extends AbstractSecurityTest {
         inProperties.setCallbackHandler(new TestPwdCallback());
         Properties cryptoProperties =
             CryptoFactory.getProperties("insecurity.properties", this.getClass().getClassLoader());
-        List<WSSConstants.Action> actions = new ArrayList<WSSConstants.Action>();
+        List<WSSConstants.Action> actions = new ArrayList<>();
         actions.add(XMLSecurityConstants.SIGNATURE);
         inProperties.setActions(actions);
         inProperties.setSignatureVerificationCryptoProperties(cryptoProperties);
@@ -372,7 +376,7 @@ public class StaxRoundTripActionTest extends AbstractSecurityTest {
         client.getOutInterceptors().add(new LoggingOutInterceptor());
 
         WSSSecurityProperties properties = new WSSSecurityProperties();
-        actions = new ArrayList<WSSConstants.Action>();
+        actions = new ArrayList<>();
         actions.add(XMLSecurityConstants.SIGNATURE);
         properties.setActions(actions);
         properties.setSignatureUser("myalias");
@@ -386,15 +390,15 @@ public class StaxRoundTripActionTest extends AbstractSecurityTest {
 
         assertEquals("test", echo.echo("test"));
 
-        actions = new ArrayList<WSSConstants.Action>();
+        actions = new ArrayList<>();
         actions.add(XMLSecurityConstants.SIGNATURE);
-        actions.add(XMLSecurityConstants.ENCRYPT);
+        actions.add(XMLSecurityConstants.ENCRYPTION);
         inProperties.setActions(actions);
 
         try {
             echo.echo("test");
             fail("Failure expected on the wrong action");
-        } catch (javax.xml.ws.soap.SOAPFaultException ex) {
+        } catch (jakarta.xml.ws.soap.SOAPFaultException ex) {
             // expected
             assertTrue(ex.getMessage().contains(WSSecurityException.UNIFIED_SECURITY_ERR));
         }
@@ -436,7 +440,7 @@ public class StaxRoundTripActionTest extends AbstractSecurityTest {
         service.getInInterceptors().remove(inhandler);
         inConfig.put(
             ConfigurationConstants.ACTION,
-            ConfigurationConstants.SIGNATURE + " " + ConfigurationConstants.ENCRYPT
+            ConfigurationConstants.SIGNATURE + " " + ConfigurationConstants.ENCRYPTION
         );
         inhandler = new WSS4JStaxInInterceptor(inConfig);
         service.getInInterceptors().add(inhandler);
@@ -444,7 +448,7 @@ public class StaxRoundTripActionTest extends AbstractSecurityTest {
         try {
             echo.echo("test");
             fail("Failure expected on the wrong action");
-        } catch (javax.xml.ws.soap.SOAPFaultException ex) {
+        } catch (jakarta.xml.ws.soap.SOAPFaultException ex) {
             // expected
             assertTrue(ex.getMessage().contains(WSSecurityException.UNIFIED_SECURITY_ERR));
         }
@@ -456,7 +460,7 @@ public class StaxRoundTripActionTest extends AbstractSecurityTest {
         Service service = createService();
 
         WSSSecurityProperties inProperties = new WSSSecurityProperties();
-        List<WSSConstants.Action> actions = new ArrayList<WSSConstants.Action>();
+        List<WSSConstants.Action> actions = new ArrayList<>();
         actions.add(WSSConstants.TIMESTAMP);
         inProperties.setActions(actions);
         WSS4JStaxInInterceptor inhandler = new WSS4JStaxInInterceptor(inProperties);
@@ -471,7 +475,7 @@ public class StaxRoundTripActionTest extends AbstractSecurityTest {
         client.getOutInterceptors().add(new LoggingOutInterceptor());
 
         WSSSecurityProperties properties = new WSSSecurityProperties();
-        actions = new ArrayList<WSSConstants.Action>();
+        actions = new ArrayList<>();
         actions.add(WSSConstants.TIMESTAMP);
         properties.setActions(actions);
 
@@ -515,7 +519,7 @@ public class StaxRoundTripActionTest extends AbstractSecurityTest {
 
         WSSSecurityProperties inProperties = new WSSSecurityProperties();
         inProperties.setCallbackHandler(new TestPwdCallback());
-        List<WSSConstants.Action> actions = new ArrayList<WSSConstants.Action>();
+        List<WSSConstants.Action> actions = new ArrayList<>();
         actions.add(WSSConstants.TIMESTAMP);
         actions.add(XMLSecurityConstants.SIGNATURE);
         inProperties.setActions(actions);
@@ -534,7 +538,7 @@ public class StaxRoundTripActionTest extends AbstractSecurityTest {
         client.getOutInterceptors().add(new LoggingOutInterceptor());
 
         WSSSecurityProperties properties = new WSSSecurityProperties();
-        actions = new ArrayList<WSSConstants.Action>();
+        actions = new ArrayList<>();
         actions.add(WSSConstants.TIMESTAMP);
         actions.add(XMLSecurityConstants.SIGNATURE);
         properties.setActions(actions);
@@ -605,8 +609,8 @@ public class StaxRoundTripActionTest extends AbstractSecurityTest {
 
         WSSSecurityProperties inProperties = new WSSSecurityProperties();
         inProperties.setCallbackHandler(new TestPwdCallback());
-        List<WSSConstants.Action> actions = new ArrayList<WSSConstants.Action>();
-        actions.add(XMLSecurityConstants.ENCRYPT);
+        List<WSSConstants.Action> actions = new ArrayList<>();
+        actions.add(XMLSecurityConstants.ENCRYPTION);
         actions.add(XMLSecurityConstants.SIGNATURE);
         inProperties.setActions(actions);
         Properties cryptoProperties =
@@ -625,8 +629,8 @@ public class StaxRoundTripActionTest extends AbstractSecurityTest {
         client.getOutInterceptors().add(new LoggingOutInterceptor());
 
         WSSSecurityProperties properties = new WSSSecurityProperties();
-        actions = new ArrayList<WSSConstants.Action>();
-        actions.add(XMLSecurityConstants.ENCRYPT);
+        actions = new ArrayList<>();
+        actions.add(XMLSecurityConstants.ENCRYPTION);
         actions.add(XMLSecurityConstants.SIGNATURE);
         properties.setActions(actions);
         properties.setEncryptionUser("myalias");
@@ -652,7 +656,7 @@ public class StaxRoundTripActionTest extends AbstractSecurityTest {
         Map<String, Object> inConfig = new HashMap<>();
         inConfig.put(
             ConfigurationConstants.ACTION,
-            ConfigurationConstants.ENCRYPT + " " + ConfigurationConstants.SIGNATURE
+            ConfigurationConstants.ENCRYPTION + " " + ConfigurationConstants.SIGNATURE
         );
         inConfig.put(ConfigurationConstants.PW_CALLBACK_REF, new TestPwdCallback());
         inConfig.put(ConfigurationConstants.SIG_VER_PROP_FILE, "insecurity.properties");
@@ -671,7 +675,7 @@ public class StaxRoundTripActionTest extends AbstractSecurityTest {
         Map<String, Object> outConfig = new HashMap<>();
         outConfig.put(
             ConfigurationConstants.ACTION,
-            ConfigurationConstants.ENCRYPT + " " + ConfigurationConstants.SIGNATURE
+            ConfigurationConstants.ENCRYPTION + " " + ConfigurationConstants.SIGNATURE
         );
         outConfig.put(ConfigurationConstants.SIGNATURE_USER, "myalias");
         outConfig.put(ConfigurationConstants.ENCRYPTION_USER, "myalias");

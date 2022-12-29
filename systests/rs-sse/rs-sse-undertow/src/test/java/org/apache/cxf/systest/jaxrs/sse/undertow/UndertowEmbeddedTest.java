@@ -25,6 +25,8 @@ import org.apache.cxf.systest.jaxrs.sse.AbstractSseTest;
 import org.junit.BeforeClass;
 import org.junit.Ignore;
 
+import static org.junit.Assert.assertTrue;
+
 public class UndertowEmbeddedTest extends AbstractSseTest {
     @Ignore
     public static class EmbeddedTomcatServer extends AbstractUndertowServer {
@@ -45,6 +47,11 @@ public class UndertowEmbeddedTest extends AbstractSseTest {
     @Override
     protected int getPort() {
         return EmbeddedTomcatServer.PORT;
+    }
+    
+    @Override
+    protected boolean supportsErrorPropagation() {
+        return true;
     }
 
 }

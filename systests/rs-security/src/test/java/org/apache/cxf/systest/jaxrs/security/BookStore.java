@@ -20,14 +20,14 @@
 package org.apache.cxf.systest.jaxrs.security;
 
 
-import javax.ws.rs.Consumes;
-import javax.ws.rs.FormParam;
-import javax.ws.rs.GET;
-import javax.ws.rs.POST;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
-import javax.ws.rs.core.MediaType;
+import jakarta.ws.rs.Consumes;
+import jakarta.ws.rs.FormParam;
+import jakarta.ws.rs.GET;
+import jakarta.ws.rs.POST;
+import jakarta.ws.rs.Path;
+import jakarta.ws.rs.PathParam;
+import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.core.MediaType;
 
 @Path("/bookstore")
 public class BookStore {
@@ -56,6 +56,13 @@ public class BookStore {
     @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
     public Book addBookForm(@FormParam("name") String name, @FormParam("id") long id) {
         return new Book(name, id);
+    }
+
+    @POST
+    @Path("/booksnoresp")
+    @Produces("application/xml")
+    @Consumes("application/xml")
+    public void addBookNoResponse(Book book) {
     }
 }
 

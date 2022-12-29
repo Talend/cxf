@@ -21,8 +21,7 @@ package org.apache.cxf.systest.ws.rm;
 import java.net.MalformedURLException;
 import java.util.logging.Logger;
 
-import javax.xml.ws.Endpoint;
-
+import jakarta.xml.ws.Endpoint;
 import org.apache.cxf.Bus;
 import org.apache.cxf.BusFactory;
 import org.apache.cxf.bus.spring.SpringBusFactory;
@@ -42,6 +41,9 @@ import org.apache.cxf.ws.rm.RetransmissionQueue;
 import org.junit.After;
 import org.junit.Test;
 
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+
 /**
  * Tests the acknowledgement delivery back to the non-decoupled port when there is some
  * error at the provider side and how its behavior is affected by the robust in-only mode setting.
@@ -53,7 +55,7 @@ public abstract class ServiceInvocationAckBase extends AbstractBusClientServerTe
         String port;
         String pfx;
         Endpoint ep;
-        public Server(String args[]) {
+        public Server(String[] args) {
             port = args[0];
             pfx = args[1];
         }

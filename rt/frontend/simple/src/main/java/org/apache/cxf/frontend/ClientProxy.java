@@ -93,7 +93,7 @@ public class ClientProxy implements InvocationHandler, Closeable {
         if (client == null) {
             throw new IllegalStateException("The client has been closed.");
         }
-        Object rawRet[] = client.invoke(oi, params);
+        Object[] rawRet = client.invoke(oi, params);
 
         if (rawRet != null && rawRet.length > 0) {
             return rawRet[0];
@@ -117,6 +117,7 @@ public class ClientProxy implements InvocationHandler, Closeable {
         return client;
     }
 
+    @SuppressWarnings("deprecation")
     @Override
     protected void finalize() throws Throwable {
         close();

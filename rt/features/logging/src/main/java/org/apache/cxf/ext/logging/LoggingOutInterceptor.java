@@ -27,7 +27,6 @@ import java.io.Writer;
 
 import org.apache.cxf.common.injection.NoJSR250Annotations;
 import org.apache.cxf.common.util.StringUtils;
-import org.apache.cxf.ext.logging.event.DefaultLogEventMapper;
 import org.apache.cxf.ext.logging.event.LogEvent;
 import org.apache.cxf.ext.logging.event.LogEventSender;
 import org.apache.cxf.ext.logging.event.PrintWriterEventSender;
@@ -77,13 +76,13 @@ public class LoggingOutInterceptor extends AbstractLoggingInterceptor {
     }
 
     private OutputStream createCachingOut(Message message, final OutputStream os, CachedOutputStreamCallback callback) {
-        final CacheAndWriteOutputStream newOut = new CacheAndWriteOutputStream(os);
+        final CacheAndWriteOutputStream newOut = new LoggingOutputStream(os);
         if (threshold > 0) {
             newOut.setThreshold(threshold);
         }
         if (limit > 0) {
-            // make the limit for the cache greater than the limit for the truncated payload in the log event, 
-            // this is necessary for finding out that the payload was truncated 
+            // make the limit for the cache greater than the limit for the truncated payload in the log event,
+            // this is necessary for finding out that the payload was truncated
             //(see boolean isTruncated = cos.size() > limit && limit != -1;)  in method copyPayload
             newOut.setCacheLimit(getCacheLimit());
         }
@@ -140,14 +139,18 @@ public class LoggingOutInterceptor extends AbstractLoggingInterceptor {
         }
 
         public void close() throws IOException {
-            final LogEvent event = new DefaultLogEventMapper().map(message);
+            final LogEvent event = eventMapper.map(message, sensitiveProtocolHeaderNames);
             StringWriter w2 = out2;
             if (w2 == null) {
                 w2 = (StringWriter) out;
             }
 
             String payload = shouldLogContent(event) ? getPayload(event, w2) : CONTENT_SUPPRESSED;
-            event.setPayload(payload);
+            String maskedContent = maskSensitiveElements(message, payload);
+            if (!logBinary) {
+                maskedContent = stripBinaryParts(event, maskedContent);
+            }
+            event.setPayload(transform(message, maskedContent));
             sender.send(event);
             message.setContent(Writer.class, out);
             super.close();
@@ -155,15 +158,11 @@ public class LoggingOutInterceptor extends AbstractLoggingInterceptor {
 
         private String getPayload(final LogEvent event, StringWriter w2) {
             StringBuilder payload = new StringBuilder();
-            try {
-                writePayload(payload, w2, event);
-            } catch (Exception ex) {
-                // ignore
-            }
+            writePayload(payload, w2, event);
             return payload.toString();
         }
 
-        protected void writePayload(StringBuilder builder, StringWriter stringWriter, LogEvent event) throws Exception {
+        private void writePayload(StringBuilder builder, StringWriter stringWriter, LogEvent event) {
             StringBuffer buffer = stringWriter.getBuffer();
             if (buffer.length() > lim) {
                 builder.append(buffer.subSequence(0, lim));
@@ -194,7 +193,7 @@ public class LoggingOutInterceptor extends AbstractLoggingInterceptor {
         }
 
         public void onClose(CachedOutputStream cos) {
-            final LogEvent event = new DefaultLogEventMapper().map(message);
+            final LogEvent event = eventMapper.map(message, sensitiveProtocolHeaderNames);
             if (shouldLogContent(event)) {
                 copyPayload(cos, event);
             } else {
@@ -217,7 +216,11 @@ public class LoggingOutInterceptor extends AbstractLoggingInterceptor {
                 String encoding = (String) message.get(Message.ENCODING);
                 StringBuilder payload = new StringBuilder();
                 writePayload(payload, cos, encoding, event.getContentType());
-                event.setPayload(payload.toString());
+                String maskedContent = maskSensitiveElements(message, payload.toString());
+                if (!logBinary) {
+                    maskedContent = stripBinaryParts(event, maskedContent);
+                }
+                event.setPayload(transform(message, maskedContent));
                 boolean isTruncated = cos.size() > limit && limit != -1;
                 event.setTruncated(isTruncated);
             } catch (Exception ex) {

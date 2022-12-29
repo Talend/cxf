@@ -22,11 +22,11 @@ package org.apache.cxf.systest.callback;
 import org.apache.callback.CallbackPortType;
 
 
-@javax.jws.WebService(serviceName = "CallbackService",
+@jakarta.jws.WebService(serviceName = "CallbackService",
                       portName = "CallbackPort",
                       endpointInterface = "org.apache.callback.CallbackPortType",
                       targetNamespace = "http://apache.org/callback",
-                      wsdlLocation = "testutils/basic_callback_test.wsdl")
+                      wsdlLocation = "wsdl/basic_callback_test.wsdl")
 
 public class CallbackImpl implements CallbackPortType  {
 

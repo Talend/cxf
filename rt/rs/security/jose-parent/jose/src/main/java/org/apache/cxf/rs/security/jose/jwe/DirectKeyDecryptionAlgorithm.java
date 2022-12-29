@@ -27,7 +27,8 @@ import org.apache.cxf.rt.security.crypto.CryptoUtils;
 
 public class DirectKeyDecryptionAlgorithm implements KeyDecryptionProvider {
     private static final Logger LOG = LogUtils.getL7dLogger(DirectKeyDecryptionAlgorithm.class);
-    private byte[] contentDecryptionKey;
+    private final byte[] contentDecryptionKey;
+
     public DirectKeyDecryptionAlgorithm(Key contentDecryptionKey) {
         this(contentDecryptionKey.getEncoded());
     }
@@ -40,7 +41,7 @@ public class DirectKeyDecryptionAlgorithm implements KeyDecryptionProvider {
     @Override
     public byte[] getDecryptedContentEncryptionKey(JweDecryptionInput jweDecryptionInput) {
         validateKeyEncryptionKey(jweDecryptionInput);
-        return contentDecryptionKey;
+        return contentDecryptionKey.clone();
     }
     @Override
     public KeyAlgorithm getAlgorithm() {

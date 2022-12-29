@@ -38,6 +38,7 @@ import org.apache.cxf.common.classloader.ClassLoaderUtils;
 import org.apache.cxf.common.i18n.Message;
 import org.apache.cxf.common.logging.LogUtils;
 import org.apache.cxf.common.util.PropertyUtils;
+import org.apache.cxf.helpers.DOMUtils;
 import org.apache.cxf.interceptor.Fault;
 import org.apache.cxf.interceptor.StaxInInterceptor;
 import org.apache.cxf.message.MessageUtils;
@@ -45,6 +46,7 @@ import org.apache.cxf.phase.Phase;
 import org.apache.cxf.rt.security.saml.utils.SAMLUtils;
 import org.apache.cxf.rt.security.utils.SecurityUtils;
 import org.apache.cxf.ws.security.SecurityConstants;
+import org.apache.cxf.ws.security.tokenstore.TokenStoreException;
 import org.apache.cxf.ws.security.tokenstore.TokenStoreUtils;
 import org.apache.wss4j.common.ConfigurationConstants;
 import org.apache.wss4j.common.WSSPolicyException;
@@ -116,6 +118,7 @@ public class WSS4JStaxInInterceptor extends AbstractWSS4JStaxInterceptor {
                 (List<SecurityEvent>) soapMessage.getExchange().get(SecurityEvent.class.getName() + ".out");
 
             WSSSecurityProperties secProps = createSecurityProperties();
+            secProps.setDocumentCreator(() -> DOMUtils.createDocument());
             translateProperties(soapMessage, secProps);
             configureCallbackHandler(soapMessage, secProps);
             configureProperties(soapMessage, secProps);
@@ -173,7 +176,7 @@ public class WSS4JStaxInInterceptor extends AbstractWSS4JStaxInterceptor {
             soapMessage.put(SECURITY_PROCESSED, Boolean.TRUE);
         } catch (WSSecurityException e) {
             throw WSS4JUtils.createSoapFault(soapMessage, soapMessage.getVersion(), e);
-        } catch (XMLSecurityException e) {
+        } catch (XMLSecurityException | TokenStoreException e) {
             throw new SoapFault(new Message("STAX_EX", LOG), e, soapMessage.getVersion().getSender());
         } catch (WSSPolicyException e) {
             throw new SoapFault(e.getMessage(), e, soapMessage.getVersion().getSender());
@@ -373,11 +376,11 @@ public class WSS4JStaxInInterceptor extends AbstractWSS4JStaxInterceptor {
             if (o instanceof Validator) {
                 return (Validator)o;
             } else if (o instanceof Class) {
-                return (Validator)((Class<?>)o).newInstance();
+                return (Validator)((Class<?>)o).getDeclaredConstructor().newInstance();
             } else if (o instanceof String) {
                 return (Validator)ClassLoaderUtils.loadClass(o.toString(),
                                                              WSS4JStaxInInterceptor.class)
-                                                             .newInstance();
+                    .getDeclaredConstructor().newInstance();
             } else {
                 throw new WSSecurityException(WSSecurityException.ErrorCode.FAILURE,
                                                   "Cannot load Validator: " + o);

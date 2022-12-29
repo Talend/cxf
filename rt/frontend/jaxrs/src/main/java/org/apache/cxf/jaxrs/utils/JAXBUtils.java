@@ -22,13 +22,16 @@ import java.io.Closeable;
 import java.io.IOException;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
+import java.util.Map;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import javax.xml.bind.Unmarshaller;
-import javax.xml.bind.annotation.adapters.XmlAdapter;
-import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
-
+import jakarta.xml.bind.JAXBContext;
+import jakarta.xml.bind.JAXBException;
+import jakarta.xml.bind.Unmarshaller;
+import jakarta.xml.bind.annotation.adapters.XmlAdapter;
+import jakarta.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 import org.apache.cxf.common.logging.LogUtils;
 
 public final class JAXBUtils {
@@ -37,6 +40,24 @@ public final class JAXBUtils {
     private JAXBUtils() {
 
     }
+
+    public static JAXBContext createJaxbContext(Set<Class<?>> classes, Class<?>[] extraClass,
+                                                Map<String, Object> contextProperties) {
+        if (classes == null || classes.isEmpty()) {
+            return null;
+        }
+        org.apache.cxf.common.jaxb.JAXBUtils.scanPackages(classes, extraClass, null);
+
+        JAXBContext ctx;
+        try {
+            ctx = org.apache.cxf.common.jaxb.JAXBUtils.createContext(classes, contextProperties);
+            return ctx;
+        } catch (JAXBException ex) {
+            LOG.log(Level.SEVERE, "No JAXB context can be created", ex);
+        }
+        return null;
+    }
+
     public static void closeUnmarshaller(Unmarshaller u) {
         if (u instanceof Closeable) {
             //need to do this to clear the ThreadLocal cache
@@ -128,7 +149,7 @@ public final class JAXBUtils {
         if (typeAdapter != null) {
             try {
                 @SuppressWarnings("rawtypes")
-                XmlAdapter xmlAdapter = typeAdapter.value().newInstance();
+                XmlAdapter xmlAdapter = typeAdapter.value().getDeclaredConstructor().newInstance();
                 if (marshal) {
                     return xmlAdapter.marshal(obj);
                 }

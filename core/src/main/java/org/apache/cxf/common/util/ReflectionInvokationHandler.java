@@ -48,7 +48,7 @@ public class ReflectionInvokationHandler implements InvocationHandler {
     public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
         WrapReturn wr = method.getAnnotation(WrapReturn.class);
         final Class<?> targetClass = target.getClass();
-        Class<?>[] parameterTypes = getParameterTypes(method, args);
+        final Class<?>[] parameterTypes = getParameterTypes(method, args);
         try {
             Method m;
             try {
@@ -83,7 +83,6 @@ public class ReflectionInvokationHandler implements InvocationHandler {
                 }
                 m = targetClass.getMethod(method.getName(), newParams);
                 args = newArgs;
-                parameterTypes = newParams;
             }
             ReflectionUtil.setAccessible(m);
             return wrapReturn(wr, m.invoke(target, args));
@@ -160,19 +159,19 @@ public class ReflectionInvokationHandler implements InvocationHandler {
 
     @Target(ElementType.PARAMETER)
     @Retention(RetentionPolicy.RUNTIME)
-    public static @interface Optional {
+    public @interface Optional {
     }
 
     @Target(ElementType.METHOD)
     @Retention(RetentionPolicy.RUNTIME)
-    public static @interface WrapReturn {
+    public @interface WrapReturn {
         Class<?> value();
         boolean iterator() default false;
     }
 
     @Target(ElementType.PARAMETER)
     @Retention(RetentionPolicy.RUNTIME)
-    public static @interface UnwrapParam {
+    public @interface UnwrapParam {
         String methodName() default "getValue";
         String typeMethodName() default "#default";
     }
@@ -191,6 +190,8 @@ public class ReflectionInvokationHandler implements InvocationHandler {
             Object obj = internal.next();
             return createProxyWrapper(obj, cls);
         }
+        
+        @Override
         public void remove() {
             internal.remove();
         }

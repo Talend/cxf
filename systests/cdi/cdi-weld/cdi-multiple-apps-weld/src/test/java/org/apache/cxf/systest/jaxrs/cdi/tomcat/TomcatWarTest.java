@@ -22,10 +22,12 @@ package org.apache.cxf.systest.jaxrs.cdi.tomcat;
 import org.apache.cxf.jaxrs.model.AbstractResourceInfo;
 import org.apache.cxf.systests.cdi.base.AbstractCdiMultiAppTest;
 import org.apache.cxf.systests.cdi.base.tomcat.AbstractTomcatServer;
-import org.jboss.weld.environment.Container;
+import org.jboss.weld.environment.servlet.Container;
 import org.jboss.weld.environment.tomcat.TomcatContainer;
 
 import org.junit.BeforeClass;
+
+import static org.junit.Assert.assertTrue;
 
 public class TomcatWarTest extends AbstractCdiMultiAppTest {
     public static class EmbeddedTomcatServer extends AbstractTomcatServer {

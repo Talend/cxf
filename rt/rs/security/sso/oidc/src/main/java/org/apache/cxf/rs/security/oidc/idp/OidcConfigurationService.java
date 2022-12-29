@@ -24,13 +24,16 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
-import javax.ws.rs.Path;
-
+import jakarta.ws.rs.GET;
+import jakarta.ws.rs.Path;
+import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.core.Context;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.UriInfo;
 import org.apache.cxf.rs.security.jose.common.JoseConstants;
 import org.apache.cxf.rs.security.jose.jws.JwsUtils;
 import org.apache.cxf.rs.security.oauth2.services.AuthorizationMetadataService;
 
-@Path("openid-configuration")
 public class OidcConfigurationService extends AuthorizationMetadataService {
     // Response types supported with the combination of 
     // AuthorizationCode, Implicit and Hybrid services
@@ -47,6 +50,14 @@ public class OidcConfigurationService extends AuthorizationMetadataService {
     private boolean endSessionEndpointNotAvailable;
     private String endSessionEndpointAddress;
     private boolean backChannelLogoutSupported;
+
+    @GET
+    @Path("openid-configuration")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Override
+    public String getConfiguration(@Context UriInfo ui) {
+        return super.getConfiguration(ui);
+    }
 
     @Override
     protected void prepareConfigurationData(Map<String, Object> cfg, String baseUri) {
@@ -88,6 +99,14 @@ public class OidcConfigurationService extends AuthorizationMetadataService {
 
     public void setUserInfoEndpointNotAvailable(boolean userInfoEndpointNotAvailable) {
         this.userInfoEndpointNotAvailable = userInfoEndpointNotAvailable;
+    }
+
+    public String getUserInfoEndpointAddress() {
+        return userInfoEndpointAddress;
+    }
+
+    public void setUserInfoEndpointAddress(String userInfoEndpointAddress) {
+        this.userInfoEndpointAddress = userInfoEndpointAddress;
     }
 
     public boolean isEndSessionEndpointNotAvailable() {

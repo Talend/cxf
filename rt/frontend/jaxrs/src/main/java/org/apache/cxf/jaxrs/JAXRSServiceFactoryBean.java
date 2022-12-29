@@ -28,9 +28,9 @@ import java.util.concurrent.Executor;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-import javax.ws.rs.Path;
 import javax.xml.namespace.QName;
 
+import jakarta.ws.rs.Path;
 import org.apache.cxf.Bus;
 import org.apache.cxf.BusFactory;
 import org.apache.cxf.common.util.ClassHelper;
@@ -200,10 +200,14 @@ public class JAXRSServiceFactoryBean extends AbstractServiceFactoryBean {
     protected ClassResourceInfo createResourceInfo(Class<?> cls, boolean isRoot) {
         ClassResourceInfo classResourceInfo =
             ResourceUtils.createClassResourceInfo(cls, cls, isRoot, enableStatic, getBus());
-        if (classResourceInfo != null) {
-            classResourceInfos.add(classResourceInfo);
+        return addClassResourceInfo(classResourceInfo);
+    }
+
+    protected ClassResourceInfo addClassResourceInfo(ClassResourceInfo cri) {
+        if (cri != null) {
+            classResourceInfos.add(cri);
         }
-        return classResourceInfo;
+        return cri;
     }
 
     public void setResourceClasses(Class<?>... classes) {

@@ -28,10 +28,9 @@ import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import javax.xml.soap.SOAPMessage;
-
 import org.w3c.dom.Document;
 
+import jakarta.xml.soap.SOAPMessage;
 import org.apache.cxf.attachment.AttachmentUtil;
 import org.apache.cxf.binding.soap.SoapFault;
 import org.apache.cxf.binding.soap.SoapMessage;
@@ -53,6 +52,7 @@ import org.apache.wss4j.dom.handler.HandlerAction;
 import org.apache.wss4j.dom.handler.RequestData;
 import org.apache.wss4j.dom.handler.WSHandlerConstants;
 import org.apache.wss4j.dom.util.WSSecurityUtil;
+import org.apache.xml.security.c14n.InvalidCanonicalizerException;
 
 public class WSS4JOutInterceptor extends AbstractWSS4JInterceptor {
 
@@ -68,7 +68,6 @@ public class WSS4JOutInterceptor extends AbstractWSS4JInterceptor {
 
     private WSS4JOutInterceptorInternal ending;
     private SAAJOutInterceptor saajOut = new SAAJOutInterceptor();
-    private boolean mtomEnabled;
 
     public WSS4JOutInterceptor() {
         super();
@@ -81,16 +80,6 @@ public class WSS4JOutInterceptor extends AbstractWSS4JInterceptor {
     public WSS4JOutInterceptor(Map<String, Object> props) {
         this();
         setProperties(props);
-    }
-
-    @Deprecated
-    public boolean isAllowMTOM() {
-        return mtomEnabled;
-    }
-
-    @Deprecated
-    public void setAllowMTOM(boolean allowMTOM) {
-        this.mtomEnabled = allowMTOM;
     }
 
     @Override
@@ -167,15 +156,17 @@ public class WSS4JOutInterceptor extends AbstractWSS4JInterceptor {
                 return;
             }
             SoapVersion version = mc.getVersion();
-            RequestData reqData = new RequestData();
 
             /*
              * The overall try, just to have a finally at the end to perform some
              * housekeeping.
              */
             try {
+                RequestData reqData = new RequestData();
+
                 WSSConfig config = WSSConfig.getNewInstance();
                 reqData.setWssConfig(config);
+                reqData.setEncryptionSerializer(new StaxSerializer());
 
                 /*
                  * Setup any custom actions first by processing the input properties
@@ -219,7 +210,7 @@ public class WSS4JOutInterceptor extends AbstractWSS4JInterceptor {
                  * username defined in the deployment descriptor takes precedence.
                  */
                 reqData.setUsername((String) getOption(ConfigurationConstants.USER));
-                if (reqData.getUsername() == null || reqData.getUsername().equals("")) {
+                if (reqData.getUsername() == null || reqData.getUsername().isEmpty()) {
                     String username = (String) getProperty(reqData.getMsgContext(),
                             ConfigurationConstants.USER);
                     if (username != null) {
@@ -240,7 +231,7 @@ public class WSS4JOutInterceptor extends AbstractWSS4JInterceptor {
                         break;
                     }
                 }
-                if (userNameRequired && (reqData.getUsername() == null || reqData.getUsername().equals(""))
+                if (userNameRequired && (reqData.getUsername() == null || reqData.getUsername().isEmpty())
                         && (String)getOption(ConfigurationConstants.SIGNATURE_USER) == null) {
                     throw new SoapFault(new Message("NO_USERNAME", LOG), version
                             .getReceiver());
@@ -278,11 +269,9 @@ public class WSS4JOutInterceptor extends AbstractWSS4JInterceptor {
                 if (doDebug) {
                     LOG.fine("WSS4JOutInterceptor: exit handleMessage()");
                 }
-            } catch (WSSecurityException e) {
+            } catch (InvalidCanonicalizerException | WSSecurityException e) {
                 throw new SoapFault(new Message("SECURITY_FAILED", LOG), e, version
                         .getSender());
-            } finally {
-                reqData = null;
             }
         }
 
@@ -317,7 +306,7 @@ public class WSS4JOutInterceptor extends AbstractWSS4JInterceptor {
                 (Map<?, ?>)getProperty(mc, WSS4J_ACTION_MAP));
             if (actionMap != null && !actionMap.isEmpty()) {
                 for (Map.Entry<Integer, Object> entry : actionMap.entrySet()) {
-                    Class<?> removedAction = null;
+                    final Class<?> removedAction;
 
                     // Be defensive here since the cast above is slightly risky
                     // with the handler config options not being strongly typed.

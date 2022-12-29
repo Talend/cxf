@@ -29,16 +29,18 @@ import org.apache.cxf.management.InstrumentationManager;
 import org.apache.cxf.message.Message;
 
 import org.easymock.EasyMock;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
-public class CounterRepositoryTest extends Assert {
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+
+public class CounterRepositoryTest {
     private Bus bus;
     private CounterRepository cr;
-    private List<Interceptor<? extends Message>> inlist = new ArrayList<Interceptor<? extends Message>>();
-    private List<Interceptor<? extends Message>> outlist = new ArrayList<Interceptor<? extends Message>>();
-    private List<Interceptor<? extends Message>> faultlist = new ArrayList<Interceptor<? extends Message>>();
+    private List<Interceptor<? extends Message>> inlist = new ArrayList<>();
+    private List<Interceptor<? extends Message>> outlist = new ArrayList<>();
+    private List<Interceptor<? extends Message>> faultlist = new ArrayList<>();
     //private InstrumentationManager im;
     private ObjectName serviceCounter;
     private ObjectName operationCounter;

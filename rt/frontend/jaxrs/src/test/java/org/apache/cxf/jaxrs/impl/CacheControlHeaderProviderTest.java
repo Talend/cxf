@@ -22,16 +22,18 @@ package org.apache.cxf.jaxrs.impl;
 import java.util.List;
 import java.util.Map;
 
-import javax.ws.rs.InternalServerErrorException;
-import javax.ws.rs.core.CacheControl;
-
+import jakarta.ws.rs.InternalServerErrorException;
+import jakarta.ws.rs.core.CacheControl;
 import org.apache.cxf.message.Message;
 import org.apache.cxf.message.MessageImpl;
 
-import org.junit.Assert;
 import org.junit.Test;
 
-public class CacheControlHeaderProviderTest extends Assert {
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+
+public class CacheControlHeaderProviderTest {
 
     @Test(expected = IllegalArgumentException.class)
     public void testValueOfNull() {
@@ -42,9 +44,9 @@ public class CacheControlHeaderProviderTest extends Assert {
     public void testFromSimpleString() {
         CacheControl c = CacheControl.valueOf(
             "public,must-revalidate");
-        assertTrue(!c.isPrivate() && !c.isNoStore()
+        assertFalse(c.isPrivate() && !c.isNoStore()
                    && c.isMustRevalidate() && !c.isProxyRevalidate());
-        assertTrue(!c.isNoCache()
+        assertFalse(c.isNoCache()
                    && !c.isNoTransform() && c.getNoCacheFields().isEmpty()
                    && c.getPrivateFields().isEmpty());
     }

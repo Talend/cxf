@@ -18,7 +18,6 @@
  */
 package org.apache.cxf.systest.sts.issueunit;
 
-import java.net.URL;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -31,9 +30,7 @@ import javax.xml.namespace.QName;
 import org.w3c.dom.Element;
 
 import org.apache.cxf.Bus;
-import org.apache.cxf.BusFactory;
 import org.apache.cxf.binding.soap.SoapBindingConstants;
-import org.apache.cxf.bus.spring.SpringBusFactory;
 import org.apache.cxf.helpers.DOMUtils;
 import org.apache.cxf.jaxws.JaxWsProxyFactoryBean;
 import org.apache.cxf.jaxws.context.WrappedMessageContext;
@@ -48,7 +45,6 @@ import org.apache.cxf.sts.token.provider.TokenProviderParameters;
 import org.apache.cxf.sts.token.provider.TokenProviderResponse;
 import org.apache.cxf.sts.token.realm.RealmProperties;
 import org.apache.cxf.systest.sts.common.CommonCallbackHandler;
-import org.apache.cxf.systest.sts.common.SecurityTestUtil;
 import org.apache.cxf.systest.sts.deployment.STSServer;
 import org.apache.cxf.testutil.common.AbstractBusClientServerTestBase;
 import org.apache.cxf.ws.mex.MetadataExchange;
@@ -74,6 +70,10 @@ import org.apache.wss4j.dom.processor.SAMLTokenProcessor;
 
 import org.junit.BeforeClass;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+
 /**
  * Some unit tests for the CXF STSClient Issue Binding.
  */
@@ -97,26 +97,12 @@ public class IssueUnitTest extends AbstractBusClientServerTestBase {
 
     @BeforeClass
     public static void startServers() throws Exception {
-        STSServer stsServer = new STSServer();
-        stsServer.setContext("cxf-transport.xml");
-        assertTrue(launchServer(stsServer));
-    }
-
-    @org.junit.AfterClass
-    public static void cleanup() throws Exception {
-        SecurityTestUtil.cleanup();
-        stopAllServers();
+        assertTrue(launchServer(new STSServer("cxf-transport.xml")));
     }
 
     @org.junit.Test
     public void testRetrieveWSMEX() throws Exception {
-
-        SpringBusFactory bf = new SpringBusFactory();
-        URL busFile = IssueUnitTest.class.getResource("cxf-client.xml");
-
-        Bus bus = bf.createBus(busFile.toString());
-        BusFactory.setDefaultBus(bus);
-        BusFactory.setThreadDefaultBus(bus);
+        createBus(getClass().getResource("cxf-client.xml").toString());
 
         // Get Metadata
         JaxWsProxyFactoryBean proxyFac = new JaxWsProxyFactoryBean();
@@ -142,19 +128,14 @@ public class IssueUnitTest extends AbstractBusClientServerTestBase {
      */
     @org.junit.Test
     public void testSymmetricKeySaml1() throws Exception {
-        SpringBusFactory bf = new SpringBusFactory();
-        URL busFile = IssueUnitTest.class.getResource("cxf-client.xml");
-
-        Bus bus = bf.createBus(busFile.toString());
-        BusFactory.setDefaultBus(bus);
-        BusFactory.setThreadDefaultBus(bus);
+        createBus(getClass().getResource("cxf-client.xml").toString());
 
         // Get a token
         SecurityToken token =
             requestSecurityToken(SAML1_TOKEN_TYPE, SYMMETRIC_KEY_KEYTYPE, bus, DEFAULT_ADDRESS);
         assertTrue(token.getSecret() != null && token.getSecret().length > 0);
-        assertTrue(SAML1_TOKEN_TYPE.equals(token.getTokenType()));
-        assertTrue(token.getToken() != null);
+        assertEquals(SAML1_TOKEN_TYPE, token.getTokenType());
+        assertNotNull(token.getToken());
 
         // Process the token
         List<WSSecurityEngineResult> results = processToken(token);
@@ -162,7 +143,7 @@ public class IssueUnitTest extends AbstractBusClientServerTestBase {
         assertTrue(results != null && results.size() == 1);
         SamlAssertionWrapper assertion =
             (SamlAssertionWrapper)results.get(0).get(WSSecurityEngineResult.TAG_SAML_ASSERTION);
-        assertTrue(assertion != null);
+        assertNotNull(assertion);
         assertTrue(assertion.getSaml1() != null && assertion.getSaml2() == null);
         assertTrue(assertion.isSigned());
 
@@ -173,9 +154,7 @@ public class IssueUnitTest extends AbstractBusClientServerTestBase {
         }
         assertTrue(OpenSAMLUtil.isMethodHolderOfKey(confirmMethod));
         SAMLKeyInfo subjectKeyInfo = assertion.getSubjectKeyInfo();
-        assertTrue(subjectKeyInfo.getSecret() != null);
-
-        bus.shutdown(true);
+        assertNotNull(subjectKeyInfo.getSecret());
     }
 
     /**
@@ -183,26 +162,21 @@ public class IssueUnitTest extends AbstractBusClientServerTestBase {
      */
     @org.junit.Test
     public void testPublicKeySaml2() throws Exception {
-        SpringBusFactory bf = new SpringBusFactory();
-        URL busFile = IssueUnitTest.class.getResource("cxf-client.xml");
-
-        Bus bus = bf.createBus(busFile.toString());
-        BusFactory.setDefaultBus(bus);
-        BusFactory.setThreadDefaultBus(bus);
+        createBus(getClass().getResource("cxf-client.xml").toString());
 
         // Get a token
         SecurityToken token =
             requestSecurityToken(SAML2_TOKEN_TYPE, PUBLIC_KEY_KEYTYPE, bus, DEFAULT_ADDRESS);
         assertTrue(token.getSecret() == null && token.getX509Certificate() != null);
-        assertTrue(SAML2_TOKEN_TYPE.equals(token.getTokenType()));
-        assertTrue(token.getToken() != null);
+        assertEquals(SAML2_TOKEN_TYPE, token.getTokenType());
+        assertNotNull(token.getToken());
 
         // Process the token
         List<WSSecurityEngineResult> results = processToken(token);
         assertTrue(results != null && results.size() == 1);
         SamlAssertionWrapper assertion =
             (SamlAssertionWrapper)results.get(0).get(WSSecurityEngineResult.TAG_SAML_ASSERTION);
-        assertTrue(assertion != null);
+        assertNotNull(assertion);
         assertTrue(assertion.getSaml1() == null && assertion.getSaml2() != null);
         assertTrue(assertion.isSigned());
 
@@ -213,9 +187,7 @@ public class IssueUnitTest extends AbstractBusClientServerTestBase {
         }
         assertTrue(OpenSAMLUtil.isMethodHolderOfKey(confirmMethod));
         SAMLKeyInfo subjectKeyInfo = assertion.getSubjectKeyInfo();
-        assertTrue(subjectKeyInfo.getCerts() != null);
-
-        bus.shutdown(true);
+        assertNotNull(subjectKeyInfo.getCerts());
     }
 
     /**
@@ -223,25 +195,20 @@ public class IssueUnitTest extends AbstractBusClientServerTestBase {
      */
     @org.junit.Test
     public void testBearerSaml1() throws Exception {
-        SpringBusFactory bf = new SpringBusFactory();
-        URL busFile = IssueUnitTest.class.getResource("cxf-client.xml");
-
-        Bus bus = bf.createBus(busFile.toString());
-        BusFactory.setDefaultBus(bus);
-        BusFactory.setThreadDefaultBus(bus);
+        createBus(getClass().getResource("cxf-client.xml").toString());
 
         // Get a token
         SecurityToken token =
             requestSecurityToken(SAML1_TOKEN_TYPE, BEARER_KEYTYPE, bus, DEFAULT_ADDRESS);
-        assertTrue(SAML1_TOKEN_TYPE.equals(token.getTokenType()));
-        assertTrue(token.getToken() != null);
+        assertEquals(SAML1_TOKEN_TYPE, token.getTokenType());
+        assertNotNull(token.getToken());
 
         // Process the token
         List<WSSecurityEngineResult> results = processToken(token);
         assertTrue(results != null && results.size() == 1);
         SamlAssertionWrapper assertion =
             (SamlAssertionWrapper)results.get(0).get(WSSecurityEngineResult.TAG_SAML_ASSERTION);
-        assertTrue(assertion != null);
+        assertNotNull(assertion);
         assertTrue(assertion.getSaml1() != null && assertion.getSaml2() == null);
         assertTrue(assertion.isSigned());
 
@@ -251,8 +218,6 @@ public class IssueUnitTest extends AbstractBusClientServerTestBase {
             confirmMethod = methods.get(0);
         }
         assertTrue(confirmMethod != null && confirmMethod.contains("bearer"));
-
-        bus.shutdown(true);
     }
 
     /**
@@ -260,27 +225,22 @@ public class IssueUnitTest extends AbstractBusClientServerTestBase {
      */
     @org.junit.Test
     public void testBearerSVSaml2() throws Exception {
-        SpringBusFactory bf = new SpringBusFactory();
-        URL busFile = IssueUnitTest.class.getResource("cxf-client.xml");
-
-        Bus bus = bf.createBus(busFile.toString());
-        BusFactory.setDefaultBus(bus);
-        BusFactory.setThreadDefaultBus(bus);
+        createBus(getClass().getResource("cxf-client.xml").toString());
 
         // Get a token
         SecurityToken token =
             requestSecurityToken(
                 SAML2_TOKEN_TYPE, BEARER_KEYTYPE, null, bus, DEFAULT_ADDRESS, null, null, null, null
             );
-        assertTrue(SAML2_TOKEN_TYPE.equals(token.getTokenType()));
-        assertTrue(token.getToken() != null);
+        assertEquals(SAML2_TOKEN_TYPE, token.getTokenType());
+        assertNotNull(token.getToken());
 
         // Process the token
         List<WSSecurityEngineResult> results = processToken(token);
         assertTrue(results != null && results.size() == 1);
         SamlAssertionWrapper assertion =
             (SamlAssertionWrapper)results.get(0).get(WSSecurityEngineResult.TAG_SAML_ASSERTION);
-        assertTrue(assertion != null);
+        assertNotNull(assertion);
         assertTrue(assertion.getSaml1() == null && assertion.getSaml2() != null);
         assertTrue(assertion.isSigned());
 
@@ -290,8 +250,6 @@ public class IssueUnitTest extends AbstractBusClientServerTestBase {
             confirmMethod = methods.get(0);
         }
         assertNotNull(confirmMethod);
-
-        bus.shutdown(true);
     }
 
     /**
@@ -299,12 +257,7 @@ public class IssueUnitTest extends AbstractBusClientServerTestBase {
      */
     @org.junit.Test
     public void testNoAppliesTo() throws Exception {
-        SpringBusFactory bf = new SpringBusFactory();
-        URL busFile = IssueUnitTest.class.getResource("cxf-client.xml");
-
-        Bus bus = bf.createBus(busFile.toString());
-        BusFactory.setDefaultBus(bus);
-        BusFactory.setThreadDefaultBus(bus);
+        createBus(getClass().getResource("cxf-client.xml").toString());
 
         try {
             requestSecurityToken(SAML1_TOKEN_TYPE, BEARER_KEYTYPE, bus, null);
@@ -312,8 +265,6 @@ public class IssueUnitTest extends AbstractBusClientServerTestBase {
         } catch (Exception ex) {
             // expected
         }
-
-        bus.shutdown(true);
     }
 
     /**
@@ -321,26 +272,21 @@ public class IssueUnitTest extends AbstractBusClientServerTestBase {
      */
     @org.junit.Test
     public void testBearerSaml1Context() throws Exception {
-        SpringBusFactory bf = new SpringBusFactory();
-        URL busFile = IssueUnitTest.class.getResource("cxf-client.xml");
-
-        Bus bus = bf.createBus(busFile.toString());
-        BusFactory.setDefaultBus(bus);
-        BusFactory.setThreadDefaultBus(bus);
+        createBus(getClass().getResource("cxf-client.xml").toString());
 
         // Get a token
         String context = "AuthenticationContext";
         SecurityToken token =
             requestSecurityToken(SAML1_TOKEN_TYPE, BEARER_KEYTYPE, bus, DEFAULT_ADDRESS, context);
-        assertTrue(SAML1_TOKEN_TYPE.equals(token.getTokenType()));
-        assertTrue(token.getToken() != null);
+        assertEquals(SAML1_TOKEN_TYPE, token.getTokenType());
+        assertNotNull(token.getToken());
 
         // Process the token
         List<WSSecurityEngineResult> results = processToken(token);
         assertTrue(results != null && results.size() == 1);
         SamlAssertionWrapper assertion =
             (SamlAssertionWrapper)results.get(0).get(WSSecurityEngineResult.TAG_SAML_ASSERTION);
-        assertTrue(assertion != null);
+        assertNotNull(assertion);
         assertTrue(assertion.getSaml1() != null && assertion.getSaml2() == null);
         assertTrue(assertion.isSigned());
 
@@ -350,8 +296,6 @@ public class IssueUnitTest extends AbstractBusClientServerTestBase {
             confirmMethod = methods.get(0);
         }
         assertTrue(confirmMethod != null && confirmMethod.contains("bearer"));
-
-        bus.shutdown(true);
     }
 
     /**
@@ -359,25 +303,20 @@ public class IssueUnitTest extends AbstractBusClientServerTestBase {
      */
     @org.junit.Test
     public void testBearerSaml1Lifetime() throws Exception {
-        SpringBusFactory bf = new SpringBusFactory();
-        URL busFile = IssueUnitTest.class.getResource("cxf-client.xml");
-
-        Bus bus = bf.createBus(busFile.toString());
-        BusFactory.setDefaultBus(bus);
-        BusFactory.setThreadDefaultBus(bus);
+        createBus(getClass().getResource("cxf-client.xml").toString());
 
         // Get a token
         SecurityToken token =
             requestSecurityTokenTTL(SAML1_TOKEN_TYPE, BEARER_KEYTYPE, bus, DEFAULT_ADDRESS);
-        assertTrue(SAML1_TOKEN_TYPE.equals(token.getTokenType()));
-        assertTrue(token.getToken() != null);
+        assertEquals(SAML1_TOKEN_TYPE, token.getTokenType());
+        assertNotNull(token.getToken());
 
         // Process the token
         List<WSSecurityEngineResult> results = processToken(token);
         assertTrue(results != null && results.size() == 1);
         SamlAssertionWrapper assertion =
             (SamlAssertionWrapper)results.get(0).get(WSSecurityEngineResult.TAG_SAML_ASSERTION);
-        assertTrue(assertion != null);
+        assertNotNull(assertion);
         assertTrue(assertion.getSaml1() != null && assertion.getSaml2() == null);
         assertTrue(assertion.isSigned());
 
@@ -388,17 +327,11 @@ public class IssueUnitTest extends AbstractBusClientServerTestBase {
         }
         assertTrue(confirmMethod != null && confirmMethod.contains("bearer"));
 
-        bus.shutdown(true);
     }
 
     @org.junit.Test
     public void testSAMLinWSSecToOtherRealm() throws Exception {
-        SpringBusFactory bf = new SpringBusFactory();
-        URL busFile = IssueUnitTest.class.getResource("cxf-client.xml");
-
-        Bus bus = bf.createBus(busFile.toString());
-        BusFactory.setDefaultBus(bus);
-        BusFactory.setThreadDefaultBus(bus);
+        createBus(getClass().getResource("cxf-client.xml").toString());
 
         Crypto crypto = CryptoFactory.getInstance(getEncryptionProperties());
         CallbackHandler callbackHandler = new CommonCallbackHandler();
@@ -437,14 +370,14 @@ public class IssueUnitTest extends AbstractBusClientServerTestBase {
                 requestSecurityToken(SAML2_TOKEN_TYPE, BEARER_KEYTYPE, null,
                         bus, DEFAULT_ADDRESS, null, properties, "b-issuer", null);
                         */
-        assertTrue(SAML2_TOKEN_TYPE.equals(token.getTokenType()));
-        assertTrue(token.getToken() != null);
+        assertEquals(SAML2_TOKEN_TYPE, token.getTokenType());
+        assertNotNull(token.getToken());
 
         List<WSSecurityEngineResult> results = processToken(token);
         assertTrue(results != null && results.size() == 1);
         SamlAssertionWrapper assertion =
             (SamlAssertionWrapper)results.get(0).get(WSSecurityEngineResult.TAG_SAML_ASSERTION);
-        assertTrue(assertion != null);
+        assertNotNull(assertion);
         assertTrue(assertion.isSigned());
 
         List<String> methods = assertion.getConfirmationMethods();
@@ -454,9 +387,9 @@ public class IssueUnitTest extends AbstractBusClientServerTestBase {
         }
         assertTrue(confirmMethod != null && confirmMethod.contains("bearer"));
 
-        assertTrue("b-issuer".equals(assertion.getIssuerString()));
+        assertEquals("b-issuer", assertion.getIssuerString());
         String subjectName = assertion.getSaml2().getSubject().getNameID().getValue();
-        assertTrue("Subject must be ALICE instead of " + subjectName, "ALICE".equals(subjectName));
+        assertEquals("Subject must be ALICE instead of " + subjectName, "ALICE", subjectName);
 
     }
 
@@ -568,7 +501,7 @@ public class IssueUnitTest extends AbstractBusClientServerTestBase {
             providerParameters.setRealm("A");
         }
         TokenProviderResponse providerResponse = samlTokenProvider.createToken(providerParameters);
-        assertTrue(providerResponse != null);
+        assertNotNull(providerResponse);
         assertTrue(providerResponse.getToken() != null && providerResponse.getTokenId() != null);
 
         return (Element)providerResponse.getToken();

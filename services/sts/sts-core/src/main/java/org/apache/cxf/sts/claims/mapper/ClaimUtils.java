@@ -21,7 +21,7 @@ package org.apache.cxf.sts.claims.mapper;
 
 import java.net.URI;
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -86,7 +86,7 @@ public class ClaimUtils {
             processedClaim.setClaimType(URI.create(processedClaimTypeURI));
         }
         if (values != null) {
-            processedClaim.getValues().addAll(Arrays.asList(values));
+            Collections.addAll(processedClaim.getValues(), values);
         }
         return processedClaim;
     }
@@ -142,7 +142,7 @@ public class ClaimUtils {
      * values.
      *
      * @param processedClaim Claim providing values to be mapped
-     * @param map Map of old:new mapping values
+     * @param mapping Map of old:new mapping values
      * @param keepUnmapped if set to false only values contained in the map will be returned. If set to true,
      *            values not contained in the map will also remain in the returned claim.
      * @return Returns the provided claim with mapped values
@@ -264,7 +264,7 @@ public class ClaimUtils {
      * provided issuer name be set as the claim issuer.
      *
      * @param processedClaims Collection of claims to be updated
-     * @param issuerName Issuer to be set for all claims within the collection
+     * @param newIssuer Issuer to be set for all claims within the collection
      * @return Returns a new claim collection with clones of updated claims
      */
     public ProcessedClaimCollection updateIssuer(ProcessedClaimCollection processedClaims, String newIssuer) {

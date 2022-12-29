@@ -22,7 +22,7 @@ package org.apache.cxf.systest.jaxws;
 import java.io.BufferedReader;
 import java.io.InputStream;
 import java.io.StringReader;
-import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.lang.reflect.UndeclaredThrowableException;
 import java.math.BigInteger;
 import java.net.HttpURLConnection;
@@ -36,17 +36,17 @@ import java.util.Map;
 import java.util.Set;
 
 import javax.xml.namespace.QName;
-import javax.xml.ws.BindingProvider;
-import javax.xml.ws.Holder;
-import javax.xml.ws.Service;
-import javax.xml.ws.WebServiceException;
-import javax.xml.ws.soap.SOAPBinding;
-import javax.xml.ws.soap.SOAPFaultException;
 import javax.xml.xpath.XPathConstants;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 
+import jakarta.xml.ws.BindingProvider;
+import jakarta.xml.ws.Holder;
+import jakarta.xml.ws.Service;
+import jakarta.xml.ws.WebServiceException;
+import jakarta.xml.ws.soap.SOAPBinding;
+import jakarta.xml.ws.soap.SOAPFaultException;
 import org.apache.cxf.anonymous_complex_type.AnonymousComplexType;
 import org.apache.cxf.anonymous_complex_type.AnonymousComplexTypeService;
 import org.apache.cxf.anonymous_complex_type.RefSplitName;
@@ -86,12 +86,20 @@ import org.apache.cxf.wsdl.WSDLConstants;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+
 public class ClientServerMiscTest extends AbstractBusClientServerTestBase {
     static final String PORT = allocatePort(ServerMisc.class);
 
 
     @BeforeClass
     public static void startServers() throws Exception {
+        createStaticBus();
         assertTrue("server did not launch correctly", launchServer(ServerMisc.class, true));
     }
 
@@ -196,7 +204,7 @@ public class ClientServerMiscTest extends AbstractBusClientServerTestBase {
         DocLitBareCodeFirstService.GreetMeRequest req =
             new DocLitBareCodeFirstService.GreetMeRequest();
         DocLitBareCodeFirstService.GreetMeResponse resp;
-        BigInteger i[];
+        BigInteger[] i;
 
         req.setName("Foo");
         resp = port.greetMe(req);
@@ -320,14 +328,14 @@ public class ClientServerMiscTest extends AbstractBusClientServerTestBase {
         updateAddressPort(port, PORT);
 
         try {
-            Holder<ComplexStruct> part3 = new Holder<ComplexStruct>();
+            Holder<ComplexStruct> part3 = new Holder<>();
             part3.value = new ComplexStruct();
             part3.value.setElem1("elem1");
             part3.value.setElem2("elem2");
             part3.value.setElem3(0);
-            Holder<Integer> part2 = new Holder<Integer>();
+            Holder<Integer> part2 = new Holder<>();
             part2.value = 0;
-            Holder<String> part1 = new Holder<String>();
+            Holder<String> part1 = new Holder<>();
             part1.value = "part1";
 
             port.orderedParamHolder(part3, part2, part1);
@@ -406,15 +414,17 @@ public class ClientServerMiscTest extends AbstractBusClientServerTestBase {
 
         Service service = Service.create(new URL(ServerMisc.DOCLIT_CODEFIRST_URL + "?wsdl"), servName);
         DocLitWrappedCodeFirstService port = service.getPort(portName, DocLitWrappedCodeFirstService.class);
-        Holder<Boolean> created = new Holder<Boolean>();
+        Holder<Boolean> created = new Holder<>();
         port.singleInOut(created);
-        assertEquals(created.value, Boolean.FALSE);
+        assertFalse(created.value);
     }
 
     private void setASM(boolean b) throws Exception {
-        Field f = ASMHelper.class.getDeclaredField("badASM");
-        ReflectionUtil.setAccessible(f);
-        f.set(null, !b);
+
+        ASMHelper helper = getBus().getExtension(ASMHelper.class);
+        Method m = helper.getClass().getMethod("setBadASM", Boolean.TYPE);
+        ReflectionUtil.setAccessible(m);
+        m.invoke(helper, !b);
     }
 
     @Test
@@ -476,7 +486,7 @@ public class ClientServerMiscTest extends AbstractBusClientServerTestBase {
         String echoMsg = port.echo("Hello");
         assertEquals("Hello", echoMsg);
     }
-    
+
     @Test
     public void testSimpleClientWithWsdlAndBindingId() throws Exception {
         QName portName = new QName("http://cxf.apache.org/systest/jaxws/DocLitWrappedCodeFirstService",
@@ -495,11 +505,11 @@ public class ClientServerMiscTest extends AbstractBusClientServerTestBase {
         assertNotNull(port);
         assertEquals(factory.getBindingId(), "http://cxf.apache.org/bindings/xformat");
         assertTrue(ClientProxy.getClient(port).getEndpoint().getBinding() instanceof XMLBinding);
-        
+
         String echoMsg = port.echo("Hello");
         assertEquals("Hello", echoMsg);
     }
-    
+
     private void runDocLitTest(DocLitWrappedCodeFirstService port) throws Exception {
         assertEquals("snarf", port.doBug2692("snarf"));
         CXF2411Result<CXF2411SubClass> o = port.doCXF2411();
@@ -533,7 +543,7 @@ public class ClientServerMiscTest extends AbstractBusClientServerTestBase {
 
         String s;
 
-        String arrayOut[] = port.arrayOutput();
+        String[] arrayOut = port.arrayOutput();
         assertNotNull(arrayOut);
         assertEquals(3, arrayOut.length);
         for (int x = 0; x < 3; x++) {
@@ -569,13 +579,13 @@ public class ClientServerMiscTest extends AbstractBusClientServerTestBase {
                                         null, 24);
         assertEquals("string1string2string3string3string2string1<null>24", s);
 
-        Holder<String> a = new Holder<String>();
-        Holder<String> b = new Holder<String>("Hello");
-        Holder<String> c = new Holder<String>();
-        Holder<String> d = new Holder<String>(" ");
-        Holder<String> e = new Holder<String>("world!");
-        Holder<String> f = new Holder<String>();
-        Holder<String> g = new Holder<String>();
+        Holder<String> a = new Holder<>();
+        Holder<String> b = new Holder<>("Hello");
+        Holder<String> c = new Holder<>();
+        Holder<String> d = new Holder<>(" ");
+        Holder<String> e = new Holder<>("world!");
+        Holder<String> f = new Holder<>();
+        Holder<String> g = new Holder<>();
         s = port.multiInOut(a, b, c, d, e, f, g);
         assertEquals("Hello world!", s);
         assertEquals("a", a.value);
@@ -597,11 +607,11 @@ public class ClientServerMiscTest extends AbstractBusClientServerTestBase {
         assertEquals(2, foos2.get(0).length);
         assertEquals(2, foos2.get(1).length);
 
-        int ints[] = port.echoIntArray(new int[] {1, 2, 3}, null);
+        int[] ints = port.echoIntArray(new int[] {1, 2, 3}, null);
         assertEquals(3, ints.length);
         assertEquals(1, ints[0]);
 
-        if (new ASMHelper().createClassWriter() != null) {
+        if (getBus().getExtension(ASMHelper.class).createClassWriter() != null) {
             //doing the type adapter things and such really
             //requires the ASM generated helper classes
             assertEquals("Val", port.createBar("Val").getName());
@@ -706,7 +716,7 @@ public class ClientServerMiscTest extends AbstractBusClientServerTestBase {
 
     private void runRpcLitTest(RpcLitCodeFirstService port) throws Exception {
 
-        String ret[] = port.convertToString(new int[] {1, 2, 3});
+        String[] ret = port.convertToString(new int[] {1, 2, 3});
         assertEquals(3, ret.length);
 
         List<String> rev = new ArrayList<>(Arrays.asList(RpcLitCodeFirstServiceImpl.DATA));
@@ -714,7 +724,7 @@ public class ClientServerMiscTest extends AbstractBusClientServerTestBase {
 
         String s;
 
-        String arrayOut[] = port.arrayOutput();
+        String[] arrayOut = port.arrayOutput();
         assertNotNull(arrayOut);
         assertEquals(3, arrayOut.length);
         for (int x = 0; x < 3; x++) {
@@ -758,13 +768,13 @@ public class ClientServerMiscTest extends AbstractBusClientServerTestBase {
             //ignore, expected
         }
 
-        Holder<String> a = new Holder<String>();
-        Holder<String> b = new Holder<String>("Hello");
-        Holder<String> c = new Holder<String>();
-        Holder<String> d = new Holder<String>(" ");
-        Holder<String> e = new Holder<String>("world!");
-        Holder<String> f = new Holder<String>();
-        Holder<String> g = new Holder<String>();
+        Holder<String> a = new Holder<>();
+        Holder<String> b = new Holder<>("Hello");
+        Holder<String> c = new Holder<>();
+        Holder<String> d = new Holder<>(" ");
+        Holder<String> e = new Holder<>("world!");
+        Holder<String> f = new Holder<>();
+        Holder<String> g = new Holder<>();
         s = port.multiInOut(a, b, c, d, e, f, g);
         assertEquals("Hello world!", s);
         assertEquals("a", a.value);
@@ -775,13 +785,13 @@ public class ClientServerMiscTest extends AbstractBusClientServerTestBase {
         assertEquals("f", f.value);
         assertEquals("g", g.value);
 
-        a = new Holder<String>();
-        b = new Holder<String>("Hello");
-        c = new Holder<String>();
-        d = new Holder<String>(" ");
-        e = new Holder<String>("world!");
-        f = new Holder<String>();
-        g = new Holder<String>();
+        a = new Holder<>();
+        b = new Holder<>("Hello");
+        c = new Holder<>();
+        d = new Holder<>(" ");
+        e = new Holder<>("world!");
+        f = new Holder<>();
+        g = new Holder<>();
         s = port.multiHeaderInOut(a, b, c, d, e, f, g);
         assertEquals("Hello world!", s);
         assertEquals("a", a.value);
@@ -891,9 +901,6 @@ public class ClientServerMiscTest extends AbstractBusClientServerTestBase {
 
     @Test
     public void testDynamicClientExceptions() throws Exception {
-        if (System.getProperty("java.version").startsWith("9")) {
-            System.setProperty("org.apache.cxf.common.util.Compiler-fork", "true");
-        }
         JaxWsDynamicClientFactory dcf =
             JaxWsDynamicClientFactory.newInstance();
         URL wsdlURL = new URL(ServerMisc.DOCLIT_CODEFIRST_URL + "?wsdl");

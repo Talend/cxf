@@ -24,11 +24,10 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
-import javax.xml.ws.WebServiceException;
-import javax.xml.ws.handler.Handler;
-import javax.xml.ws.handler.LogicalHandler;
-import javax.xml.ws.handler.MessageContext;
-
+import jakarta.xml.ws.WebServiceException;
+import jakarta.xml.ws.handler.Handler;
+import jakarta.xml.ws.handler.LogicalHandler;
+import jakarta.xml.ws.handler.MessageContext;
 import org.apache.cxf.Bus;
 import org.apache.cxf.jaxws.handler.types.CString;
 import org.apache.cxf.jaxws.handler.types.FullyQualifiedClassType;
@@ -37,11 +36,18 @@ import org.apache.cxf.jaxws.handler.types.PortComponentHandlerType;
 import org.apache.cxf.jaxws.handler.types.XsdStringType;
 
 import org.easymock.EasyMock;
-import org.junit.Assert;
 import org.junit.Test;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertSame;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+
 @SuppressWarnings("rawtypes")
-public class HandlerChainBuilderTest extends Assert {
+public class HandlerChainBuilderTest {
 
     Handler[] allHandlers = {EasyMock.createMock(LogicalHandler.class), EasyMock.createMock(Handler.class),
                              EasyMock.createMock(Handler.class), EasyMock.createMock(LogicalHandler.class)};
@@ -74,7 +80,7 @@ public class HandlerChainBuilderTest extends Assert {
         assertEquals(TestProtocolHandler.class, chain.get(3).getClass());
 
         TestLogicalHandler tlh = (TestLogicalHandler)chain.get(0);
-        assertTrue(!tlh.initCalled);
+        assertFalse(tlh.initCalled);
         assertNull(tlh.config);
     }
 

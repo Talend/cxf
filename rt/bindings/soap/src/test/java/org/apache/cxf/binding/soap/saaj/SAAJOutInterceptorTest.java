@@ -24,12 +24,12 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.List;
 
-import javax.xml.soap.SOAPMessage;
 import javax.xml.stream.XMLStreamWriter;
 import javax.xml.transform.stream.StreamSource;
 
 import org.w3c.dom.Element;
 
+import jakarta.xml.soap.SOAPMessage;
 import org.apache.cxf.BusFactory;
 import org.apache.cxf.binding.soap.Soap11;
 import org.apache.cxf.binding.soap.SoapHeader;
@@ -66,6 +66,7 @@ public class SAAJOutInterceptorTest extends TestBase {
         m.getSOAPPart().setContent(new StreamSource(ins));
 
         Element el = DOMUtils.getFirstElement(m.getSOAPPart().getEnvelope().getHeader());
+        el = (Element)DOMUtils.getDomElement(el);
         List<Header> h = soapMessage.getHeaders();
         while (el != null) {
             h.add(new SoapHeader(DOMUtils.getElementQName(el), el));

@@ -29,30 +29,12 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
-import javax.jws.WebService;
-import javax.xml.bind.JAXBContext;
 import javax.xml.namespace.QName;
-import javax.xml.soap.MessageFactory;
-import javax.xml.soap.SOAPMessage;
 import javax.xml.transform.Source;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.sax.SAXSource;
 import javax.xml.transform.stax.StAXSource;
 import javax.xml.transform.stream.StreamSource;
-import javax.xml.ws.AsyncHandler;
-import javax.xml.ws.BindingProvider;
-import javax.xml.ws.Dispatch;
-import javax.xml.ws.Endpoint;
-import javax.xml.ws.Response;
-import javax.xml.ws.Service;
-import javax.xml.ws.WebServiceException;
-import javax.xml.ws.handler.MessageContext;
-import javax.xml.ws.soap.Addressing;
-import javax.xml.ws.soap.AddressingFeature;
-import javax.xml.ws.soap.SOAPBinding;
-import javax.xml.ws.soap.SOAPFaultException;
-import javax.xml.ws.wsaddressing.W3CEndpointReference;
-import javax.xml.ws.wsaddressing.W3CEndpointReferenceBuilder;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -60,6 +42,24 @@ import org.w3c.dom.Node;
 
 import org.xml.sax.InputSource;
 
+import jakarta.jws.WebService;
+import jakarta.xml.bind.JAXBContext;
+import jakarta.xml.soap.MessageFactory;
+import jakarta.xml.soap.SOAPMessage;
+import jakarta.xml.ws.AsyncHandler;
+import jakarta.xml.ws.BindingProvider;
+import jakarta.xml.ws.Dispatch;
+import jakarta.xml.ws.Endpoint;
+import jakarta.xml.ws.Response;
+import jakarta.xml.ws.Service;
+import jakarta.xml.ws.WebServiceException;
+import jakarta.xml.ws.handler.MessageContext;
+import jakarta.xml.ws.soap.Addressing;
+import jakarta.xml.ws.soap.AddressingFeature;
+import jakarta.xml.ws.soap.SOAPBinding;
+import jakarta.xml.ws.soap.SOAPFaultException;
+import jakarta.xml.ws.wsaddressing.W3CEndpointReference;
+import jakarta.xml.ws.wsaddressing.W3CEndpointReferenceBuilder;
 import org.apache.cxf.BusFactory;
 import org.apache.cxf.binding.soap.saaj.SAAJUtils;
 import org.apache.cxf.helpers.DOMUtils;
@@ -81,6 +81,10 @@ import org.apache.hello_world_soap_http.types.GreetMeResponse;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 public class DispatchClientServerTest extends AbstractBusClientServerTestBase {
 
@@ -557,7 +561,7 @@ public class DispatchClientServerTest extends AbstractBusClientServerTestBase {
         Object response = disp.invoke(greetMe);
         assertNotNull(response);
         String responseValue = ((GreetMeResponse)response).getResponseType();
-        assertTrue("Expected string, " + expected, expected.equals(responseValue));
+        assertEquals("Expected string, " + expected, expected, responseValue);
 
         // Test oneway
         disp.invokeOneWay(greetMe);
@@ -567,7 +571,7 @@ public class DispatchClientServerTest extends AbstractBusClientServerTestBase {
         assertNotNull(response2);
         GreetMeResponse greetMeResponse = (GreetMeResponse)response2.get();
         String responseValue2 = greetMeResponse.getResponseType();
-        assertTrue("Expected string, " + expected, expected.equals(responseValue2));
+        assertEquals("Expected string, " + expected, expected, responseValue2);
 
         // Test async callback
         TestJAXBHandler tjbh = new TestJAXBHandler();
@@ -576,7 +580,7 @@ public class DispatchClientServerTest extends AbstractBusClientServerTestBase {
         waitForFuture(fd);
 
         String responseValue3 = ((GreetMeResponse)tjbh.getResponse()).getResponseType();
-        assertTrue("Expected string, " + expected, expected.equals(responseValue3));
+        assertEquals("Expected string, " + expected, expected, responseValue3);
 
         org.apache.hello_world_soap_http.types.TestDocLitFault fr =
             new org.apache.hello_world_soap_http.types.TestDocLitFault();
@@ -648,7 +652,7 @@ public class DispatchClientServerTest extends AbstractBusClientServerTestBase {
         Object response = disp.invoke(greetMe);
         assertNotNull(response);
         String responseValue = ((GreetMeResponse)response).getResponseType();
-        assertTrue("Expected string, " + expected, expected.equals(responseValue));
+        assertEquals("Expected string, " + expected, expected, responseValue);
 
         assertEquals("Feature should be applied", 1, TestDispatchFeature.getCount());
         assertEquals("Feature based interceptors should be added",

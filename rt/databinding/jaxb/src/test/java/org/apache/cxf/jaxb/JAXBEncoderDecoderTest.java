@@ -30,10 +30,6 @@ import java.util.List;
 import java.util.Map;
 
 import javax.xml.XMLConstants;
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.JAXBElement;
-import javax.xml.bind.Marshaller;
-import javax.xml.bind.Unmarshaller;
 import javax.xml.namespace.QName;
 import javax.xml.stream.XMLEventReader;
 import javax.xml.stream.XMLEventWriter;
@@ -43,13 +39,19 @@ import javax.xml.stream.XMLStreamReader;
 import javax.xml.transform.stream.StreamSource;
 import javax.xml.validation.Schema;
 import javax.xml.validation.SchemaFactory;
-import javax.xml.ws.RequestWrapper;
-import javax.xml.ws.ResponseWrapper;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
+import jakarta.xml.bind.JAXBContext;
+import jakarta.xml.bind.JAXBElement;
+import jakarta.xml.bind.Marshaller;
+import jakarta.xml.bind.Unmarshaller;
+import jakarta.xml.ws.RequestWrapper;
+import jakarta.xml.ws.ResponseWrapper;
+import org.apache.cxf.Bus;
+import org.apache.cxf.bus.extension.ExtensionManagerBus;
 import org.apache.cxf.common.jaxb.JAXBUtils;
 import org.apache.cxf.helpers.DOMUtils;
 import org.apache.cxf.interceptor.Fault;
@@ -67,14 +69,20 @@ import org.apache.hello_world_soap_http.types.GreetMe;
 import org.apache.hello_world_soap_http.types.GreetMeResponse;
 import org.apache.hello_world_soap_http.types.StringStruct;
 
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 /**
  * JAXBEncoderDecoderTest
  */
-public class JAXBEncoderDecoderTest extends Assert {
+public class JAXBEncoderDecoderTest {
     public static final QName  SOAP_ENV =
             new QName("http://schemas.xmlsoap.org/soap/envelope/", "Envelope");
     public static final QName  SOAP_BODY =
@@ -84,7 +92,7 @@ public class JAXBEncoderDecoderTest extends Assert {
     JAXBContext context;
     Schema schema;
     Map<String, String> mapField;
-    String arrayField[];
+    String[] arrayField;
     List<String> listField;
 
     @Before
@@ -245,7 +253,8 @@ public class JAXBEncoderDecoderTest extends Assert {
         opFactory.setProperty(XMLOutputFactory.IS_REPAIRING_NAMESPACES, Boolean.TRUE);
         XMLEventWriter writer = opFactory.createXMLEventWriter(stringWriter);
         Marshaller m = context.createMarshaller();
-        JAXBUtils.setNamespaceMapper(mapper, m);
+        Bus bus = new ExtensionManagerBus();
+        JAXBUtils.setNamespaceMapper(bus, mapper, m);
         JAXBEncoderDecoder.marshall(m, testObject, part, writer);
         writer.flush();
         writer.close();
@@ -472,7 +481,7 @@ public class JAXBEncoderDecoderTest extends Assert {
             // unmarshal with schema should raise exception.
             Unmarshaller m = context.createUnmarshaller();
             m.setSchema(schema);
-            obj = JAXBEncoderDecoder.unmarshall(m, elNode, part, true);
+            JAXBEncoderDecoder.unmarshall(m, elNode, part, true);
             fail("Should have thrown a Fault");
         } catch (Fault ex) {
             // expected - schema validation should fail.
@@ -584,7 +593,7 @@ public class JAXBEncoderDecoderTest extends Assert {
         int idx = 0;
         for (Type t : genericParameterTypes) {
             Class<?> cls = JAXBEncoderDecoder.getClassFromType(t);
-            assertTrue(cls.equals(paramTypes[idx]));
+            assertEquals(cls, paramTypes[idx]);
             idx++;
         }
 
@@ -595,7 +604,7 @@ public class JAXBEncoderDecoderTest extends Assert {
         idx = 0;
         for (Type t : genericParameterTypes) {
             Class<?> cls = JAXBEncoderDecoder.getClassFromType(t);
-            assertTrue(cls.equals(paramTypes[idx]));
+            assertEquals(cls, paramTypes[idx]);
             idx++;
         }
     }
@@ -616,8 +625,8 @@ public class JAXBEncoderDecoderTest extends Assert {
         className = "org.apache.type_test.doc.TestByteResponse")
     public byte testByte(
         byte x,
-        javax.xml.ws.Holder<java.lang.Byte> y,
-        javax.xml.ws.Holder<java.lang.Byte> z) {
+        jakarta.xml.ws.Holder<java.lang.Byte> y,
+        jakarta.xml.ws.Holder<java.lang.Byte> z) {
         return 24;
     }
 
@@ -629,11 +638,10 @@ public class JAXBEncoderDecoderTest extends Assert {
         className = "org.apache.type_test.doc.TestBase64BinaryResponse")
     public byte[] testBase64Binary(
         byte[] x,
-        javax.xml.ws.Holder<byte[]> y,
-        javax.xml.ws.Holder<byte[]> z) {
+        jakarta.xml.ws.Holder<byte[]> y,
+        jakarta.xml.ws.Holder<byte[]> z) {
         return null;
     }
 
 
 }
-

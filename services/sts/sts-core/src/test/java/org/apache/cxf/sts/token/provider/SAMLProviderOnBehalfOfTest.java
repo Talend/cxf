@@ -18,14 +18,13 @@
  */
 package org.apache.cxf.sts.token.provider;
 
-import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Properties;
 
-import javax.xml.bind.JAXBElement;
-
 import org.w3c.dom.Element;
 
+import jakarta.xml.bind.JAXBElement;
 import org.apache.cxf.jaxws.context.WrappedMessageContext;
 import org.apache.cxf.message.MessageImpl;
 import org.apache.cxf.sts.QNameConstants;
@@ -47,10 +46,14 @@ import org.apache.wss4j.common.ext.WSSecurityException;
 import org.apache.wss4j.common.principal.CustomTokenPrincipal;
 import org.apache.wss4j.common.util.DOM2Writer;
 
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+
 /**
  * Some unit tests for creating SAML Tokens with an OnBehalfOf element.
  */
-public class SAMLProviderOnBehalfOfTest extends org.junit.Assert {
+public class SAMLProviderOnBehalfOfTest {
 
     /**
      * Create a default Saml1 Bearer Assertion with OnBehalfOf from a UsernameToken
@@ -78,7 +81,7 @@ public class SAMLProviderOnBehalfOfTest extends org.junit.Assert {
 
         assertTrue(samlTokenProvider.canHandleToken(WSS4JConstants.WSS_SAML_TOKEN_TYPE));
         TokenProviderResponse providerResponse = samlTokenProvider.createToken(providerParameters);
-        assertTrue(providerResponse != null);
+        assertNotNull(providerResponse);
         assertTrue(providerResponse.getToken() != null && providerResponse.getTokenId() != null);
 
         Element token = (Element)providerResponse.getToken();
@@ -108,7 +111,7 @@ public class SAMLProviderOnBehalfOfTest extends org.junit.Assert {
 
         assertTrue(samlTokenProvider.canHandleToken(WSS4JConstants.WSS_SAML2_TOKEN_TYPE));
         TokenProviderResponse providerResponse = samlTokenProvider.createToken(providerParameters);
-        assertTrue(providerResponse != null);
+        assertNotNull(providerResponse);
         assertTrue(providerResponse.getToken() != null && providerResponse.getTokenId() != null);
 
         Element token = (Element)providerResponse.getToken();
@@ -145,7 +148,7 @@ public class SAMLProviderOnBehalfOfTest extends org.junit.Assert {
 
         assertTrue(samlTokenProvider.canHandleToken(WSS4JConstants.WSS_SAML_TOKEN_TYPE));
         TokenProviderResponse providerResponse = samlTokenProvider.createToken(providerParameters);
-        assertTrue(providerResponse != null);
+        assertNotNull(providerResponse);
         assertTrue(providerResponse.getToken() != null && providerResponse.getTokenId() != null);
 
         Element token = (Element)providerResponse.getToken();
@@ -156,12 +159,11 @@ public class SAMLProviderOnBehalfOfTest extends org.junit.Assert {
 
         assertFalse(tokenString.contains("CustomOnBehalfOf"));
 
-        List<AttributeStatementProvider> customProviderList = new ArrayList<>();
-        customProviderList.add(new CustomAttributeProvider());
+        List<AttributeStatementProvider> customProviderList = Collections.singletonList(new CustomAttributeProvider());
         ((SAMLTokenProvider)samlTokenProvider).setAttributeStatementProviders(customProviderList);
 
         providerResponse = samlTokenProvider.createToken(providerParameters);
-        assertTrue(providerResponse != null);
+        assertNotNull(providerResponse);
         assertTrue(providerResponse.getToken() != null && providerResponse.getTokenId() != null);
 
         token = (Element)providerResponse.getToken();
@@ -177,7 +179,7 @@ public class SAMLProviderOnBehalfOfTest extends org.junit.Assert {
         providerParameters.setPrincipal(new CustomTokenPrincipal(user));
         assertTrue(samlTokenProvider.canHandleToken(WSS4JConstants.WSS_SAML_TOKEN_TYPE));
         TokenProviderResponse providerResponse = samlTokenProvider.createToken(providerParameters);
-        assertTrue(providerResponse != null);
+        assertNotNull(providerResponse);
         assertTrue(providerResponse.getToken() != null && providerResponse.getTokenId() != null);
 
         return (Element)providerResponse.getToken();

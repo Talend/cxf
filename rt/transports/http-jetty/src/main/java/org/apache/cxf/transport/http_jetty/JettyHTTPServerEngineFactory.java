@@ -27,9 +27,9 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import javax.annotation.Resource;
 import javax.management.MBeanServer;
 
+import jakarta.annotation.Resource;
 import org.apache.cxf.Bus;
 import org.apache.cxf.buslifecycle.BusLifeCycleListener;
 import org.apache.cxf.buslifecycle.BusLifeCycleManager;
@@ -60,7 +60,7 @@ public class JettyHTTPServerEngineFactory {
     // Still use the static map to hold the port information
     // in the same JVM
     private static ConcurrentHashMap<Integer, JettyHTTPServerEngine> portMap =
-        new ConcurrentHashMap<Integer, JettyHTTPServerEngine>();
+        new ConcurrentHashMap<>();
 
 
 
@@ -70,7 +70,7 @@ public class JettyHTTPServerEngineFactory {
      * to new Engines when bound to the reference id.
      */
     private Map<String, ThreadingParameters> threadingParametersMap =
-        new TreeMap<String, ThreadingParameters>();
+        new TreeMap<>();
 
     private ThreadingParameters fallbackThreadingParameters;
 
@@ -79,7 +79,7 @@ public class JettyHTTPServerEngineFactory {
      * configure a subsequently created JettyHTTPServerEngine.
      */
     private Map<String, TLSServerParameters> tlsParametersMap =
-        new TreeMap<String, TLSServerParameters>();
+        new TreeMap<>();
 
 
     /**

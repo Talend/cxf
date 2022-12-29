@@ -22,13 +22,13 @@ package org.apache.cxf.ws.eventing.integration.notificationapi.assertions;
 import java.util.Set;
 
 import javax.xml.namespace.QName;
-import javax.xml.soap.SOAPException;
-import javax.xml.ws.handler.MessageContext;
-import javax.xml.ws.handler.soap.SOAPHandler;
-import javax.xml.ws.handler.soap.SOAPMessageContext;
 
 import org.w3c.dom.Element;
 
+import jakarta.xml.soap.SOAPException;
+import jakarta.xml.ws.handler.MessageContext;
+import jakarta.xml.ws.handler.soap.SOAPHandler;
+import jakarta.xml.ws.handler.soap.SOAPMessageContext;
 import org.apache.cxf.helpers.DOMUtils;
 
 /**
@@ -61,7 +61,7 @@ public class WSAActionAssertingHandler implements SOAPHandler<SOAPMessageContext
         try {
             Element elm = DOMUtils.getFirstElement(context.getMessage().getSOAPHeader());
             while (elm != null) {
-                if (elm.getLocalName().equals("Action") && elm.getNamespaceURI().contains("addressing")) {
+                if ("Action".equals(elm.getLocalName()) && elm.getNamespaceURI().contains("addressing")) {
                     if (!elm.getTextContent().equals(action)) {
                         throw new RuntimeException("The event sink should have received "
                                 + "WSA-Action: " + action + " but received: "

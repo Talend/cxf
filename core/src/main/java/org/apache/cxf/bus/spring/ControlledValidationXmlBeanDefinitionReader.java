@@ -19,9 +19,10 @@
 
 package org.apache.cxf.bus.spring;
 
+import java.io.File;
 import java.io.IOException;
+import java.net.URISyntaxException;
 import java.net.URL;
-import java.net.URLConnection;
 import java.security.AccessController;
 import java.security.PrivilegedActionException;
 import java.security.PrivilegedExceptionAction;
@@ -93,8 +94,7 @@ public class ControlledValidationXmlBeanDefinitionReader extends XmlBeanDefiniti
     }
 
     @Override
-    protected int doLoadBeanDefinitions(InputSource inputSource,
-                                        Resource resource) throws BeanDefinitionStoreException {
+    protected int doLoadBeanDefinitions(InputSource inputSource, Resource resource) {
         // sadly, the Spring class we are extending has the critical function
         // getValidationModeForResource
         // marked private instead of protected, so trickery is called for here.
@@ -124,8 +124,7 @@ public class ControlledValidationXmlBeanDefinitionReader extends XmlBeanDefiniti
     }
 
     @Override
-    public int loadBeanDefinitions(final EncodedResource encodedResource)
-        throws BeanDefinitionStoreException {
+    public int loadBeanDefinitions(final EncodedResource encodedResource) {
         if (!noFastinfoset) {
             try {
                 return fastInfosetLoadBeanDefinitions(encodedResource);
@@ -176,12 +175,12 @@ public class ControlledValidationXmlBeanDefinitionReader extends XmlBeanDefiniti
         // if we are in unpacked files, we take some extra time
         // to ensure that we aren't using a stale Fastinfoset file.
         if ("file".equals(protocol)) {
-            URLConnection resCon = null;
-            URLConnection fixCon = null;
-            resCon = resUrl.openConnection();
-            fixCon = fixmlUrl.openConnection();
-            if (resCon.getLastModified() > fixCon.getLastModified()) {
-                throw new StaleFastinfosetException();
+            try {
+                if (new File(resUrl.toURI()).lastModified() > new File(fixmlUrl.toURI()).lastModified()) {
+                    throw new StaleFastinfosetException();
+                }
+            } catch (URISyntaxException e) {
+              // ignore
             }
         }
 

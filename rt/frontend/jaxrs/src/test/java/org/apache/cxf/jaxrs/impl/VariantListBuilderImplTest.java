@@ -22,13 +22,15 @@ package org.apache.cxf.jaxrs.impl;
 import java.util.List;
 import java.util.Locale;
 
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Variant;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.Variant;
 
-import org.junit.Assert;
 import org.junit.Test;
 
-public class VariantListBuilderImplTest extends Assert {
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+
+public class VariantListBuilderImplTest {
 
     @Test
     public void testBuildAll() {

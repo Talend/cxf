@@ -27,8 +27,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 
-import javax.ws.rs.Path;
-
+import jakarta.ws.rs.Path;
 import org.apache.cxf.Bus;
 import org.apache.cxf.BusFactory;
 import org.apache.cxf.common.util.StringUtils;
@@ -297,9 +296,14 @@ public class JavaDocProvider implements DocumentationProvider {
         }
         return "<div class=\"block\">";
     }
+
     protected String getOperLink() {
         String operLink = "<A NAME=\"";
-        return javaDocsBuiltByVersion == JAVA_VERSION_16 ? operLink : operLink.toLowerCase();
+        return javaDocsBuiltByVersion == JAVA_VERSION_16
+                ? operLink
+                : javaDocsBuiltByVersion <= JAVA_VERSION_18
+                        ? operLink.toLowerCase()
+                        : "<a id=\"";
     }
 
     protected String getResponseMarker() {

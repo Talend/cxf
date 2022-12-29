@@ -25,12 +25,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
-import javax.annotation.Priority;
-import javax.ws.rs.WebApplicationException;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.ext.WriterInterceptor;
-import javax.ws.rs.ext.WriterInterceptorContext;
-
+import jakarta.annotation.Priority;
+import jakarta.ws.rs.WebApplicationException;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.ext.WriterInterceptor;
+import jakarta.ws.rs.ext.WriterInterceptorContext;
 import org.apache.cxf.common.util.Base64UrlOutputStream;
 import org.apache.cxf.common.util.Base64UrlUtility;
 import org.apache.cxf.common.util.StringUtils;
@@ -60,7 +59,7 @@ public class JwsJsonWriterInterceptor extends AbstractJwsJsonWriterProvider impl
             return;
         }
         List<String> propLocs = getPropertyLocations();
-        List<JwsHeaders> protectedHeaders = new ArrayList<JwsHeaders>(propLocs.size());
+        List<JwsHeaders> protectedHeaders = new ArrayList<>(propLocs.size());
         for (int i = 0; i < propLocs.size(); i++) {
             protectedHeaders.add(new JwsHeaders());
         }
@@ -93,7 +92,7 @@ public class JwsJsonWriterInterceptor extends AbstractJwsJsonWriterProvider impl
                 ctx.setOutputStream(jwsStream);
             }
             ctx.proceed();
-            if (encodePayload) {
+            if (base64Stream != null) {
                 base64Stream.flush();
             }
             jwsStream.flush();

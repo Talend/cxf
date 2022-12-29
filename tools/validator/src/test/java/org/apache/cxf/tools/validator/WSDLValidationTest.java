@@ -22,11 +22,12 @@ import java.io.File;
 import java.net.URL;
 import java.util.Enumeration;
 
-import org.apache.cxf.staxutils.StaxUtils;
 import org.apache.cxf.tools.common.ToolTestBase;
 
 import org.junit.Before;
 import org.junit.Test;
+
+import static org.junit.Assert.assertTrue;
 
 public class WSDLValidationTest extends ToolTestBase {
     @Before
@@ -86,13 +87,9 @@ public class WSDLValidationTest extends ToolTestBase {
                                       getLocation("/validator_wsdl/hello_world_error_reference.wsdl")};
         WSDLValidator.main(args);
         String error = getStdErr();
-        if (StaxUtils.isWoodstox()) {
-            // sjsxp doesn't report locations.
-            assertTrue("error message does not contain [147,3]. error message: "
+        // sjsxp doesn't report locations.
+        assertTrue("error message does not contain [147,3]. error message: "
                 + error, error.indexOf("[147,3]") != -1);
-        }
-        assertTrue(error.indexOf("Caused by {http://apache.org/hello_world_soap_http}"
-                                       + "[binding:Greeter_SOAPBinding1] not exist.") != -1);
     }
 
     @Test
@@ -209,6 +206,24 @@ public class WSDLValidationTest extends ToolTestBase {
         } catch (Exception e) {
             assertTrue(getStdErr().indexOf("WSI-BP-1.0 R2717") != -1);
         }
+    }
+
+    @Test
+    public void testIllegalWSDLImportProtocol() throws Exception {
+        String[] args = new String[] {"-verbose",
+                                      getLocation("/validator_wsdl/ftp_import.wsdl")};
+        WSDLValidator.main(args);
+
+        assertTrue(getStdErr().indexOf("The ftp URI scheme is not allowed") != -1);
+    }
+
+    @Test
+    public void testIllegalXSDImportProtocol() throws Exception {
+        String[] args = new String[] {"-verbose",
+                                      getLocation("/validator_wsdl/ftp_import2.wsdl")};
+        WSDLValidator.main(args);
+
+        assertTrue(getStdErr().indexOf("The ftp URI scheme is not allowed") != -1);
     }
 
     @Override

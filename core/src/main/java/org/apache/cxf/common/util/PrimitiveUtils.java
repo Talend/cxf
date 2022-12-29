@@ -23,9 +23,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 public final class PrimitiveUtils {
-    private static final Map<Class<?>, Class<?>> AUTOBOXED_PRIMITIVES_MAP;
+    private static final Map<Class<?>, Class<?>> AUTOBOXED_PRIMITIVES_MAP = new HashMap<>();
     static {
-        AUTOBOXED_PRIMITIVES_MAP = new HashMap<>();
         AUTOBOXED_PRIMITIVES_MAP.put(byte.class, Byte.class);
         AUTOBOXED_PRIMITIVES_MAP.put(short.class, Short.class);
         AUTOBOXED_PRIMITIVES_MAP.put(int.class, Integer.class);
@@ -75,33 +74,26 @@ public final class PrimitiveUtils {
 
     public static <T> Object read(String value, Class<T> type) {
         if (!(Character.TYPE.equals(type) || Character.class.equals(type))
-            && value != null && value.equals("")) {
+            && value != null && value.isEmpty()) {
             //pass empty string to number type will result in Exception
             value = "0";
         }
         Object ret = value;
         if (Integer.TYPE.equals(type) || Integer.class.equals(type)) {
             ret = Integer.valueOf(value);
-        }
-        if (Byte.TYPE.equals(type) || Byte.class.equals(type)) {
+        } else if (Byte.TYPE.equals(type) || Byte.class.equals(type)) {
             ret = Byte.valueOf(value);
-        }
-        if (Short.TYPE.equals(type) || Short.class.equals(type)) {
+        } else if (Short.TYPE.equals(type) || Short.class.equals(type)) {
             ret = Short.valueOf(value);
-        }
-        if (Long.TYPE.equals(type) || Long.class.equals(type)) {
+        } else if (Long.TYPE.equals(type) || Long.class.equals(type)) {
             ret = Long.valueOf(value);
-        }
-        if (Float.TYPE.equals(type) || Float.class.equals(type)) {
+        } else if (Float.TYPE.equals(type) || Float.class.equals(type)) {
             ret = Float.valueOf(value);
-        }
-        if (Double.TYPE.equals(type) || Double.class.equals(type)) {
+        } else if (Double.TYPE.equals(type) || Double.class.equals(type)) {
             ret = Double.valueOf(value);
-        }
-        if (Boolean.TYPE.equals(type) || Boolean.class.equals(type)) {
+        } else if (Boolean.TYPE.equals(type) || Boolean.class.equals(type)) {
             ret = Boolean.valueOf(value);
-        }
-        if (Character.TYPE.equals(type) || Character.class.equals(type)) {
+        } else if ((Character.TYPE.equals(type) || Character.class.equals(type)) && value != null) {
             ret = value.charAt(0);
         }
         return ret;

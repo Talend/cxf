@@ -25,10 +25,9 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
-import javax.annotation.Resource;
-import javax.jws.WebService;
-import javax.xml.ws.WebServiceContext;
-
+import jakarta.annotation.Resource;
+import jakarta.jws.WebService;
+import jakarta.xml.ws.WebServiceContext;
 import org.apache.cxf.continuations.Continuation;
 import org.apache.cxf.continuations.ContinuationProvider;
 
@@ -42,8 +41,7 @@ import org.apache.cxf.continuations.ContinuationProvider;
             wsdlLocation = "org/apache/cxf/systest/jms/continuations/test.wsdl")
 public class HelloWorldWithContinuationsJMS implements HelloContinuation {
 
-    private Map<String, Continuation> suspended =
-        new HashMap<String, Continuation>();
+    private Map<String, Continuation> suspended = new HashMap<>();
     private Executor executor = new ThreadPoolExecutor(5, 5, 0, TimeUnit.SECONDS,
                                         new ArrayBlockingQueue<Runnable>(10));
 

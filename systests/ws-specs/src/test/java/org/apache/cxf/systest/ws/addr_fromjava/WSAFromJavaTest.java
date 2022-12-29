@@ -23,10 +23,8 @@ import java.io.ByteArrayOutputStream;
 import java.net.URL;
 import java.util.List;
 
-import javax.xml.ws.BindingProvider;
-import javax.xml.ws.soap.SOAPFaultException;
-
-
+import jakarta.xml.ws.BindingProvider;
+import jakarta.xml.ws.soap.SOAPFaultException;
 import org.apache.cxf.binding.soap.SoapMessage;
 import org.apache.cxf.binding.soap.interceptor.AbstractSoapInterceptor;
 import org.apache.cxf.binding.soap.interceptor.ReadHeadersInterceptor;
@@ -45,6 +43,11 @@ import org.apache.cxf.systest.ws.addr_fromjava.server.Server;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 public class WSAFromJavaTest extends AbstractWSATestBase {
     static final String PORT = allocatePort(Server.class);

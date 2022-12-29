@@ -34,6 +34,7 @@ import java.util.AbstractSet;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
@@ -42,18 +43,21 @@ import java.util.Map;
 import java.util.Random;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.logging.Logger;
 
-import javax.activation.CommandInfo;
-import javax.activation.CommandMap;
-import javax.activation.DataContentHandler;
-import javax.activation.DataHandler;
-import javax.activation.DataSource;
-import javax.activation.FileDataSource;
-import javax.activation.MailcapCommandMap;
-import javax.activation.URLDataSource;
-
+import jakarta.activation.CommandInfo;
+import jakarta.activation.CommandMap;
+import jakarta.activation.DataContentHandler;
+import jakarta.activation.DataHandler;
+import jakarta.activation.DataSource;
+import jakarta.activation.FileDataSource;
+import jakarta.activation.MailcapCommandMap;
+import jakarta.activation.URLDataSource;
+import org.apache.cxf.common.logging.LogUtils;
 import org.apache.cxf.common.util.StringUtils;
-import org.apache.cxf.helpers.HttpHeaderHelper;
+import org.apache.cxf.common.util.SystemPropertyAction;
+import org.apache.cxf.helpers.FileUtils;
 import org.apache.cxf.interceptor.Fault;
 import org.apache.cxf.io.CachedOutputStream;
 import org.apache.cxf.message.Attachment;
@@ -61,15 +65,23 @@ import org.apache.cxf.message.Message;
 import org.apache.cxf.message.MessageUtils;
 
 public final class AttachmentUtil {
+    // The xop:include "href" attribute (https://www.w3.org/TR/xop10/#xop_href) may include 
+    // arbitrary URL which we should never follow (unless explicitly allowed).
+    public static final String ATTACHMENT_XOP_FOLLOW_URLS_PROPERTY = "org.apache.cxf.attachment.xop.follow.urls";
     public static final String BODY_ATTACHMENT_ID = "root.message@cxf.apache.org";
 
-    private static volatile int counter;
+    static final String BINARY = "binary";
+    
+    private static final Logger LOG = LogUtils.getL7dLogger(AttachmentUtil.class);
+
+    private static final AtomicInteger COUNTER = new AtomicInteger();
     private static final String ATT_UUID = UUID.randomUUID().toString();
 
     private static final Random BOUND_RANDOM = new Random();
     private static final CommandMap DEFAULT_COMMAND_MAP = CommandMap.getDefaultCommandMap();
     private static final MailcapCommandMap COMMAND_MAP = new EnhancedMailcapCommandMap();
-
+    
+    
     static final class EnhancedMailcapCommandMap extends MailcapCommandMap {
         @Override
         public synchronized DataContentHandler createDataContentHandler(
@@ -133,13 +145,12 @@ public final class AttachmentUtil {
             String[] mimeTypes = super.getMimeTypes();
             String[] defMimeTypes = DEFAULT_COMMAND_MAP.getMimeTypes();
             Set<String> mimeTypeSet = new HashSet<>();
-            mimeTypeSet.addAll(Arrays.asList(mimeTypes));
-            mimeTypeSet.addAll(Arrays.asList(defMimeTypes));
+            Collections.addAll(mimeTypeSet, mimeTypes);
+            Collections.addAll(mimeTypeSet, defMimeTypes);
             String[] mimeArray = new String[0];
             return mimeTypeSet.toArray(mimeArray);
         }
     }
-
 
 
     private AttachmentUtil() {
@@ -164,29 +175,58 @@ public final class AttachmentUtil {
         Object directory = message.getContextualProperty(AttachmentDeserializer.ATTACHMENT_DIRECTORY);
         if (directory != null) {
             if (directory instanceof File) {
-                bos.setOutputDir((File)directory);
+                bos.setOutputDir((File) directory);
+            } else if (directory instanceof String) {
+                bos.setOutputDir(new File((String) directory));
             } else {
-                bos.setOutputDir(new File((String)directory));
+                throw new IOException("The value set as " + AttachmentDeserializer.ATTACHMENT_DIRECTORY
+                        + " should be either an instance of File or String");
             }
         }
 
         Object threshold = message.getContextualProperty(AttachmentDeserializer.ATTACHMENT_MEMORY_THRESHOLD);
         if (threshold != null) {
-            if (threshold instanceof Long) {
-                bos.setThreshold((Long)threshold);
+            if (threshold instanceof Number) {
+                long t = ((Number) threshold).longValue();
+                if (t >= 0) {
+                    bos.setThreshold(t);
+                } else {
+                    LOG.warning("Threshold value overflowed long. Setting default value!");
+                    bos.setThreshold(AttachmentDeserializer.THRESHOLD);
+                }
+            } else if (threshold instanceof String) {
+                try {
+                    bos.setThreshold(Long.parseLong((String) threshold));
+                } catch (NumberFormatException e) {
+                    throw new IOException("Provided threshold String is not a number", e);
+                }
             } else {
-                bos.setThreshold(Long.parseLong((String)threshold));
+                throw new IOException("The value set as " + AttachmentDeserializer.ATTACHMENT_MEMORY_THRESHOLD
+                        + " should be either an instance of Number or String");
             }
-        } else {
+        } else if (!CachedOutputStream.isThresholdSysPropSet()) {
+            // Use the default AttachmentDeserializer Threshold only if there is no system property defined
             bos.setThreshold(AttachmentDeserializer.THRESHOLD);
         }
 
         Object maxSize = message.getContextualProperty(AttachmentDeserializer.ATTACHMENT_MAX_SIZE);
         if (maxSize != null) {
-            if (maxSize instanceof Long) {
-                bos.setMaxSize((Long) maxSize);
+            if (maxSize instanceof Number) {
+                long size = ((Number) maxSize).longValue();
+                if (size >= 0) {
+                    bos.setMaxSize(size);
+                } else {
+                    LOG.warning("Max size value overflowed long. Do not set max size!");
+                }
+            } else if (maxSize instanceof String) {
+                try {
+                    bos.setMaxSize(Long.parseLong((String) maxSize));
+                } catch (NumberFormatException e) {
+                    throw new IOException("Provided threshold String is not a number", e);
+                }
             } else {
-                bos.setMaxSize(Long.parseLong((String)maxSize));
+                throw new IOException("The value set as " + AttachmentDeserializer.ATTACHMENT_MAX_SIZE
+                        + " should be either an instance of Number or String");
             }
         }
     }
@@ -194,9 +234,7 @@ public final class AttachmentUtil {
     public static String createContentID(String ns) throws UnsupportedEncodingException {
         // tend to change
         String cid = "cxf.apache.org";
-
-        String name = ATT_UUID + "-" + String.valueOf(++counter);
-        if (ns != null && (ns.length() > 0)) {
+        if (ns != null && !ns.isEmpty()) {
             try {
                 URI uri = new URI(ns);
                 String host = uri.getHost();
@@ -209,7 +247,7 @@ public final class AttachmentUtil {
                 cid = ns;
             }
         }
-        return URLEncoder.encode(name, StandardCharsets.UTF_8.name()) + "@"
+        return ATT_UUID + '-' + Integer.toString(COUNTER.incrementAndGet()) + '@'
             + URLEncoder.encode(cid, StandardCharsets.UTF_8.name());
     }
 
@@ -218,8 +256,8 @@ public final class AttachmentUtil {
         //we don't need the cryptographically secure random uuid that
         //UUID.randomUUID() will produce.  Thus, use a faster
         //pseudo-random thing
-        long leastSigBits = 0;
-        long mostSigBits = 0;
+        long leastSigBits;
+        long mostSigBits;
         synchronized (BOUND_RANDOM) {
             mostSigBits = BOUND_RANDOM.nextLong();
             leastSigBits = BOUND_RANDOM.nextLong();
@@ -236,21 +274,6 @@ public final class AttachmentUtil {
         return "uuid:" + result.toString();
     }
 
-    public static String getAttachmentPartHeader(Attachment att) {
-        StringBuilder buffer = new StringBuilder(200);
-        buffer.append(HttpHeaderHelper.getHeaderKey(HttpHeaderHelper.CONTENT_TYPE) + ": "
-                + att.getDataHandler().getContentType() + ";\r\n");
-        if (att.isXOP()) {
-            buffer.append("Content-Transfer-Encoding: binary\r\n");
-        }
-        String id = att.getId();
-        if (id.charAt(0) == '<') {
-            id = id.substring(1, id.length() - 1);
-        }
-        buffer.append("Content-ID: <" + id + ">\r\n\r\n");
-        return buffer.toString();
-    }
-
     public static Map<String, DataHandler> getDHMap(final Collection<Attachment> attachments) {
         Map<String, DataHandler> dataHandlers = null;
         if (attachments != null) {
@@ -260,7 +283,7 @@ public final class AttachmentUtil {
                 dataHandlers = new DHMap(attachments);
             }
         }
-        return dataHandlers == null ? new LinkedHashMap<String, DataHandler>() : dataHandlers;
+        return dataHandlers == null ? new LinkedHashMap<>() : dataHandlers;
     }
 
     static class DHMap extends AbstractMap<String, DataHandler> {
@@ -296,6 +319,7 @@ public final class AttachmentUtil {
                                 }
                             };
                         }
+                        @Override
                         public void remove() {
                             it.remove();
                         }
@@ -308,6 +332,8 @@ public final class AttachmentUtil {
                 }
             };
         }
+        
+        @Override
         public DataHandler put(String key, DataHandler value) {
             Iterator<Attachment> i = list.iterator();
             DataHandler ret = null;
@@ -334,8 +360,9 @@ public final class AttachmentUtil {
             if (id.startsWith("cid:")) {
                 id = id.substring(4);
             }
-            // urldecode. Is this bad even without cid:? What does decode do with malformed %-signs, anyhow?
+
             try {
+                // urldecode
                 id = URLDecoder.decode(id, StandardCharsets.UTF_8.name());
             } catch (UnsupportedEncodingException e) {
                 //ignore, keep id as is
@@ -343,7 +370,7 @@ public final class AttachmentUtil {
         }
         if (id == null) {
             //no Content-ID, set cxf default ID
-            id = "root.message@cxf.apache.org";
+            id =  BODY_ATTACHMENT_ID;
         }
         return id;
     }
@@ -356,14 +383,7 @@ public final class AttachmentUtil {
     }
     static String getHeaderValue(List<String> v, String delim) {
         if (v != null && !v.isEmpty()) {
-            StringBuilder b = new StringBuilder();
-            for (String s : v) {
-                if (b.length() > 0) {
-                    b.append(delim);
-                }
-                b.append(s);
-            }
-            return b.toString();
+            return String.join(delim, v);
         }
         return null;
     }
@@ -388,24 +408,24 @@ public final class AttachmentUtil {
 
         for (Map.Entry<String, List<String>> e : headers.entrySet()) {
             String name = e.getKey();
-            if (name.equalsIgnoreCase("Content-Transfer-Encoding")) {
+            if ("Content-Transfer-Encoding".equalsIgnoreCase(name)) {
                 encoding = getHeader(headers, name);
-                if ("binary".equalsIgnoreCase(encoding)) {
+                if (BINARY.equalsIgnoreCase(encoding)) {
                     att.setXOP(true);
                 }
             }
             att.setHeader(name, getHeaderValue(e.getValue()));
         }
         if (encoding == null) {
-            encoding = "binary";
+            encoding = BINARY;
         }
-        InputStream ins =  decode(stream, encoding);
+        InputStream ins = decode(stream, encoding);
         if (ins != stream) {
             headers.remove("Content-Transfer-Encoding");
         }
         DataSource source = new AttachmentDataSource(ct, ins);
         if (!StringUtils.isEmpty(fileName)) {
-            ((AttachmentDataSource)source).setName(fileName);
+            ((AttachmentDataSource)source).setName(FileUtils.stripPath(fileName));
         }
         att.setDataHandler(new DataHandler(source));
         return att;
@@ -430,7 +450,7 @@ public final class AttachmentUtil {
         encoding = encoding.toLowerCase();
 
         // some encodings are just pass-throughs, with no real decoding.
-        if ("binary".equals(encoding)
+        if (BINARY.equals(encoding)
             || "7bit".equals(encoding)
             || "8bit".equals(encoding)) {
             return in;
@@ -529,24 +549,46 @@ public final class AttachmentUtil {
     }
 
     public static DataSource getAttachmentDataSource(String contentId, Collection<Attachment> atts) {
-        // Is this right? - DD
+        //
+        // RFC-2392 (https://datatracker.ietf.org/doc/html/rfc2392) says:
+        //
+        // A "cid" URL is converted to the corresponding Content-ID message
+        // header [MIME] by removing the "cid:" prefix, converting the % encoded
+        // character to their equivalent US-ASCII characters, and enclosing the
+        // remaining parts with an angle bracket pair, "<" and ">".  
+        //
         if (contentId.startsWith("cid:")) {
             try {
                 contentId = URLDecoder.decode(contentId.substring(4), StandardCharsets.UTF_8.name());
             } catch (UnsupportedEncodingException ue) {
                 contentId = contentId.substring(4);
             }
-            return loadDataSource(contentId, atts);
-        } else if (contentId.indexOf("://") == -1) {
-            return loadDataSource(contentId, atts);
-        } else {
-            try {
-                return new URLDataSource(new URL(contentId));
-            } catch (MalformedURLException e) {
-                throw new Fault(e);
+            
+            // href attribute information item: MUST be a valid URI per the cid: URI scheme (RFC 2392), 
+            // for example:
+            //
+            //   <xop:Include xmlns:xop='http://www.w3.org/2004/08/xop/include' href='cid:http://example.org/me.png'/>
+            // 
+            // See please https://www.w3.org/TR/xop10/
+            //
+            if (contentId.indexOf("://") == -1) {
+                return loadDataSource(contentId, atts);
+            } else {
+                try {
+                    final boolean followUrls = Boolean.valueOf(SystemPropertyAction
+                        .getProperty(ATTACHMENT_XOP_FOLLOW_URLS_PROPERTY, "false"));
+                    if (followUrls) {
+                        return new URLDataSource(new URL(contentId));
+                    } else {
+                        return loadDataSource(contentId, atts);
+                    }
+                } catch (MalformedURLException e) {
+                    throw new Fault(e);
+                }
             }
+        } else {
+            return loadDataSource(contentId, atts);
         }
-
     }
 
     private static DataSource loadDataSource(String contentId, Collection<Attachment> atts) {

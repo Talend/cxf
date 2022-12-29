@@ -19,19 +19,18 @@
 package org.apache.cxf.sts.operation;
 
 import java.security.Principal;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
-import javax.xml.bind.JAXBElement;
 import javax.xml.namespace.QName;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
+import jakarta.xml.bind.JAXBElement;
 import org.apache.cxf.helpers.DOMUtils;
 import org.apache.cxf.jaxws.context.WrappedMessageContext;
 import org.apache.cxf.message.MessageImpl;
@@ -41,12 +40,11 @@ import org.apache.cxf.sts.STSConstants;
 import org.apache.cxf.sts.STSPropertiesMBean;
 import org.apache.cxf.sts.StaticSTSProperties;
 import org.apache.cxf.sts.common.PasswordCallbackHandler;
-import org.apache.cxf.sts.common.TestUtils;
 import org.apache.cxf.sts.service.ServiceMBean;
 import org.apache.cxf.sts.service.StaticService;
 import org.apache.cxf.sts.token.provider.SAMLTokenProvider;
-import org.apache.cxf.sts.token.provider.TokenProvider;
 import org.apache.cxf.sts.token.realm.RealmProperties;
+import org.apache.cxf.test.TestUtilities;
 import org.apache.cxf.ws.security.sts.provider.STSException;
 import org.apache.cxf.ws.security.sts.provider.model.RequestSecurityTokenResponseCollectionType;
 import org.apache.cxf.ws.security.sts.provider.model.RequestSecurityTokenResponseType;
@@ -58,10 +56,15 @@ import org.apache.wss4j.common.crypto.CryptoFactory;
 import org.apache.wss4j.common.principal.CustomTokenPrincipal;
 import org.apache.wss4j.common.util.DOM2Writer;
 
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+
 /**
  * Some unit tests for the issue operation to issue SAML tokens in a specific realm.
  */
-public class IssueSamlRealmUnitTest extends org.junit.Assert {
+public class IssueSamlRealmUnitTest {
 
     public static final QName REQUESTED_SECURITY_TOKEN =
         QNameConstants.WS_TRUST_FACTORY.createRequestedSecurityToken(null).getName();
@@ -78,11 +81,9 @@ public class IssueSamlRealmUnitTest extends org.junit.Assert {
         TokenIssueOperation issueOperation = new TokenIssueOperation();
 
         // Add Token Provider
-        List<TokenProvider> providerList = new ArrayList<>();
         SAMLTokenProvider provider = new SAMLTokenProvider();
         provider.setRealmMap(createRealms());
-        providerList.add(provider);
-        issueOperation.setTokenProviders(providerList);
+        issueOperation.setTokenProviders(Collections.singletonList(provider));
 
         // Add Service
         ServiceMBean service = new StaticService();
@@ -125,7 +126,7 @@ public class IssueSamlRealmUnitTest extends org.junit.Assert {
             issueOperation.issue(request, principal, msgCtx);
         List<RequestSecurityTokenResponseType> securityTokenResponse =
             response.getRequestSecurityTokenResponse();
-        assertTrue(!securityTokenResponse.isEmpty());
+        assertFalse(securityTokenResponse.isEmpty());
 
         // Test the generated token.
         Element assertion = null;
@@ -141,9 +142,9 @@ public class IssueSamlRealmUnitTest extends org.junit.Assert {
 
         assertNotNull(assertion);
         String tokenString = DOM2Writer.nodeToString(assertion);
-        assertTrue(tokenString.contains("A-Issuer"));
-        assertFalse(tokenString.contains("B-Issuer"));
-        assertFalse(tokenString.contains("STS"));
+        assertTrue(tokenString.contains("Issuer=\"A-Issuer\""));
+        assertFalse(tokenString.contains("Issuer=\"B-Issuer\""));
+        assertFalse(tokenString.contains("Issuer=\"STS\""));
     }
 
     /**
@@ -154,11 +155,9 @@ public class IssueSamlRealmUnitTest extends org.junit.Assert {
         TokenIssueOperation issueOperation = new TokenIssueOperation();
 
         // Add Token Provider
-        List<TokenProvider> providerList = new ArrayList<>();
         SAMLTokenProvider provider = new SAMLTokenProvider();
         provider.setRealmMap(createRealms());
-        providerList.add(provider);
-        issueOperation.setTokenProviders(providerList);
+        issueOperation.setTokenProviders(Collections.singletonList(provider));
 
         // Add Service
         ServiceMBean service = new StaticService();
@@ -201,7 +200,7 @@ public class IssueSamlRealmUnitTest extends org.junit.Assert {
             issueOperation.issue(request, principal, msgCtx);
         List<RequestSecurityTokenResponseType> securityTokenResponse =
             response.getRequestSecurityTokenResponse();
-        assertTrue(!securityTokenResponse.isEmpty());
+        assertFalse(securityTokenResponse.isEmpty());
 
         // Test the generated token.
         Element assertion = null;
@@ -217,9 +216,9 @@ public class IssueSamlRealmUnitTest extends org.junit.Assert {
 
         assertNotNull(assertion);
         String tokenString = DOM2Writer.nodeToString(assertion);
-        assertFalse(tokenString.contains("A-Issuer"));
-        assertTrue(tokenString.contains("B-Issuer"));
-        assertFalse(tokenString.contains("STS"));
+        assertFalse(tokenString.contains("Issuer=\"A-Issuer\""));
+        assertTrue(tokenString.contains("Issuer=\"B-Issuer\""));
+        assertFalse(tokenString.contains("Issuer=\"STS\""));
     }
 
     /**
@@ -230,11 +229,9 @@ public class IssueSamlRealmUnitTest extends org.junit.Assert {
         TokenIssueOperation issueOperation = new TokenIssueOperation();
 
         // Add Token Provider
-        List<TokenProvider> providerList = new ArrayList<>();
         SAMLTokenProvider provider = new SAMLTokenProvider();
         provider.setRealmMap(createRealms());
-        providerList.add(provider);
-        issueOperation.setTokenProviders(providerList);
+        issueOperation.setTokenProviders(Collections.singletonList(provider));
 
         // Add Service
         ServiceMBean service = new StaticService();
@@ -277,7 +274,7 @@ public class IssueSamlRealmUnitTest extends org.junit.Assert {
             issueOperation.issue(request, principal, msgCtx);
         List<RequestSecurityTokenResponseType> securityTokenResponse =
             response.getRequestSecurityTokenResponse();
-        assertTrue(!securityTokenResponse.isEmpty());
+        assertFalse(securityTokenResponse.isEmpty());
 
         // Test the generated token.
         Element assertion = null;
@@ -293,9 +290,9 @@ public class IssueSamlRealmUnitTest extends org.junit.Assert {
 
         assertNotNull(assertion);
         String tokenString = DOM2Writer.nodeToString(assertion);
-        assertFalse(tokenString.contains("A-Issuer"));
-        assertFalse(tokenString.contains("B-Issuer"));
-        assertTrue(tokenString.contains("STS"));
+        assertFalse(tokenString.contains("Issuer=\"A-Issuer\""));
+        assertFalse(tokenString.contains("Issuer=\"B-Issuer\""));
+        assertTrue(tokenString.contains("Issuer=\"STS\""));
     }
 
 
@@ -308,11 +305,9 @@ public class IssueSamlRealmUnitTest extends org.junit.Assert {
         TokenIssueOperation issueOperation = new TokenIssueOperation();
 
         // Add Token Provider
-        List<TokenProvider> providerList = new ArrayList<>();
         SAMLTokenProvider provider = new SAMLTokenProvider();
         provider.setRealmMap(createRealms());
-        providerList.add(provider);
-        issueOperation.setTokenProviders(providerList);
+        issueOperation.setTokenProviders(Collections.singletonList(provider));
 
         // Add Service
         ServiceMBean service = new StaticService();
@@ -373,7 +368,7 @@ public class IssueSamlRealmUnitTest extends org.junit.Assert {
             issueOperation.issue(request, principal, msgCtx);
         List<RequestSecurityTokenResponseType> securityTokenResponse =
             response.getRequestSecurityTokenResponse();
-        assertTrue(!securityTokenResponse.isEmpty());
+        assertFalse(securityTokenResponse.isEmpty());
 
         // Test the generated token.
         Element assertion = null;
@@ -389,9 +384,9 @@ public class IssueSamlRealmUnitTest extends org.junit.Assert {
 
         assertNotNull(assertion);
         String tokenString = DOM2Writer.nodeToString(assertion);
-        assertFalse(tokenString.contains("A-Issuer"));
-        assertTrue(tokenString.contains("B-Issuer"));
-        assertFalse(tokenString.contains("STS"));
+        assertFalse(tokenString.contains("Issuer=\"A-Issuer\""));
+        assertTrue(tokenString.contains("Issuer=\"B-Issuer\""));
+        assertFalse(tokenString.contains("Issuer=\"STS\""));
     }
 
 
@@ -401,17 +396,15 @@ public class IssueSamlRealmUnitTest extends org.junit.Assert {
      */
     @org.junit.Test
     public void testIssueSaml1TokenRealmBCustomCryptoPKCS12() throws Exception {
-        if (!TestUtils.checkUnrestrictedPoliciesInstalled()) {
+        if (!TestUtilities.checkUnrestrictedPoliciesInstalled()) {
             return;
         }
         TokenIssueOperation issueOperation = new TokenIssueOperation();
 
         // Add Token Provider
-        List<TokenProvider> providerList = new ArrayList<>();
         SAMLTokenProvider provider = new SAMLTokenProvider();
         provider.setRealmMap(createRealms());
-        providerList.add(provider);
-        issueOperation.setTokenProviders(providerList);
+        issueOperation.setTokenProviders(Collections.singletonList(provider));
 
         // Add Service
         ServiceMBean service = new StaticService();
@@ -460,7 +453,7 @@ public class IssueSamlRealmUnitTest extends org.junit.Assert {
             issueOperation.issue(request, principal, msgCtx);
         List<RequestSecurityTokenResponseType> securityTokenResponse =
             response.getRequestSecurityTokenResponse();
-        assertTrue(!securityTokenResponse.isEmpty());
+        assertFalse(securityTokenResponse.isEmpty());
 
         // Test the generated token.
         Element assertion = null;
@@ -476,9 +469,9 @@ public class IssueSamlRealmUnitTest extends org.junit.Assert {
 
         assertNotNull(assertion);
         String tokenString = DOM2Writer.nodeToString(assertion);
-        assertFalse(tokenString.contains("A-Issuer"));
-        assertTrue(tokenString.contains("B-Issuer"));
-        assertFalse(tokenString.contains("STS"));
+        assertFalse(tokenString.contains("Issuer=\"A-Issuer\""));
+        assertTrue(tokenString.contains("Issuer=\"B-Issuer\""));
+        assertFalse(tokenString.contains("Issuer=\"STS\""));
     }
 
 

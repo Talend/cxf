@@ -21,13 +21,13 @@
 package org.apache.cxf.jaxrs.impl;
 
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Variant;
-import javax.ws.rs.core.Variant.VariantListBuilder;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.Variant;
+import jakarta.ws.rs.core.Variant.VariantListBuilder;
 
 public class VariantListBuilderImpl extends VariantListBuilder {
 
@@ -57,13 +57,13 @@ public class VariantListBuilderImpl extends VariantListBuilder {
 
     @Override
     public VariantListBuilder encodings(String... encs) {
-        encodings.addAll(Arrays.asList(encs));
+        Collections.addAll(encodings, encs);
         return this;
     }
 
     @Override
     public VariantListBuilder mediaTypes(MediaType... types) {
-        mediaTypes.addAll(Arrays.asList(types));
+        Collections.addAll(mediaTypes, types);
         return this;
     }
 
@@ -118,7 +118,7 @@ public class VariantListBuilderImpl extends VariantListBuilder {
 
     @Override
     public VariantListBuilder languages(Locale... ls) {
-        languages.addAll(Arrays.asList(ls));
+        Collections.addAll(languages, ls);
         return this;
     }
 }

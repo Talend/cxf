@@ -22,6 +22,8 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.Reader;
+import java.io.StringReader;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
@@ -31,13 +33,12 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.zip.DataFormatException;
 
-import javax.annotation.PreDestroy;
-import javax.ws.rs.WebApplicationException;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.Response;
-
 import org.w3c.dom.Document;
 
+import jakarta.annotation.PreDestroy;
+import jakarta.ws.rs.WebApplicationException;
+import jakarta.ws.rs.core.Context;
+import jakarta.ws.rs.core.Response;
 import org.apache.cxf.Bus;
 import org.apache.cxf.common.i18n.BundleUtils;
 import org.apache.cxf.common.logging.LogUtils;
@@ -92,7 +93,7 @@ public abstract class AbstractRequestAssertionConsumerHandler extends AbstractSS
         this.replayCache = replayCache;
     }
 
-    public TokenReplayCache<String> getReplayCache() {
+    public TokenReplayCache<String> getReplayCache() throws Exception {
         if (replayCache == null) {
             Bus bus = (Bus)messageContext.getContextualProperty(Bus.class.getName());
             replayCache = new EHCacheTokenReplayCache(bus);
@@ -181,7 +182,7 @@ public abstract class AbstractRequestAssertionConsumerHandler extends AbstractSS
 
         long currentTime = System.currentTimeMillis();
         Instant notOnOrAfter = validatorResponse.getSessionNotOnOrAfter();
-        long expiresAt = 0;
+        final long expiresAt;
         if (notOnOrAfter != null) {
             expiresAt = notOnOrAfter.toEpochMilli();
         } else {
@@ -209,7 +210,8 @@ public abstract class AbstractRequestAssertionConsumerHandler extends AbstractSS
             if (relayState != null && relayState.getBytes().length > 0 && relayState.getBytes().length < 80) {
                 // First see if we have a valid RequestState
                 RequestState requestState = getStateProvider().removeRequestState(relayState);
-                if (requestState != null && !isStateExpired(requestState.getCreatedAt(), 0)) {
+                if (requestState != null
+                    && !isStateExpired(requestState.getCreatedAt(), requestState.getTimeToLive())) {
                     return requestState;
                 }
 
@@ -227,7 +229,8 @@ public abstract class AbstractRequestAssertionConsumerHandler extends AbstractSS
                                     getIssuerId(JAXRSUtils.getCurrentMessage()),
                                     "/",
                                     null,
-                                    now.toEpochMilli());
+                                    now.toEpochMilli(),
+                                    getStateTimeToLive());
         }
 
         if (relayState == null) {
@@ -243,7 +246,7 @@ public abstract class AbstractRequestAssertionConsumerHandler extends AbstractSS
             reportError("MISSING_REQUEST_STATE");
             throw ExceptionUtils.toBadRequestException(null, null);
         }
-        if (isStateExpired(requestState.getCreatedAt(), 0)) {
+        if (isStateExpired(requestState.getCreatedAt(), requestState.getTimeToLive())) {
             reportError("EXPIRED_REQUEST_STATE");
             throw ExceptionUtils.toBadRequestException(null, null);
         }
@@ -271,25 +274,24 @@ public abstract class AbstractRequestAssertionConsumerHandler extends AbstractSS
             }
         }
         */
-        InputStream tokenStream = null;
+        final Reader reader;
         if (isSupportBase64Encoding()) {
             try {
                 byte[] deflatedToken = Base64Utility.decode(samlResponseDecoded);
-                tokenStream = !postBinding && isSupportDeflateEncoding()
+                final InputStream tokenStream = !postBinding && isSupportDeflateEncoding()
                     ? new DeflateEncoderDecoder().inflateToken(deflatedToken)
                     : new ByteArrayInputStream(deflatedToken);
-            } catch (Base64Exception ex) {
-                throw ExceptionUtils.toBadRequestException(ex, null);
-            } catch (DataFormatException ex) {
+                reader = new InputStreamReader(tokenStream, StandardCharsets.UTF_8);
+            } catch (Base64Exception | DataFormatException ex) {
                 throw ExceptionUtils.toBadRequestException(ex, null);
             }
         } else {
-            tokenStream = new ByteArrayInputStream(samlResponseDecoded.getBytes(StandardCharsets.UTF_8));
+            reader = new StringReader(samlResponseDecoded);
         }
 
-        Document responseDoc = null;
+        final Document responseDoc;
         try {
-            responseDoc = StaxUtils.read(new InputStreamReader(tokenStream, StandardCharsets.UTF_8));
+            responseDoc = StaxUtils.read(reader);
         } catch (Exception ex) {
             throw new WebApplicationException(400);
         }
@@ -298,7 +300,7 @@ public abstract class AbstractRequestAssertionConsumerHandler extends AbstractSS
             LOG.fine("Received response: " + DOM2Writer.nodeToString(responseDoc.getDocumentElement()));
         }
 
-        XMLObject responseObject = null;
+        final XMLObject responseObject;
         try {
             responseObject = OpenSAMLUtil.fromDom(responseDoc.getDocumentElement());
         } catch (WSSecurityException ex) {
@@ -359,7 +361,7 @@ public abstract class AbstractRequestAssertionConsumerHandler extends AbstractSS
             }
 
             return ssoResponseValidator.validateSamlResponse(samlResponse, postBinding);
-        } catch (WSSecurityException ex) {
+        } catch (Exception ex) {
             reportError("INVALID_SAML_RESPONSE");
             throw ExceptionUtils.toBadRequestException(ex, null);
         }
@@ -424,6 +426,11 @@ public abstract class AbstractRequestAssertionConsumerHandler extends AbstractSS
 
     public void setCheckClientAddress(boolean checkClientAddress) {
         this.checkClientAddress = checkClientAddress;
+    }
+
+    protected boolean isStateExpired(long stateCreatedAt, long expiresAt) {
+        Instant currentTime = Instant.now();
+        return expiresAt > 0 && currentTime.isAfter(Instant.ofEpochMilli(stateCreatedAt + expiresAt));
     }
 
 }

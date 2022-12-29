@@ -18,8 +18,7 @@
  */
 package org.apache.cxf.rs.security.oauth2.grants.jwt;
 
-import javax.ws.rs.core.MultivaluedMap;
-
+import jakarta.ws.rs.core.MultivaluedMap;
 import org.apache.cxf.common.util.Base64UrlUtility;
 import org.apache.cxf.jaxrs.impl.MetadataMap;
 import org.apache.cxf.rs.security.oauth2.common.AccessTokenGrant;
@@ -44,7 +43,7 @@ public abstract class AbstractJwtBearerGrant implements AccessTokenGrant {
     }
 
     protected MultivaluedMap<String, String> initMap() {
-        MultivaluedMap<String, String> map = new MetadataMap<String, String>();
+        MultivaluedMap<String, String> map = new MetadataMap<>();
         map.putSingle(OAuthConstants.GRANT_TYPE, grantType);
         return map;
     }

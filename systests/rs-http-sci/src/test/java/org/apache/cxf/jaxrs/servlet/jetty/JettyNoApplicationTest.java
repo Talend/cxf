@@ -19,7 +19,7 @@
 
 package org.apache.cxf.jaxrs.servlet.jetty;
 
-import com.fasterxml.jackson.jaxrs.json.JacksonJsonProvider;
+import com.fasterxml.jackson.jakarta.rs.json.JacksonJsonProvider;
 
 import org.apache.cxf.jaxrs.model.AbstractResourceInfo;
 import org.apache.cxf.jaxrs.servlet.AbstractSciTest;
@@ -28,6 +28,8 @@ import org.eclipse.jetty.webapp.WebAppContext;
 
 import org.junit.BeforeClass;
 import org.junit.Ignore;
+
+import static org.junit.Assert.assertTrue;
 
 public class JettyNoApplicationTest extends AbstractSciTest {
     @Ignore
@@ -46,7 +48,7 @@ public class JettyNoApplicationTest extends AbstractSciTest {
 
         @Override
         protected void configureContext(final WebAppContext context) throws Exception {
-            context.setDescriptor(Resource.newClassPathResource("/WEB-INF/web.xml").getFile().toURI().getPath());
+            context.setDescriptor(getClass().getResource("/WEB-INF/web.xml").toString());
         }
     }
 

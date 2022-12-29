@@ -25,12 +25,12 @@ import java.util.concurrent.CompletionException;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
+import java.util.stream.StreamSupport;
 
-import javax.ws.rs.HttpMethod;
-import javax.ws.rs.client.Entity;
-import javax.ws.rs.core.GenericType;
-import javax.ws.rs.core.Response;
-
+import jakarta.ws.rs.HttpMethod;
+import jakarta.ws.rs.client.Entity;
+import jakarta.ws.rs.core.GenericType;
+import jakarta.ws.rs.core.Response;
 import org.apache.cxf.jaxrs.client.WebClient;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -201,13 +201,15 @@ public class ReactorInvokerImpl implements ReactorInvoker {
     @Override
     public <T> Flux<T> flux(String name, Entity<?> entity, Class<T> responseType) {
         Future<Response> futureResponse = webClient.async().method(name, entity);
-        return Flux.fromIterable(toIterable(futureResponse, responseType));
+        return Flux.fromStream(() -> 
+            StreamSupport.stream(toIterable(futureResponse, responseType).spliterator(), false));
     }
 
     @Override
     public <T> Flux<T> flux(String name, Class<T> responseType) {
         Future<Response> futureResponse = webClient.async().method(name);
-        return Flux.fromIterable(toIterable(futureResponse, responseType));
+        return Flux.fromStream(() -> 
+            StreamSupport.stream(toIterable(futureResponse, responseType).spliterator(), false));
     }
 
     @Override

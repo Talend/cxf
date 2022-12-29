@@ -19,10 +19,10 @@
 
 package org.apache.cxf.jaxrs.resources;
 
-import javax.ws.rs.GET;
-import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlRootElement;
-import javax.xml.bind.annotation.XmlSeeAlso;
+import jakarta.ws.rs.GET;
+import jakarta.xml.bind.annotation.XmlElement;
+import jakarta.xml.bind.annotation.XmlRootElement;
+import jakarta.xml.bind.annotation.XmlSeeAlso;
 
 
 @XmlRootElement(name = "Book")
@@ -67,7 +67,7 @@ public class Book implements Comparable<Book> {
     }
 
     public int hashCode() {
-        return name.hashCode() * 37 + new Long(id).hashCode();
+        return name.hashCode() * 37 + Long.valueOf(id).hashCode();
     }
 
     public boolean equals(Object o) {
@@ -81,8 +81,8 @@ public class Book implements Comparable<Book> {
     }
 
     public int compareTo(Book b) {
-        Long i1 = new Long(getId());
-        Long i2 = new Long(b.getId());
+        Long i1 = Long.valueOf(getId());
+        Long i2 = Long.valueOf(b.getId());
         return i1.compareTo(i2);
     }
 }

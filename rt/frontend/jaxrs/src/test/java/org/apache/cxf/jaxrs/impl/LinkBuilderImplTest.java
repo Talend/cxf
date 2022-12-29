@@ -21,16 +21,23 @@ package org.apache.cxf.jaxrs.impl;
 import java.io.ByteArrayInputStream;
 import java.net.URI;
 
-import javax.ws.rs.Consumes;
-import javax.ws.rs.POST;
-import javax.ws.rs.Path;
-import javax.ws.rs.core.Link;
-import javax.ws.rs.core.MediaType;
+import jakarta.ws.rs.Consumes;
+import jakarta.ws.rs.POST;
+import jakarta.ws.rs.Path;
+import jakarta.ws.rs.core.Link;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.UriBuilderException;
 
-import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 
-public class LinkBuilderImplTest extends Assert {
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertThrows;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+
+public class LinkBuilderImplTest {
 
 
     @Test
@@ -97,6 +104,18 @@ public class LinkBuilderImplTest extends Assert {
     }
 
     @Test
+    @Ignore("to be fixed for TCK")
+    public void testNoArgsThrowsUriBuilderExceptionTest() {
+        Link.Builder builder = Link.fromUri("http://:@");
+        try {
+            Link link = builder.build();
+            fail("No exception has been thrown for link " + link);
+        } catch (UriBuilderException e) {
+            //expected
+        }
+    }
+
+    @Test
     public void testSeveralAttributes() throws Exception {
         Link.Builder linkBuilder = new LinkBuilderImpl();
         Link prevLink = linkBuilder.uri("http://example.com/page1").rel("previous").title("A title").build();
@@ -120,6 +139,12 @@ public class LinkBuilderImplTest extends Assert {
         } catch (java.lang.IllegalArgumentException e) {
             // expected
         }
+    }
+
+    @Test
+    public void invalidUrlsNoHost() {
+        assertThrows(UriBuilderException.class, () -> Link.fromUri("http://@").build());
+        assertThrows(UriBuilderException.class, () -> Link.fromUri("http://:@").build());
     }
 
     @Path("resource")

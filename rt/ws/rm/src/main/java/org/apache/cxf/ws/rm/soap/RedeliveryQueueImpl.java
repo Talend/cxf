@@ -76,9 +76,9 @@ public class RedeliveryQueueImpl implements RedeliveryQueue {
     private static final Logger LOG = LogUtils.getL7dLogger(RedeliveryQueueImpl.class);
 
     private Map<String, List<RedeliverCandidate>> candidates =
-        new HashMap<String, List<RedeliverCandidate>>();
+        new HashMap<>();
     private Map<String, List<RedeliverCandidate>> suspendedCandidates =
-        new HashMap<String, List<RedeliverCandidate>>();
+        new HashMap<>();
 
     private RMManager manager;
 
@@ -114,7 +114,7 @@ public class RedeliveryQueueImpl implements RedeliveryQueue {
     }
 
     public boolean isEmpty() {
-        return 0 == getUndelivered().size();
+        return getUndelivered().isEmpty();
     }
     public void purgeAll(DestinationSequence seq) {
         Collection<Long> purged = new ArrayList<>();
@@ -277,7 +277,7 @@ public class RedeliveryQueueImpl implements RedeliveryQueue {
     /**
      * Accepts a new resend candidate.
      *
-     * @param ctx the message context.
+     * @param message the message.
      * @return ResendCandidate
      */
     protected RedeliverCandidate cacheUndelivered(Message message) {
@@ -286,7 +286,7 @@ public class RedeliveryQueueImpl implements RedeliveryQueue {
         Identifier sid = st.getIdentifier();
         String key = sid.getValue();
 
-        RedeliverCandidate candidate = null;
+        RedeliverCandidate candidate;
 
         synchronized (this) {
             List<RedeliverCandidate> sequenceCandidates = getSequenceCandidates(key);
@@ -354,7 +354,7 @@ public class RedeliveryQueueImpl implements RedeliveryQueue {
         Bus bus = exchange.getBus();
 
         PhaseManager pm = bus.getExtension(PhaseManager.class);
-        SortedSet<Phase> phases = new TreeSet<Phase>(pm.getInPhases());
+        SortedSet<Phase> phases = new TreeSet<>(pm.getInPhases());
         for (Iterator<Phase> it = phases.iterator(); it.hasNext();) {
             Phase p = it.next();
             if (phase.equals(p.getName())) {
@@ -487,10 +487,8 @@ public class RedeliveryQueueImpl implements RedeliveryQueue {
                 message.removeContent(Node.class);
             }
 
-
-            InputStream is = null;
             CachedOutputStream cos = (CachedOutputStream)message.get(RMMessageConstants.SAVED_CONTENT);
-            is = cos.getInputStream();
+            InputStream is = cos.getInputStream();
             message.setContent(InputStream.class, is);
             message = message.getExchange().getEndpoint().getBinding().createMessage(message);
             restartingPhase = Phase.POST_STREAM;

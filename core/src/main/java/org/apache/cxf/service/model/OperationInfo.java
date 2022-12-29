@@ -145,7 +145,7 @@ public class OperationInfo extends AbstractPropertiesHolder implements NamedItem
         }
         if (faults != null && faults.containsKey(name)) {
             throw new IllegalArgumentException(
-                new Message("DUPLICATED.FAULT.NAME", LOG, new Object[] {name}).toString());
+                new Message("DUPLICATED.FAULT.NAME", LOG, name).toString());
         }
         FaultInfo fault = new FaultInfo(name, message, this);
         addFault(fault);
@@ -159,7 +159,7 @@ public class OperationInfo extends AbstractPropertiesHolder implements NamedItem
      */
     public synchronized void addFault(FaultInfo fault) {
         if (faults == null) {
-            faults = new ConcurrentHashMap<QName, FaultInfo>(4, 0.75f, 2);
+            faults = new ConcurrentHashMap<>(4, 0.75f, 2);
         }
         faults.put(fault.getFaultName(), fault);
     }
@@ -214,9 +214,9 @@ public class OperationInfo extends AbstractPropertiesHolder implements NamedItem
 
     @Override
     public String toString() {
-        return new StringBuilder().append("[OperationInfo: ")
+        return new StringBuilder("[OperationInfo: ")
             .append(opName)
-            .append("]").toString();
+            .append(']').toString();
     }
 
     public int hashCode() {

@@ -19,16 +19,20 @@
 package org.apache.cxf.transport.jms;
 
 import java.util.Properties;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
-import javax.jms.ConnectionFactory;
-import javax.jms.Destination;
-import javax.jms.JMSException;
-import javax.jms.Message;
-import javax.jms.Session;
 import javax.naming.NamingException;
-import javax.transaction.TransactionManager;
 
+import jakarta.jms.ConnectionFactory;
+import jakarta.jms.Destination;
+import jakarta.jms.JMSException;
+import jakarta.jms.Message;
+import jakarta.jms.Session;
+import jakarta.jms.TemporaryQueue;
+import jakarta.transaction.TransactionManager;
 import org.apache.cxf.common.injection.NoJSR250Annotations;
+import org.apache.cxf.common.logging.LogUtils;
 import org.apache.cxf.transport.jms.util.DestinationResolver;
 import org.apache.cxf.transport.jms.util.JMSDestinationResolver;
 import org.apache.cxf.transport.jms.util.JndiHelper;
@@ -40,6 +44,8 @@ public class JMSConfiguration {
      */
     public static final int DEFAULT_VALUE = -1;
 
+    private static final Logger LOG = LogUtils.getL7dLogger(JMSConfiguration.class);
+
     private volatile ConnectionFactory connectionFactory;
     private Properties jndiEnvironment;
     private String connectionFactoryName;
@@ -49,6 +55,7 @@ public class JMSConfiguration {
     private boolean pubSubNoLocal;
     private Long clientReceiveTimeout = 60000L;
     private Long serverReceiveTimeout;
+    private boolean ignoreTimeoutException;
     private boolean explicitQosEnabled;
     private int deliveryMode = Message.DEFAULT_DELIVERY_MODE;
     private int priority = Message.DEFAULT_PRIORITY;
@@ -78,7 +85,7 @@ public class JMSConfiguration {
      */
     private String replyToDestination;
     private volatile Destination replyToDestinationDest;
-    
+
     private String messageType = JMSConstants.TEXT_MESSAGE_TYPE;
     private boolean pubSubDomain;
     private boolean replyPubSubDomain;
@@ -379,9 +386,7 @@ public class JMSConfiguration {
     /**
      * Retrieve connection factory from JNDI
      *
-     * @param jmsConfig
-     * @param jndiConfig
-     * @return
+     * @return the connection factory from JNDI
      */
     private ConnectionFactory getConnectionFactoryFromJndi() {
         if (getJndiEnvironment() == null || getConnectionFactoryName() == null) {
@@ -487,9 +492,16 @@ public class JMSConfiguration {
             ? session.createTemporaryQueue()
             : destinationResolver.resolveDestinationName(session, replyDestination, replyPubSubDomain);
     }
-    
+
     public void resetCachedReplyDestination() {
         synchronized (this) {
+            if (replyDestinationDest instanceof TemporaryQueue) {
+                try {
+                    ((TemporaryQueue) replyDestinationDest).delete();
+                } catch (JMSException exception) {
+                    LOG.log(Level.WARNING, "Exception on temporary queue deletion", exception);
+                }
+            }
             this.replyDestinationDest = null;
         }
     }
@@ -517,9 +529,17 @@ public class JMSConfiguration {
     public int getRetryInterval() {
         return this.retryInterval;
     }
-    
+
     public void setRetryInterval(int retryInterval) {
         this.retryInterval = retryInterval;
+    }
+
+    public boolean isIgnoreTimeoutException() {
+        return ignoreTimeoutException;
+    }
+
+    public void setIgnoreTimeoutException(boolean ignoreTimeoutException) {
+        this.ignoreTimeoutException = ignoreTimeoutException;
     }
 
 }

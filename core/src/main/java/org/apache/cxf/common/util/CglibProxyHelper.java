@@ -43,7 +43,7 @@ class CglibProxyHelper extends ProxyHelper {
                                       final java.lang.reflect.InvocationHandler h) {
 
         Class<?> superClass = null;
-        List<Class<?>> theInterfaces = new ArrayList<Class<?>>();
+        List<Class<?>> theInterfaces = new ArrayList<>();
 
         for (Class<?> c : interfaces) {
             if (!c.isInterface()) {
@@ -59,7 +59,7 @@ class CglibProxyHelper extends ProxyHelper {
             Enhancer enhancer = new Enhancer();
             enhancer.setClassLoader(loader);
             enhancer.setSuperclass(superClass);
-            enhancer.setInterfaces(theInterfaces.toArray(new Class<?>[theInterfaces.size()]));
+            enhancer.setInterfaces(theInterfaces.toArray(new Class<?>[0]));
             enhancer.setCallback(new MethodInterceptor() {
 
                 public Object intercept(Object obj, Method method, Object[] args, MethodProxy proxy)

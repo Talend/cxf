@@ -27,8 +27,7 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArraySet;
 
-import javax.annotation.Resource;
-
+import jakarta.annotation.Resource;
 import org.apache.cxf.Bus;
 import org.apache.cxf.BusException;
 import org.apache.cxf.common.i18n.BundleUtils;
@@ -45,17 +44,17 @@ public final class DestinationFactoryManagerImpl implements DestinationFactoryMa
         = BundleUtils.getBundle(DestinationFactoryManagerImpl.class);
 
     Map<String, DestinationFactory> destinationFactories;
-    Set<String> failed = new CopyOnWriteArraySet<String>();
-    Set<String> loaded = new CopyOnWriteArraySet<String>();
+    Set<String> failed = new CopyOnWriteArraySet<>();
+    Set<String> loaded = new CopyOnWriteArraySet<>();
     Properties factoryNamespaceMappings;
 
     private Bus bus;
 
     public DestinationFactoryManagerImpl() {
-        destinationFactories = new ConcurrentHashMap<String, DestinationFactory>(8, 0.75f, 4);
+        destinationFactories = new ConcurrentHashMap<>(8, 0.75f, 4);
     }
     public DestinationFactoryManagerImpl(Bus b) {
-        destinationFactories = new ConcurrentHashMap<String, DestinationFactory>(8, 0.75f, 4);
+        destinationFactories = new ConcurrentHashMap<>(8, 0.75f, 4);
         setBus(b);
     }
 
@@ -113,7 +112,7 @@ public final class DestinationFactoryManagerImpl implements DestinationFactoryMa
     public DestinationFactory getDestinationFactory(String namespace) throws BusException {
         DestinationFactory factory = destinationFactories.get(namespace);
         if (factory == null && !failed.contains(namespace)) {
-            factory = new TransportFinder<DestinationFactory>(bus,
+            factory = new TransportFinder<>(bus,
                     destinationFactories,
                     loaded,
                     DestinationFactory.class)

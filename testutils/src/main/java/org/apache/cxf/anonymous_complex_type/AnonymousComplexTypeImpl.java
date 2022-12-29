@@ -19,7 +19,7 @@
 
 package org.apache.cxf.anonymous_complex_type;
 
-import javax.jws.WebService;
+import jakarta.jws.WebService;
 
 
 
@@ -34,7 +34,7 @@ public class AnonymousComplexTypeImpl implements AnonymousComplexType {
     public SplitNameResponse.Names splitName(String name) {
         if (name != null) {
             SplitNameResponse.Names names = new SplitNameResponse.Names();
-            int pos = name.indexOf(" ");
+            int pos = name.indexOf(' ');
             if (pos > 0) {
                 names.setFirst(name.substring(0, pos));
                 names.setSecond(name.substring(pos + 1));
@@ -52,8 +52,7 @@ public class AnonymousComplexTypeImpl implements AnonymousComplexType {
         if (refSplitName.getSplitName().getName() != null) {
             String name = refSplitName.getSplitName().getName();
             SplitNameResponse.Names names = new SplitNameResponse.Names();
-            int pos = name.indexOf(" ");
-            SplitNameResponse response = null;
+            int pos = name.indexOf(' ');
             if (pos > 0) {
                 names.setFirst(name.substring(0, pos));
                 names.setSecond(name.substring(pos + 1));
@@ -63,7 +62,7 @@ public class AnonymousComplexTypeImpl implements AnonymousComplexType {
 
 
             }
-            response = new SplitNameResponse();
+            SplitNameResponse response = new SplitNameResponse();
             response.setNames(names);
             RefSplitNameResponse refResponse = new RefSplitNameResponse();
             refResponse.setSplitNameResponse(response);

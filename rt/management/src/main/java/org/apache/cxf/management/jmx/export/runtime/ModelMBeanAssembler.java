@@ -50,24 +50,12 @@ public class ModelMBeanAssembler {
 
     public ManagedOperationParameter[] getManagedOperationParameters(Method method) {
         ManagedOperationParameters params = method.getAnnotation(ManagedOperationParameters.class);
-        ManagedOperationParameter[] result = null;
-        if (params == null) {
-            result = new ManagedOperationParameter[0];
-        } else {
-            result = params.value();
-        }
-        return result;
+        return params != null ? params.value() : new ManagedOperationParameter[0];
     }
 
     public ManagedNotification[] getManagedNotifications(Class<?> clazz) {
-        ManagedNotifications notificationsAnn =
-            clazz.getAnnotation(ManagedNotifications.class);
-        ManagedNotification[] result = null;
-        if (null == notificationsAnn) {
-            return new ManagedNotification[0];
-        }
-        result = notificationsAnn.value();
-        return result;
+        ManagedNotifications notificationsAnn = clazz.getAnnotation(ManagedNotifications.class);
+        return null != notificationsAnn ? notificationsAnn.value() : new ManagedNotification[0];
     }
 
     public String getAttributeName(String methodName) {
@@ -148,7 +136,7 @@ public class ModelMBeanAssembler {
 
     }
 
-    Method findMethodByName(Method methods[], String methodName) {
+    Method findMethodByName(Method[] methods, String methodName) {
         for (int i = 0; i < methods.length; i++) {
             if (methods[i].getName().compareTo(methodName) == 0) {
                 return methods[i];

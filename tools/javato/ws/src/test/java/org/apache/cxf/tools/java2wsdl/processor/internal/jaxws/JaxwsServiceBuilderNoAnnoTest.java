@@ -20,7 +20,7 @@
 package org.apache.cxf.tools.java2wsdl.processor.internal.jaxws;
 
 import java.io.File;
-import java.net.URI;
+import java.io.InputStream;
 
 import org.apache.cxf.BusFactory;
 import org.apache.cxf.common.jaxb.JAXBContextCache;
@@ -31,6 +31,8 @@ import org.apache.cxf.tools.java2wsdl.generator.wsdl11.WSDL11Generator;
 
 import org.junit.Before;
 import org.junit.Test;
+
+import static org.junit.Assert.assertTrue;
 
 public class JaxwsServiceBuilderNoAnnoTest extends ProcessorTestBase {
     JaxwsServiceBuilder builder = new JaxwsServiceBuilder();
@@ -56,8 +58,8 @@ public class JaxwsServiceBuilderNoAnnoTest extends ProcessorTestBase {
         generator.generate(output);
         assertTrue(output.exists());
 
-        URI expectedFile = getClass().getResource("expected/stock_noanno_bare.wsdl").toURI();
-        assertWsdlEquals(new File(expectedFile), output);
+        InputStream expectedFile = getClass().getResourceAsStream("expected/stock_noanno_bare.wsdl");
+        assertWsdlEquals(expectedFile, output);
     }
 
 
@@ -71,8 +73,8 @@ public class JaxwsServiceBuilderNoAnnoTest extends ProcessorTestBase {
         generator.generate(output);
         assertTrue(output.exists());
 
-        URI expectedFile = getClass().getResource("expected/stock_noanno_wrapped.wsdl").toURI();
-        assertWsdlEquals(new File(expectedFile), output);
+        InputStream expectedFile = getClass().getResourceAsStream("expected/stock_noanno_wrapped.wsdl");
+        assertWsdlEquals(expectedFile, output);
     }
 
 
@@ -90,8 +92,8 @@ public class JaxwsServiceBuilderNoAnnoTest extends ProcessorTestBase {
         generator.generate(output);
         assertTrue(output.exists());
 
-        URI expectedFile = getClass().getResource("expected/stock_noanno_rpc.wsdl").toURI();
-        assertWsdlEquals(new File(expectedFile), output);
+        InputStream expectedFile = getClass().getResourceAsStream("expected/stock_noanno_rpc.wsdl");
+        assertWsdlEquals(expectedFile, output);
     }
 
     private File getOutputFile(String fileName) {

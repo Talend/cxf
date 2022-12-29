@@ -26,20 +26,24 @@ import java.io.Serializable;
 import java.util.HashSet;
 import java.util.Properties;
 
-import javax.resource.ResourceException;
-import javax.resource.spi.BootstrapContext;
-import javax.resource.spi.ResourceAdapter;
-
-
+import jakarta.resource.ResourceException;
+import jakarta.resource.spi.BootstrapContext;
+import jakarta.resource.spi.ResourceAdapter;
 import org.apache.cxf.Bus;
 import org.apache.cxf.jca.core.resourceadapter.ResourceBean;
 
 import org.easymock.EasyMock;
-import org.junit.Assert;
 import org.junit.Test;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
-public class ResourceAdapterImplTest extends Assert {
+
+public class ResourceAdapterImplTest {
 
     public ResourceAdapterImplTest() {
 
@@ -88,7 +92,7 @@ public class ResourceAdapterImplTest extends Assert {
         bais.close();
 
         assertNotNull("deserialized is not null", rai2);
-        assertTrue("props not empty", !rai2.getPluginProps().isEmpty());
+        assertFalse("props not empty", rai2.getPluginProps().isEmpty());
         assertTrue("props contains key", rai2.getPluginProps().containsKey(key));
         assertEquals("no change after serialized and reconstitued ", value, rai2.getPluginProps()
             .getProperty(key));

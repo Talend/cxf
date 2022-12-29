@@ -25,56 +25,36 @@ import java.io.OutputStream;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
 
-import javax.ws.rs.Consumes;
-import javax.ws.rs.Produces;
-import javax.ws.rs.WebApplicationException;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.MultivaluedMap;
-import javax.ws.rs.ext.MessageBodyReader;
-import javax.ws.rs.ext.MessageBodyWriter;
-
+import jakarta.ws.rs.Consumes;
+import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.WebApplicationException;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.MultivaluedMap;
+import jakarta.ws.rs.ext.MessageBodyReader;
+import jakarta.ws.rs.ext.MessageBodyWriter;
 import org.apache.cxf.Bus;
-import org.apache.cxf.BusFactory;
+import org.apache.cxf.endpoint.Server;
 import org.apache.cxf.helpers.IOUtils;
 import org.apache.cxf.jaxrs.JAXRSServerFactoryBean;
 import org.apache.cxf.jaxrs.lifecycle.SingletonResourceProvider;
-import org.apache.cxf.testutil.common.AbstractBusTestServerBase;
+import org.apache.cxf.testutil.common.AbstractServerTestServerBase;
 
-public class CompletableFutureServer extends AbstractBusTestServerBase {
+public class CompletableFutureServer extends AbstractServerTestServerBase {
     public static final String PORT = allocatePort(CompletableFutureServer.class);
 
-    org.apache.cxf.endpoint.Server server;
-
-    protected void run() {
-        Bus bus = BusFactory.getDefaultBus();
-        setBus(bus);
+    @Override
+    protected Server createServer(Bus bus) throws Exception {
         JAXRSServerFactoryBean sf = new JAXRSServerFactoryBean();
-        sf.setBus(bus);
         sf.setResourceClasses(CompletableFutureService.class);
         sf.setResourceProvider(CompletableFutureService.class,
                                new SingletonResourceProvider(new CompletableFutureService(), true));
         sf.setAddress("http://localhost:" + PORT + "/");
-        server = sf.create();
-        BusFactory.setDefaultBus(null);
-        BusFactory.setThreadDefaultBus(null);
+        sf.setProvider(new MappedExceptionMapper());
+        return sf.create();
     }
 
-    public void tearDown() throws Exception {
-        server.stop();
-        server.destroy();
-        server = null;
-    }
-
-    public static void main(String[] args) {
-        try {
-            CompletableFutureServer s = new CompletableFutureServer();
-            s.start();
-        } catch (Exception ex) {
-            ex.printStackTrace();
-            System.exit(-1);
-        } finally {
-            System.out.println("done!");
-        }
+    public static void main(String[] args) throws Exception {
+        new CompletableFutureServer().start();
     }
 
     @Consumes("text/boolean")
@@ -117,4 +97,5 @@ public class CompletableFutureServer extends AbstractBusTestServerBase {
 
 
     }
+
 }

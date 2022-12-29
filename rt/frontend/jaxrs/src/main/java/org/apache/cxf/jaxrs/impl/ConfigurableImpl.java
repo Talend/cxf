@@ -19,28 +19,32 @@
 
 package org.apache.cxf.jaxrs.impl;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.ServiceLoader;
 import java.util.Set;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
-import javax.ws.rs.ConstrainedTo;
-import javax.ws.rs.Priorities;
-import javax.ws.rs.RuntimeType;
-import javax.ws.rs.client.ClientRequestFilter;
-import javax.ws.rs.client.ClientResponseFilter;
-import javax.ws.rs.container.ContainerRequestFilter;
-import javax.ws.rs.container.ContainerResponseFilter;
-import javax.ws.rs.core.Configurable;
-import javax.ws.rs.core.Configuration;
-import javax.ws.rs.core.Feature;
-
+import jakarta.ws.rs.ConstrainedTo;
+import jakarta.ws.rs.Priorities;
+import jakarta.ws.rs.RuntimeType;
+import jakarta.ws.rs.client.ClientRequestFilter;
+import jakarta.ws.rs.client.ClientResponseFilter;
+import jakarta.ws.rs.container.ContainerRequestFilter;
+import jakarta.ws.rs.container.ContainerResponseFilter;
+import jakarta.ws.rs.core.Configurable;
+import jakarta.ws.rs.core.Configuration;
+import jakarta.ws.rs.core.Feature;
 import org.apache.cxf.common.logging.LogUtils;
 import org.apache.cxf.jaxrs.utils.AnnotationUtils;
 
-public class ConfigurableImpl<C extends Configurable<C>> implements Configurable<C> {
+public class ConfigurableImpl<C extends Configurable<C>> implements Configurable<C>, AutoCloseable {
     private static final Logger LOG = LogUtils.getL7dLogger(ConfigurableImpl.class);
     
     private static final Class<?>[] RESTRICTED_CLASSES_IN_SERVER = {ClientRequestFilter.class, 
@@ -50,11 +54,19 @@ public class ConfigurableImpl<C extends Configurable<C>> implements Configurable
     
     private ConfigurationImpl config;
     private final C configurable;
-    
+    private final ClassLoader classLoader;
+
     private final Class<?>[] restrictedContractTypes;
+
+    private final Collection<Object> instantiatorInstances = new ArrayList<>();
+    private volatile Instantiator instantiator;
 
     public interface Instantiator {
         <T> Object create(Class<T> cls);
+
+        default void release(Object instance) {
+            // no-op
+        }
     }
     
     public ConfigurableImpl(C configurable, RuntimeType rt) {
@@ -65,25 +77,60 @@ public class ConfigurableImpl<C extends Configurable<C>> implements Configurable
         this.configurable = configurable;
         this.config = config instanceof ConfigurationImpl
             ? (ConfigurationImpl)config : new ConfigurationImpl(config);
-        restrictedContractTypes = RuntimeType.CLIENT.equals(config.getRuntimeType()) ? RESTRICTED_CLASSES_IN_CLIENT 
+        this.classLoader = Thread.currentThread().getContextClassLoader();
+        restrictedContractTypes = RuntimeType.CLIENT.equals(config.getRuntimeType()) ? RESTRICTED_CLASSES_IN_CLIENT
             : RESTRICTED_CLASSES_IN_SERVER;
     }
 
     static Class<?>[] getImplementedContracts(Object provider, Class<?>[] restrictedClasses) {
         Class<?> providerClass = provider instanceof Class<?> ? ((Class<?>)provider) : provider.getClass();
-        Set<Class<?>> interfaces = Arrays.stream(providerClass.getInterfaces()).collect(Collectors.toSet());
-        providerClass = providerClass.getSuperclass();
-        for (; providerClass != null && providerClass != Object.class; providerClass = providerClass.getSuperclass()) {
-            interfaces.addAll(Arrays.stream(providerClass.getInterfaces()).collect(Collectors.toSet()));
-        }
+
+        Set<Class<?>> interfaces = collectAllInterfaces(providerClass);
+
         List<Class<?>> implementedContracts = interfaces.stream()
             .filter(el -> Arrays.stream(restrictedClasses).noneMatch(el::equals))
             .collect(Collectors.toList());
+
         return implementedContracts.toArray(new Class<?>[]{});
     }
-    
+
+    private static Set<Class<?>> collectAllInterfaces(Class<?> providerClass) {
+        Set<Class<?>> interfaces = new HashSet<>();
+        do {
+            for (Class<?> anInterface : providerClass.getInterfaces()) {
+                collectInterfaces(interfaces, anInterface);
+            }
+            providerClass = providerClass.getSuperclass();
+        } while (providerClass != null && providerClass != Object.class);
+
+        return interfaces;
+    }
+
+    /**
+     * internal helper function to recursively collect Interfaces.
+     * This is needed since {@link Class#getInterfaces()} does only return directly implemented Interfaces,
+     * But not the ones derived from those classes.
+     */
+    private static void collectInterfaces(Set<Class<?>> interfaces, Class<?> anInterface) {
+        interfaces.add(anInterface);
+        for (Class<?> superInterface : anInterface.getInterfaces()) {
+            collectInterfaces(interfaces, superInterface);
+        }
+    }
+
     protected C getConfigurable() {
         return configurable;
+    }
+
+    @Override
+    public void close() {
+        synchronized (instantiatorInstances) {
+            if (instantiatorInstances.isEmpty()) {
+                return;
+            }
+            instantiatorInstances.forEach(instantiator::release);
+            instantiatorInstances.clear();
+        }
     }
 
     @Override
@@ -104,6 +151,12 @@ public class ConfigurableImpl<C extends Configurable<C>> implements Configurable
 
     @Override
     public C register(Object provider, int bindingPriority) {
+        if (Instantiator.class.isInstance(provider)) {
+            synchronized (this) {
+                instantiator = Instantiator.class.cast(provider);
+            }
+            return configurable;
+        }
         return doRegister(provider, bindingPriority, getImplementedContracts(provider, restrictedContractTypes));
     }
 
@@ -124,7 +177,7 @@ public class ConfigurableImpl<C extends Configurable<C>> implements Configurable
 
     @Override
     public C register(Class<?> providerClass, int bindingPriority) {
-        return doRegister(getInstantiator().create(providerClass), bindingPriority, 
+        return doRegister(createProvider(providerClass), bindingPriority,
                           getImplementedContracts(providerClass, restrictedContractTypes));
     }
 
@@ -135,11 +188,25 @@ public class ConfigurableImpl<C extends Configurable<C>> implements Configurable
 
     @Override
     public C register(Class<?> providerClass, Map<Class<?>, Integer> contracts) {
-        return register(getInstantiator().create(providerClass), contracts);
+        return register(createProvider(providerClass), contracts);
     }
 
     protected Instantiator getInstantiator() {
-        return ConfigurationImpl::createProvider;
+        if (instantiator != null) {
+            return instantiator;
+        }
+        synchronized (this) {
+            if (instantiator != null) {
+                return instantiator;
+            }
+            final Iterator<Instantiator> instantiators = ServiceLoader.load(Instantiator.class, classLoader).iterator();
+            if (instantiators.hasNext()) {
+                instantiator = instantiators.next();
+            } else {
+                instantiator = ConfigurationImpl::createProvider;
+            }
+        }
+        return instantiator;
     }
 
     private C doRegister(Object provider, int bindingPriority, Class<?>... contracts) {
@@ -193,4 +260,13 @@ public class ConfigurableImpl<C extends Configurable<C>> implements Configurable
         }
         return true;
     }
+
+    private Object createProvider(final Class<?> providerClass) {
+        final Object instance = getInstantiator().create(providerClass);
+        synchronized (instantiatorInstances) {
+            instantiatorInstances.add(instance);
+        }
+        return instance;
+    }
 }
+

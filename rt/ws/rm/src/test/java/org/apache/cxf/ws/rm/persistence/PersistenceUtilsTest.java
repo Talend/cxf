@@ -22,12 +22,12 @@ package org.apache.cxf.ws.rm.persistence;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collection;
 
-import javax.activation.DataHandler;
-import javax.mail.util.ByteArrayDataSource;
-
+import jakarta.activation.DataHandler;
+import jakarta.mail.util.ByteArrayDataSource;
 import org.apache.cxf.attachment.AttachmentImpl;
 import org.apache.cxf.helpers.IOUtils;
 import org.apache.cxf.io.CachedOutputStream;
@@ -38,13 +38,16 @@ import org.apache.cxf.ws.rm.RMMessageConstants;
 import org.apache.cxf.ws.rm.v200702.SequenceAcknowledgement;
 import org.apache.cxf.ws.rm.v200702.SequenceAcknowledgement.AcknowledgementRange;
 
-import org.junit.Assert;
 import org.junit.Test;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 /**
  *
  */
-public class PersistenceUtilsTest extends Assert {
+public class PersistenceUtilsTest {
 
     private static final String MULTIPART_TYPE = "multipart/related; type=\"text/xml\";"
         + " boundary=\"uuid:74b6a245-2e17-40eb-a86c-308664e18460\"; start=\"<root."
@@ -57,8 +60,8 @@ public class PersistenceUtilsTest extends Assert {
     public void testSerialiseDeserialiseAcknowledgement() {
         SequenceAcknowledgement ack = new SequenceAcknowledgement();
         AcknowledgementRange range = new AcknowledgementRange();
-        range.setLower(new Long(1));
-        range.setUpper(new Long(10));
+        range.setLower(Long.valueOf(1));
+        range.setUpper(Long.valueOf(10));
         ack.getAcknowledgementRange().add(range);
         PersistenceUtils utils = PersistenceUtils.getInstance();
         InputStream is = utils.serialiseAcknowledgment(ack);
@@ -151,16 +154,11 @@ public class PersistenceUtilsTest extends Assert {
         byte[] buf = new byte[starting.length()];
         try {
             in.read(buf, 0, buf.length);
-            assertEquals(starting, new String(buf, "utf-8"));
+            assertEquals(starting, new String(buf, StandardCharsets.UTF_8));
+            in.close();
             return true;
         } catch (IOException e) {
             // ignore
-        } finally {
-            try {
-                in.close();
-            } catch (IOException e) {
-                // ignore
-            }
         }
         return false;
     }

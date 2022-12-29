@@ -21,11 +21,11 @@ package org.apache.cxf.systest.jms.swa;
 import java.io.Closeable;
 import java.io.InputStream;
 
-import javax.activation.DataHandler;
-import javax.mail.util.ByteArrayDataSource;
 import javax.xml.namespace.QName;
-import javax.xml.ws.Holder;
 
+import jakarta.activation.DataHandler;
+import jakarta.mail.util.ByteArrayDataSource;
+import jakarta.xml.ws.Holder;
 import org.apache.cxf.binding.soap.jms.interceptor.SoapJMSConstants;
 import org.apache.cxf.ext.logging.LoggingOutInterceptor;
 import org.apache.cxf.helpers.IOUtils;
@@ -39,11 +39,13 @@ import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import static org.junit.Assert.assertEquals;
+
 public class ClientServerSwaTest extends AbstractBusClientServerTestBase {
     public static final String ADDRESS
         = "jms:jndi:dynamicQueues/test.cxf.jmstransport.swa.queue"
             + "?jndiInitialContextFactory"
-            + "=org.apache.activemq.jndi.ActiveMQInitialContextFactory"
+            + "=org.apache.activemq.artemis.jndi.ActiveMQInitialContextFactory"
             + "&jndiConnectionFactoryName=ConnectionFactory&jndiURL=";
 
     static EmbeddedJMSBrokerLauncher broker;
@@ -76,8 +78,9 @@ public class ClientServerSwaTest extends AbstractBusClientServerTestBase {
         createStaticBus();
     }
     @AfterClass
-    public static void clearProperty() {
+    public static void clearProperty() throws Exception {
         System.clearProperty("EmbeddedBrokerURL");
+        stopAllServers();
     }
     @Test
     public void testSwa() throws Exception {
@@ -91,8 +94,8 @@ public class ClientServerSwaTest extends AbstractBusClientServerTestBase {
         SwAService port = factory.create(SwAService.class);
 
 
-        Holder<String> textHolder = new Holder<String>();
-        Holder<DataHandler> data = new Holder<DataHandler>();
+        Holder<String> textHolder = new Holder<>();
+        Holder<DataHandler> data = new Holder<>();
 
         ByteArrayDataSource source = new ByteArrayDataSource("foobar".getBytes(), "application/octet-stream");
         DataHandler handler = new DataHandler(source);
@@ -104,7 +107,7 @@ public class ClientServerSwaTest extends AbstractBusClientServerTestBase {
         port.echoData(textHolder, data);
         InputStream bis = null;
         bis = data.value.getDataSource().getInputStream();
-        byte b[] = new byte[10];
+        byte[] b = new byte[10];
         bis.read(b, 0, 10);
         String string = IOUtils.newStringFromBytes(b);
         assertEquals("testfoobar", string);

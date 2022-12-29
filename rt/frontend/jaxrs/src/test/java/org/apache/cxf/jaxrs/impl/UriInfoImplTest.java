@@ -24,13 +24,12 @@ import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.ws.rs.GET;
-import javax.ws.rs.Path;
-import javax.ws.rs.core.MultivaluedMap;
-import javax.ws.rs.core.PathSegment;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.UriInfo;
-
+import jakarta.ws.rs.GET;
+import jakarta.ws.rs.Path;
+import jakarta.ws.rs.core.MultivaluedMap;
+import jakarta.ws.rs.core.PathSegment;
+import jakarta.ws.rs.core.Response;
+import jakarta.ws.rs.core.UriInfo;
 import org.apache.cxf.jaxrs.model.ClassResourceInfo;
 import org.apache.cxf.jaxrs.model.MethodInvocationInfo;
 import org.apache.cxf.jaxrs.model.OperationResourceInfo;
@@ -46,11 +45,13 @@ import org.apache.cxf.transport.servlet.ServletDestination;
 
 import org.easymock.EasyMock;
 import org.easymock.IMocksControl;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
-public class UriInfoImplTest extends Assert {
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+
+public class UriInfoImplTest {
 
     private IMocksControl control;
 
@@ -299,6 +300,19 @@ public class UriInfoImplTest extends Assert {
         assertEquals("Wrong query value", qps.get("n").get(1), "3");
         assertEquals("Wrong query value", qps.get("b").get(0), "2");
         assertEquals("Wrong query value", qps.get("a.b").get(0), "ab");
+
+        Message m = mockMessage("http://localhost:8080/baz", "/bar",
+                "N=0&n=1%202&n=3&&b=2&a%2Eb=ab");
+        m.put("parse.query.value.as.collection", Boolean.TRUE);
+        u = new UriInfoImpl(m, null);
+
+        qps = u.getQueryParameters();
+        assertEquals("Number of queries is wrong", 4, qps.size());
+        assertEquals("Wrong query value", qps.get("N").get(0), "0");
+        assertEquals("Wrong query value", qps.get("n").get(0), "1 2");
+        assertEquals("Wrong query value", qps.get("n").get(1), "3");
+        assertEquals("Wrong query value", qps.get("b").get(0), "2");
+        assertEquals("Wrong query value", qps.get("a.b").get(0), "ab");
     }
 
     @Test
@@ -344,7 +358,7 @@ public class UriInfoImplTest extends Assert {
     @Test
     public void testGetTemplateParameters() {
 
-        MultivaluedMap<String, String> values = new MetadataMap<String, String>();
+        MultivaluedMap<String, String> values = new MetadataMap<>();
         new URITemplate("/bar").match("/baz", values);
 
         UriInfoImpl u = new UriInfoImpl(mockMessage("http://localhost:8080/baz", "/bar"),
@@ -586,4 +600,3 @@ public class UriInfoImplTest extends Assert {
     }
 
 }
-

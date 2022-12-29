@@ -21,19 +21,24 @@ package org.apache.cxf.jaxrs;
 import java.util.List;
 import java.util.Set;
 
-import javax.ws.rs.core.MultivaluedMap;
-
+import jakarta.ws.rs.core.MultivaluedMap;
 import org.apache.cxf.jaxrs.impl.MetadataMap;
 import org.apache.cxf.jaxrs.model.ClassResourceInfo;
 import org.apache.cxf.jaxrs.model.MethodDispatcher;
 import org.apache.cxf.jaxrs.model.OperationResourceInfo;
 import org.apache.cxf.jaxrs.model.URITemplate;
 
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
-public class JAXRSServiceFactoryBeanTest extends Assert {
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+
+public class JAXRSServiceFactoryBeanTest {
 
     @Before
     public void setUp() throws Exception {
@@ -53,7 +58,7 @@ public class JAXRSServiceFactoryBeanTest extends Assert {
         ClassResourceInfo rootCri = resources.get(0);
         assertNotNull(rootCri.getURITemplate());
         URITemplate template = rootCri.getURITemplate();
-        MultivaluedMap<String, String> values = new MetadataMap<String, String>();
+        MultivaluedMap<String, String> values = new MetadataMap<>();
         assertTrue(template.match("/bookstore/books/123", values));
         assertFalse(rootCri.hasSubResources());
         MethodDispatcher md = rootCri.getMethodDispatcher();
@@ -93,7 +98,7 @@ public class JAXRSServiceFactoryBeanTest extends Assert {
         ClassResourceInfo rootCri = resources.get(0);
         assertNotNull(rootCri.getURITemplate());
         URITemplate template = rootCri.getURITemplate();
-        MultivaluedMap<String, String> values = new MetadataMap<String, String>();
+        MultivaluedMap<String, String> values = new MetadataMap<>();
         assertTrue(template.match("/bookstore/books/123", values));
         assertTrue(rootCri.hasSubResources());
         MethodDispatcher md = rootCri.getMethodDispatcher();

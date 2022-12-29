@@ -21,14 +21,13 @@ package org.apache.cxf.transport.http;
 
 import java.io.IOException;
 
-import javax.servlet.AsyncContext;
-import javax.servlet.AsyncEvent;
-import javax.servlet.AsyncListener;
-import javax.servlet.ServletOutputStream;
-import javax.servlet.WriteListener;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
+import jakarta.servlet.AsyncContext;
+import jakarta.servlet.AsyncEvent;
+import jakarta.servlet.AsyncListener;
+import jakarta.servlet.ServletOutputStream;
+import jakarta.servlet.WriteListener;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import org.apache.cxf.common.classloader.ClassLoaderUtils;
 import org.apache.cxf.common.util.PropertyUtils;
 import org.apache.cxf.continuations.Continuation;
@@ -41,11 +40,22 @@ import org.apache.cxf.phase.PhaseInterceptorChain;
  *
  */
 public class Servlet3ContinuationProvider implements ContinuationProvider {
+    static final boolean IS_31;
+    static {
+        boolean is31;
+        try {
+            ClassLoaderUtils.loadClass("jakarta.servlet.WriteListener", HttpServletRequest.class);
+            is31 = true;
+        } catch (Throwable t) {
+            is31 = false;
+        }
+        IS_31 = is31;
+    }
+    
     HttpServletRequest req;
     HttpServletResponse resp;
     Message inMessage;
     Servlet3Continuation continuation;
-    boolean is31;
 
     public Servlet3ContinuationProvider(HttpServletRequest req,
                                         HttpServletResponse resp,
@@ -53,14 +63,6 @@ public class Servlet3ContinuationProvider implements ContinuationProvider {
         this.inMessage = inMessage;
         this.req = req;
         this.resp = resp;
-        
-        
-        try {
-            ClassLoaderUtils.loadClass("javax.servlet.WriteListener", HttpServletRequest.class);
-            is31 = true;
-        } catch (Throwable t) {
-            is31 = false;
-        }
     }
 
     public void complete() {
@@ -78,7 +80,7 @@ public class Servlet3ContinuationProvider implements ContinuationProvider {
         }
 
         if (continuation == null) {
-            continuation = is31 ? new Servlet31Continuation() : new Servlet3Continuation();
+            continuation = IS_31 ? new Servlet31Continuation() : new Servlet3Continuation();
         } else {
             continuation.startAsyncAgain();
         }

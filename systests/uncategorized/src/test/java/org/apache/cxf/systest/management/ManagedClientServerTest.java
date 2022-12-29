@@ -25,8 +25,8 @@ import javax.management.InstanceNotFoundException;
 import javax.management.MBeanServer;
 import javax.management.ObjectName;
 import javax.xml.namespace.QName;
-import javax.xml.ws.Endpoint;
 
+import jakarta.xml.ws.Endpoint;
 import org.apache.cxf.Bus;
 import org.apache.cxf.BusFactory;
 import org.apache.cxf.management.InstrumentationManager;
@@ -41,6 +41,10 @@ import org.apache.hello_world_soap_http.SOAPService;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 public class ManagedClientServerTest extends AbstractBusClientServerTestBase {
     public static final String PORT = allocatePort(ManagedClientServerTest.class);

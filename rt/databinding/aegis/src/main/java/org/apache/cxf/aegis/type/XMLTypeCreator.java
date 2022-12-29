@@ -101,7 +101,7 @@ import org.apache.cxf.helpers.XPathUtils;
  */
 public class XMLTypeCreator extends AbstractTypeCreator {
     private static final Logger LOG = LogUtils.getL7dLogger(XMLTypeCreator.class);
-    private static List<Class<?>> stopClasses = new ArrayList<Class<?>>();
+    private static List<Class<?>> stopClasses = new ArrayList<>();
     static {
         stopClasses.add(Object.class);
         stopClasses.add(Exception.class);
@@ -117,30 +117,26 @@ public class XMLTypeCreator extends AbstractTypeCreator {
         AEGIS_DOCUMENT_BUILDER_FACTORY.setNamespaceAware(true);
         try {
             AEGIS_DOCUMENT_BUILDER_FACTORY.setFeature(javax.xml.XMLConstants.FEATURE_SECURE_PROCESSING, true);
+            AEGIS_DOCUMENT_BUILDER_FACTORY.setFeature("http://apache.org/xml/features/disallow-doctype-decl", true);
         } catch (javax.xml.parsers.ParserConfigurationException ex) {
             // ignore
         }
 
         String path = "/META-INF/cxf/aegis.xsd";
-        InputStream is = XMLTypeCreator.class.getResourceAsStream(path);
-        if (is != null) {
-            try {
+        try (InputStream is = XMLTypeCreator.class.getResourceAsStream(path)) {
+            if (is != null) {
                 SchemaFactory schemaFactory = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
                 Schema aegisSchema = schemaFactory.newSchema(new StreamSource(is));
                 AEGIS_DOCUMENT_BUILDER_FACTORY.setSchema(aegisSchema);
-            } catch (Throwable e) {
-                String msg = "Could not set aegis schema.  Not validating.";
-                if (LOG.isLoggable(Level.FINE)) {
-                    LOG.log(Level.INFO, msg, e);
-                } else {
-                    LOG.log(Level.INFO, msg);
-                }
-            } finally {
-                try {
-                    is.close();
-                } catch (IOException ex) {
-                    //ignore
-                }
+            }
+        } catch (IOException ex) {
+            // ignore
+        } catch (Throwable e) {
+            String msg = "Could not set aegis schema.  Not validating.";
+            if (LOG.isLoggable(Level.FINE)) {
+                LOG.log(Level.INFO, msg, e);
+            } else {
+                LOG.log(Level.INFO, msg);
             }
         }
     }
@@ -384,13 +380,13 @@ public class XMLTypeCreator extends AbstractTypeCreator {
             btinfo.setDefaultNillable(getConfiguration().isDefaultNillable());
 
             if (extensibleElements != null) {
-                btinfo.setExtensibleElements(Boolean.valueOf(extensibleElements).booleanValue());
+                btinfo.setExtensibleElements(Boolean.parseBoolean(extensibleElements));
             } else {
                 btinfo.setExtensibleElements(getConfiguration().isDefaultExtensibleElements());
             }
 
             if (extensibleAttributes != null) {
-                btinfo.setExtensibleAttributes(Boolean.valueOf(extensibleAttributes).booleanValue());
+                btinfo.setExtensibleAttributes(Boolean.parseBoolean(extensibleAttributes));
             } else {
                 btinfo.setExtensibleAttributes(getConfiguration().isDefaultExtensibleAttributes());
             }
@@ -539,12 +535,12 @@ public class XMLTypeCreator extends AbstractTypeCreator {
 
         String flat = DOMUtils.getAttributeValueEmptyNull(parameter, "flat");
         if (flat != null) {
-            info.setFlat(Boolean.valueOf(flat.toLowerCase()).booleanValue());
+            info.setFlat(Boolean.parseBoolean(flat.toLowerCase()));
         }
 
         String nillable = DOMUtils.getAttributeValueEmptyNull(parameter, "nillable");
         if (nillable != null) {
-            info.setNillable(Boolean.valueOf(nillable.toLowerCase()).booleanValue());
+            info.setNillable(Boolean.parseBoolean(nillable.toLowerCase()));
         }
     }
 
@@ -747,7 +743,7 @@ public class XMLTypeCreator extends AbstractTypeCreator {
             return null;
         }
 
-        int index = value.indexOf(":");
+        int index = value.indexOf(':');
 
         if (index == -1) {
             return new QName(getTypeMapping().getMappingIdentifierURI(), value);

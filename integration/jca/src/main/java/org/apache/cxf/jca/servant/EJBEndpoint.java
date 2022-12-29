@@ -25,13 +25,13 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
 
-import javax.ejb.EJBHome;
-import javax.jws.WebService;
 import javax.naming.Context;
 import javax.naming.InitialContext;
-import javax.resource.spi.work.WorkManager;
 import javax.rmi.PortableRemoteObject;
 
+import jakarta.ejb.EJBHome;
+import jakarta.jws.WebService;
+import jakarta.resource.spi.work.WorkManager;
 import org.apache.cxf.Bus;
 import org.apache.cxf.common.logging.LogUtils;
 import org.apache.cxf.common.util.PackageUtils;
@@ -122,7 +122,7 @@ public class EJBEndpoint {
     }
 
     public String getDefaultEJBServantBaseURL() throws Exception {
-        String hostName = "";
+        String hostName;
         try {
             InetAddress addr = InetAddress.getLocalHost();
             hostName = addr.getCanonicalHostName();
@@ -133,8 +133,8 @@ public class EJBEndpoint {
     }
 
     public int getAddressPort(String address) {
-        int index = address.lastIndexOf(":");
-        int end = address.lastIndexOf("/");
+        int index = address.lastIndexOf(':');
+        int end = address.lastIndexOf('/');
         if (index == 4) {
             return DEFAULT_HTTP_PORT;
         }

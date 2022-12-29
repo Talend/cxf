@@ -157,7 +157,7 @@ public class EndpointPolicyImpl implements EndpointPolicy {
     }
 
     void chooseAlternative(Message m) {
-        Collection<Assertion> alternative = null;
+        final Collection<Assertion> alternative;
         if (requestor) {
             if (engine.isEnabled()) {
                 alternative = engine.getAlternativeSelector().selectAlternative(policy, engine, assertor, null, m);
@@ -221,7 +221,7 @@ public class EndpointPolicyImpl implements EndpointPolicy {
         // add assertions for specific inbound (in case of a server endpoint) or outbound
         // (in case of a client endpoint) messages
         for (BindingOperationInfo boi : ei.getBinding().getOperations()) {
-            EffectivePolicy p = null;
+            EffectivePolicy p;
             if (!this.requestor) {
                 p = engine.getEffectiveServerRequestPolicy(ei, boi, m);
                 Collection<Assertion> c = engine.getAssertions(p, false);
@@ -295,21 +295,21 @@ public class EndpointPolicyImpl implements EndpointPolicy {
         PolicyInterceptorProviderRegistry reg
             = engine.getBus().getExtension(PolicyInterceptorProviderRegistry.class);
 
-        Set<Interceptor<? extends Message>> out = new LinkedHashSet<Interceptor<? extends Message>>();
+        Set<Interceptor<? extends Message>> out = new LinkedHashSet<>();
         if (getChosenAlternative() != null) {
             for (Assertion a : getChosenAlternative()) {
                 initializeInterceptors(reg, out, a, false, m);
             }
         }
 
-        List<Interceptor<? extends Message>> tmp = null;
+        final List<Interceptor<? extends Message>> tmp;
         if (requestor) {
-            tmp = new ArrayList<Interceptor<? extends Message>>(out);
+            tmp = new ArrayList<>(out);
             out.clear();
             for (Assertion a : getChosenAlternative()) {
                 initializeInterceptors(reg, out, a, true, m);
             }
-            faultInterceptors = new ArrayList<Interceptor<? extends Message>>(out);
+            faultInterceptors = new ArrayList<>(out);
         } else if (ei != null && ei.getBinding() != null) {
             for (BindingOperationInfo boi : ei.getBinding().getOperations()) {
                 EffectivePolicy p = engine.getEffectiveServerRequestPolicy(ei, boi, m);
@@ -324,9 +324,9 @@ public class EndpointPolicyImpl implements EndpointPolicy {
                     }
                 }
             }
-            tmp = new ArrayList<Interceptor<? extends Message>>(out);
+            tmp = new ArrayList<>(out);
         } else {
-            tmp = new ArrayList<Interceptor<? extends Message>>(out);
+            tmp = new ArrayList<>(out);
         }
         interceptors = tmp;
     }

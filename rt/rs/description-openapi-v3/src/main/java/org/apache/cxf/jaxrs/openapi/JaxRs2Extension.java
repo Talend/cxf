@@ -28,17 +28,17 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import javax.validation.constraints.DecimalMax;
-import javax.validation.constraints.DecimalMin;
-import javax.validation.constraints.Max;
-import javax.validation.constraints.Min;
-import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Pattern;
-import javax.validation.constraints.Size;
-import javax.ws.rs.Consumes;
-import javax.ws.rs.MatrixParam;
-
 import com.fasterxml.jackson.annotation.JsonView;
+
+import jakarta.validation.constraints.DecimalMax;
+import jakarta.validation.constraints.DecimalMin;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.Size;
+import jakarta.ws.rs.Consumes;
+import jakarta.ws.rs.MatrixParam;
 
 import io.swagger.v3.core.converter.ModelConverters;
 import io.swagger.v3.core.converter.ResolvedSchema;
@@ -139,7 +139,7 @@ public class JaxRs2Extension extends AbstractOpenAPIExtension {
         if (annos.containsKey(DecimalMin.class.getName())) {
             DecimalMin min = (DecimalMin) annos.get(DecimalMin.class.getName());
             if (min.inclusive()) {
-                schema.setMinimum(BigDecimal.valueOf(new Double(min.value())));
+                schema.setMinimum(BigDecimal.valueOf(Double.valueOf(min.value())));
             } else {
                 schema.setExclusiveMinimum(!min.inclusive());
             }
@@ -147,7 +147,7 @@ public class JaxRs2Extension extends AbstractOpenAPIExtension {
         if (annos.containsKey(DecimalMax.class.getName())) {
             DecimalMax max = (DecimalMax) annos.get(DecimalMax.class.getName());
             if (max.inclusive()) {
-                schema.setMaximum(BigDecimal.valueOf(new Double(max.value())));
+                schema.setMaximum(BigDecimal.valueOf(Double.valueOf(max.value())));
             } else {
                 schema.setExclusiveMaximum(!max.inclusive());
             }

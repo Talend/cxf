@@ -19,8 +19,7 @@
 
 package org.apache.cxf.rs.security.oauth2.provider;
 
-import javax.ws.rs.core.MultivaluedMap;
-
+import jakarta.ws.rs.core.MultivaluedMap;
 import org.apache.cxf.jaxrs.ext.MessageContext;
 import org.apache.cxf.rs.security.oauth2.common.OAuthRedirectionState;
 import org.apache.cxf.rs.security.oauth2.common.UserSubject;
@@ -71,7 +70,7 @@ public interface SessionAuthenticityTokenProvider {
     /**
      * Expand the session token
      *
-     * @param mc the {@link MessageContext} of this request
+     * @param messageContext the {@link MessageContext} of this request
      * @param sessionToken the token
      * @param subject authenticated end user
      * @return the expanded token or null

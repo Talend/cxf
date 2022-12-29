@@ -29,7 +29,6 @@ import brave.http.HttpServerAdapter;
 import brave.http.HttpServerHandler;
 import brave.http.HttpTracing;
 import org.apache.cxf.common.logging.LogUtils;
-import org.apache.cxf.helpers.CastUtils;
 import org.apache.cxf.phase.PhaseInterceptorChain;
 import org.apache.cxf.tracing.AbstractTracingProvider;
 import org.apache.cxf.tracing.brave.internal.HttpAdapterFactory;
@@ -53,7 +52,6 @@ public abstract class AbstractBraveProvider extends AbstractTracingProvider {
         final Request request = HttpAdapterFactory.request(requestHeaders, uri, method);
         final HttpServerAdapter<Request, ?> adapter = HttpServerAdapterFactory.create(request);
         
-        @SuppressWarnings("unchecked")
         final HttpServerHandler<Request, ?> handler = HttpServerHandler.create(brave, adapter);
         
         Span span = handler.handleReceive(
@@ -80,36 +78,33 @@ public abstract class AbstractBraveProvider extends AbstractTracingProvider {
                                  final Map<String, List<Object>> responseHeaders,
                                  final int responseStatus,
                                  final TraceScopeHolder<TraceScope> holder) {
-
-        // Transfer tracing headers into the response headers
-        brave
-            .tracing()
-            .propagation()
-            .keys()
-            .forEach(key -> transferRequestHeader(requestHeaders, responseHeaders, key));
-
         if (holder == null) {
             return;
         }
 
         final TraceScope scope = holder.getScope();
+        Span span = null;
         if (scope != null) {
             try {
                 // If the service resource is using asynchronous processing mode, the trace
                 // scope has been created in another thread and should be re-attached to the current
                 // one.
                 if (holder.isDetached()) {
-                    brave.tracing().tracer().joinSpan(scope.getSpan().context());
+                    span = brave.tracing().tracer().joinSpan(scope.getSpan().context());
                 }
     
                 final Response response = HttpAdapterFactory.response(responseStatus);
                 final HttpServerAdapter<?, Response> adapter = HttpServerAdapterFactory.create(response);
                 
-                @SuppressWarnings("unchecked")
                 final HttpServerHandler<?, Response> handler = HttpServerHandler.create(brave, adapter);
                 handler.handleSend(response, null, scope.getSpan());
             } finally {
                 scope.close();
+                if (span != null) {
+                    // We do not care about the span created by joinSpan, since it 
+                    // should be managed by the scope.getSpan() itself. 
+                    span.abandon();
+                }
             }
         }
     }
@@ -120,12 +115,5 @@ public abstract class AbstractBraveProvider extends AbstractTracingProvider {
 
     private void propagateContinuationSpan(final Span continuationScope) {
         PhaseInterceptorChain.getCurrentMessage().put(Span.class, continuationScope);
-    }
-
-    private void transferRequestHeader(final Map<String, List<String>> requestHeaders,
-            final Map<String, List<Object>> responseHeaders, final String header) {
-        if (requestHeaders.containsKey(header)) {
-            responseHeaders.put(header, CastUtils.cast(requestHeaders.get(header)));
-        }
     }
 }

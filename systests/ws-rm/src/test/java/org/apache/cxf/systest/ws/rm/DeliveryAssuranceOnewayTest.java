@@ -30,18 +30,18 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
 
-import javax.jws.WebService;
 import javax.xml.transform.Source;
 import javax.xml.transform.stream.StreamSource;
-import javax.xml.ws.Endpoint;
-import javax.xml.ws.Provider;
-import javax.xml.ws.Service.Mode;
-import javax.xml.ws.ServiceMode;
 import javax.xml.xpath.XPathConstants;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 
+import jakarta.jws.WebService;
+import jakarta.xml.ws.Endpoint;
+import jakarta.xml.ws.Provider;
+import jakarta.xml.ws.Service.Mode;
+import jakarta.xml.ws.ServiceMode;
 import org.apache.cxf.Bus;
 import org.apache.cxf.BusFactory;
 import org.apache.cxf.bus.spring.SpringBusFactory;
@@ -57,6 +57,10 @@ import org.apache.cxf.ws.rm.RMManager;
 
 import org.junit.After;
 import org.junit.Test;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 /**
  * Tests the operation of InOrder delivery assurance for one-way messages to the server.
@@ -103,7 +107,7 @@ public class DeliveryAssuranceOnewayTest extends AbstractBusClientServerTestBase
 
         greeterBus.getOutInterceptors().add(new MessageLossSimulator());
         RMManager manager = greeterBus.getExtension(RMManager.class);
-        manager.getConfiguration().setBaseRetransmissionInterval(new Long(1000));
+        manager.getConfiguration().setBaseRetransmissionInterval(Long.valueOf(1000));
         String[] callArgs = new String[] {"one", "two", "three", "four", "five", "six",
                                           "seven", "eight", "nine"};
         for (int i = 0; i < callArgs.length; i++) {
@@ -149,7 +153,7 @@ public class DeliveryAssuranceOnewayTest extends AbstractBusClientServerTestBase
 
         greeterBus.getOutInterceptors().add(new MessageLossSimulator());
         RMManager manager = greeterBus.getExtension(RMManager.class);
-        manager.getConfiguration().setBaseRetransmissionInterval(new Long(2000));
+        manager.getConfiguration().setBaseRetransmissionInterval(Long.valueOf(2000));
         String[] callArgs = new String[] {"one", "two", "three", "four"};
         for (int i = 0; i < callArgs.length; i++) {
             greeter.greetMeOneWay(callArgs[i]);
@@ -183,7 +187,7 @@ public class DeliveryAssuranceOnewayTest extends AbstractBusClientServerTestBase
 
         greeterBus.getOutInterceptors().add(new MessageLossSimulator());
         RMManager manager = greeterBus.getExtension(RMManager.class);
-        manager.getConfiguration().setBaseRetransmissionInterval(new Long(2000));
+        manager.getConfiguration().setBaseRetransmissionInterval(Long.valueOf(2000));
         String[] callArgs = new String[] {"one", "two", "three", "four"};
         for (int i = 0; i < callArgs.length; i++) {
             greeter.greetMeOneWay(callArgs[i]);
@@ -222,7 +226,7 @@ public class DeliveryAssuranceOnewayTest extends AbstractBusClientServerTestBase
 
         greeterBus.getOutInterceptors().add(new MessageLossSimulator());
         RMManager manager = greeterBus.getExtension(RMManager.class);
-        manager.getConfiguration().setBaseRetransmissionInterval(new Long(2000));
+        manager.getConfiguration().setBaseRetransmissionInterval(Long.valueOf(2000));
         String[] callArgs = new String[] {"one", "two", "three", "four"};
         for (int i = 0; i < callArgs.length; i++) {
             greeter.greetMeOneWay(callArgs[i]);
@@ -238,7 +242,7 @@ public class DeliveryAssuranceOnewayTest extends AbstractBusClientServerTestBase
             assertTrue("Message out of order", argNum < callArgs.length);
         }
     }
-    
+
     @Test
     public void testOnewayAtLeastOnceInOrderDelay() throws Exception {
         int numMessages = 4;
@@ -292,7 +296,7 @@ public class DeliveryAssuranceOnewayTest extends AbstractBusClientServerTestBase
 
         greeterBus.getOutInterceptors().add(new MessageLossSimulator());
         RMManager manager = greeterBus.getExtension(RMManager.class);
-        manager.getConfiguration().setBaseRetransmissionInterval(new Long(2000));
+        manager.getConfiguration().setBaseRetransmissionInterval(Long.valueOf(2000));
         String[] callArgs = new String[] {"one", "two", "three", "four"};
         for (int i = 0; i < callArgs.length; i++) {
             greeter.greetMeOneWay(callArgs[i]);
@@ -325,7 +329,7 @@ public class DeliveryAssuranceOnewayTest extends AbstractBusClientServerTestBase
 
         greeterBus.getOutInterceptors().add(new MessageLossSimulator());
         RMManager manager = greeterBus.getExtension(RMManager.class);
-        manager.getConfiguration().setBaseRetransmissionInterval(new Long(2000));
+        manager.getConfiguration().setBaseRetransmissionInterval(Long.valueOf(2000));
         String[] callArgs = new String[] {"one", "two", "three", "four"};
         for (int i = 0; i < callArgs.length; i++) {
             greeter.greetMeOneWay(callArgs[i]);
@@ -354,24 +358,14 @@ public class DeliveryAssuranceOnewayTest extends AbstractBusClientServerTestBase
     }
 
     private void initServer(SpringBusFactory bf, String cfgResource) {
-        String derbyHome = System.getProperty("derby.system.home");
-        try {
-            synchronized (GreeterProvider.CALL_ARGS) {
-                GreeterProvider.CALL_ARGS.clear();
-            }
-            System.setProperty("derby.system.home", derbyHome + "-server");
-            serverBus = bf.createBus(cfgResource);
-            BusFactory.setDefaultBus(serverBus);
-            LOG.info("Initialised bus " + serverBus + " with cfg file resource: " + cfgResource);
-            LOG.info("serverBus inInterceptors: " + serverBus.getInInterceptors());
-            endpoint = Endpoint.publish(GREETER_ADDRESS, new GreeterProvider());
-        } finally {
-            if (derbyHome != null) {
-                System.setProperty("derby.system.home", derbyHome);
-            } else {
-                System.clearProperty("derby.system.home");
-            }
+        synchronized (GreeterProvider.CALL_ARGS) {
+            GreeterProvider.CALL_ARGS.clear();
         }
+        serverBus = bf.createBus(cfgResource);
+        BusFactory.setDefaultBus(serverBus);
+        LOG.info("Initialised bus " + serverBus + " with cfg file resource: " + cfgResource);
+        LOG.info("serverBus inInterceptors: " + serverBus.getInInterceptors());
+        endpoint = Endpoint.publish(GREETER_ADDRESS, new GreeterProvider());
     }
 
     private void initGreeterBus(SpringBusFactory bf,

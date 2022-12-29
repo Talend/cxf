@@ -23,11 +23,11 @@
     <packaging>pom</packaging>
     <name>Apache CXF Maven Archetypes</name>
     <description>Apache CXF Maven Archetypes</description>
-    <url>http://cxf.apache.org</url>
+    <url>https://cxf.apache.org</url>
     <parent>
         <groupId>org.apache.cxf</groupId>
         <artifactId>cxf-maven-plugins</artifactId>
-        <version>3.2.5-SNAPSHOT</version>
+        <version>4.0.1-SNAPSHOT</version>
     </parent>
     <modules>
         <module>cxf-jaxws-javafirst</module>

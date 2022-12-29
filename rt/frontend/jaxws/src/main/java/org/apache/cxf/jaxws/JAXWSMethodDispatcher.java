@@ -26,8 +26,7 @@ import java.lang.reflect.TypeVariable;
 import java.util.concurrent.Future;
 import java.util.logging.Logger;
 
-import javax.xml.ws.Response;
-
+import jakarta.xml.ws.Response;
 import org.apache.cxf.common.i18n.Message;
 import org.apache.cxf.common.logging.LogUtils;
 import org.apache.cxf.common.util.ReflectionUtil;
@@ -90,7 +89,7 @@ public class JAXWSMethodDispatcher extends SimpleMethodDispatcher {
                                                  method.getParameterTypes());
                 if (Modifier.isVolatile(m2.getModifiers())) {
                     //bridge method, need to map the generics
-                    Class<?> params[] = method.getParameterTypes();
+                    Class<?>[] params = method.getParameterTypes();
                     for (Type t : method.getGenericParameterTypes()) {
                         if (t instanceof TypeVariable) {
                             TypeVariable<?> tv = (TypeVariable<?>)t;

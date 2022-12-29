@@ -20,11 +20,10 @@ package org.apache.cxf.systest.jaxws;
 
 import java.util.Map;
 
-import javax.jws.WebMethod;
-import javax.jws.WebService;
-
 import org.w3c.dom.Document;
 
+import jakarta.jws.WebMethod;
+import jakarta.jws.WebService;
 import org.apache.cxf.Bus;
 import org.apache.cxf.common.util.UrlUtils;
 import org.apache.cxf.endpoint.Endpoint;
@@ -40,6 +39,8 @@ import org.apache.cxf.testutil.common.AbstractBusClientServerTestBase;
 
 import org.junit.BeforeClass;
 import org.junit.Test;
+
+import static org.junit.Assert.assertFalse;
 
 public class WsdlGetUtilsTest extends AbstractBusClientServerTestBase {
     static final String PORT = allocatePort(WsdlGetUtilsTest.class);

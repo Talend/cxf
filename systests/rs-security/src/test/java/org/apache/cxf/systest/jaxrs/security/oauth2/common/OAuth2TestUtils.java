@@ -18,15 +18,23 @@
  */
 package org.apache.cxf.systest.jaxrs.security.oauth2.common;
 
-import java.time.Instant;
-import java.util.ArrayList;
+import java.io.IOException;
+import java.io.InputStream;
+import java.security.GeneralSecurityException;
+import java.security.KeyStore;
+import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Properties;
 
-import javax.ws.rs.core.Form;
-import javax.ws.rs.core.Response;
+import javax.net.ssl.KeyManagerFactory;
+import javax.net.ssl.TrustManagerFactory;
 
+import jakarta.ws.rs.core.Form;
+import jakarta.ws.rs.core.Response;
+import org.apache.cxf.configuration.jsse.TLSClientParameters;
 import org.apache.cxf.jaxrs.client.WebClient;
 import org.apache.cxf.jaxrs.provider.json.JSONProvider;
 import org.apache.cxf.jaxrs.provider.json.JsonMapObjectProvider;
@@ -37,9 +45,17 @@ import org.apache.cxf.rs.security.jose.jws.JwsJwtCompactProducer;
 import org.apache.cxf.rs.security.jose.jws.JwsSignatureProvider;
 import org.apache.cxf.rs.security.jose.jws.JwsUtils;
 import org.apache.cxf.rs.security.jose.jwt.JwtClaims;
+import org.apache.cxf.rs.security.oauth2.client.Consumer;
+import org.apache.cxf.rs.security.oauth2.client.OAuthClientUtils;
 import org.apache.cxf.rs.security.oauth2.common.ClientAccessToken;
 import org.apache.cxf.rs.security.oauth2.common.OAuthAuthorizationData;
+import org.apache.cxf.rs.security.oauth2.grants.code.AuthorizationCodeGrant;
 import org.apache.cxf.rs.security.oauth2.provider.OAuthJSONProvider;
+import org.apache.cxf.rs.security.oauth2.utils.OAuthConstants;
+import org.apache.cxf.rs.security.oauth2.utils.OAuthUtils;
+import org.apache.cxf.rt.security.crypto.CryptoUtils;
+import org.apache.cxf.transport.http.HTTPConduit;
+import org.apache.cxf.transport.http.HTTPConduitConfigurer;
 import org.apache.wss4j.common.ext.WSSecurityException;
 import org.apache.wss4j.common.saml.SAMLCallback;
 import org.apache.wss4j.common.saml.SAMLUtil;
@@ -100,11 +116,21 @@ public final class OAuth2TestUtils {
         if (parameters.getRequest() != null) {
             client.query("request", parameters.getRequest());
         }
+        if (parameters.getCodeChallenge() != null) {
+            client.query("code_challenge", parameters.getCodeChallenge());
+        }
+        if (parameters.getCodeChallengeMethod() != null) {
+            client.query("code_challenge_method", parameters.getCodeChallengeMethod());
+        }
 
         client.path(parameters.getPath());
         Response response = client.get();
 
         OAuthAuthorizationData authzData = response.readEntity(OAuthAuthorizationData.class);
+        return getLocation(client, authzData, parameters.getState());
+    }
+
+    public static String getLocation(WebClient client, OAuthAuthorizationData authzData, String state) {
 
         // Now call "decision" to get the authorization code grant
         client.path("decision");
@@ -123,13 +149,19 @@ public final class OAuth2TestUtils {
         if (authzData.getState() != null) {
             form.param("state", authzData.getState());
         }
+        if (authzData.getClientCodeChallenge() != null) {
+            form.param("code_challenge", authzData.getClientCodeChallenge());
+        }
+        if (authzData.getClientCodeChallengeMethod() != null) {
+            form.param("code_challenge_method", authzData.getClientCodeChallengeMethod());
+        }
         form.param("response_type", authzData.getResponseType());
         form.param("oauthDecision", "allow");
 
-        response = client.post(form);
+        Response response = client.post(form);
         String location = response.getHeaderString("Location");
-        if (parameters.getState() != null) {
-            Assert.assertTrue(location.contains("state=" + parameters.getState()));
+        if (state != null) {
+            Assert.assertTrue(location.contains("state=" + state));
         }
 
         return location;
@@ -143,33 +175,36 @@ public final class OAuth2TestUtils {
                                                                         String code,
                                                                         String consumerId,
                                                                         String audience) {
-        client.type("application/x-www-form-urlencoded").accept("application/json");
-        client.path("token");
+        return getAccessTokenWithAuthorizationCode(client, code, consumerId, audience, null);
+    }
 
-        Form form = new Form();
-        form.param("grant_type", "authorization_code");
-        form.param("code", code);
-        form.param("client_id", consumerId);
+    public static ClientAccessToken getAccessTokenWithAuthorizationCode(WebClient client,
+                                                                        String code,
+                                                                        String consumerId,
+                                                                        String audience,
+                                                                        String codeVerifier) {
+        Map<String, String> extraParams = new HashMap<>(3);
+        extraParams.put(OAuthConstants.REDIRECT_URI, "http://www.blah.apache.org");
         if (audience != null) {
-            form.param("audience", audience);
+            extraParams.put(OAuthConstants.CLIENT_AUDIENCE, audience);
         }
-        form.param("redirect_uri", "http://www.blah.apache.org");
-        Response response = client.post(form);
-
-        return response.readEntity(ClientAccessToken.class);
+        if (codeVerifier != null) {
+            extraParams.put(OAuthConstants.AUTHORIZATION_CODE_VERIFIER, codeVerifier);
+        }
+        return OAuthClientUtils.getAccessToken(
+            client.path("token"),
+            new Consumer(consumerId),
+            new AuthorizationCodeGrant(code),
+            extraParams,
+            false);
     }
 
     public static List<Object> setupProviders() {
-        List<Object> providers = new ArrayList<>();
-        JSONProvider<OAuthAuthorizationData> jsonP = new JSONProvider<OAuthAuthorizationData>();
+        JSONProvider<OAuthAuthorizationData> jsonP = new JSONProvider<>();
         jsonP.setNamespaceMap(Collections.singletonMap("http://org.apache.cxf.rs.security.oauth",
                                                        "ns2"));
-        providers.add(jsonP);
-        providers.add(new OAuthJSONProvider());
-        providers.add(new JsonWebKeysProvider());
-        providers.add(new JsonMapObjectProvider());
 
-        return providers;
+        return Arrays.asList(jsonP, new OAuthJSONProvider(), new JsonWebKeysProvider(), new JsonMapObjectProvider());
     }
 
     public static String createToken(String audRestr) throws WSSecurityException {
@@ -211,10 +246,9 @@ public final class OAuth2TestUtils {
         if (issuer != null) {
             claims.setIssuer(issuer);
         }
-        Instant now = Instant.now();
-        claims.setIssuedAt(now.getEpochSecond());
+        claims.setIssuedAt(OAuthUtils.getIssuedAt());
         if (expiry) {
-            claims.setExpiryTime(now.plusSeconds(60L).getEpochSecond());
+            claims.setExpiryTime(claims.getIssuedAt() + 60L);
         }
         if (audience != null) {
             claims.setAudiences(Collections.singletonList(audience));
@@ -257,6 +291,37 @@ public final class OAuth2TestUtils {
         return foundString.substring(0, ampersandIndex);
     }
 
+    public static HTTPConduitConfigurer clientHTTPConduitConfigurer() throws IOException, GeneralSecurityException {
+        final TLSClientParameters tlsCP = new TLSClientParameters();
+        tlsCP.setDisableCNCheck(true);
+
+        try (InputStream is = OAuth2TestUtils.class.getResourceAsStream("/keys/Morpit.jks")) {
+            final KeyStore keyStore = CryptoUtils.loadKeyStore(is, "password".toCharArray(), null);
+            final KeyManagerFactory kmf = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
+            kmf.init(keyStore, "password".toCharArray());
+            tlsCP.setKeyManagers(kmf.getKeyManagers());
+        }
+
+        try (InputStream is = OAuth2TestUtils.class.getResourceAsStream("/keys/Truststore.jks")) {
+            final KeyStore keyStore = CryptoUtils.loadKeyStore(is, "password".toCharArray(), null);
+            final TrustManagerFactory tmf = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
+            tmf.init(keyStore);
+            tlsCP.setTrustManagers(tmf.getTrustManagers());
+        }
+
+        return new HTTPConduitConfigurer() {
+            public void configure(String name, String address, HTTPConduit c) {
+                c.setTlsClientParameters(tlsCP);
+                // 5 mins for long debug session
+//                org.apache.cxf.transports.http.configuration.HTTPClientPolicy httpClientPolicy =
+//                    new org.apache.cxf.transports.http.configuration.HTTPClientPolicy();
+//                httpClientPolicy.setConnectionTimeout(300000L);
+//                httpClientPolicy.setReceiveTimeout(300000L);
+//                c.setClient(httpClientPolicy);
+            }
+        };
+    }
+
     public static class AuthorizationCodeParameters {
         private String scope;
         private String consumerId;
@@ -265,6 +330,8 @@ public final class OAuth2TestUtils {
         private String responseType;
         private String path;
         private String request;
+        private String codeChallenge;
+        private String codeChallengeMethod;
 
         public String getScope() {
             return scope;
@@ -307,6 +374,18 @@ public final class OAuth2TestUtils {
         }
         public void setRequest(String request) {
             this.request = request;
+        }
+        public String getCodeChallenge() {
+            return codeChallenge;
+        }
+        public void setCodeChallenge(String codeChallenge) {
+            this.codeChallenge = codeChallenge;
+        }
+        public String getCodeChallengeMethod() {
+            return codeChallengeMethod;
+        }
+        public void setCodeChallengeMethod(String codeChallengeMethod) {
+            this.codeChallengeMethod = codeChallengeMethod;
         }
     }
 }

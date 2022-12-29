@@ -36,37 +36,32 @@ import org.apache.cxf.no_body_parts.types.Operation1Response;
 import org.apache.cxf.testutil.common.AbstractBusClientServerTestBase;
 import org.apache.cxf.testutil.common.TestUtil;
 
-import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 public class JaxWsDynamicClientTest extends AbstractBusClientServerTestBase {
     static final String PORT = TestUtil.getPortNumber(ServerNoBodyParts.class);
     static final String PORT1 = TestUtil.getPortNumber(ArrayServiceServer.class);
 
-    private String md5(byte[] bytes) {
+    private String digest(byte[] bytes) {
         MessageDigest algorithm;
         try {
-            algorithm = MessageDigest.getInstance("MD5");
+            algorithm = MessageDigest.getInstance("SHA-256");
         } catch (NoSuchAlgorithmException e) {
             throw new RuntimeException(e);
         }
         algorithm.reset();
         algorithm.update(bytes);
-        byte messageDigest[] = algorithm.digest();
+        byte[] messageDigest = algorithm.digest();
 
         StringBuilder hexString = new StringBuilder();
         for (int i = 0; i < messageDigest.length; i++) {
             hexString.append(Integer.toHexString(0xFF & messageDigest[i]));
         }
         return hexString.toString();
-    }
-
-    @Before
-    public void setUp() throws Exception {
-        if (System.getProperty("java.version").startsWith("9")) {
-            System.setProperty("org.apache.cxf.common.util.Compiler-fork", "true");
-        }
     }
 
     @BeforeClass
@@ -90,13 +85,13 @@ public class JaxWsDynamicClientTest extends AbstractBusClientServerTestBase {
         parameters.setTargetType("tar-get");
         Object[] rparts = client.invoke("operation1", parameters, bucketOfBytes);
         Operation1Response r = (Operation1Response)rparts[0];
-        assertEquals(md5(bucketOfBytes), r.getStatus());
+        assertEquals(digest(bucketOfBytes), r.getStatus());
 
         ClientCallback callback = new ClientCallback();
         client.invoke(callback, "operation1", parameters, bucketOfBytes);
         rparts = callback.get();
         r = (Operation1Response)rparts[0];
-        assertEquals(md5(bucketOfBytes), r.getStatus());
+        assertEquals(digest(bucketOfBytes), r.getStatus());
     }
 
     @Test

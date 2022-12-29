@@ -24,14 +24,13 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
 import java.nio.charset.StandardCharsets;
 
-import javax.ws.rs.InternalServerErrorException;
-import javax.ws.rs.WebApplicationException;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.MultivaluedMap;
-import javax.ws.rs.ext.MessageBodyWriter;
-import javax.ws.rs.ext.Provider;
-import javax.ws.rs.sse.OutboundSseEvent;
-
+import jakarta.ws.rs.InternalServerErrorException;
+import jakarta.ws.rs.WebApplicationException;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.MultivaluedMap;
+import jakarta.ws.rs.ext.MessageBodyWriter;
+import jakarta.ws.rs.ext.Provider;
+import jakarta.ws.rs.sse.OutboundSseEvent;
 import org.apache.cxf.jaxrs.provider.ServerProviderFactory;
 import org.apache.cxf.message.Exchange;
 import org.apache.cxf.message.Message;
@@ -112,6 +111,8 @@ public class OutboundSseEventBodyWriter implements MessageBodyWriter<OutboundSse
             writePayloadTo(payloadClass, payloadType, anns, p.getMediaType(), headers, p.getData(), os);
             os.write(NEW_LINE);
         }
+
+        os.write(NEW_LINE);
     }
 
     @SuppressWarnings("unchecked")

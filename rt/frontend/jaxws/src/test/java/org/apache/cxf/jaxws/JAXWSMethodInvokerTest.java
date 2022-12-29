@@ -31,12 +31,12 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.Source;
 import javax.xml.transform.stream.StreamSource;
-import javax.xml.ws.Provider;
 
 import org.w3c.dom.Document;
 
 import org.xml.sax.SAXException;
 
+import jakarta.xml.ws.Provider;
 import org.apache.cxf.binding.soap.SoapMessage;
 import org.apache.cxf.continuations.SuspendedInvocationException;
 import org.apache.cxf.headers.Header;
@@ -55,10 +55,17 @@ import org.apache.cxf.service.invoker.MethodDispatcher;
 import org.apache.cxf.service.model.BindingOperationInfo;
 
 import org.easymock.EasyMock;
-import org.junit.Assert;
 import org.junit.Test;
 
-public class JAXWSMethodInvokerTest extends Assert {
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertSame;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+
+public class JAXWSMethodInvokerTest {
     private static final QName TEST_HEADER_NAME = new QName("testHeader");
     Factory factory = EasyMock.createMock(Factory.class);
     Object target = EasyMock.createMock(Hello.class);
@@ -115,7 +122,7 @@ public class JAXWSMethodInvokerTest extends Assert {
             fail("Expected fault");
         } catch (Fault fault) {
             Message outMsg = ex.getOutMessage();
-            Assert.assertNull(outMsg);
+            assertNull(outMsg);
         }
     }
 
@@ -137,11 +144,11 @@ public class JAXWSMethodInvokerTest extends Assert {
             fail("Expected fault");
         } catch (Fault fault) {
             Message outMsg = ex.getOutMessage();
-            Assert.assertNotNull(outMsg);
+            assertNotNull(outMsg);
             @SuppressWarnings("unchecked")
             List<Header> headers = (List<Header>)outMsg.get(Header.HEADER_LIST);
-            Assert.assertEquals(1, headers.size());
-            Assert.assertEquals(TEST_HEADER_NAME, headers.get(0).getName());
+            assertEquals(1, headers.size());
+            assertEquals(TEST_HEADER_NAME, headers.get(0).getName());
         }
     }
 

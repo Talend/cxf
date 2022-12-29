@@ -22,17 +22,15 @@ package org.apache.cxf.systest.jaxrs;
 import java.io.InputStream;
 import java.net.URL;
 import java.net.URLConnection;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
-import javax.ws.rs.core.GenericType;
-import javax.ws.rs.core.MediaType;
+import com.fasterxml.jackson.jakarta.rs.json.JacksonJsonProvider;
 
-import com.fasterxml.jackson.jaxrs.json.JacksonJsonProvider;
-
+import jakarta.ws.rs.core.GenericType;
+import jakarta.ws.rs.core.MediaType;
 import org.apache.cxf.BusFactory;
 import org.apache.cxf.helpers.IOUtils;
 import org.apache.cxf.jaxrs.client.JAXRSClientFactory;
@@ -45,6 +43,11 @@ import org.apache.cxf.testutil.common.AbstractBusClientServerTestBase;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
+
+import static org.junit.Assert.assertArrayEquals;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 public class JAXRSClientServerResourceJacksonSpringProviderTest extends AbstractBusClientServerTestBase {
     public static final String PORT = BookServerResourceJacksonSpringProviders.PORT;
@@ -107,7 +110,7 @@ public class JAXRSClientServerResourceJacksonSpringProviderTest extends Abstract
         byte[] image1 = IOUtils.readBytesFromStream(
             getClass().getResourceAsStream("/org/apache/cxf/systest/jaxrs/resources/java.jpg"));
         byte[] image2 = IOUtils.readBytesFromStream(is2);
-        assertTrue(Arrays.equals(image1, image2));
+        assertArrayEquals(image1, image2);
     }
 
     @Test
@@ -235,7 +238,7 @@ public class JAXRSClientServerResourceJacksonSpringProviderTest extends Abstract
 
         String endpointAddress =
             "http://localhost:" + PORT + "/webapp/genericstore2";
-        JAXBElementProvider<Object> jaxbProvider = new JAXBElementProvider<Object>();
+        JAXBElementProvider<Object> jaxbProvider = new JAXBElementProvider<>();
         jaxbProvider.setXmlRootAsJaxbElement(true);
         jaxbProvider.setMarshallAsJaxbElement(true);
         GenericBookStoreSpring2 proxy = JAXRSClientFactory.create(endpointAddress,
@@ -252,7 +255,7 @@ public class JAXRSClientServerResourceJacksonSpringProviderTest extends Abstract
 
         String endpointAddress =
             "http://localhost:" + PORT + "/webapp/genericstore2type";
-        JAXBElementProvider<Object> jaxbProvider = new JAXBElementProvider<Object>();
+        JAXBElementProvider<Object> jaxbProvider = new JAXBElementProvider<>();
         jaxbProvider.setMarshallAsJaxbElement(true);
         jaxbProvider.setUnmarshallAsJaxbElement(true);
         GenericBookStoreSpring2 proxy = JAXRSClientFactory.create(endpointAddress,
@@ -297,7 +300,7 @@ public class JAXRSClientServerResourceJacksonSpringProviderTest extends Abstract
 
         String endpointAddress =
             "http://localhost:" + PORT + "/webapp/genericstore2";
-        JAXBElementProvider<Object> jaxbProvider = new JAXBElementProvider<Object>();
+        JAXBElementProvider<Object> jaxbProvider = new JAXBElementProvider<>();
         jaxbProvider.setMarshallAsJaxbElement(true);
         jaxbProvider.setUnmarshallAsJaxbElement(true);
         GenericBookStoreSpring2 proxy = JAXRSClientFactory.create(endpointAddress,
@@ -315,7 +318,7 @@ public class JAXRSClientServerResourceJacksonSpringProviderTest extends Abstract
 
         String endpointAddress =
             "http://localhost:" + PORT + "/webapp/genericstore2type";
-        JAXBElementProvider<Object> jaxbProvider = new JAXBElementProvider<Object>();
+        JAXBElementProvider<Object> jaxbProvider = new JAXBElementProvider<>();
         jaxbProvider.setMarshallAsJaxbElement(true);
         jaxbProvider.setUnmarshallAsJaxbElement(true);
         GenericBookStoreSpring2 proxy = JAXRSClientFactory.create(endpointAddress,

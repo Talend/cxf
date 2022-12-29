@@ -48,11 +48,14 @@ import org.omg.CORBA.TypeCode;
 import org.easymock.EasyMock;
 import org.easymock.IMocksControl;
 import org.junit.After;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
-public class CorbaServerConduitTest extends Assert {
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+
+public class CorbaServerConduitTest {
     protected EndpointInfo endpointInfo;
     protected EndpointReferenceType target;
     protected MessageObserver observer;
@@ -98,7 +101,7 @@ public class CorbaServerConduitTest extends Assert {
     @Test
     public void testCorbaServerConduit() throws Exception {
         CorbaServerConduit conduit = setupCorbaServerConduit(false);
-        assertTrue("conduit should not be null", conduit != null);
+        assertNotNull("conduit should not be null", conduit);
     }
 
     @Test
@@ -120,11 +123,11 @@ public class CorbaServerConduitTest extends Assert {
             ex.printStackTrace();
         }
         OutputStream os = message.getContent(OutputStream.class);
-        assertTrue("OutputStream should not be null", os != null);
+        assertNotNull("OutputStream should not be null", os);
         ORB orb2 = (ORB)message.get("orb");
-        assertTrue("Orb should not be null", orb2 != null);
+        assertNotNull("Orb should not be null", orb2);
         Object obj = message.get("endpoint");
-        assertTrue("EndpointReferenceType should not be null", obj != null);
+        assertNotNull("EndpointReferenceType should not be null", obj);
 
         assertTrue("passed in targetObject is used",
                 targetObject.equals(message.get(CorbaConstants.CORBA_ENDPOINT_OBJECT)));
@@ -149,7 +152,7 @@ public class CorbaServerConduitTest extends Assert {
 
         EndpointReferenceType t = null;
         EndpointReferenceType ref = conduit.getTargetReference(t);
-        assertTrue("ref should not be null", ref != null);
+        assertNotNull("ref should not be null", ref);
         destination.shutdown();
     }
 
@@ -168,7 +171,7 @@ public class CorbaServerConduitTest extends Assert {
                                                             orbConfig,
                                                             corbaTypeMap);
         String address = conduit.getAddress();
-        assertTrue("address should not be null", address != null);
+        assertNotNull("address should not be null", address);
         assertEquals(address, "corbaloc::localhost:40000/Simple");
     }
 
@@ -232,9 +235,12 @@ public class CorbaServerConduitTest extends Assert {
         EasyMock.expect(exchange.get(ServerRequest.class)).andReturn(request);
 
         EasyMock.expect(exchange.isOneWay()).andReturn(false);
+
         CorbaMessage inMsg = EasyMock.createMock(CorbaMessage.class);
         EasyMock.expect(msg.getExchange()).andReturn(exchange);
         EasyMock.expect(exchange.getInMessage()).andReturn(inMsg);
+        EasyMock.expect(exchange.getBus()).andReturn(bus);
+
 
         EasyMock.expect(inMsg.getList()).andReturn(list);
         QName objName = new QName("object");
@@ -271,6 +277,7 @@ public class CorbaServerConduitTest extends Assert {
         CorbaMessage msg = control.createMock(CorbaMessage.class);
         Exchange exchange = control.createMock(Exchange.class);
         ServerRequest request = control.createMock(ServerRequest.class);
+        EasyMock.expect(exchange.getBus()).andReturn(bus);
 
         EasyMock.expect(msg.getExchange()).andReturn(exchange);
         EasyMock.expect(exchange.get(ServerRequest.class)).andReturn(request);
@@ -295,7 +302,7 @@ public class CorbaServerConduitTest extends Assert {
     public void testGetTarget()  {
         CorbaServerConduit conduit = setupCorbaServerConduit(false);
         EndpointReferenceType endpoint = conduit.getTarget();
-        assertTrue("EndpointReferenceType should not be null", endpoint != null);
+        assertNotNull("EndpointReferenceType should not be null", endpoint);
     }
 
 

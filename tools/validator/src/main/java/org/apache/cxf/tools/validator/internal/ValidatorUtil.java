@@ -143,11 +143,12 @@ public final class ValidatorUtil {
             return docMap;
         }
 
-        DocumentBuilder docBuilder = null;
+        final DocumentBuilder docBuilder;
         try {
             DocumentBuilderFactory docFactory = DocumentBuilderFactory.newInstance();
             docFactory.setNamespaceAware(true);
             docFactory.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, Boolean.TRUE);
+            docFactory.setFeature("http://apache.org/xml/features/disallow-doctype-decl", true);
             docBuilder = docFactory.newDocumentBuilder();
         } catch (ParserConfigurationException e) {
             throw new ToolException(e);
@@ -198,13 +199,13 @@ public final class ValidatorUtil {
 
     private static String getImportedUrl(String theImportPath, String baseURI) throws IOException {
         File file = new File(theImportPath);
-        if (file != null && file.exists()) {
+        if (file.exists()) {
             return file.toURI().toURL().toString();
         }
         // Import may have a relative path
         File baseFile = new File(baseURI);
         file = new File(baseFile.getParent(), theImportPath);
-        if (file != null && file.exists()) {
+        if (file.exists()) {
             return file.toURI().toURL().toString();
         }
         return null;

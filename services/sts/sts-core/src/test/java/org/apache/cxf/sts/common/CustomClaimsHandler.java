@@ -18,9 +18,8 @@
  */
 package org.apache.cxf.sts.common;
 
-import java.net.URI;
 import java.security.Principal;
-import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import org.apache.cxf.rt.security.claims.Claim;
@@ -42,21 +41,20 @@ import org.opensaml.saml.saml2.core.AttributeValue;
  */
 public class CustomClaimsHandler implements ClaimsHandler {
 
-    private static List<URI> knownURIs = new ArrayList<>();
-    private static final URI ROLE_CLAIM =
-            URI.create("http://schemas.xmlsoap.org/ws/2005/05/identity/claims/role");
+    public static final String ROLE_CLAIM =
+            "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/role";
+    private static final List<String> SUPPORTED_CLAIM_TYPES = Arrays.asList(
+        ClaimTypes.FIRSTNAME.toString(),
+        ClaimTypes.LASTNAME.toString(),
+        ClaimTypes.EMAILADDRESS.toString(),
+        ClaimTypes.STREETADDRESS.toString(),
+        ClaimTypes.MOBILEPHONE.toString(),
+        ROLE_CLAIM);
 
-    static {
-        knownURIs.add(ClaimTypes.FIRSTNAME);
-        knownURIs.add(ClaimTypes.LASTNAME);
-        knownURIs.add(ClaimTypes.EMAILADDRESS);
-        knownURIs.add(ClaimTypes.STREETADDRESS);
-        knownURIs.add(ClaimTypes.MOBILEPHONE);
-        knownURIs.add(ROLE_CLAIM);
-    }
+    private String role = "DUMMY";
 
-    public List<URI> getSupportedClaimTypes() {
-        return knownURIs;
+    public List<String> getSupportedClaimTypes() {
+        return SUPPORTED_CLAIM_TYPES;
     }
 
     public ProcessedClaimCollection retrieveClaimValues(
@@ -67,7 +65,7 @@ public class CustomClaimsHandler implements ClaimsHandler {
             for (Claim requestClaim : claims) {
                 ProcessedClaim claim = new ProcessedClaim();
                 claim.setClaimType(requestClaim.getClaimType());
-                if (ClaimTypes.FIRSTNAME.equals(requestClaim.getClaimType())) {
+                if (ClaimTypes.FIRSTNAME.toString().equals(requestClaim.getClaimType())) {
                     if (requestClaim instanceof CustomRequestClaim) {
                         CustomRequestClaim customClaim = (CustomRequestClaim) requestClaim;
                         String customName = customClaim.getValues().get(0) + "@"
@@ -76,13 +74,13 @@ public class CustomClaimsHandler implements ClaimsHandler {
                     } else {
                         claim.addValue("alice");
                     }
-                } else if (ClaimTypes.LASTNAME.equals(requestClaim.getClaimType())) {
+                } else if (ClaimTypes.LASTNAME.toString().equals(requestClaim.getClaimType())) {
                     claim.addValue("doe");
-                } else if (ClaimTypes.EMAILADDRESS.equals(requestClaim.getClaimType())) {
+                } else if (ClaimTypes.EMAILADDRESS.toString().equals(requestClaim.getClaimType())) {
                     claim.addValue("alice@cxf.apache.org");
-                } else if (ClaimTypes.STREETADDRESS.equals(requestClaim.getClaimType())) {
+                } else if (ClaimTypes.STREETADDRESS.toString().equals(requestClaim.getClaimType())) {
                     claim.addValue("1234 1st Street");
-                } else if (ClaimTypes.MOBILEPHONE.equals(requestClaim.getClaimType())) {
+                } else if (ClaimTypes.MOBILEPHONE.toString().equals(requestClaim.getClaimType())) {
                     // Test custom (Integer) attribute value
                     XMLObjectBuilderFactory builderFactory =
                         XMLObjectProviderRegistrySupport.getBuilderFactory();
@@ -108,7 +106,7 @@ public class CustomClaimsHandler implements ClaimsHandler {
                         }
                     } else {
                         // If no specific role was requested return DUMMY role for user
-                        claim.addValue("DUMMY");
+                        claim.addValue(role);
                     }
                 }
                 claimCollection.add(claim);
@@ -123,4 +121,7 @@ public class CustomClaimsHandler implements ClaimsHandler {
         return true;
     }
 
+    public void setRole(String role) {
+        this.role = role;
+    }
 }

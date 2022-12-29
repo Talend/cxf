@@ -25,13 +25,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.JAXBElement;
-import javax.xml.bind.Unmarshaller;
 import javax.xml.namespace.QName;
 
 import org.w3c.dom.Element;
 
+import jakarta.xml.bind.JAXBContext;
+import jakarta.xml.bind.JAXBElement;
+import jakarta.xml.bind.Unmarshaller;
 import org.apache.cxf.binding.soap.SoapBindingConstants;
 import org.apache.cxf.binding.soap.SoapFault;
 import org.apache.cxf.binding.soap.SoapMessage;
@@ -43,6 +43,7 @@ import org.apache.cxf.message.Message;
 import org.apache.cxf.message.MessageImpl;
 import org.apache.cxf.ws.addressing.AddressingProperties;
 import org.apache.cxf.ws.addressing.AttributedURIType;
+import org.apache.cxf.ws.addressing.ContextJAXBUtils;
 import org.apache.cxf.ws.addressing.ContextUtils;
 import org.apache.cxf.ws.addressing.EndpointReferenceType;
 import org.apache.cxf.ws.addressing.EndpointReferenceUtils;
@@ -56,7 +57,6 @@ import org.apache.cxf.ws.addressing.v200408.Relationship;
 import org.easymock.EasyMock;
 import org.easymock.IMocksControl;
 import org.junit.After;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -64,8 +64,14 @@ import static org.apache.cxf.message.Message.MIME_HEADERS;
 import static org.apache.cxf.message.Message.REQUESTOR_ROLE;
 import static org.apache.cxf.ws.addressing.JAXWSAConstants.ADDRESSING_PROPERTIES_INBOUND;
 import static org.apache.cxf.ws.addressing.JAXWSAConstants.ADDRESSING_PROPERTIES_OUTBOUND;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNotSame;
+import static org.junit.Assert.assertSame;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
-public class MAPCodecTest extends Assert {
+public class MAPCodecTest {
 
     private MAPCodec codec;
     private IMocksControl control;
@@ -91,7 +97,7 @@ public class MAPCodecTest extends Assert {
         expectedNamespaceURI = null;
         mimeHeaders = null;
         correlatedExchange = null;
-        ContextUtils.setJAXBContext(null);
+        ContextJAXBUtils.setJAXBContext(null);
         nonReplyRelationship = null;
     }
 
@@ -310,7 +316,7 @@ public class MAPCodecTest extends Assert {
         });
         List<Header> headers = message.getHeaders();
         JAXBContext jaxbContext = control.createMock(JAXBContext.class);
-        ContextUtils.setJAXBContext(jaxbContext);
+        ContextJAXBUtils.setJAXBContext(jaxbContext);
         Names200408.setJAXBContext(jaxbContext);
         Names200403.setJAXBContext(jaxbContext);
         if (outbound) {
@@ -345,7 +351,7 @@ public class MAPCodecTest extends Assert {
     private void setUpDecode(SoapMessage message, List<Header> headers, AddressingProperties maps,
                              String mapProperty, boolean requestor) throws Exception {
         Unmarshaller unmarshaller = control.createMock(Unmarshaller.class);
-        ContextUtils.getJAXBContext().createUnmarshaller();
+        ContextJAXBUtils.getJAXBContext().createUnmarshaller();
         EasyMock.expectLastCall().andReturn(unmarshaller);
         String uri = maps.getNamespaceURI();
         boolean exposedAsNative = Names.WSA_NAMESPACE_NAME.equals(uri);
@@ -388,7 +394,7 @@ public class MAPCodecTest extends Assert {
         EasyMock.expectLastCall().andReturn(name);
         Object v = expectedValues[index];
         @SuppressWarnings("unchecked")
-        JAXBElement<?> jaxbElement = new JAXBElement<Object>(new QName(uri, name), (Class<Object>)clz, clz.cast(v));
+        JAXBElement<?> jaxbElement = new JAXBElement<>(new QName(uri, name), (Class<Object>)clz, clz.cast(v));
         unmarshaller.unmarshal(headerElement, clz);
         EasyMock.expectLastCall().andReturn(jaxbElement);
     }
@@ -606,7 +612,7 @@ public class MAPCodecTest extends Assert {
     }
 
     private boolean isReply(boolean exposedAsNative) {
-        boolean isReply = false;
+        final boolean isReply;
         if (exposedAsNative) {
             isReply =
                 Names.WSA_RELATIONSHIP_REPLY.equals(

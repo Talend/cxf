@@ -25,12 +25,13 @@ import org.apache.cxf.rs.security.oauth2.common.Client;
 import org.apache.cxf.rs.security.oauth2.common.UserSubject;
 
 import org.junit.After;
-import org.junit.Assert;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 
-public class JCacheCodeDataProviderTest extends Assert {
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+
+public class JCacheCodeDataProviderTest {
     private JCacheCodeDataProvider provider;
 
     @Before
@@ -38,7 +39,6 @@ public class JCacheCodeDataProviderTest extends Assert {
         provider = new JCacheCodeDataProvider();
     }
 
-    @Ignore
     @Test
     public void testAddGetDeleteCodeGrants() {
         Client c = addClient("111", "bob");
@@ -68,7 +68,6 @@ public class JCacheCodeDataProviderTest extends Assert {
         assertEquals(0, grants.size());
     }
 
-    @Ignore
     @Test
     public void testAddGetDeleteCodeGrants2() {
         Client c = addClient("111", "bob");
@@ -97,6 +96,7 @@ public class JCacheCodeDataProviderTest extends Assert {
         provider.setClient(c);
         return c;
     }
+
     @After
     public void tearDown() throws Exception {
         if (provider != null) {

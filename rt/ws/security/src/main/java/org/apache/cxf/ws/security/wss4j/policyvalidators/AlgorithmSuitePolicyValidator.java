@@ -83,7 +83,7 @@ public class AlgorithmSuitePolicyValidator extends AbstractSecurityPolicyValidat
                 PolicyUtils.assertPolicy(parameters.getAssertionInfoMap(),
                                          new QName(algorithmSuite.getName().getNamespaceURI(),
                                                    algorithmSuite.getC14n().name()));
-            } else if (!valid && ai.isAsserted()) {
+            } else if (ai.isAsserted()) {
                 ai.setNotAsserted("Error in validating AlgorithmSuite policy");
             }
         }
@@ -117,8 +117,8 @@ public class AlgorithmSuitePolicyValidator extends AbstractSecurityPolicyValidat
     ) {
         String signatureMethod =
             (String)result.get(WSSecurityEngineResult.TAG_SIGNATURE_METHOD);
-        if (!algorithmPolicy.getAsymmetricSignature().equals(signatureMethod)
-            && !algorithmPolicy.getSymmetricSignature().equals(signatureMethod)) {
+        if (!algorithmPolicy.getAlgorithmSuiteType().getAsymmetricSignature().equals(signatureMethod)
+            && !algorithmPolicy.getAlgorithmSuiteType().getSymmetricSignature().equals(signatureMethod)) {
             ai.setNotAsserted(
                 "The signature method does not match the requirement"
             );

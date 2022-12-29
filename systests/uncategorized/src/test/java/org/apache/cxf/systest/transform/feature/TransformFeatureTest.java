@@ -18,22 +18,27 @@
  */
 
 
-
 package org.apache.cxf.systest.transform.feature;
 
-import javax.xml.namespace.QName;
-import javax.xml.ws.Service;
-import javax.xml.ws.soap.SOAPBinding;
+import java.io.IOException;
+import java.net.ServerSocket;
 
+import javax.xml.namespace.QName;
+
+import jakarta.xml.ws.Service;
+import jakarta.xml.ws.soap.SOAPBinding;
 import org.apache.cxf.endpoint.Client;
 import org.apache.cxf.feature.transform.XSLTInInterceptor;
 import org.apache.cxf.feature.transform.XSLTOutInterceptor;
 import org.apache.cxf.frontend.ClientProxy;
 import org.apache.cxf.testutil.common.AbstractBusClientServerTestBase;
+import org.apache.cxf.transport.http.HTTPConduit;
 
-import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
+
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 public class TransformFeatureTest extends AbstractBusClientServerTestBase {
     private static final String PORT = EchoServer.PORT;
@@ -59,7 +64,53 @@ public class TransformFeatureTest extends AbstractBusClientServerTestBase {
         XSLTOutInterceptor outInterceptor = new XSLTOutInterceptor(XSLT_REQUEST_PATH);
         client.getOutInterceptors().add(outInterceptor);
         String response = port.echo("test");
-        Assert.assertTrue("Request was not transformed", response.contains(TRANSFORMED_CONSTANT));
+        assertTrue("Request was not transformed", response.contains(TRANSFORMED_CONSTANT));
+    }
+
+    @Test
+    public void testClientOutTransformationOnNonExistingEndpoint() {
+        Service service = Service.create(SERVICE_NAME);
+        String endpoint = "http://localhost:" + PORT + "/NonExistent";
+        service.addPort(PORT_NAME, SOAPBinding.SOAP11HTTP_BINDING, endpoint);
+
+        Echo port = service.getPort(PORT_NAME, Echo.class);
+        Client client = ClientProxy.getClient(port);
+        XSLTOutInterceptor outInterceptor = new XSLTOutInterceptor(XSLT_REQUEST_PATH);
+        client.getOutInterceptors().add(outInterceptor);
+
+        try {
+            port.echo("test");
+            fail("404 Not found was expected"); 
+        } catch (Exception e) { 
+            String exceptionMessage = e.getMessage();
+            assertTrue(exceptionMessage.toLowerCase().contains("404: not found")); 
+        } 
+    }
+
+    @Test
+    public void testClientOutTransformationOnConnectionRefused() throws IOException {
+        Service service = Service.create(SERVICE_NAME);
+        ServerSocket socket = new ServerSocket(0);
+        String endpoint = "http://127.0.0.1:" + socket.getLocalPort() + "/";
+        socket.close();
+        service.addPort(PORT_NAME, SOAPBinding.SOAP11HTTP_BINDING, endpoint);
+
+        Echo port = service.getPort(PORT_NAME, Echo.class);
+        Client client = ClientProxy.getClient(port);
+        HTTPConduit httpConduit = (HTTPConduit) client.getConduit();
+        // We need to disable chunking to make the client write directly to the connection OutputStream
+        httpConduit.getClient().setAllowChunking(false);
+
+        XSLTOutInterceptor outInterceptor = new XSLTOutInterceptor(XSLT_REQUEST_PATH);
+        client.getOutInterceptors().add(outInterceptor);
+
+        try {
+            port.echo("test");
+            fail("Connection refused expected");
+        } catch (Exception e) {
+            String exceptionMessage = e.getMessage();
+            assertTrue(exceptionMessage.toLowerCase().contains("connection refused"));
+        }
     }
 
     @Test
@@ -73,7 +124,7 @@ public class TransformFeatureTest extends AbstractBusClientServerTestBase {
         XSLTInInterceptor inInterceptor = new XSLTInInterceptor(XSLT_RESPONSE_PATH);
         client.getInInterceptors().add(inInterceptor);
         String response = port.echo("test");
-        Assert.assertTrue(response.contains(TRANSFORMED_CONSTANT));
+        assertTrue(response.contains(TRANSFORMED_CONSTANT));
     }
 }
 

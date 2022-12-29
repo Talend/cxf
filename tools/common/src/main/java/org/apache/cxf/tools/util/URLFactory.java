@@ -75,10 +75,10 @@ public final class URLFactory {
                     }
                 }
                 if (cls != null) {
-                    handler = (URLStreamHandler)cls.newInstance();
+                    handler = (URLStreamHandler)cls.getDeclaredConstructor().newInstance();
                 }
             } catch (Exception ignored) {
-                ignored.getMessage();
+                // ignore
             }
         }
         return handler;

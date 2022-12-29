@@ -20,16 +20,17 @@
 package org.apache.cxf.rt.security.saml.xacml2;
 
 import java.security.Principal;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
 import javax.xml.namespace.QName;
 
+import net.shibboleth.utilities.java.support.xml.DOMTypeSupport;
 import org.apache.cxf.message.Message;
 import org.apache.cxf.rt.security.saml.xacml.CXFMessageParser;
 import org.apache.cxf.rt.security.saml.xacml.XACMLConstants;
-import org.joda.time.DateTime;
 import org.opensaml.xacml.ctx.ActionType;
 import org.opensaml.xacml.ctx.AttributeType;
 import org.opensaml.xacml.ctx.AttributeValueType;
@@ -41,19 +42,18 @@ import org.opensaml.xacml.ctx.SubjectType;
 /**
  * This class constructs an XACML 2.0 Request given a Principal, list of roles and MessageContext,
  * following the SAML 2.0 profile of XACML 2.0. The principal name is inserted as the Subject ID,
- * and the list of roles associated with that principal are inserted as Subject roles. The action
- * to send defaults to "execute".
+ * and the list of roles associated with that principal are inserted as Subject roles. The current
+ * DateTime is also sent in an Environment, however this can be disabled via configuration.
  *
  * For a SOAP Service, the resource-id Attribute refers to the
  * "{serviceNamespace}serviceName#{operationNamespace}operationName" String (shortened to
  * "{serviceNamespace}serviceName#operationName" if the namespaces are identical). The
  * "{serviceNamespace}serviceName", "{operationNamespace}operationName" and resource URI are also
- * sent to simplify processing at the PDP side.
+ * sent to simplify processing at the PDP side. The action to send defaults to "execute".
  *
  * For a REST service the request URL is the resource. You can also configure the ability to
- * send the truncated request URI instead for a SOAP or REST service. The current DateTime is
- * also sent in an Environment, however this can be disabled via configuration.
- *
+ * send the truncated request URI instead for a SOAP or REST service. The action to send defaults
+ * to the HTTP verb.
  */
 public class DefaultXACMLRequestBuilder implements XACMLRequestBuilder {
 
@@ -87,14 +87,14 @@ public class DefaultXACMLRequestBuilder implements XACMLRequestBuilder {
         List<AttributeType> attributes = new ArrayList<>();
 
         // Resource-id
-        String resourceId = null;
+        String resourceId;
         boolean isSoapService = messageParser.isSOAPService();
         if (isSoapService) {
             QName serviceName = messageParser.getWSDLService();
             QName operationName = messageParser.getWSDLOperation();
 
             if (serviceName != null) {
-                resourceId = serviceName.toString() + "#";
+                resourceId = serviceName.toString() + '#';
                 if (serviceName.getNamespaceURI() != null
                     && serviceName.getNamespaceURI().equals(operationName.getNamespaceURI())) {
                     resourceId += operationName.getLocalPart();
@@ -138,7 +138,7 @@ public class DefaultXACMLRequestBuilder implements XACMLRequestBuilder {
             List<AttributeType> attributes = new ArrayList<>();
             AttributeType environmentAttribute = createAttribute(XACMLConstants.CURRENT_DATETIME,
                                                                  XACMLConstants.XS_DATETIME, null,
-                                                                 new DateTime().toString());
+                                                                 DOMTypeSupport.instantToString(Instant.now()));
             attributes.add(environmentAttribute);
             return RequestComponentBuilder.createEnvironmentType(attributes);
         }

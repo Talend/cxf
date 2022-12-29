@@ -18,6 +18,7 @@
  */
 package org.apache.cxf.cdi;
 
+import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -28,31 +29,34 @@ import java.util.List;
 import java.util.Objects;
 import java.util.ServiceLoader;
 import java.util.Set;
+import java.util.stream.Stream;
 
-import javax.enterprise.context.spi.CreationalContext;
-import javax.enterprise.event.Observes;
-import javax.enterprise.inject.spi.AfterBeanDiscovery;
-import javax.enterprise.inject.spi.AfterDeploymentValidation;
-import javax.enterprise.inject.spi.AnnotatedType;
-import javax.enterprise.inject.spi.Bean;
-import javax.enterprise.inject.spi.BeanManager;
-import javax.enterprise.inject.spi.BeforeBeanDiscovery;
-import javax.enterprise.inject.spi.BeforeShutdown;
-import javax.enterprise.inject.spi.Extension;
-import javax.enterprise.inject.spi.InjectionTarget;
-import javax.enterprise.inject.spi.ProcessAnnotatedType;
-import javax.enterprise.inject.spi.ProcessBean;
-import javax.enterprise.inject.spi.ProcessProducerField;
-import javax.enterprise.inject.spi.ProcessProducerMethod;
-import javax.enterprise.inject.spi.WithAnnotations;
-import javax.ws.rs.ApplicationPath;
-import javax.ws.rs.Path;
-import javax.ws.rs.core.Application;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.ext.MessageBodyReader;
-import javax.ws.rs.ext.MessageBodyWriter;
-import javax.ws.rs.ext.Provider;
-
+import jakarta.enterprise.context.Dependent;
+import jakarta.enterprise.context.spi.CreationalContext;
+import jakarta.enterprise.event.Observes;
+import jakarta.enterprise.inject.spi.AfterBeanDiscovery;
+import jakarta.enterprise.inject.spi.AfterDeploymentValidation;
+import jakarta.enterprise.inject.spi.Annotated;
+import jakarta.enterprise.inject.spi.AnnotatedType;
+import jakarta.enterprise.inject.spi.Bean;
+import jakarta.enterprise.inject.spi.BeanManager;
+import jakarta.enterprise.inject.spi.BeforeBeanDiscovery;
+import jakarta.enterprise.inject.spi.BeforeShutdown;
+import jakarta.enterprise.inject.spi.Extension;
+import jakarta.enterprise.inject.spi.InjectionTarget;
+import jakarta.enterprise.inject.spi.ProcessAnnotatedType;
+import jakarta.enterprise.inject.spi.ProcessBean;
+import jakarta.enterprise.inject.spi.ProcessProducerField;
+import jakarta.enterprise.inject.spi.ProcessProducerMethod;
+import jakarta.enterprise.inject.spi.WithAnnotations;
+import jakarta.inject.Singleton;
+import jakarta.ws.rs.ApplicationPath;
+import jakarta.ws.rs.Path;
+import jakarta.ws.rs.core.Application;
+import jakarta.ws.rs.core.Context;
+import jakarta.ws.rs.ext.MessageBodyReader;
+import jakarta.ws.rs.ext.MessageBodyWriter;
+import jakarta.ws.rs.ext.Provider;
 import org.apache.cxf.Bus;
 import org.apache.cxf.bus.extension.ExtensionManagerBus;
 import org.apache.cxf.cdi.event.DisposableCreationalContext;
@@ -60,6 +64,7 @@ import org.apache.cxf.feature.Feature;
 import org.apache.cxf.jaxrs.JAXRSServerFactoryBean;
 import org.apache.cxf.jaxrs.ext.ContextClassProvider;
 import org.apache.cxf.jaxrs.ext.JAXRSServerFactoryCustomizationExtension;
+import org.apache.cxf.jaxrs.lifecycle.ResourceProvider;
 import org.apache.cxf.jaxrs.provider.ServerConfigurableFactory;
 import org.apache.cxf.jaxrs.utils.InjectionUtils;
 import org.apache.cxf.jaxrs.utils.JAXRSServerFactoryCustomizationUtils;
@@ -81,7 +86,9 @@ public class JAXRSCdiResourceExtension implements Extension {
     private final List< Bean< ? > > providerBeans = new ArrayList< Bean< ? > >();
     private final List< Bean< ? extends Feature > > featureBeans = new ArrayList< Bean< ? extends Feature > >();
     private final List< CreationalContext< ? > > disposableCreationalContexts =
-        new ArrayList< CreationalContext< ? > >();
+        new ArrayList<>();
+    private final List< Lifecycle > disposableLifecycles =
+        new ArrayList<>();
     private final Set< Type > contextTypes = new LinkedHashSet<>();
 
     private final Collection< String > existingStandardClasses = new HashSet<>();
@@ -93,7 +100,7 @@ public class JAXRSCdiResourceExtension implements Extension {
     private static class ClassifiedClasses {
         private List< Object > providers = new ArrayList<>();
         private List< Feature > features = new ArrayList<>();
-        private List< CdiResourceProvider > resourceProviders = new ArrayList<>();
+        private List<ResourceProvider> resourceProviders = new ArrayList<>();
 
         public void addProviders(final Collection< Object > others) {
             this.providers.addAll(others);
@@ -103,7 +110,7 @@ public class JAXRSCdiResourceExtension implements Extension {
             this.features.addAll(others);
         }
 
-        public void addResourceProvider(final CdiResourceProvider other) {
+        public void addResourceProvider(final ResourceProvider other) {
             this.resourceProviders.add(other);
         }
 
@@ -115,7 +122,7 @@ public class JAXRSCdiResourceExtension implements Extension {
             return features;
         }
 
-        public List<CdiResourceProvider> getResourceProviders() {
+        public List<ResourceProvider> getResourceProviders() {
             return resourceProviders;
         }
     }
@@ -154,8 +161,8 @@ public class JAXRSCdiResourceExtension implements Extension {
         }
         if (webHandled) {
             existingStandardClasses.addAll(asList(
-                "javax.servlet.http.HttpServletRequest",
-                "javax.servlet.ServletContext"));
+                "jakarta.servlet.http.HttpServletRequest",
+                "jakarta.servlet.ServletContext"));
         }
         beanManager.fireEvent(this);
     }
@@ -183,14 +190,15 @@ public class JAXRSCdiResourceExtension implements Extension {
     }
 
     @SuppressWarnings("unchecked")
-    public <T> void collect(@Observes final ProcessBean< T > event) {
-        if (event.getAnnotated().isAnnotationPresent(ApplicationPath.class)) {
+    public <T> void collect(@Observes final ProcessBean< T > event, final BeanManager beanManager) {
+        final Annotated annotated = event.getAnnotated();
+        if (isAnnotationPresent(beanManager, annotated, ApplicationPath.class)) {
             applicationBeans.add(event.getBean());
-        } else if (event.getAnnotated().isAnnotationPresent(Path.class)) {
+        } else if (isAnnotationPresent(beanManager, annotated, Path.class)) {
             serviceBeans.add(event.getBean());
-        } else if (event.getAnnotated().isAnnotationPresent(Provider.class)) {
+        } else if (isAnnotationPresent(beanManager, annotated, Provider.class)) {
             providerBeans.add(event.getBean());
-        } else if (event.getBean().getTypes().contains(javax.ws.rs.core.Feature.class)) {
+        } else if (event.getBean().getTypes().contains(jakarta.ws.rs.core.Feature.class)) {
             providerBeans.add(event.getBean());
         } else if (event.getBean().getTypes().contains(Feature.class)) {
             featureBeans.add((Bean< ? extends Feature >)event.getBean());
@@ -303,7 +311,11 @@ public class JAXRSCdiResourceExtension implements Extension {
             for (final CreationalContext<?> disposableCreationalContext: disposableCreationalContexts) {
                 disposableCreationalContext.release();
             }
+            disposableCreationalContexts.clear();
         }
+
+        disposableLifecycles.forEach(Lifecycle::destroy);
+        disposableLifecycles.clear();
     }
 
     private Class<?> toClass(String name) {
@@ -347,7 +359,7 @@ public class JAXRSCdiResourceExtension implements Extension {
         instance.setProviders(classified.getProviders());
         instance.getFeatures().addAll(classified.getFeatures());
 
-        for (final CdiResourceProvider resourceProvider: classified.getResourceProviders()) {
+        for (final ResourceProvider resourceProvider: classified.getResourceProviders()) {
             instance.setResourceProvider(resourceProvider.getResourceClass(), resourceProvider);
         }
 
@@ -372,12 +384,42 @@ public class JAXRSCdiResourceExtension implements Extension {
 
             for (final Bean< ? > bean: serviceBeans) {
                 if (classes.contains(bean.getBeanClass())) {
-                    classified.addResourceProvider(new CdiResourceProvider(beanManager, bean));
+                    // normal scoped beans will return us a proxy in getInstance so it is singletons for us,
+                    // @Singleton is indeed a singleton
+                    // @Dependent should be a request scoped instance but for backward compat we kept it a singleton
+                    //
+                    // other scopes are considered request scoped (for jaxrs)
+                    // and are created per request (getInstance/releaseInstance)
+                    final ResourceProvider resourceProvider;
+                    if (isCxfSingleton(beanManager, bean)) {
+                        final Lifecycle lifecycle = new Lifecycle(beanManager, bean);
+                        resourceProvider = new SingletonResourceProvider(lifecycle, bean.getBeanClass());
+
+                        // if not a singleton we manage it per request
+                        // if @Singleton the container handles it
+                        // so we only need this case here
+                        if (Dependent.class == bean.getScope()) {
+                            disposableLifecycles.add(lifecycle);
+                        }
+                    } else {
+                        resourceProvider = new PerRequestResourceProvider(
+                        () -> new Lifecycle(beanManager, bean), bean.getBeanClass());
+                    }
+                    classified.addResourceProvider(resourceProvider);
                 }
             }
         }
 
         return classified;
+    }
+
+    boolean isCxfSingleton(final BeanManager beanManager, final Bean<?> bean) {
+        return beanManager.isNormalScope(bean.getScope()) || isConsideredSingleton(bean.getScope());
+    }
+
+    // warn: several impls use @Dependent == request so we should probably add a flag
+    private boolean isConsideredSingleton(final Class<?> scope) {
+        return Singleton.class == scope || Dependent.class == scope;
     }
 
     /**
@@ -534,5 +576,23 @@ public class JAXRSCdiResourceExtension implements Extension {
             customContextClasses.add(classProvider.getContextClass());
         }
         return Collections.unmodifiableSet(customContextClasses);
+    }
+    
+    @SuppressWarnings("unchecked")
+    private static boolean isAnnotationPresent(final BeanManager beanManager, final Annotated annotated, 
+            final Class<? extends Annotation> annotationType) {
+
+        if (annotated.isAnnotationPresent(annotationType)) {
+            return true;
+        }
+        
+        final Stream<AnnotatedType<?>> annotatedTypes = annotated
+            .getTypeClosure()
+            .stream()
+            .filter(Class.class::isInstance)
+            .map(Class.class::cast)
+            .map(cls -> (AnnotatedType<?>)beanManager.createAnnotatedType(cls));
+        
+        return annotatedTypes.anyMatch(at -> at.isAnnotationPresent(annotationType));
     }
 }

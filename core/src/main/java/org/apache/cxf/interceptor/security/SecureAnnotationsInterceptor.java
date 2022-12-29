@@ -36,15 +36,10 @@ import org.apache.cxf.common.util.ClassHelper;
 public class SecureAnnotationsInterceptor extends SimpleAuthorizingInterceptor {
 
     private static final Logger LOG = LogUtils.getL7dLogger(SecureAnnotationsInterceptor.class);
-    private static final String DEFAULT_ANNOTATION_CLASS_NAME = "javax.annotation.security.RolesAllowed";
+    private static final String DEFAULT_ANNOTATION_CLASS_NAME = "jakarta.annotation.security.RolesAllowed";
 
-    private static final Set<String> SKIP_METHODS;
-    static {
-        SKIP_METHODS = new HashSet<>();
-        SKIP_METHODS.addAll(Arrays.asList(
-            new String[] {"wait", "notify", "notifyAll",
-                          "equals", "toString", "hashCode"}));
-    }
+    private static final Set<String> SKIP_METHODS = new HashSet<>(
+            Arrays.asList("wait", "notify", "notifyAll", "equals", "toString", "hashCode"));
 
     private String annotationClassName = DEFAULT_ANNOTATION_CLASS_NAME;
 
@@ -116,14 +111,7 @@ public class SecureAnnotationsInterceptor extends SimpleAuthorizingInterceptor {
                 try {
                     Method valueMethod = ann.annotationType().getMethod("value");
                     String[] roles = (String[])valueMethod.invoke(ann);
-                    StringBuilder sb = new StringBuilder();
-                    for (int i = 0; i < roles.length; i++) {
-                        sb.append(roles[i]);
-                        if (i + 1 < roles.length) {
-                            sb.append(" ");
-                        }
-                    }
-                    return sb.toString();
+                    return String.join(" ", roles);
                 } catch (Exception ex) {
                     // ignore
                 }

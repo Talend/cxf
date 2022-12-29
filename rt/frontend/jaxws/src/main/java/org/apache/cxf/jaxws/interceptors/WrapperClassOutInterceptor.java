@@ -151,7 +151,7 @@ public class WrapperClassOutInterceptor extends AbstractPhaseInterceptor<Message
                                               Class<?> wrapperClass) {
         List<String> partNames = new ArrayList<>();
         List<String> elTypeNames = new ArrayList<>();
-        List<Class<?>> partClasses = new ArrayList<Class<?>>();
+        List<Class<?>> partClasses = new ArrayList<>();
         QName wrapperName = null;
         for (MessagePartInfo p : wrappedMessageInfo.getMessageParts()) {
             if (p.getTypeClass() == wrapperClass) {
@@ -170,7 +170,7 @@ public class WrapperClassOutInterceptor extends AbstractPhaseInterceptor<Message
 
             partNames.set(p.getIndex(), p.getName().getLocalPart());
 
-            String elementType = null;
+            final String elementType;
             if (p.getTypeQName() == null) {
                 // handling anonymous complex type
                 elementType = null;

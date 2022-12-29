@@ -23,17 +23,15 @@
     <packaging>bundle</packaging>
     <name>Apache CXF JAX-RS Servlet Container Initializer</name>
     <description>Apache CXF JAX-RS Servlet Container Initializer</description>
-    <url>http://cxf.apache.org</url>
+    <url>https://cxf.apache.org</url>
     <parent>
         <groupId>org.apache.cxf</groupId>
         <artifactId>cxf-parent</artifactId>
-        <version>3.2.5-SNAPSHOT</version>
+        <version>4.0.1-SNAPSHOT</version>
         <relativePath>../../../parent/pom.xml</relativePath>
     </parent>
     <properties>
-        <cxf.osgi.import>
-            javax.servlet*;version="${cxf.osgi.javax.servlet.version}",
-        </cxf.osgi.import>
+        <cxf.module.name>org.apache.cxf.rs.sci</cxf.module.name>
     </properties>
     <dependencies>
         <dependency>

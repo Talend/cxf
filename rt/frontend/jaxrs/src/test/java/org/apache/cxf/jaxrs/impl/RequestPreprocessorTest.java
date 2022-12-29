@@ -36,13 +36,14 @@ import org.apache.cxf.transport.servlet.ServletDestination;
 
 import org.easymock.EasyMock;
 import org.easymock.IMocksControl;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
+import static org.junit.Assert.assertEquals;
 
 
-public class RequestPreprocessorTest extends Assert {
+
+public class RequestPreprocessorTest {
 
     private IMocksControl control;
 
@@ -56,6 +57,13 @@ public class RequestPreprocessorTest extends Assert {
     public void testMethodQuery() {
         Message m = mockMessage("http://localhost:8080", "/bar", "_method=GET", "POST");
         RequestPreprocessor sqh = new RequestPreprocessor();
+
+        // By default it should ignore _method
+        sqh.preprocess(m, new UriInfoImpl(m, null));
+        assertEquals("POST", m.get(Message.HTTP_REQUEST_METHOD));
+
+        // Now allow HTTP method overriding
+        m.put("org.apache.cxf.jaxrs.allow.http.method.override", true);
         sqh.preprocess(m, new UriInfoImpl(m, null));
         assertEquals("GET", m.get(Message.HTTP_REQUEST_METHOD));
     }
@@ -64,6 +72,13 @@ public class RequestPreprocessorTest extends Assert {
     public void testMethodOverride() {
         Message m = mockMessage("http://localhost:8080", "/bar", "bar", "POST", "GET");
         RequestPreprocessor sqh = new RequestPreprocessor();
+
+        // By default it should ignore the HTTP header
+        sqh.preprocess(m, new UriInfoImpl(m, null));
+        assertEquals("POST", m.get(Message.HTTP_REQUEST_METHOD));
+
+        // Now allow HTTP method overriding
+        m.put("org.apache.cxf.jaxrs.allow.http.method.override", true);
         sqh.preprocess(m, new UriInfoImpl(m, null));
         assertEquals("GET", m.get(Message.HTTP_REQUEST_METHOD));
     }
@@ -95,31 +110,28 @@ public class RequestPreprocessorTest extends Assert {
         Exchange e = new ExchangeImpl();
         m.setExchange(e);
         control.reset();
-        Endpoint endp = control.createMock(Endpoint.class);
+        Endpoint endp = control.mock(Endpoint.class);
         e.put(Endpoint.class, endp);
         EasyMock.expect(endp.isEmpty()).andReturn(true).anyTimes();
-        endp.get(ServerProviderFactory.class.getName());
-        EasyMock.expectLastCall().andReturn(ServerProviderFactory.getInstance()).anyTimes();
+        EasyMock.expect(endp.get(ServerProviderFactory.class.getName())).andReturn(ServerProviderFactory.getInstance())
+                .anyTimes();
         ServletDestination d = control.createMock(ServletDestination.class);
         e.setDestination(d);
         EndpointInfo epr = new EndpointInfo();
         epr.setAddress(baseAddress);
-        d.getEndpointInfo();
-        EasyMock.expectLastCall().andReturn(epr).anyTimes();
-        endp.getEndpointInfo();
-        EasyMock.expectLastCall().andReturn(epr).anyTimes();
+        EasyMock.expect(d.getEndpointInfo()).andReturn(epr).anyTimes();
+        EasyMock.expect(endp.getEndpointInfo()).andReturn(epr).anyTimes();
         m.put(Message.REQUEST_URI, pathInfo);
         m.put(Message.QUERY_STRING, query);
         m.put(Message.HTTP_REQUEST_METHOD, method);
-        Map<String, List<String>> headers = new TreeMap<String, List<String>>(String.CASE_INSENSITIVE_ORDER);
+        Map<String, List<String>> headers = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
         if (methodHeader != null) {
             headers.put("X-HTTP-Method-Override", Collections.singletonList(methodHeader));
         }
         m.put(Message.PROTOCOL_HEADERS, headers);
         BindingInfo bi = control.createMock(BindingInfo.class);
         epr.setBinding(bi);
-        bi.getProperties();
-        EasyMock.expectLastCall().andReturn(Collections.emptyMap()).anyTimes();
+        EasyMock.expect(bi.getProperties()).andReturn(Collections.emptyMap()).anyTimes();
 
         control.replay();
         return m;

@@ -250,7 +250,7 @@ public final class ColocUtil {
 
     public static void convertSourceToObject(Message message) {
         List<Object> content = CastUtils.cast(message.getContent(List.class));
-        if (content == null || content.size() < 1) {
+        if (content == null || content.isEmpty()) {
             // nothing to convert
             return;
         }
@@ -260,7 +260,7 @@ public final class ColocUtil {
             message.getExchange().getService().getDataBinding().createReader(XMLStreamReader.class);
         MessagePartInfo mpi = getMessageInfo(message).getMessagePart(0);
         XMLStreamReader streamReader = null;
-        Object wrappedObject = null;
+        Object wrappedObject;
         try {
             streamReader = StaxUtils.createXMLStreamReader(source);
             wrappedObject = reader.read(mpi, streamReader);
@@ -279,7 +279,7 @@ public final class ColocUtil {
 
     public static void convertObjectToSource(Message message) {
         List<Object> content = CastUtils.cast(message.getContent(List.class));
-        if (content == null || content.size() < 1) {
+        if (content == null || content.isEmpty()) {
             // nothing to convert
             return;
         }

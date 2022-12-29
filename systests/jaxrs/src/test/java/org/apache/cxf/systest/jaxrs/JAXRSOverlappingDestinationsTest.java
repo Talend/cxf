@@ -24,19 +24,21 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.FutureTask;
 
-import javax.ws.rs.GET;
-import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
-import javax.ws.rs.QueryParam;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.UriInfo;
-
+import jakarta.ws.rs.GET;
+import jakarta.ws.rs.Path;
+import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.QueryParam;
+import jakarta.ws.rs.core.Context;
+import jakarta.ws.rs.core.UriInfo;
 import org.apache.cxf.jaxrs.client.WebClient;
 import org.apache.cxf.testutil.common.AbstractBusClientServerTestBase;
 
 import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Test;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 public class JAXRSOverlappingDestinationsTest extends AbstractBusClientServerTestBase {
     public static final int PORT = SpringServer.PORT;
@@ -75,7 +77,7 @@ public class JAXRSOverlappingDestinationsTest extends AbstractBusClientServerTes
 
             }
         };
-        FutureTask<String> task = new FutureTask<String>(callable);
+        FutureTask<String> task = new FutureTask<>(callable);
         ExecutorService executor = Executors.newFixedThreadPool(1);
         executor.execute(task);
         Thread.sleep(1000);
@@ -112,7 +114,7 @@ public class JAXRSOverlappingDestinationsTest extends AbstractBusClientServerTes
 
             }
         };
-        FutureTask<String> task = new FutureTask<String>(callable);
+        FutureTask<String> task = new FutureTask<>(callable);
         ExecutorService executor = Executors.newFixedThreadPool(1);
         executor.execute(task);
         Thread.sleep(3000);

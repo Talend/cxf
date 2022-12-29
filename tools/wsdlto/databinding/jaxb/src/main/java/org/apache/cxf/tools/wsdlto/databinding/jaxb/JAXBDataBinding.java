@@ -17,6 +17,7 @@
  * under the License.
  */
 package org.apache.cxf.tools.wsdlto.databinding.jaxb;
+
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -352,8 +353,7 @@ public class JAXBDataBinding implements DataBindingProfile {
         Bus bus = context.get(Bus.class);
         OASISCatalogManager catalog = bus.getExtension(OASISCatalogManager.class);
 
-        Options opts = null;
-        opts = getOptions(schemaCompiler);
+        Options opts = getOptions(schemaCompiler);
         hackInNewInternalizationLogic(schemaCompiler, catalog, opts);
 
         ClassCollector classCollector = context.get(ClassCollector.class);
@@ -407,11 +407,11 @@ public class JAXBDataBinding implements DataBindingProfile {
                 // keep parseArguments happy, supply dummy required command-line
                 // opts
                 opts.addGrammar(new InputSource("null"));
-                opts.parseArguments(args.toArray(new String[args.size()]));
+                opts.parseArguments(args.toArray(new String[0]));
             } catch (BadCommandLineException e) {
                 StringBuilder msg = new StringBuilder("XJC reported 'BadCommandLineException' for -xjc argument:");
                 for (String arg : args) {
-                    msg.append(arg + " ");
+                    msg.append(arg).append(' ');
                 }
                 LOG.log(Level.FINE, msg.toString(), e);
                 if (opts != null) {
@@ -431,7 +431,7 @@ public class JAXBDataBinding implements DataBindingProfile {
             // Add the @Generated annotation in the Java files generated. This is done by passing
             // '-mark-generated' attribute to jaxb xjc.
             try {
-                opts.parseArgument(new String[] {"-mark-generated" }, 0);
+                opts.parseArgument(new String[] {"-" + ToolConstants.CFG_MARK_GENERATED_OPTION}, 0);
             } catch (BadCommandLineException e) {
                 LOG.log(Level.SEVERE, e.getMessage());
                 throw new ToolException(e);
@@ -455,7 +455,7 @@ public class JAXBDataBinding implements DataBindingProfile {
                     cname = cname.substring(1);
                 }
                 try {
-                    defaultValues = (DefaultValueProvider)Class.forName(cname).newInstance();
+                    defaultValues = (DefaultValueProvider)Class.forName(cname).getDeclaredConstructor().newInstance();
                 } catch (Exception e) {
                     LOG.log(Level.SEVERE, e.getMessage());
                     throw new ToolException(e);
@@ -468,13 +468,8 @@ public class JAXBDataBinding implements DataBindingProfile {
 
     private void parseSchemas(SchemaCompiler schemaCompiler) {
         for (String ns : context.getNamespacePackageMap().keySet()) {
-            File file = JAXBUtils.getPackageMappingSchemaBindingFile(ns, context.mapPackageName(ns));
-            try {
-                InputSource ins = new InputSource(file.toURI().toString());
-                schemaCompiler.parseSchema(ins);
-            } finally {
-                FileUtils.delete(file);
-            }
+            schemaCompiler.parseSchema(
+                JAXBUtils.getPackageMappingSchemaBinding(ns, context.mapPackageName(ns)));
         }
 
         if (context.getPackageName() != null) {
@@ -529,14 +524,13 @@ public class JAXBDataBinding implements DataBindingProfile {
                 }
             };
 
-            Constructor<DOMForest> c = null;
-            DOMForest forest = null;
+            DOMForest forest;
 
             try {
-                c = DOMForest.class.getConstructor(InternalizationLogic.class, Options.class);
+                Constructor<DOMForest> c = DOMForest.class.getConstructor(InternalizationLogic.class, Options.class);
                 forest = c.newInstance(logic, opts);
             } catch (Throwable t) {
-                c = DOMForest.class.getConstructor(InternalizationLogic.class);
+                Constructor<DOMForest> c = DOMForest.class.getConstructor(InternalizationLogic.class);
                 forest = c.newInstance(logic);
             }
             forest.setErrorHandler((ErrorReceiver)schemaCompiler);
@@ -553,7 +547,14 @@ public class JAXBDataBinding implements DataBindingProfile {
                 String s = r.getAttributeValue(null, "schemaLocation");
                 if (StringUtils.isEmpty(s)) {
                     Document d = StaxUtils.read(r);
-                    XPath p = XPathFactory.newInstance().newXPath();
+
+                    XPathFactory xpathFactory = XPathFactory.newInstance();
+                    try {
+                        xpathFactory.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, Boolean.TRUE);
+                    } catch (javax.xml.xpath.XPathFactoryConfigurationException ex) {
+                        // ignore
+                    }
+                    XPath p = xpathFactory.newXPath();
                     p.setNamespaceContext(new W3CNamespaceContext(d.getDocumentElement()));
                     XPathExpression xpe = p.compile(d.getDocumentElement().getAttribute("node"));
                     for (XmlSchema schema : schemas.getXmlSchemas()) {
@@ -596,13 +597,13 @@ public class JAXBDataBinding implements DataBindingProfile {
         return docs[0].getDocumentElement();
     }
     private InputSource convertToTmpInputSource(Element ele, String schemaLoc) throws Exception {
-        InputSource result = null;
         ele.setAttributeNS(null, "schemaLocation", schemaLoc);
         File tmpFile = FileUtils.createTempFile("jaxbbinding", ".xml");
-        StaxUtils.writeTo(ele, Files.newOutputStream(tmpFile.toPath()));
-        result = new InputSource(URIParserUtil.getAbsoluteURI(tmpFile.getAbsolutePath()));
         tmpFile.deleteOnExit();
-        return result;
+        try (Writer w = Files.newBufferedWriter(tmpFile.toPath())) {
+            StaxUtils.writeTo(ele, w);
+        }
+        return new InputSource(URIParserUtil.getAbsoluteURI(tmpFile.getAbsolutePath()));
     }
 
     private void addSchemas(Options opts,
@@ -681,7 +682,7 @@ public class JAXBDataBinding implements DataBindingProfile {
             }
             if (key.startsWith("file:") || key.startsWith("jar:")) {
                 InputStream in = null;
-                try {
+                try {   //NOPMD
                     if (key.startsWith("file:")) {
                         in = Files.newInputStream(new File(new URI(key)).toPath());
                     } else {
@@ -754,7 +755,7 @@ public class JAXBDataBinding implements DataBindingProfile {
         };
     }
     private String getPluginUsageString(Options opts) {
-        StringBuilder buf = new StringBuilder();
+        StringBuilder buf = new StringBuilder(128);
         buf.append("\nAvailable plugin options:\n");
         for (Plugin pl : opts.getAllPlugins()) {
             buf.append(pl.getUsage());
@@ -791,7 +792,7 @@ public class JAXBDataBinding implements DataBindingProfile {
         ClassCollector classCollector = context.get(ClassCollector.class);
         Collection<String> files = classCollector.getGeneratedFileInfo();
         for (String file : files) {
-            int dotIndex = file.lastIndexOf(".");
+            int dotIndex = file.lastIndexOf('.');
             String sub = dotIndex <= 0 ? "" : file.substring(0, dotIndex - 1);
             if (sub.equals(packageName)) {
                 return true;
@@ -890,7 +891,7 @@ public class JAXBDataBinding implements DataBindingProfile {
                                                                      ToolConstants.SCHEMA_URI,
                                                                      "include");
         boolean hasJAXB = DOMUtils.hasElementInNS(element, ToolConstants.NS_JAXB_BINDINGS);
-        if (impElemList.isEmpty() && incElemList.size() == 0 && !hasJAXB) {
+        if (impElemList.isEmpty() && incElemList.isEmpty() && !hasJAXB) {
             return element;
         }
         element = (Element)cloneNode(element.getOwnerDocument(), element, true);
@@ -917,7 +918,7 @@ public class JAXBDataBinding implements DataBindingProfile {
                 pfx = DOMUtils.createNamespace(element, ToolConstants.NS_JAXB_BINDINGS);
             }
             element.setAttributeNS(ToolConstants.NS_JAXB_BINDINGS,
-                                   pfx + ":version", "2.0");
+                                   pfx + ":version", "3.0");
         }
         return element;
     }
@@ -1297,8 +1298,7 @@ public class JAXBDataBinding implements DataBindingProfile {
         }
 
 
-        try {
-            URIResolver resolver = new URIResolver(base, target);
+        try (URIResolver resolver = new URIResolver(base, target)) {
             if (resolver.isResolved()) {
                 target = resolver.getURI().toString();
             }

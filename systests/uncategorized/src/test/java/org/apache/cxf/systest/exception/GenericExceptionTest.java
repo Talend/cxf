@@ -25,18 +25,23 @@ import java.util.HashMap;
 import java.util.Map;
 
 import javax.xml.namespace.QName;
-import javax.xml.ws.Service;
-import javax.xml.ws.soap.SOAPBinding;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 
+import jakarta.xml.ws.Service;
+import jakarta.xml.ws.soap.SOAPBinding;
 import org.apache.cxf.helpers.XPathUtils;
 import org.apache.cxf.staxutils.StaxUtils;
 import org.apache.cxf.testutil.common.AbstractBusClientServerTestBase;
 
 import org.junit.BeforeClass;
 import org.junit.Test;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 public class GenericExceptionTest extends AbstractBusClientServerTestBase {
     public static final String PORT = Server.PORT;
@@ -79,7 +84,7 @@ public class GenericExceptionTest extends AbstractBusClientServerTestBase {
             fail("Exception is expected");
         } catch (GenericsException e) {
             ObjectWithGenerics<Boolean, Integer> genericObj = e.getObj();
-            assertEquals(true, genericObj.getA());
+            assertTrue(genericObj.getA());
             assertEquals(100, genericObj.getB().intValue());
         }
 

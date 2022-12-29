@@ -33,13 +33,13 @@ import org.apache.cxf.rs.security.jose.jwk.JsonWebKey;
 
 public class JwsJsonSignatureEntry implements JsonObject {
     protected static final Logger LOG = LogUtils.getL7dLogger(JwsJsonSignatureEntry.class);
-    private String jwsPayload;
-    private String encodedProtectedHeader;
-    private String encodedSignature;
-    private JwsHeaders protectedHeader;
-    private JwsHeaders unprotectedHeader;
+    private final String jwsPayload;
+    private final String encodedProtectedHeader;
+    private final String encodedSignature;
+    private final JwsHeaders protectedHeader;
+    private final JwsHeaders unprotectedHeader;
     private JwsHeaders unionHeaders;
-    private JsonMapObjectReaderWriter writer = new JsonMapObjectReaderWriter();
+    private final JsonMapObjectReaderWriter writer = new JsonMapObjectReaderWriter();
 
     public JwsJsonSignatureEntry(String jwsPayload,
                                  String encodedProtectedHeader,
@@ -56,6 +56,8 @@ public class JwsJsonSignatureEntry implements JsonObject {
         this.unprotectedHeader = unprotectedHeader;
         if (encodedProtectedHeader != null) {
             this.protectedHeader = new JwsHeaders(writer.fromJson(JoseUtils.decodeToString(encodedProtectedHeader)));
+        } else {
+            this.protectedHeader = null;
         }
         prepare();
     }
@@ -139,23 +141,23 @@ public class JwsJsonSignatureEntry implements JsonObject {
         return toJson(false);
     }
     public String toJson(boolean flattenedMode) {
-        StringBuilder sb = new StringBuilder();
+        StringBuilder sb = new StringBuilder(32);
         if (!flattenedMode) {
-            sb.append("{");
+            sb.append('{');
         }
         if (protectedHeader != null) {
-            sb.append("\"protected\":\"" + Base64UrlUtility.encode(writer.toJson(protectedHeader)) + "\"");
+            sb.append("\"protected\":\"").append(Base64UrlUtility.encode(writer.toJson(protectedHeader))).append('"');
         }
         if (unprotectedHeader != null) {
             if (protectedHeader != null) {
-                sb.append(",");
+                sb.append(',');
             }
-            sb.append("\"header\":" + writer.toJson(unprotectedHeader));
+            sb.append("\"header\":").append(writer.toJson(unprotectedHeader));
         }
-        sb.append(",");
-        sb.append("\"signature\":\"" + encodedSignature + "\"");
+        sb.append(',');
+        sb.append("\"signature\":\"").append(encodedSignature).append('"');
         if (!flattenedMode) {
-            sb.append("}");
+            sb.append('}');
         }
         return sb.toString();
     }

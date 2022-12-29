@@ -36,12 +36,15 @@ import org.apache.cxf.testutil.common.TestUtil;
 
 import org.easymock.EasyMock;
 import org.easymock.IMocksControl;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
-public class NettyHttpServerEngineTest extends Assert {
+
+public class NettyHttpServerEngineTest {
     private static final int PORT1
         = Integer.valueOf(TestUtil.getPortNumber(NettyHttpServerEngineTest.class, 1));
     private static final int PORT2
@@ -94,8 +97,7 @@ public class NettyHttpServerEngineTest extends Assert {
         engine.addServant(new URL(urlStr), handler1);
         //assertEquals("Get the wrong maxIdleTime.", 30000, engine.getConnector().getMaxIdleTime());
 
-        String response = null;
-        response = getResponse(urlStr);
+        String response = getResponse(urlStr);
         assertEquals("The netty http handler did not take effect", response, "string1");
 
         try {
@@ -158,15 +160,15 @@ public class NettyHttpServerEngineTest extends Assert {
         NettyHttpServerEngineFactory.destroyForPort(PORT2);
     }
 
-    private String getResponse(String target) throws Exception {
+    private static String getResponse(String target) throws Exception {
         URL url = new URL(target);
 
         URLConnection connection = url.openConnection();
 
         assertTrue(connection instanceof HttpURLConnection);
         connection.connect();
-        InputStream in = connection.getInputStream();
-        try (ByteArrayOutputStream buffer = new ByteArrayOutputStream()) {
+        try (InputStream in = connection.getInputStream();
+            ByteArrayOutputStream buffer = new ByteArrayOutputStream()) {
             IOUtils.copy(in, buffer);
             return buffer.toString();
         }

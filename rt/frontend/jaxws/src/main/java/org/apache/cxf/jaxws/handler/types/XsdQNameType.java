@@ -18,15 +18,16 @@
  */
 package org.apache.cxf.jaxws.handler.types;
 
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlAttribute;
-import javax.xml.bind.annotation.XmlID;
-import javax.xml.bind.annotation.XmlType;
-import javax.xml.bind.annotation.XmlValue;
-import javax.xml.bind.annotation.adapters.CollapsedStringAdapter;
-import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 import javax.xml.namespace.QName;
+
+import jakarta.xml.bind.annotation.XmlAccessType;
+import jakarta.xml.bind.annotation.XmlAccessorType;
+import jakarta.xml.bind.annotation.XmlAttribute;
+import jakarta.xml.bind.annotation.XmlID;
+import jakarta.xml.bind.annotation.XmlType;
+import jakarta.xml.bind.annotation.XmlValue;
+import jakarta.xml.bind.annotation.adapters.CollapsedStringAdapter;
+import jakarta.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 
 /**
  * This type adds an "id" attribute to xsd:QName.
@@ -86,10 +87,10 @@ public class XsdQNameType {
     /**
      * Sets the value of the id property.
      *
-     * @param value allowed object is {@link java.lang.String }
+     * @param id allowed object is {@link java.lang.String }
      */
-    public void setId(java.lang.String v) {
-        this.id = v;
+    public void setId(java.lang.String id) {
+        this.id = id;
     }
 
 }

@@ -75,7 +75,7 @@ public final class SchemaUtil {
         // added
         getSchemaList(def);
 
-        Map<Definition, Definition> done = new IdentityHashMap<Definition, Definition>();
+        Map<Definition, Definition> done = new IdentityHashMap<>();
         done.put(def, def);
         for (Definition def2 : defList) {
             if (!done.containsKey(def2)) {
@@ -98,8 +98,10 @@ public final class SchemaUtil {
                     schemaElem = schema.getElement();
                 } else if (obj instanceof UnknownExtensibilityElement) {
                     org.w3c.dom.Element elem = ((UnknownExtensibilityElement)obj).getElement();
-                    if (elem.getLocalName().equals("schema")) {
-                        schemaElem = elem;
+                    synchronized (elem.getOwnerDocument()) {
+                        if ("schema".equals(elem.getLocalName())) {
+                            schemaElem = elem;
+                        }
                     }
                 }
                 if (schemaElem != null) {
@@ -125,12 +127,14 @@ public final class SchemaUtil {
                             }
                         }
                         String systemId = def.getDocumentBaseURI() + "#types" + schemaCount;
-                        if (def.getDocumentBaseURI() != null
-                            && def.getDocumentBaseURI().toUpperCase().endsWith(".XSD")
+                        String suffix = ".xsd";
+                        String baseURI = def.getDocumentBaseURI();
+                        if (baseURI != null && baseURI.regionMatches(
+                            true, baseURI.length() - suffix.length(), suffix, 0, suffix.length())
                             && def.getTargetNamespace() == null
                             && obj instanceof Schema
-                            && ((Schema)obj).getDocumentBaseURI().equals(def.getDocumentBaseURI())) {
-                            systemId = def.getDocumentBaseURI();
+                            && baseURI.equals(((Schema)obj).getDocumentBaseURI())) {
+                            systemId = baseURI;
                         }
 
                         schemaCol.setBaseUri(def.getDocumentBaseURI());

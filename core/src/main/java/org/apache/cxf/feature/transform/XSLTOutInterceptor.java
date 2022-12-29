@@ -120,20 +120,17 @@ public class XSLTOutInterceptor extends AbstractXSLTInterceptor {
 
         @Override
         public void close() {
-            Reader transformedReader = null;
             try {
                 super.flush();
-                transformedReader = XSLTUtils.transform(xsltTemplate, cachedWriter.getReader());
-                StaxUtils.copy(new StreamSource(transformedReader), origXWriter);
+                try (Reader transformedReader = XSLTUtils.transform(xsltTemplate, cachedWriter.getReader())) {
+                    StaxUtils.copy(new StreamSource(transformedReader), origXWriter);                    
+                }
             } catch (XMLStreamException e) {
                 throw new Fault("STAX_COPY", LOG, e, e.getMessage());
             } catch (IOException e) {
                 throw new Fault("GET_CACHED_INPUT_STREAM", LOG, e, e.getMessage());
             } finally {
                 try {
-                    if (transformedReader != null) {
-                        transformedReader.close();
-                    }
                     cachedWriter.close();
                     StaxUtils.close(origXWriter);
                     super.close();
@@ -159,7 +156,8 @@ public class XSLTOutInterceptor extends AbstractXSLTInterceptor {
 
         @Override
         public void onClose(CachedOutputStream wrapper) {
-            InputStream transformedStream = null;
+            InputStream transformedStream;
+            Exception exceptionOnClose = null;
             try {
                 transformedStream = XSLTUtils.transform(xsltTemplate, wrapper.getInputStream());
                 IOUtils.copyAndCloseInput(transformedStream, origStream);
@@ -168,10 +166,15 @@ public class XSLTOutInterceptor extends AbstractXSLTInterceptor {
             } finally {
                 try {
                     origStream.close();
-                } catch (IOException e) {
-                    LOG.warning("Cannot close stream after transformation: " + e.getMessage());
+                } catch (Exception e) {
+                    exceptionOnClose = e;
                 }
             }
+            
+            if (exceptionOnClose == null) {
+                return;
+            }
+            throw new Fault(exceptionOnClose);
         }
     }
 
@@ -186,9 +189,8 @@ public class XSLTOutInterceptor extends AbstractXSLTInterceptor {
 
         @Override
         protected void doClose() {
-            Reader transformedReader = null;
             try {
-                transformedReader = XSLTUtils.transform(xsltTemplate, getReader());
+                final Reader transformedReader = XSLTUtils.transform(xsltTemplate, getReader());
                 IOUtils.copyAndCloseInput(transformedReader, origWriter, IOUtils.DEFAULT_BUFFER_SIZE);
             } catch (IOException e) {
                 throw new Fault("READER_COPY", LOG, e, e.getMessage());

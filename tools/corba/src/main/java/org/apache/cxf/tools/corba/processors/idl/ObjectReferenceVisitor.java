@@ -25,6 +25,7 @@ import java.util.List;
 
 import javax.wsdl.Binding;
 import javax.wsdl.Definition;
+import javax.xml.XMLConstants;
 import javax.xml.namespace.QName;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -101,7 +102,7 @@ public class ObjectReferenceVisitor extends VisitorBase {
         // type, we still need to create a schema type so that the visitor knows what
         // kind of parameter this is.  For a default endpoint, we'll just provide a
         // reference to a WS addressing EndpointReferenceType.
-        XmlSchema scs[] = schemas.getXmlSchema(ReferenceConstants.WSADDRESSING_NAMESPACE);
+        XmlSchema[] scs = schemas.getXmlSchema(ReferenceConstants.WSADDRESSING_NAMESPACE);
         XmlSchema wsaSchema = null;
         if (scs != null) {
             for (XmlSchema sc : scs) {
@@ -201,7 +202,7 @@ public class ObjectReferenceVisitor extends VisitorBase {
 
         // Create a schema namespace for WS addressing and use it to create an endpoint
         // reference type.  This will be used as the type for our endpoint reference.
-        XmlSchema scs[] = schemas.getXmlSchema(ReferenceConstants.WSADDRESSING_NAMESPACE);
+        XmlSchema[] scs = schemas.getXmlSchema(ReferenceConstants.WSADDRESSING_NAMESPACE);
         XmlSchema wsaSchema = null;
         if (scs != null) {
             for (XmlSchema sc : scs) {
@@ -240,7 +241,7 @@ public class ObjectReferenceVisitor extends VisitorBase {
 
     private void isDuplicateReference(QName referenceName, QName bindingName, Scope refScope,
                                       XmlSchemaType wsaType, AST node) {
-        XmlSchema refSchema = null;
+        XmlSchema refSchema;
         if (!mapper.isDefaultMapping()) {
             String tns = mapper.map(refScope.getParent());
             String refSchemaFileName = getWsdlVisitor().getOutputDir()
@@ -271,7 +272,11 @@ public class ObjectReferenceVisitor extends VisitorBase {
             XmlSchemaAnnotation annotation = new XmlSchemaAnnotation();
             XmlSchemaAppInfo appInfo = new XmlSchemaAppInfo();
             try {
-                DocumentBuilder db = DocumentBuilderFactory.newInstance().newDocumentBuilder();
+                DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
+                dbf.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, Boolean.TRUE);
+                dbf.setFeature("http://apache.org/xml/features/disallow-doctype-decl", true);
+
+                DocumentBuilder db = dbf.newDocumentBuilder();
                 Document doc = db.newDocument();
                 Element el = doc.createElement("appinfo");
                 el.setTextContent("corba:binding=" + bindingName.getLocalPart());
@@ -405,7 +410,7 @@ public class ObjectReferenceVisitor extends VisitorBase {
         if ((node.getFirstChild() == null)
             || (node.getFirstChild() != null && node.getFirstChild().getType() != IDLTokenTypes.SCOPEOP)) {
             while (!isForward && currentScope != currentScope.getParent()) {
-                Scope scopedName = null;
+                final Scope scopedName;
                 if (ScopedNameVisitor.isFullyScopedName(node)) {
                     scopedName = ScopedNameVisitor.getFullyScopedName(currentScope, node);
                 } else {
@@ -421,7 +426,7 @@ public class ObjectReferenceVisitor extends VisitorBase {
         }
         // Check for forward declaration in global scope
         if (!isForward) {
-            Scope scopedName = null;
+            final Scope scopedName;
             if (ScopedNameVisitor.isFullyScopedName(node)) {
                 scopedName = ScopedNameVisitor.getFullyScopedName(new Scope(), node);
             } else {
@@ -450,7 +455,7 @@ public class ObjectReferenceVisitor extends VisitorBase {
         if ((node.getFirstChild() == null)
             || (node.getFirstChild() != null && node.getFirstChild().getType() != IDLTokenTypes.SCOPEOP)) {
             while (result == null && currentScope != currentScope.getParent()) {
-                Scope scopedName = null;
+                final Scope scopedName;
                 if (ScopedNameVisitor.isFullyScopedName(node)) {
                     scopedName = ScopedNameVisitor.getFullyScopedName(currentScope, node);
                 } else {
@@ -480,7 +485,7 @@ public class ObjectReferenceVisitor extends VisitorBase {
             }
         }
         if (result == null) {
-            Scope scopedName = null;
+            final Scope scopedName;
             if (ScopedNameVisitor.isFullyScopedName(node)) {
                 scopedName = ScopedNameVisitor.getFullyScopedName(new Scope(), node);
             } else {
@@ -515,32 +520,32 @@ public class ObjectReferenceVisitor extends VisitorBase {
                                       AST node, WSDLASTVisitor wsdlVisitor) {
         boolean result = false;
         QName bindingName = null;
-        String repositoryID = null;
         Scope currentScope = scope;
-        Scope customScope = null;
         if ((node.getFirstChild() == null) || (node.getFirstChild() != null
             && node.getFirstChild().getType() != IDLTokenTypes.SCOPEOP)) {
             while (bindingName == null
                 && currentScope != currentScope.getParent()) {
+                final Scope customScope;
                 if (ScopedNameVisitor.isFullyScopedName(node)) {
                     customScope = ScopedNameVisitor.getFullyScopedName(currentScope, node);
                 } else {
                     customScope = new Scope(currentScope, node);
                 }
-                repositoryID = customScope.toIDLRepositoryID();
+                String repositoryID = customScope.toIDLRepositoryID();
                 bindingName = getBindingQNameByID(def, repositoryID, wsdlVisitor);
                 currentScope = currentScope.getParent();
             }
         }
 
         if (bindingName == null) {
+            final Scope customScope;
             // Global scope is our last chance to resolve the node
             if (ScopedNameVisitor.isFullyScopedName(node)) {
                 customScope = ScopedNameVisitor.getFullyScopedName(new Scope(), node);
             } else {
                 customScope = new Scope(new Scope(), node);
             }
-            repositoryID = customScope.toIDLRepositoryID();
+            String repositoryID = customScope.toIDLRepositoryID();
             bindingName = getBindingQNameByID(def, repositoryID, wsdlVisitor);
             if (bindingName == null) {
                 //check bindingName with prefix

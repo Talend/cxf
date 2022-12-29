@@ -42,6 +42,9 @@ import org.apache.wss4j.dom.handler.WSHandlerResult;
 
 import org.junit.Test;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertSame;
 
 /**
  * Some tests for configuring outbound security using SecurityActionTokens.
@@ -90,7 +93,7 @@ public class SecurityActionTokenTest extends AbstractSecurityTest {
         outProperties.put(WSHandlerConstants.HANDLER_ACTIONS, actions);
 
         Map<String, Object> inProperties = new HashMap<>();
-        inProperties.put(ConfigurationConstants.ACTION, ConfigurationConstants.ENCRYPT);
+        inProperties.put(ConfigurationConstants.ACTION, ConfigurationConstants.ENCRYPTION);
         inProperties.put(ConfigurationConstants.DEC_PROP_FILE, "insecurity.properties");
         inProperties.put(ConfigurationConstants.PW_CALLBACK_REF, new TestPwdCallback());
 

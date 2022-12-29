@@ -20,8 +20,8 @@
 package org.apache.cxf.systest.soap_udp;
 
 import javax.xml.namespace.QName;
-import javax.xml.ws.Service;
 
+import jakarta.xml.ws.Service;
 import org.apache.cxf.BusFactory;
 import org.apache.cxf.ext.logging.LoggingFeature;
 import org.apache.cxf.testutil.common.AbstractBusClientServerTestBase;
@@ -29,6 +29,10 @@ import org.apache.hello_world_soap_http.Greeter;
 
 import org.junit.BeforeClass;
 import org.junit.Test;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 public class SoapUDPTest extends AbstractBusClientServerTestBase {
     private static final String PORT = Server.PORT;

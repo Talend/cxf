@@ -24,21 +24,23 @@ import java.io.ByteArrayInputStream;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.soap.MessageFactory;
-import javax.xml.soap.SOAPMessage;
-import javax.xml.soap.SOAPPart;
 import javax.xml.stream.XMLStreamReader;
 import javax.xml.transform.dom.DOMSource;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
+import jakarta.xml.soap.MessageFactory;
+import jakarta.xml.soap.SOAPMessage;
+import jakarta.xml.soap.SOAPPart;
 
-import org.junit.Assert;
 import org.junit.Test;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
-public class W3CDOMStreamReaderTest extends Assert {
+
+public class W3CDOMStreamReaderTest {
 
     private static final String RESULT =
         "<SOAP-ENV:Envelope xmlns:SOAP-ENV=\"http://schemas.xmlsoap.org/soap/envelope/\">"
@@ -50,7 +52,7 @@ public class W3CDOMStreamReaderTest extends Assert {
     public void testReader() throws Exception {
         ByteArrayInputStream is = new ByteArrayInputStream(
                 "<Test xmlns=\"http://example.org/types\"><argument>foobar</argument></Test>"
-                    .getBytes("utf-8"));
+                    .getBytes());
         DocumentBuilderFactory docBuilderFactory =
                 DocumentBuilderFactory.newInstance();
         docBuilderFactory.setNamespaceAware(true);
@@ -74,7 +76,7 @@ public class W3CDOMStreamReaderTest extends Assert {
     public void testTopLevelText() throws Exception {
         ByteArrayInputStream is = new ByteArrayInputStream(
                "<t:Test xmlns:t=\"http://example.org/types\">gorilla</t:Test>"
-               .getBytes("utf-8"));
+               .getBytes());
         Document doc = StaxUtils.read(is);
         Element e = doc.getDocumentElement();
         XMLStreamReader reader = StaxUtils.createXMLStreamReader(e);

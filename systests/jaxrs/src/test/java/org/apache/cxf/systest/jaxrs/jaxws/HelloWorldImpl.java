@@ -22,12 +22,12 @@ package org.apache.cxf.systest.jaxrs.jaxws;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-import javax.jws.WebService;
+import jakarta.jws.WebService;
 
 @WebService(endpointInterface = "org.apache.cxf.systest.jaxrs.jaxws.HelloWorld",
             serviceName = "HelloWorld")
 public class HelloWorldImpl implements HelloWorld {
-    Map<Integer, User> users = new LinkedHashMap<Integer, User>();
+    Map<Integer, User> users = new LinkedHashMap<>();
 
     public int clearUsers() {
         int i = users.size();

@@ -22,14 +22,13 @@ import java.io.Serializable;
 import java.util.LinkedList;
 import java.util.List;
 
-import javax.persistence.Cacheable;
-import javax.persistence.ElementCollection;
-import javax.persistence.Entity;
-import javax.persistence.FetchType;
-import javax.persistence.Id;
-import javax.persistence.OrderColumn;
-import javax.persistence.Transient;
-import javax.xml.bind.annotation.XmlRootElement;
+import jakarta.persistence.Cacheable;
+import jakarta.persistence.ElementCollection;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.Id;
+import jakarta.persistence.OrderColumn;
+import jakarta.xml.bind.annotation.XmlRootElement;
 
 
 /**
@@ -44,8 +43,8 @@ import javax.xml.bind.annotation.XmlRootElement;
 @Cacheable
 public class OAuthPermission implements Serializable {
     private static final long serialVersionUID = -6486616235830491290L;
-    private List<String> httpVerbs = new LinkedList<String>();
-    private List<String> uris = new LinkedList<String>();
+    private List<String> httpVerbs = new LinkedList<>();
+    private List<String> uris = new LinkedList<>();
     private String permission;
     private String description;
     private boolean isDefaultPermission;
@@ -142,19 +141,13 @@ public class OAuthPermission implements Serializable {
      * 'read' scope is always allocated. This can be presented at the UI level as follows:
      * the read-only check-box control will represent a 'read' scope and a user will be able to
      * optionally select 'add' and/or 'update' scopes, in addition to the default 'read' one.
-     * @param isDefault true if the permission has been allocated by default
+     * @param value true if the permission has been allocated by default
      */
     public void setDefaultPermission(boolean value) {
         this.isDefaultPermission = value;
     }
 
     public boolean isDefaultPermission() {
-        return isDefaultPermission;
-    }
-
-    @Deprecated
-    @Transient
-    public boolean isDefault() {
         return isDefaultPermission;
     }
 
@@ -175,6 +168,10 @@ public class OAuthPermission implements Serializable {
     public boolean equals(Object object) {
         if (!(object instanceof OAuthPermission)) {
             return false;
+        }
+
+        if (object == this) {
+            return true;
         }
 
         OAuthPermission that = (OAuthPermission)object;

@@ -18,9 +18,8 @@
  */
 package org.apache.cxf.systest.type_test.xml;
 
-import javax.jws.WebService;
-import javax.xml.ws.Endpoint;
-
+import jakarta.jws.WebService;
+import jakarta.xml.ws.Endpoint;
 import org.apache.cxf.BusFactory;
 import org.apache.cxf.bus.spring.SpringBusFactory;
 import org.apache.cxf.systest.type_test.TypeTestImpl;
@@ -40,7 +39,7 @@ public class XMLServerImpl extends AbstractBusTestServerBase {
         Endpoint.publish(address, implementor);
     }
 
-    public static void main(String args[]) {
+    public static void main(String[] args) {
         try {
             XMLServerImpl s = new XMLServerImpl();
             s.start();
@@ -56,8 +55,8 @@ public class XMLServerImpl extends AbstractBusTestServerBase {
                 portName = "XMLPort",
                 endpointInterface = "org.apache.type_test.xml.TypeTestPortType",
                 targetNamespace = "http://apache.org/type_test/xml",
-                wsdlLocation = "testutils/type_test/type_test_xml.wsdl")
-    @javax.xml.ws.BindingType(value = "http://cxf.apache.org/bindings/xmlformat")
+                wsdlLocation = "wsdl/type_test/type_test_xml.wsdl")
+    @jakarta.xml.ws.BindingType(value = "http://cxf.apache.org/bindings/xmlformat")
     class XMLTypeTestImpl extends TypeTestImpl implements TypeTestPortType {
     }
 }

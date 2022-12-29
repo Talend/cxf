@@ -20,10 +20,9 @@ package org.apache.cxf.sts.token.provider;
 
 import java.util.Properties;
 
-import javax.xml.bind.JAXBElement;
-
 import org.w3c.dom.Element;
 
+import jakarta.xml.bind.JAXBElement;
 import org.apache.cxf.jaxws.context.WrappedMessageContext;
 import org.apache.cxf.message.MessageImpl;
 import org.apache.cxf.rs.security.jose.jws.JwsJwtCompactConsumer;
@@ -49,10 +48,13 @@ import org.apache.wss4j.common.principal.CustomTokenPrincipal;
 
 import org.junit.Assert;
 
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+
 /**
  * Some unit tests for creating JWT Tokens with an OnBehalfOf element.
  */
-public class JWTProviderOnBehalfOfTest extends org.junit.Assert {
+public class JWTProviderOnBehalfOfTest {
 
     /**
      * Create a JWT Token with OnBehalfOf from a UsernameToken
@@ -80,7 +82,7 @@ public class JWTProviderOnBehalfOfTest extends org.junit.Assert {
 
         assertTrue(tokenProvider.canHandleToken(JWTTokenProvider.JWT_TOKEN_TYPE));
         TokenProviderResponse providerResponse = tokenProvider.createToken(providerParameters);
-        assertTrue(providerResponse != null);
+        assertNotNull(providerResponse);
         assertTrue(providerResponse.getToken() != null && providerResponse.getTokenId() != null);
 
         String token = (String)providerResponse.getToken();
@@ -112,7 +114,7 @@ public class JWTProviderOnBehalfOfTest extends org.junit.Assert {
 
         assertTrue(tokenProvider.canHandleToken(JWTTokenProvider.JWT_TOKEN_TYPE));
         TokenProviderResponse providerResponse = tokenProvider.createToken(providerParameters);
-        assertTrue(providerResponse != null);
+        assertNotNull(providerResponse);
         assertTrue(providerResponse.getToken() != null && providerResponse.getTokenId() != null);
 
         String token = (String)providerResponse.getToken();
@@ -132,7 +134,7 @@ public class JWTProviderOnBehalfOfTest extends org.junit.Assert {
         providerParameters.setPrincipal(new CustomTokenPrincipal(user));
         assertTrue(samlTokenProvider.canHandleToken(WSS4JConstants.WSS_SAML_TOKEN_TYPE));
         TokenProviderResponse providerResponse = samlTokenProvider.createToken(providerParameters);
-        assertTrue(providerResponse != null);
+        assertNotNull(providerResponse);
         assertTrue(providerResponse.getToken() != null && providerResponse.getTokenId() != null);
 
         return (Element)providerResponse.getToken();

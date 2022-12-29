@@ -24,6 +24,7 @@ import java.io.PrintWriter;
 import org.apache.cxf.Bus;
 import org.apache.cxf.common.util.PropertyUtils;
 import org.apache.cxf.transport.AbstractDestination;
+import org.apache.cxf.transport.commons_text.StringEscapeUtils;
 import org.apache.cxf.transport.servlet.ServletDestination;
 
 public class UnformattedServiceListWriter implements ServiceListWriter {
@@ -59,6 +60,8 @@ public class UnformattedServiceListWriter implements ServiceListWriter {
                                                AbstractDestination[] destinations) throws IOException {
         for (AbstractDestination sd : destinations) {
             String address = getAbsoluteAddress(baseAddress, sd);
+            address = StringEscapeUtils.escapeHtml4(address);
+
             writer.write(address);
 
             if (renderWsdlList) {
@@ -74,10 +77,14 @@ public class UnformattedServiceListWriter implements ServiceListWriter {
                                                   AbstractDestination[] destinations) throws IOException {
         for (AbstractDestination sd : destinations) {
             String address = getAbsoluteAddress(baseAddress, sd);
+            address = StringEscapeUtils.escapeHtml4(address);
+
             boolean wadlAvailable = bus != null
                 && PropertyUtils.isTrue(bus.getProperty("wadl.service.descrition.available"));
             boolean swaggerAvailable = bus != null
                 && PropertyUtils.isTrue(bus.getProperty("swagger.service.descrition.available"));
+            boolean openApiAvailable = bus != null
+                && PropertyUtils.isTrue(bus.getProperty("openapi.service.descrition.available"));
             if (!wadlAvailable && !swaggerAvailable) {
                 writer.write(address + "\n");
                 return;
@@ -88,7 +95,9 @@ public class UnformattedServiceListWriter implements ServiceListWriter {
             if (swaggerAvailable) {
                 writer.write(address + "/swagger.json\n");
             }
-
+            if (openApiAvailable) {
+                writer.write(address + "/openapi.json\n");
+            }
         }
     }
 

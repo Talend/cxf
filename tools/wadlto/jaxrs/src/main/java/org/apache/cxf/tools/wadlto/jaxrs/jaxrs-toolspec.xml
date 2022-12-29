@@ -195,7 +195,7 @@ Examples:
             <option id="noAddressBinding" maxOccurs="1">
                 <annotation>
                     Specifies that the generator should not use the address jaxb binding file to map wsa:EndpointReferenceType 
-                    or wsa:EndpointReference to javax.xml.ws.wsaddressing.W3CEndpointReference.
+                    or wsa:EndpointReference to jakarta.xml.ws.wsaddressing.W3CEndpointReference.
                 </annotation>
                 <switch>noAddressBinding</switch>
             </option>
@@ -288,6 +288,16 @@ Examples:
                     <annotation> methodNames</annotation>
                 </associatedArgument>
                 <switch>oneway</switch>
+            </option>
+            <option id="rx" maxOccurs="1">
+                <annotation>
+                    Specifies the use of the JAX-RS 2.1 reactive extensions for generating 
+                    method signatures. The supported values are: java8
+                </annotation>
+                <switch>rx</switch>
+                <associatedArgument placement="afterSpace">
+                    <annotation>library</annotation>
+                </associatedArgument>
             </option>
         </optionGroup>
         <optionGroup id="common_options">

@@ -19,79 +19,113 @@
 
 package org.apache.cxf.systest.jaxrs.security.oauth2.filters;
 
-import java.net.URL;
+import java.net.URI;
+import java.util.Collections;
 
-import javax.ws.rs.core.Response;
-
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.Response;
+import org.apache.cxf.bus.spring.SpringBusFactory;
 import org.apache.cxf.jaxrs.client.WebClient;
 import org.apache.cxf.rs.security.jose.jws.JwsJwtCompactConsumer;
 import org.apache.cxf.rs.security.jose.jws.JwsSignatureVerifier;
 import org.apache.cxf.rs.security.jose.jws.JwsUtils;
 import org.apache.cxf.rs.security.jose.jwt.JwtClaims;
+import org.apache.cxf.rs.security.oauth2.client.Consumer;
+import org.apache.cxf.rs.security.oauth2.client.OAuthClientUtils;
 import org.apache.cxf.rs.security.oauth2.common.ClientAccessToken;
+import org.apache.cxf.rs.security.oauth2.common.OAuthAuthorizationData;
+import org.apache.cxf.rs.security.oauth2.grants.code.AuthorizationCodeGrant;
+import org.apache.cxf.rs.security.oauth2.services.AuthorizationMetadata;
 import org.apache.cxf.rs.security.oauth2.utils.OAuthConstants;
 import org.apache.cxf.systest.jaxrs.security.Book;
 import org.apache.cxf.systest.jaxrs.security.oauth2.common.OAuth2TestUtils;
 import org.apache.cxf.testutil.common.AbstractBusClientServerTestBase;
+import org.apache.cxf.testutil.common.AbstractBusTestServerBase;
+import org.apache.cxf.testutil.common.TestUtil;
+import org.apache.cxf.transport.http.HTTPConduitConfigurer;
 
 import org.junit.BeforeClass;
+
+import static org.apache.cxf.rs.security.oauth2.utils.OAuthConstants.BEARER_AUTHORIZATION_SCHEME;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 /**
  * Some tests for the OAuth 2.0 filters
  */
 public class OAuth2JwtFiltersTest extends AbstractBusClientServerTestBase {
-    public static final String PORT = BookServerOAuth2FiltersJwt.PORT;
-    public static final String OAUTH_PORT = BookServerOAuth2ServiceJwt.PORT;
+    private static final String PORT = TestUtil.getPortNumber("jaxrs-oauth2-filtersJwt");
+    private static final String OAUTH_PORT = TestUtil.getPortNumber("jaxrs-oauth2-serviceJwt");
 
     @BeforeClass
     public static void startServers() throws Exception {
+        createStaticBus().setExtension(OAuth2TestUtils.clientHTTPConduitConfigurer(), HTTPConduitConfigurer.class);
+        getStaticBus().setFeatures(Collections.singletonList(new org.apache.cxf.ext.logging.LoggingFeature()));
+
         assertTrue("server did not launch correctly",
-                   launchServer(BookServerOAuth2FiltersJwt.class, true));
+                   launchServer(BookServerOAuth2FiltersJwt.class));
         assertTrue("server did not launch correctly",
-                   launchServer(BookServerOAuth2ServiceJwt.class, true));
+                   launchServer(BookServerOAuth2ServiceJwt.class));
     }
+
     @org.junit.Test
     public void testServiceWithJwtToken() throws Exception {
         String oauthServiceAddress = "https://localhost:" + OAUTH_PORT + "/services/";
         String rsAddress = "https://localhost:" + PORT + "/secured/bookstore/books";
         doTestServiceWithJwtTokenAndScope(oauthServiceAddress, rsAddress);
     }
+
     @org.junit.Test
     public void testServiceWithJwtTokenStoredAsJoseKey() throws Exception {
         String oauthServiceAddress = "https://localhost:" + OAUTH_PORT + "/services2/";
         String rsAddress = "https://localhost:" + PORT + "/secured2/bookstore/books";
         doTestServiceWithJwtTokenAndScope(oauthServiceAddress, rsAddress);
     }
+
     @org.junit.Test
     public void testServiceWithJwtTokenAndLocalValidation() throws Exception {
         String oauthServiceAddress = "https://localhost:" + OAUTH_PORT + "/services/";
         String rsAddress = "https://localhost:" + PORT + "/securedLocalValidation/bookstore/books";
         doTestServiceWithJwtTokenAndScope(oauthServiceAddress, rsAddress);
     }
+
+    @org.junit.Test
+    public void testServiceWithJwtTokenAndJwsJwksValidation() throws Exception {
+        String oauthServiceAddress = "https://localhost:" + OAUTH_PORT + "/services/";
+        String rsAddress = "https://localhost:" + PORT + "/securedJwsJwksValidation/bookstore/books";
+        doTestServiceWithJwtTokenAndScope(oauthServiceAddress, rsAddress);
+    }
+
     private void doTestServiceWithJwtTokenAndScope(String oauthService, String rsAddress) throws Exception {
-        URL busFile = OAuth2JwtFiltersTest.class.getResource("client.xml");
+        final AuthorizationMetadata authorizationMetadata = OAuthClientUtils.getAuthorizationMetadata(oauthService);
+
+        final String scope = "create_book";
+
+        final URI authorizationURI = OAuthClientUtils.getAuthorizationURI(
+            authorizationMetadata.getAuthorizationEndpoint().toString(),
+            "consumer-id", null, null, scope);
 
         // Get Authorization Code
-
-
-        WebClient oauthClient = WebClient.create(oauthService, OAuth2TestUtils.setupProviders(),
-                                                 "alice", "security", busFile.toString());
+        WebClient oauthClient = WebClient.create(authorizationURI.toString(), OAuth2TestUtils.setupProviders(),
+                                                 "alice", "security", null);
         // Save the Cookie for the second request...
         WebClient.getConfig(oauthClient).getRequestContext().put(
             org.apache.cxf.message.Message.MAINTAIN_SESSION, Boolean.TRUE);
 
-        String code = OAuth2TestUtils.getAuthorizationCode(oauthClient, "create_book");
+        final String location = OAuth2TestUtils.getLocation(oauthClient,
+            oauthClient.accept(MediaType.APPLICATION_JSON).get(OAuthAuthorizationData.class),
+            null);
+        final String code = OAuth2TestUtils.getSubstring(location, "code");
         assertNotNull(code);
 
         // Now get the access token
-        oauthClient = WebClient.create(oauthService, OAuth2TestUtils.setupProviders(),
-                                       "consumer-id", "this-is-a-secret", busFile.toString());
-        // Save the Cookie for the second request...
-        WebClient.getConfig(oauthClient).getRequestContext().put(
-            org.apache.cxf.message.Message.MAINTAIN_SESSION, Boolean.TRUE);
-
-        ClientAccessToken accessToken =
-            OAuth2TestUtils.getAccessTokenWithAuthorizationCode(oauthClient, code);
+        final ClientAccessToken accessToken = OAuthClientUtils.getAccessToken(
+            authorizationMetadata.getTokenEndpoint().toString(),
+            new Consumer("consumer-id", "this-is-a-secret"),
+            new AuthorizationCodeGrant(code),
+            true);
         assertNotNull(accessToken.getTokenKey());
 
         JwsJwtCompactConsumer jwtConsumer = new JwsJwtCompactConsumer(accessToken.getTokenKey());
@@ -101,29 +135,40 @@ public class OAuth2JwtFiltersTest extends AbstractBusClientServerTestBase {
         JwtClaims claims = jwtConsumer.getJwtClaims();
         assertEquals("consumer-id", claims.getStringProperty(OAuthConstants.CLIENT_ID));
         assertEquals("alice", claims.getStringProperty("username"));
+        assertTrue(claims.getStringProperty(OAuthConstants.SCOPE).contains(scope));
         // Now invoke on the service with the access token
-        WebClient client = WebClient.create(rsAddress, OAuth2TestUtils.setupProviders(),
-                                            busFile.toString());
-        client.header("Authorization", "Bearer " + accessToken.getTokenKey());
+        WebClient client = WebClient.create(rsAddress, OAuth2TestUtils.setupProviders())
+            .authorization(new ClientAccessToken(BEARER_AUTHORIZATION_SCHEME, accessToken.getTokenKey()));
 
-        Response response = client.type("application/xml").post(new Book("book", 123L));
-        assertEquals(200, response.getStatus());
-
-        Book returnedBook = response.readEntity(Book.class);
+        Book returnedBook = client.type("application/xml").post(new Book("book", 123L), Book.class);
         assertEquals(returnedBook.getName(), "book");
         assertEquals(returnedBook.getId(), 123L);
     }
 
     @org.junit.Test
     public void testServiceLocalValidationWithNoToken() throws Exception {
-        URL busFile = OAuth2FiltersTest.class.getResource("client.xml");
-
         // Now invoke on the service with the faked access token
         String address = "https://localhost:" + PORT + "/securedLocalValidation/bookstore/books";
-        WebClient client = WebClient.create(address, OAuth2TestUtils.setupProviders(),
-                                            busFile.toString());
+        WebClient client = WebClient.create(address, OAuth2TestUtils.setupProviders());
 
         Response response = client.post(new Book("book", 123L));
         assertNotEquals(response.getStatus(), 200);
     }
+
+    //
+    // Server implementations
+    //
+    public static class BookServerOAuth2FiltersJwt extends AbstractBusTestServerBase {
+        @Override
+        protected void run() {
+            setBus(new SpringBusFactory().createBus(getClass().getResource("filters-serverJwt.xml")));
+        }
+    }
+
+    public static class BookServerOAuth2ServiceJwt extends AbstractBusTestServerBase {
+        protected void run() {
+            setBus(new SpringBusFactory().createBus(getClass().getResource("oauth20-serverJwt.xml")));
+        }
+    }
+
 }

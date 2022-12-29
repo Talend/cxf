@@ -35,17 +35,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import javax.ws.rs.Consumes;
-import javax.ws.rs.Produces;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.MultivaluedMap;
-import javax.ws.rs.core.PathSegment;
-import javax.ws.rs.core.UriInfo;
-import javax.ws.rs.ext.Provider;
 import javax.xml.XMLConstants;
-import javax.xml.bind.JAXBException;
-import javax.xml.bind.Marshaller;
-import javax.xml.bind.Unmarshaller;
 import javax.xml.stream.XMLStreamReader;
 import javax.xml.stream.XMLStreamWriter;
 import javax.xml.transform.Result;
@@ -66,6 +56,16 @@ import javax.xml.transform.stream.StreamSource;
 import org.xml.sax.XMLFilter;
 import org.xml.sax.XMLReader;
 
+import jakarta.ws.rs.Consumes;
+import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.MultivaluedMap;
+import jakarta.ws.rs.core.PathSegment;
+import jakarta.ws.rs.core.UriInfo;
+import jakarta.ws.rs.ext.Provider;
+import jakarta.xml.bind.JAXBException;
+import jakarta.xml.bind.Marshaller;
+import jakarta.xml.bind.Unmarshaller;
 import org.apache.cxf.common.classloader.ClassLoaderUtils;
 import org.apache.cxf.common.logging.LogUtils;
 import org.apache.cxf.io.CachedOutputStream;
@@ -96,7 +96,7 @@ public class XSLTJaxbProvider<T> extends JAXBElementProvider<T> {
     private Map<String, Templates> inMediaTemplates;
     private Map<String, Templates> outMediaTemplates;
     private ConcurrentHashMap<String, Templates> annotationTemplates =
-        new ConcurrentHashMap<String, Templates>();
+        new ConcurrentHashMap<>();
 
     private List<String> inClassesToHandle;
     private List<String> outClassesToHandle;
@@ -264,7 +264,7 @@ public class XSLTJaxbProvider<T> extends JAXBElementProvider<T> {
                 t.newTransformer().transform(reader, dom);
                 return unmarshaller.unmarshal(dom.getNode());
             }
-            XMLFilter filter = null;
+            XMLFilter filter;
             try {
                 filter = factory.newXMLFilter(t);
             } catch (TransformerConfigurationException ex) {
@@ -337,6 +337,10 @@ public class XSLTJaxbProvider<T> extends JAXBElementProvider<T> {
         // complete
     }
 
+    protected Result getStreamResult(OutputStream os, Annotation[] anns, MediaType mt) throws Exception {
+        return new StreamResult(os);
+    }
+
     @Override
     protected void marshalToOutputStream(Marshaller ms, Object obj, OutputStream os,
                                          Annotation[] anns, MediaType mt)
@@ -348,7 +352,7 @@ public class XSLTJaxbProvider<T> extends JAXBElementProvider<T> {
             return;
         }
         org.apache.cxf.common.jaxb.JAXBUtils.setMinimumEscapeHandler(ms);
-        TransformerHandler th = null;
+        TransformerHandler th;
         try {
             th = factory.newTransformerHandler(t);
         } catch (TransformerConfigurationException ex) {
@@ -356,7 +360,7 @@ public class XSLTJaxbProvider<T> extends JAXBElementProvider<T> {
             th = factory.newTransformerHandler(ti.getTemplates());
             this.trySettingProperties(th, ti);
         }
-        Result result = new StreamResult(os);
+        Result result = getStreamResult(os, anns, mt);
         if (systemId != null) {
             result.setSystemId(systemId);
         }
@@ -454,7 +458,7 @@ public class XSLTJaxbProvider<T> extends JAXBElementProvider<T> {
             MultivaluedMap<String, String> params = ui.getPathParameters();
             for (Map.Entry<String, List<String>> entry : params.entrySet()) {
                 String value = entry.getValue().get(0);
-                int ind = value.indexOf(";");
+                int ind = value.indexOf(';');
                 if (ind > 0) {
                     value = value.substring(0, ind);
                 }
@@ -509,13 +513,12 @@ public class XSLTJaxbProvider<T> extends JAXBElementProvider<T> {
     }
 
     protected Templates createTemplates(URL urlStream) {
-        try {
-            if (urlStream == null) {
-                return null;
-            }
+        if (urlStream == null) {
+            return null;
+        }
 
-            Reader r = new BufferedReader(
-                           new InputStreamReader(urlStream.openStream(), StandardCharsets.UTF_8));
+        try (Reader r = new BufferedReader(
+                           new InputStreamReader(urlStream.openStream(), StandardCharsets.UTF_8))) {
             Source source = new StreamSource(r);
             source.setSystemId(urlStream.toExternalForm());
             if (factory == null) {

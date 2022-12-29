@@ -39,6 +39,7 @@ import org.apache.cxf.sts.token.provider.TokenProvider;
 import org.apache.cxf.sts.token.provider.TokenProviderParameters;
 import org.apache.cxf.sts.token.provider.TokenProviderResponse;
 import org.apache.cxf.ws.security.tokenstore.TokenStore;
+import org.apache.cxf.ws.security.tokenstore.TokenStoreException;
 import org.apache.cxf.ws.security.trust.STSUtils;
 import org.apache.wss4j.common.crypto.Crypto;
 import org.apache.wss4j.common.crypto.CryptoFactory;
@@ -46,13 +47,24 @@ import org.apache.wss4j.common.ext.WSSecurityException;
 import org.apache.wss4j.common.principal.CustomTokenPrincipal;
 import org.apache.wss4j.dom.message.token.SecurityContextToken;
 
+import org.junit.BeforeClass;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
 /**
  * Some unit tests for validating a SecurityContextToken via the SCTValidator.
  */
-public class SCTValidatorTest extends org.junit.Assert {
+public class SCTValidatorTest {
 
-    private static TokenStore tokenStore = new DefaultInMemoryTokenStore();
+    private static TokenStore tokenStore;
+
+    @BeforeClass
+    public static void init() throws TokenStoreException {
+        tokenStore = new DefaultInMemoryTokenStore();
+    }
 
     /**
      * Test a valid SecurityContextToken
@@ -73,20 +85,20 @@ public class SCTValidatorTest extends org.junit.Assert {
 
         TokenValidatorResponse validatorResponse =
             sctValidator.validateToken(validatorParameters);
-        assertTrue(validatorResponse != null);
-        assertTrue(validatorResponse.getToken() != null);
+        assertNotNull(validatorResponse);
+        assertNotNull(validatorResponse.getToken());
         assertTrue(validatorResponse.getToken().getState() == STATE.VALID);
-        assertTrue(
-            validatorResponse.getAdditionalProperties().get(SCTValidator.SCT_VALIDATOR_SECRET) != null
+        assertNotNull(
+            validatorResponse.getAdditionalProperties().get(SCTValidator.SCT_VALIDATOR_SECRET)
         );
-        assertTrue(validatorResponse.getPrincipal().getName().equals("alice"));
+        assertEquals("alice", validatorResponse.getPrincipal().getName());
 
         // Now remove the SCT from the cache
         tokenStore.remove(tokenStore.getToken(providerResponse.getTokenId()).getId());
         assertNull(tokenStore.getToken(providerResponse.getTokenId()));
         validatorResponse = sctValidator.validateToken(validatorParameters);
-        assertTrue(validatorResponse != null);
-        assertTrue(validatorResponse.getToken() != null);
+        assertNotNull(validatorResponse);
+        assertNotNull(validatorResponse.getToken());
         assertTrue(validatorResponse.getToken().getState() == STATE.INVALID);
     }
 
@@ -110,8 +122,8 @@ public class SCTValidatorTest extends org.junit.Assert {
 
         TokenValidatorResponse validatorResponse =
             sctValidator.validateToken(validatorParameters);
-        assertTrue(validatorResponse != null);
-        assertTrue(validatorResponse.getToken() != null);
+        assertNotNull(validatorResponse);
+        assertNotNull(validatorResponse.getToken());
         assertTrue(validatorResponse.getToken().getState() == STATE.INVALID);
     }
 

@@ -36,10 +36,10 @@ import javax.security.auth.callback.Callback;
 import javax.security.auth.callback.CallbackHandler;
 import javax.security.auth.callback.UnsupportedCallbackException;
 import javax.xml.namespace.QName;
-import javax.xml.soap.SOAPException;
 
 import org.w3c.dom.Element;
 
+import jakarta.xml.soap.SOAPException;
 import org.apache.cxf.binding.soap.SoapMessage;
 import org.apache.cxf.message.MessageUtils;
 import org.apache.cxf.rt.security.utils.SecurityUtils;
@@ -48,6 +48,7 @@ import org.apache.cxf.ws.policy.AssertionInfoMap;
 import org.apache.cxf.ws.security.SecurityConstants;
 import org.apache.cxf.ws.security.policy.PolicyUtils;
 import org.apache.cxf.ws.security.tokenstore.SecurityToken;
+import org.apache.cxf.ws.security.tokenstore.TokenStoreException;
 import org.apache.wss4j.common.WSS4JConstants;
 import org.apache.wss4j.common.ext.WSPasswordCallback;
 import org.apache.wss4j.common.ext.WSSecurityException;
@@ -56,6 +57,7 @@ import org.apache.wss4j.common.saml.bean.KeyInfoBean;
 import org.apache.wss4j.common.saml.bean.SubjectBean;
 import org.apache.wss4j.common.saml.bean.Version;
 import org.apache.wss4j.common.util.KeyUtils;
+import org.apache.wss4j.common.util.XMLUtils;
 import org.apache.wss4j.policy.SPConstants;
 import org.apache.wss4j.policy.SPConstants.IncludeTokenType;
 import org.apache.wss4j.policy.model.AbstractBinding;
@@ -201,7 +203,7 @@ public abstract class AbstractStaxBindingHandler extends AbstractCommonBindingHa
 
     protected SecurePart addKerberosToken(
         KerberosToken token, boolean signed, boolean endorsing, boolean encrypting
-    ) throws WSSecurityException {
+    ) throws WSSecurityException, TokenStoreException {
         assertToken(token);
         IncludeTokenType includeToken = token.getIncludeTokenType();
         if (!isTokenRequired(includeToken)) {
@@ -213,9 +215,18 @@ public abstract class AbstractStaxBindingHandler extends AbstractCommonBindingHa
             unassertPolicy(token, "Could not find KerberosToken");
         }
 
+        // Get the kerberos token from the element
+        byte[] data = null;
+        if (secToken.getToken() != null) {
+            String text = XMLUtils.getElementText(secToken.getToken());
+            if (text != null) {
+                data = org.apache.xml.security.utils.XMLUtils.decode(text);
+            }
+        }
+
         // Convert to WSS4J token
         final KerberosClientSecurityToken wss4jToken =
-            new KerberosClientSecurityToken(secToken.getData(), secToken.getKey(), secToken.getId()) {
+            new KerberosClientSecurityToken(data, secToken.getKey(), secToken.getId()) {
 
                 @Override
                 public Key getSecretKey(String algorithmURI) throws XMLSecurityException {
@@ -267,7 +278,7 @@ public abstract class AbstractStaxBindingHandler extends AbstractCommonBindingHa
         */
 
         SecurePart securePart = new SecurePart(WSSConstants.TAG_WSSE_BINARY_SECURITY_TOKEN, Modifier.Element);
-        securePart.setIdToSign(wss4jToken.getId());
+        securePart.setIdToSecure(wss4jToken.getId());
 
         return securePart;
     }
@@ -514,26 +525,26 @@ public abstract class AbstractStaxBindingHandler extends AbstractCommonBindingHa
         properties.setSignatureKeyIdentifier(getKeyIdentifierType(token));
 
         // Find out do we also need to include the token as per the Inclusion requirement
-        WSSecurityTokenConstants.KeyIdentifier keyIdentifier = properties.getSignatureKeyIdentifier();
-        if (token instanceof X509Token
-            && isTokenRequired(token.getIncludeTokenType())
-            && (WSSecurityTokenConstants.KeyIdentifier_IssuerSerial.equals(keyIdentifier)
-                || WSSecurityTokenConstants.KEYIDENTIFIER_THUMBPRINT_IDENTIFIER.equals(keyIdentifier)
-                || WSSecurityTokenConstants.KEYIDENTIFIER_SECURITY_TOKEN_DIRECT_REFERENCE.equals(
-                    keyIdentifier))) {
-            properties.setIncludeSignatureToken(true);
-        } else {
-            properties.setIncludeSignatureToken(false);
+        properties.setIncludeSignatureToken(false);
+        for (SecurityTokenConstants.KeyIdentifier keyIdentifier : properties.getSignatureKeyIdentifiers()) {
+            if (token instanceof X509Token
+                && isTokenRequired(token.getIncludeTokenType())
+                && (WSSecurityTokenConstants.KeyIdentifier_IssuerSerial.equals(keyIdentifier)
+                    || WSSecurityTokenConstants.KEYIDENTIFIER_THUMBPRINT_IDENTIFIER.equals(keyIdentifier)
+                    || WSSecurityTokenConstants.KEYIDENTIFIER_SECURITY_TOKEN_DIRECT_REFERENCE.equals(
+                        keyIdentifier))) {
+                properties.setIncludeSignatureToken(true);
+            }
         }
 
         String userNameKey = SecurityConstants.SIGNATURE_USERNAME;
         if (binding instanceof SymmetricBinding) {
             userNameKey = SecurityConstants.ENCRYPT_USERNAME;
             properties.setSignatureAlgorithm(
-                       binding.getAlgorithmSuite().getSymmetricSignature());
+                       binding.getAlgorithmSuite().getAlgorithmSuiteType().getSymmetricSignature());
         } else {
             properties.setSignatureAlgorithm(
-                       binding.getAlgorithmSuite().getAsymmetricSignature());
+                       binding.getAlgorithmSuite().getAlgorithmSuiteType().getAsymmetricSignature());
         }
         properties.setSignatureCanonicalizationAlgorithm(
                        binding.getAlgorithmSuite().getC14n().getValue());

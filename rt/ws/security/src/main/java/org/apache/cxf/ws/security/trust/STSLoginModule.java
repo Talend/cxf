@@ -20,7 +20,6 @@
 package org.apache.cxf.ws.security.trust;
 
 import java.io.IOException;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.security.Principal;
 import java.util.Collections;
@@ -46,7 +45,6 @@ import org.apache.cxf.Bus;
 import org.apache.cxf.BusException;
 import org.apache.cxf.BusFactory;
 import org.apache.cxf.bus.spring.SpringBusFactory;
-import org.apache.cxf.common.classloader.ClassLoaderUtils;
 import org.apache.cxf.common.logging.LogUtils;
 import org.apache.cxf.common.security.SimplePrincipal;
 import org.apache.cxf.endpoint.EndpointException;
@@ -57,9 +55,6 @@ import org.apache.cxf.rt.security.claims.ClaimCollection;
 import org.apache.cxf.rt.security.saml.utils.SAMLUtils;
 import org.apache.cxf.rt.security.utils.SecurityUtils;
 import org.apache.cxf.ws.security.SecurityConstants;
-import org.apache.cxf.ws.security.tokenstore.EHCacheTokenStore;
-import org.apache.cxf.ws.security.tokenstore.TokenStore;
-import org.apache.cxf.ws.security.tokenstore.TokenStoreFactory;
 import org.apache.cxf.ws.security.trust.claims.RoleClaimsCallbackHandler;
 import org.apache.cxf.ws.security.wss4j.WSS4JInInterceptor;
 import org.apache.wss4j.common.WSS4JConstants;
@@ -146,7 +141,6 @@ public class STSLoginModule implements LoginModule {
     public static final String CXF_SPRING_CFG = "cxf.spring.config";
 
     private static final Logger LOG = LogUtils.getL7dLogger(STSLoginModule.class);
-    private static final String TOKEN_STORE_KEY = "sts.login.module.tokenstore";
 
     private Set<Principal> roles = new HashSet<>();
     private Principal userPrincipal;
@@ -164,6 +158,10 @@ public class STSLoginModule implements LoginModule {
     private String tokenType = "http://docs.oasis-open.org/wss/oasis-wss-saml-token-profile-1.1#SAMLV2.0";
     private String namespace;
     private Map<String, Object> stsClientProperties = new HashMap<>();
+
+    /** the authentication status*/
+    private boolean succeeded;
+    private boolean commitSucceeded;
 
     @Override
     public void initialize(Subject subj, CallbackHandler cbHandler, Map<String, ?> sharedState,
@@ -258,9 +256,7 @@ public class STSLoginModule implements LoginModule {
                 message.put(SecurityConstants.STS_CLIENT, stsClient);
                 data.setMsgContext(message);
             } else {
-                TokenStore tokenStore = configureTokenStore();
                 validator.setStsClient(stsClient);
-                validator.setTokenStore(tokenStore);
             }
 
             credential = validator.validate(credential, data);
@@ -275,11 +271,12 @@ public class STSLoginModule implements LoginModule {
             throw new LoginException("User " + user + " authentication failed: " + e.getMessage());
         }
 
+        succeeded = true;
         return true;
     }
 
     private STSClient configureSTSClient(Message msg) throws BusException, EndpointException {
-        STSClient c = null;
+        final STSClient c;
         if (cxfSpringCfg != null) {
             SpringBusFactory bf = new SpringBusFactory();
             URL busFile = Loader.getResource(cxfSpringCfg);
@@ -326,23 +323,6 @@ public class STSLoginModule implements LoginModule {
         return c;
     }
 
-    private TokenStore configureTokenStore() throws MalformedURLException {
-        if (TokenStoreFactory.isEhCacheInstalled()) {
-            String cfg = "cxf-ehcache.xml";
-            URL url = null;
-            if (url == null) {
-                url = ClassLoaderUtils.getResource(cfg, STSLoginModule.class);
-            }
-            if (url == null) {
-                url = new URL(cfg);
-            }
-            if (url != null) {
-                return new EHCacheTokenStore(TOKEN_STORE_KEY, BusFactory.getDefaultBus(), url);
-            }
-        }
-        return null;
-    }
-
     private UsernameToken convertToToken(String username, String password)
         throws Exception {
 
@@ -381,16 +361,31 @@ public class STSLoginModule implements LoginModule {
 
     @Override
     public boolean commit() throws LoginException {
-        if (userPrincipal == null) {
+        if (!succeeded || userPrincipal == null) {
+            roles.clear();
+            succeeded = false;
+            userPrincipal = null;
             return false;
-        }
+        } 
         subject.getPrincipals().add(userPrincipal);
         subject.getPrincipals().addAll(roles);
+        commitSucceeded = true;
         return true;
     }
 
     @Override
     public boolean abort() throws LoginException {
+        if (!succeeded) {
+            return false;
+        } else if (commitSucceeded) {
+            // we succeeded, but another required module failed
+            logout();
+        } else {
+            // our commit failed
+            roles.clear();
+            userPrincipal = null;
+            succeeded = false;
+        }
         return true;
     }
 
@@ -400,6 +395,10 @@ public class STSLoginModule implements LoginModule {
         subject.getPrincipals().removeAll(roles);
         roles.clear();
         userPrincipal = null;
+
+        succeeded = false;
+        commitSucceeded = false;
+
         return true;
     }
 

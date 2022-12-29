@@ -21,16 +21,13 @@ package org.apache.cxf.systest.sts.username_actas;
 import java.net.URL;
 
 import javax.xml.namespace.QName;
-import javax.xml.ws.BindingProvider;
-import javax.xml.ws.Service;
 
-import org.apache.cxf.Bus;
+import jakarta.xml.ws.BindingProvider;
+import jakarta.xml.ws.Service;
 import org.apache.cxf.BusException;
-import org.apache.cxf.BusFactory;
-import org.apache.cxf.bus.spring.SpringBusFactory;
 import org.apache.cxf.endpoint.EndpointException;
-import org.apache.cxf.systest.sts.common.SecurityTestUtil;
 import org.apache.cxf.systest.sts.common.TokenTestUtils;
+import org.apache.cxf.systest.sts.deployment.DoubleItServer;
 import org.apache.cxf.systest.sts.deployment.STSServer;
 import org.apache.cxf.testutil.common.AbstractBusClientServerTestBase;
 import org.apache.cxf.ws.security.SecurityConstants;
@@ -41,6 +38,10 @@ import org.apache.cxf.ws.security.trust.STSClient;
 import org.example.contract.doubleit.DoubleItPortType;
 
 import org.junit.BeforeClass;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 
 /**
@@ -57,25 +58,14 @@ public class UsernameActAsCachingTest extends AbstractBusClientServerTestBase {
     private static final String NAMESPACE = "http://www.example.org/contract/DoubleIt";
     private static final QName SERVICE_QNAME = new QName(NAMESPACE, "DoubleItService");
 
-    private static final String PORT = allocatePort(Server.class);
+    private static final String PORT = allocatePort(DoubleItServer.class);
 
     @BeforeClass
     public static void startServers() throws Exception {
-        assertTrue(
-            "Server failed to launch",
-            // run the server in the same process
-            // set this to false to fork
-            launchServer(Server.class, true)
-        );
-        STSServer stsServer = new STSServer();
-        stsServer.setContext("cxf-x509.xml");
-        assertTrue(launchServer(stsServer));
-    }
-
-    @org.junit.AfterClass
-    public static void cleanup() throws Exception {
-        SecurityTestUtil.cleanup();
-        stopAllServers();
+        assertTrue(launchServer(new DoubleItServer(
+            UsernameActAsCachingTest.class.getResource("cxf-service.xml")
+            )));
+        assertTrue(launchServer(new STSServer("cxf-x509.xml")));
     }
 
     /**
@@ -83,13 +73,7 @@ public class UsernameActAsCachingTest extends AbstractBusClientServerTestBase {
      */
     @org.junit.Test
     public void testUsernameActAsCaching() throws Exception {
-
-        SpringBusFactory bf = new SpringBusFactory();
-        URL busFile = UsernameActAsCachingTest.class.getResource("cxf-client.xml");
-
-        Bus bus = bf.createBus(busFile.toString());
-        BusFactory.setDefaultBus(bus);
-        BusFactory.setThreadDefaultBus(bus);
+        createBus(getClass().getResource("cxf-client.xml").toString());
 
         URL wsdl = UsernameActAsCachingTest.class.getResource("DoubleIt.wsdl");
         Service service = Service.create(wsdl, SERVICE_QNAME);
@@ -161,7 +145,6 @@ public class UsernameActAsCachingTest extends AbstractBusClientServerTestBase {
         }
 
         ((java.io.Closeable)port).close();
-        bus.shutdown(true);
     }
 
     /**
@@ -169,13 +152,7 @@ public class UsernameActAsCachingTest extends AbstractBusClientServerTestBase {
      */
     @org.junit.Test
     public void testDifferentUsersCaching() throws Exception {
-
-        SpringBusFactory bf = new SpringBusFactory();
-        URL busFile = UsernameActAsCachingTest.class.getResource("cxf-client.xml");
-
-        Bus bus = bf.createBus(busFile.toString());
-        BusFactory.setDefaultBus(bus);
-        BusFactory.setThreadDefaultBus(bus);
+        createBus(getClass().getResource("cxf-client.xml").toString());
 
         URL wsdl = UsernameActAsCachingTest.class.getResource("DoubleIt.wsdl");
         Service service = Service.create(wsdl, SERVICE_QNAME);
@@ -251,7 +228,6 @@ public class UsernameActAsCachingTest extends AbstractBusClientServerTestBase {
         }
 
         ((java.io.Closeable)port).close();
-        bus.shutdown(true);
     }
 
     /**
@@ -259,13 +235,7 @@ public class UsernameActAsCachingTest extends AbstractBusClientServerTestBase {
      */
     @org.junit.Test
     public void testAppliesToCaching() throws Exception {
-
-        SpringBusFactory bf = new SpringBusFactory();
-        URL busFile = UsernameActAsCachingTest.class.getResource("cxf-client.xml");
-
-        Bus bus = bf.createBus(busFile.toString());
-        BusFactory.setDefaultBus(bus);
-        BusFactory.setThreadDefaultBus(bus);
+        createBus(getClass().getResource("cxf-client.xml").toString());
 
         URL wsdl = UsernameActAsCachingTest.class.getResource("DoubleIt.wsdl");
         Service service = Service.create(wsdl, SERVICE_QNAME);
@@ -342,7 +312,6 @@ public class UsernameActAsCachingTest extends AbstractBusClientServerTestBase {
         }
 
         ((java.io.Closeable)port).close();
-        bus.shutdown(true);
     }
 
     /**
@@ -350,13 +319,7 @@ public class UsernameActAsCachingTest extends AbstractBusClientServerTestBase {
      */
     @org.junit.Test
     public void testNoAppliesToCaching() throws Exception {
-
-        SpringBusFactory bf = new SpringBusFactory();
-        URL busFile = UsernameActAsCachingTest.class.getResource("cxf-client.xml");
-
-        Bus bus = bf.createBus(busFile.toString());
-        BusFactory.setDefaultBus(bus);
-        BusFactory.setThreadDefaultBus(bus);
+        createBus(getClass().getResource("cxf-client.xml").toString());
 
         URL wsdl = UsernameActAsCachingTest.class.getResource("DoubleIt.wsdl");
         Service service = Service.create(wsdl, SERVICE_QNAME);
@@ -404,7 +367,6 @@ public class UsernameActAsCachingTest extends AbstractBusClientServerTestBase {
         }
 
         ((java.io.Closeable)port).close();
-        bus.shutdown(true);
     }
 
     private void clearSTSClient(BindingProvider p) throws BusException, EndpointException {
@@ -419,6 +381,6 @@ public class UsernameActAsCachingTest extends AbstractBusClientServerTestBase {
 
     private static void doubleIt(DoubleItPortType port, int numToDouble) {
         int resp = port.doubleIt(numToDouble);
-        assertEquals(2 * numToDouble, resp);
+        assertEquals(2L * numToDouble, resp);
     }
 }

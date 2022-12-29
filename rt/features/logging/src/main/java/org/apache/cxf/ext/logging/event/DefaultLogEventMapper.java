@@ -34,6 +34,7 @@ import javax.security.auth.Subject;
 import org.apache.cxf.binding.Binding;
 import org.apache.cxf.configuration.security.AuthorizationPolicy;
 import org.apache.cxf.endpoint.Endpoint;
+import org.apache.cxf.ext.logging.MaskSensitiveHelper;
 import org.apache.cxf.helpers.CastUtils;
 import org.apache.cxf.message.Message;
 import org.apache.cxf.message.MessageUtils;
@@ -46,18 +47,36 @@ import org.apache.cxf.ws.addressing.AddressingProperties;
 import org.apache.cxf.ws.addressing.ContextUtils;
 
 public class DefaultLogEventMapper {
-    private static final Set<String> BINARY_CONTENT_MEDIA_TYPES;
+    public static final String MASKED_HEADER_VALUE = "XXX";
+    private static final Set<String> DEFAULT_BINARY_CONTENT_MEDIA_TYPES;
+
     static {
-        BINARY_CONTENT_MEDIA_TYPES = new HashSet<>();
-        BINARY_CONTENT_MEDIA_TYPES.add("application/octet-stream");
-        BINARY_CONTENT_MEDIA_TYPES.add("application/pdf");
-        BINARY_CONTENT_MEDIA_TYPES.add("image/png");
-        BINARY_CONTENT_MEDIA_TYPES.add("image/jpeg");
-        BINARY_CONTENT_MEDIA_TYPES.add("image/gif");
+        Set<String> mediaTypes = new HashSet<>(6);
+        mediaTypes.add("application/octet-stream");
+        mediaTypes.add("application/pdf");
+        mediaTypes.add("image/png");
+        mediaTypes.add("image/jpeg");
+        mediaTypes.add("image/gif");
+        mediaTypes.add("image/bmp");
+        DEFAULT_BINARY_CONTENT_MEDIA_TYPES = Collections.unmodifiableSet(mediaTypes);
     }
     private static final String MULTIPART_CONTENT_MEDIA_TYPE = "multipart";
 
-    public LogEvent map(Message message) {
+    private final Set<String> binaryContentMediaTypes = new HashSet<>(DEFAULT_BINARY_CONTENT_MEDIA_TYPES);
+
+    private MaskSensitiveHelper maskSensitiveHelper = new MaskSensitiveHelper();
+
+    public void addBinaryContentMediaTypes(String mediaTypes) {
+        if (mediaTypes != null) {
+            Collections.addAll(binaryContentMediaTypes, mediaTypes.split(";"));
+        }
+    }
+
+    public LogEvent map(final Message message) {
+        return this.map(message, Collections.emptySet());
+    }
+
+    public LogEvent map(final Message message, final Set<String> sensitiveProtocolHeaders) {
         final LogEvent event = new LogEvent();
         event.setMessageId(getMessageId(message));
         event.setExchangeId((String)message.getExchange().get(LogEvent.KEY_EXCHANGE_ID));
@@ -75,12 +94,12 @@ public class DefaultLogEventMapper {
         event.setContentType(safeGet(message, Message.CONTENT_TYPE));
 
         Map<String, String> headerMap = getHeaders(message);
+        if (sensitiveProtocolHeaders != null && !sensitiveProtocolHeaders.isEmpty()) {
+            maskSensitiveHelper.maskHeaders(headerMap, sensitiveProtocolHeaders);
+        }
         event.setHeaders(headerMap);
 
-        String uri = getUri(message);
-        if (uri != null) {
-            event.setAddress(uri);
-        }
+        event.setAddress(getAddress(message, event));
 
         event.setPrincipal(getPrincipal(message));
         event.setBinaryContent(isBinaryContent(message));
@@ -112,7 +131,7 @@ public class DefaultLogEventMapper {
         while (principalIt.hasNext()) {
             principals.append(principalIt.next());
             if (principalIt.hasNext()) {
-                principals.append(",");
+                principals.append(',');
             }
         }
         if (principals.length() == 0) {
@@ -146,6 +165,19 @@ public class DefaultLogEventMapper {
         return result;
     }
 
+    private String getAddress(Message message, LogEvent event) {
+        final Message observedMessage;
+        if (event.getType() == EventType.RESP_IN) {
+            observedMessage = message.getExchange().getOutMessage();
+        } else if (event.getType() == EventType.RESP_OUT) {
+            observedMessage = message.getExchange().getInMessage();
+        } else {
+            observedMessage = message;
+        }
+
+        return getUri(observedMessage);
+    }
+
     private String getUri(Message message) {
         String uri = safeGet(message, Message.REQUEST_URL);
         if (uri == null) {
@@ -154,7 +186,7 @@ public class DefaultLogEventMapper {
             if (uri != null && uri.startsWith("/")) {
                 if (address != null && !address.startsWith(uri)) {
                     if (address.endsWith("/") && address.length() > 1) {
-                        address = address.substring(0, address.length());
+                        address = address.substring(0, address.length() - 1);
                     }
                     uri = address + uri;
                 }
@@ -171,9 +203,13 @@ public class DefaultLogEventMapper {
 
     private boolean isBinaryContent(Message message) {
         String contentType = safeGet(message, Message.CONTENT_TYPE);
-        return contentType != null && BINARY_CONTENT_MEDIA_TYPES.contains(contentType);
+        return contentType != null && binaryContentMediaTypes.contains(contentType);
     }
 
+    public boolean isBinaryContent(String contentType) {
+        return contentType != null && binaryContentMediaTypes.contains(contentType);
+    }
+    
     private boolean isMultipartContent(Message message) {
         String contentType = safeGet(message, Message.CONTENT_TYPE);
         return contentType != null && contentType.startsWith(MULTIPART_CONTENT_MEDIA_TYPE);
@@ -187,7 +223,7 @@ public class DefaultLogEventMapper {
      */
     private boolean isSOAPMessage(Message message) {
         Binding binding = message.getExchange().getBinding();
-        return binding != null && binding.getClass().getSimpleName().equals("SoapBinding");
+        return binding != null && "SoapBinding".equals(binding.getClass().getSimpleName());
     }
 
     /**
@@ -205,9 +241,7 @@ public class DefaultLogEventMapper {
 
     private String getOperationName(Message message) {
         String operationName = null;
-        BindingOperationInfo boi = null;
-
-        boi = message.getExchange().getBindingOperationInfo();
+        BindingOperationInfo boi = message.getExchange().getBindingOperationInfo();
 
         if (null != boi) {
             operationName = boi.getName().toString();
@@ -290,10 +324,10 @@ public class DefaultLogEventMapper {
      */
     private boolean isRESTFault(Message message) {
         Object opName = message.getExchange().get("org.apache.cxf.resource.operation.name");
-        if (opName == null) {
+        Integer responseCode = (Integer)message.get(Message.RESPONSE_CODE);
+        if (opName == null && responseCode == null) {
             return true;
         }
-        Integer responseCode = (Integer)message.get(Message.RESPONSE_CODE);
         return (responseCode != null) && (responseCode >= 400);
     }
 

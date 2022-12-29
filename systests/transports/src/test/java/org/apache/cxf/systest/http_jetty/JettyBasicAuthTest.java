@@ -22,8 +22,8 @@ package org.apache.cxf.systest.http_jetty;
 import java.net.URL;
 
 import javax.xml.namespace.QName;
-import javax.xml.ws.BindingProvider;
 
+import jakarta.xml.ws.BindingProvider;
 import org.apache.cxf.Bus;
 import org.apache.cxf.BusFactory;
 import org.apache.cxf.configuration.security.AuthorizationPolicy;
@@ -39,6 +39,9 @@ import org.apache.hello_world_soap_http.SOAPService;
 
 import org.junit.Before;
 import org.junit.BeforeClass;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 /**
  * Tests thread pool config.

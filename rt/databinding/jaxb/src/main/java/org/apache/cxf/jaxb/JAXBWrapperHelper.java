@@ -23,19 +23,18 @@ import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
-import javax.xml.bind.JAXBElement;
-
+import jakarta.xml.bind.JAXBElement;
 import org.apache.cxf.databinding.AbstractWrapperHelper;
 
 /**
  *
  */
 public class JAXBWrapperHelper extends AbstractWrapperHelper {
-    protected final Method jaxbObjectMethods[];
+    protected final Method[] jaxbObjectMethods;
     protected final Object objectFactory;
 
     protected JAXBWrapperHelper(Class<?> wt, Method[] sets, Method[] gets,
-                                Method jaxbs[], Field[] f, Object of) {
+                                Method[] jaxbs, Field[] f, Object of) {
         super(wt, sets, gets, f);
         jaxbObjectMethods = jaxbs;
         objectFactory = of;
@@ -43,7 +42,7 @@ public class JAXBWrapperHelper extends AbstractWrapperHelper {
 
     @Override
     protected Object createWrapperObject(Class<?> typeClass) throws Exception {
-        return typeClass.newInstance();
+        return typeClass.getDeclaredConstructor().newInstance();
     }
 
     @Override
@@ -54,7 +53,7 @@ public class JAXBWrapperHelper extends AbstractWrapperHelper {
     @Override
     protected Object getValue(Method method, Object in) throws IllegalAccessException,
         InvocationTargetException {
-        if ("javax.xml.bind.JAXBElement".equals(method.getReturnType().getCanonicalName())) {
+        if ("jakarta.xml.bind.JAXBElement".equals(method.getReturnType().getCanonicalName())) {
             JAXBElement<?> je = (JAXBElement<?>)method.invoke(in);
             return je == null ? je : je.getValue();
         }

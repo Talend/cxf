@@ -19,17 +19,17 @@
 
 package demo.handlers.common;
 
-import java.util.Map;
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.JAXBElement;
-import javax.xml.bind.JAXBException;
 import javax.xml.transform.Source;
-import javax.xml.ws.LogicalMessage;
-import javax.xml.ws.ProtocolException;
-import javax.xml.ws.WebServiceException;
-import javax.xml.ws.handler.LogicalHandler;
-import javax.xml.ws.handler.LogicalMessageContext;
-import javax.xml.ws.handler.MessageContext;
+
+import jakarta.xml.bind.JAXBContext;
+import jakarta.xml.bind.JAXBElement;
+import jakarta.xml.bind.JAXBException;
+import jakarta.xml.ws.LogicalMessage;
+import jakarta.xml.ws.ProtocolException;
+import jakarta.xml.ws.WebServiceException;
+import jakarta.xml.ws.handler.LogicalHandler;
+import jakarta.xml.ws.handler.LogicalMessageContext;
+import jakarta.xml.ws.handler.MessageContext;
 import org.apache.handlers.types.AddNumbers;
 import org.apache.handlers.types.AddNumbersResponse;
 import org.apache.handlers.types.ObjectFactory;
@@ -42,7 +42,7 @@ import org.apache.handlers.types.ObjectFactory;
 public class SmallNumberHandler implements LogicalHandler<LogicalMessageContext> {
 
 
-    // Implementation of javax.xml.ws.handler.Handler
+    // Implementation of jakarta.xml.ws.handler.Handler
 
     public final boolean handleMessage(LogicalMessageContext messageContext) {
         System.out.println("LogicalMessageHandler handleMessage called");
@@ -60,7 +60,7 @@ public class SmallNumberHandler implements LogicalHandler<LogicalMessageContext>
                 JAXBContext jaxbContext = JAXBContext.newInstance(ObjectFactory.class);
                 Object payload = msg.getPayload(jaxbContext);
                 if (payload instanceof JAXBElement) {
-                    payload = ((JAXBElement)payload).getValue();
+                    payload = ((JAXBElement<?>)payload).getValue();
                 }
 
                 if (payload instanceof AddNumbers) {
@@ -88,7 +88,7 @@ public class SmallNumberHandler implements LogicalHandler<LogicalMessageContext>
 
                         payload = msg.getPayload(jaxbContext);
                         if (payload instanceof JAXBElement) {
-                            payload = ((JAXBElement)payload).getValue();
+                            payload = ((JAXBElement<?>)payload).getValue();
                         }
 
                         AddNumbersResponse resp2 = (AddNumbersResponse)payload;
@@ -119,10 +119,6 @@ public class SmallNumberHandler implements LogicalHandler<LogicalMessageContext>
 
     public void close(MessageContext ctx) {
         System.out.println("LogicalHandler close called");
-    }
-
-    public void init(Map config) {
-        System.out.println("LogicalHandler init called");
     }
 
     public void destroy() {

@@ -28,7 +28,7 @@ import org.apache.cxf.common.i18n.Message;
 public class DatabindingException extends RuntimeException {
 
     private static final long serialVersionUID = -2595633596348811788L;
-    private final List<String> extraMessages = new LinkedList<String>();
+    private final List<String> extraMessages = new LinkedList<>();
 
 
     /**
@@ -84,7 +84,7 @@ public class DatabindingException extends RuntimeException {
         for (String s : extraMessages) {
             buf.append(s);
         }
-        buf.append(" ");
+        buf.append(' ');
         buf.append(super.getMessage());
         return buf.toString();
     }

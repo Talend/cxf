@@ -33,7 +33,7 @@ public class Server {
         context.setContextPath("/");
         context.addServlet(servletHolder, "/*");
 
-        servletHolder.setInitParameter("javax.ws.rs.Application",
+        servletHolder.setInitParameter("jakarta.ws.rs.Application",
             CatalogApplication.class.getName());
 
         server.setHandler(context);
@@ -41,7 +41,7 @@ public class Server {
         server.join();
     }
 
-    public static void main(String args[]) throws Exception {
+    public static void main(String[] args) throws Exception {
         new Server();
         System.out.println("Server ready...");
 

@@ -23,19 +23,15 @@
     <packaging>bundle</packaging>
     <name>Apache CXF RS SSO SAML</name>
     <description>Apache CXF RS SSO SAML</description>
-    <url>http://cxf.apache.org</url>
+    <url>https://cxf.apache.org</url>
     <parent>
         <groupId>org.apache.cxf</groupId>
         <artifactId>cxf-parent</artifactId>
-        <version>3.2.5-SNAPSHOT</version>
+        <version>4.0.1-SNAPSHOT</version>
         <relativePath>../../../../../parent/pom.xml</relativePath>
     </parent>
     <properties>
-        <cxf.osgi.import>
-            javax.servlet*;version="${cxf.osgi.javax.servlet.version}",
-            net.sf.ehcache*;resolution:=optional;version="[2.5, 3.0.0)",
-            org.opensaml*;version="${cxf.opensaml.osgi.version.range}",
-        </cxf.osgi.import>
+        <cxf.module.name>org.apache.cxf.rs.security.sso.saml</cxf.module.name>
     </properties>
     <dependencies>
         <dependency>
@@ -63,9 +59,9 @@
             <artifactId>${cxf.servlet-api.artifact}</artifactId>
         </dependency>
         <dependency>
-            <groupId>net.sf.ehcache</groupId>
+            <groupId>org.ehcache</groupId>
             <artifactId>ehcache</artifactId>
-            <version>${cxf.ehcache.version}</version>
+            <classifier>jakarta</classifier>
             <scope>compile</scope>
         </dependency>
     </dependencies>

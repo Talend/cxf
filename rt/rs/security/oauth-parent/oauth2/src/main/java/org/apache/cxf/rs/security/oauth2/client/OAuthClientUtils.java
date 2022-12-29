@@ -18,31 +18,33 @@
  */
 package org.apache.cxf.rs.security.oauth2.client;
 
-import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
-import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.Map;
 
-import javax.ws.rs.ProcessingException;
-import javax.ws.rs.client.ResponseProcessingException;
-import javax.ws.rs.core.Form;
-import javax.ws.rs.core.HttpHeaders;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.UriBuilder;
-
-import org.apache.cxf.common.util.Base64Utility;
+import jakarta.ws.rs.ProcessingException;
+import jakarta.ws.rs.client.ResponseProcessingException;
+import jakarta.ws.rs.core.Form;
+import jakarta.ws.rs.core.HttpHeaders;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.Response;
+import jakarta.ws.rs.core.Response.Status;
+import jakarta.ws.rs.core.UriBuilder;
 import org.apache.cxf.common.util.StringUtils;
 import org.apache.cxf.jaxrs.client.WebClient;
+import org.apache.cxf.jaxrs.json.basic.JsonMapObjectReaderWriter;
+import org.apache.cxf.jaxrs.utils.ExceptionUtils;
 import org.apache.cxf.rs.security.oauth2.common.AccessTokenGrant;
 import org.apache.cxf.rs.security.oauth2.common.ClientAccessToken;
 import org.apache.cxf.rs.security.oauth2.common.OAuthError;
 import org.apache.cxf.rs.security.oauth2.grants.refresh.RefreshTokenGrant;
 import org.apache.cxf.rs.security.oauth2.provider.OAuthJSONProvider;
 import org.apache.cxf.rs.security.oauth2.provider.OAuthServiceException;
+import org.apache.cxf.rs.security.oauth2.services.AuthorizationMetadata;
 import org.apache.cxf.rs.security.oauth2.tokens.hawk.HawkAuthorizationScheme;
 import org.apache.cxf.rs.security.oauth2.utils.OAuthConstants;
+import org.apache.cxf.transport.http.auth.DefaultBasicAuthSupplier;
 
 /**
  * The utility class for simplifying working with OAuth servers
@@ -73,12 +75,6 @@ public final class OAuthClientUtils {
                                                    redirectUri,
                                                    state,
                                                    scope);
-        if (redirectUri != null) {
-            ub.queryParam(OAuthConstants.REDIRECT_URI, redirectUri);
-        }
-        if (state != null) {
-            ub.queryParam(OAuthConstants.STATE, state);
-        }
         return ub.build();
     }
 
@@ -287,15 +283,8 @@ public final class OAuthClientUtils {
         if (consumer != null) {
             boolean secretAvailable = !StringUtils.isEmpty(consumer.getClientSecret());
             if (setAuthorizationHeader && secretAvailable) {
-                StringBuilder sb = new StringBuilder();
-                sb.append("Basic ");
-                try {
-                    String data = consumer.getClientId() + ":" + consumer.getClientSecret();
-                    sb.append(Base64Utility.encode(data.getBytes(StandardCharsets.UTF_8)));
-                } catch (Exception ex) {
-                    throw new ProcessingException(ex);
-                }
-                accessTokenService.replaceHeader("Authorization", sb.toString());
+                accessTokenService.replaceHeader(HttpHeaders.AUTHORIZATION,
+                    DefaultBasicAuthSupplier.getBasicAuthHeader(consumer.getClientId(), consumer.getClientSecret()));
             } else {
                 form.param(OAuthConstants.CLIENT_ID, consumer.getClientId());
                 if (secretAvailable) {
@@ -307,10 +296,13 @@ public final class OAuthClientUtils {
             // the authenticated credentials and the client registration id
         }
         Response response = accessTokenService.form(form);
-        Map<String, String> map = null;
+        final Map<String, String> map;
         try {
-            map = new OAuthJSONProvider().readJSONResponse((InputStream)response.getEntity());
-        } catch (IOException ex) {
+            map = response.getMediaType() == null
+                    || response.getMediaType().isCompatible(MediaType.APPLICATION_JSON_TYPE)
+                            ? new OAuthJSONProvider().readJSONResponse((InputStream) response.getEntity())
+                            : Collections.emptyMap();
+        } catch (Exception ex) {
             throw new ResponseProcessingException(response, ex);
         }
         if (200 == response.getStatus()) {
@@ -334,16 +326,15 @@ public final class OAuthClientUtils {
 
     public static ClientAccessToken fromMapToClientToken(Map<String, String> map,
                                                          String defaultTokenType) {
-        if (map.containsKey(OAuthConstants.ACCESS_TOKEN)) {
+        final String tokenKey = map.remove(OAuthConstants.ACCESS_TOKEN);
+        if (tokenKey != null) {
 
             String tokenType = map.remove(OAuthConstants.ACCESS_TOKEN_TYPE);
             if (tokenType == null) {
                 tokenType = defaultTokenType;
             }
             if (tokenType != null) {
-                ClientAccessToken token = new ClientAccessToken(
-                                              tokenType,
-                                              map.remove(OAuthConstants.ACCESS_TOKEN));
+                ClientAccessToken token = new ClientAccessToken(tokenType, tokenKey);
 
                 String refreshToken = map.remove(OAuthConstants.REFRESH_TOKEN);
                 if (refreshToken != null) {
@@ -405,6 +396,15 @@ public final class OAuthClientUtils {
                                                    new HttpRequestProperties(wc, httpVerb)));
     }
 
+    public static AuthorizationMetadata getAuthorizationMetadata(String issuerURL) {
+        Response response = WebClient.create(issuerURL).path("/.well-known/oauth-authorization-server")
+            .accept(MediaType.APPLICATION_JSON).get();
+        if (Status.OK.getStatusCode() != response.getStatus()) {
+            throw ExceptionUtils.toWebApplicationException(response);
+        }
+        return new AuthorizationMetadata(new JsonMapObjectReaderWriter().fromJson(response.readEntity(String.class)));
+    }
+
     private static void appendTokenData(StringBuilder sb,
                                         ClientAccessToken token,
                                         HttpRequestProperties httpProps)
@@ -413,7 +413,7 @@ public final class OAuthClientUtils {
         String tokenType = token.getTokenType().toLowerCase();
         if (OAuthConstants.BEARER_TOKEN_TYPE.equalsIgnoreCase(tokenType)) {
             sb.append(OAuthConstants.BEARER_AUTHORIZATION_SCHEME);
-            sb.append(" ");
+            sb.append(' ');
             sb.append(token.getTokenKey());
         } else if (OAuthConstants.HAWK_TOKEN_TYPE.equalsIgnoreCase(tokenType)) {
             if (httpProps == null) {

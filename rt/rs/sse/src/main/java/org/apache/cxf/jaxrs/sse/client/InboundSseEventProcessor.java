@@ -22,15 +22,18 @@ import java.io.BufferedReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
+import java.security.AccessController;
+import java.security.PrivilegedAction;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
+import java.util.logging.Logger;
 
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.sse.InboundSseEvent;
-
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.Response;
+import jakarta.ws.rs.sse.InboundSseEvent;
+import org.apache.cxf.common.logging.LogUtils;
 import org.apache.cxf.common.util.StringUtils;
 import org.apache.cxf.endpoint.Endpoint;
 import org.apache.cxf.jaxrs.client.ClientProviderFactory;
@@ -42,21 +45,28 @@ public class InboundSseEventProcessor {
     public static final String SERVER_SENT_EVENTS = "text/event-stream";
     public static final MediaType SERVER_SENT_EVENTS_TYPE = MediaType.valueOf(SERVER_SENT_EVENTS);
 
-    private static final String COMMENT = ": ";
-    private static final String EVENT = "event: ";
-    private static final String ID = "id: ";
-    private static final String RETRY = "retry: ";
-    private static final String DATA = "data: ";
+    private static final Logger LOG = LogUtils.getL7dLogger(InboundSseEventProcessor.class);
+    private static final String COMMENT = ":";
+    private static final String EVENT = "event:";
+    private static final String ID = "id:";
+    private static final String RETRY = "retry:";
+    private static final String DATA = "data:";
 
     private final Endpoint endpoint;
     private final InboundSseEventListener listener;
     private final ExecutorService executor;
+    private final boolean discardIncomplete;
     
     private volatile boolean closed;
     
     protected InboundSseEventProcessor(Endpoint endpoint, InboundSseEventListener listener) {
+        this(endpoint, listener, true);
+    }
+    
+    protected InboundSseEventProcessor(Endpoint endpoint, InboundSseEventListener listener, boolean discardIncomplete) {
         this.endpoint = endpoint;
         this.listener = listener;
+        this.discardIncomplete = discardIncomplete;
         this.executor = Executors.newSingleThreadScheduledExecutor();
     }
     
@@ -88,23 +98,40 @@ public class InboundSseEventProcessor {
                         builder = null; /* reset the builder for next event */
                         listener.onNext(event);
                     } else {
+                        // Parsing and interpreting event stream: 
+                        // https://www.w3.org/TR/eventsource/#parsing-an-event-stream
                         if (line.startsWith(EVENT)) {
-                            builder = getOrCreate(builder).name(line.substring(EVENT.length()));
+                            int beginIndex = findFirstNonSpacePosition(line, EVENT);
+                            builder = getOrCreate(builder).name(line.substring(beginIndex));
                         } else if (line.startsWith(ID)) {
-                            builder = getOrCreate(builder).id(line.substring(ID.length()));
+                            int beginIndex = findFirstNonSpacePosition(line, ID);
+                            builder = getOrCreate(builder).id(line.substring(beginIndex));
                         } else if (line.startsWith(COMMENT)) {
-                            builder = getOrCreate(builder).comment(line.substring(COMMENT.length()));
+                            int beginIndex = findFirstNonSpacePosition(line, COMMENT);
+                            builder = getOrCreate(builder).comment(line.substring(beginIndex));
                         } else if (line.startsWith(RETRY)) {
-                            builder = getOrCreate(builder).reconnectDelay(line.substring(RETRY.length()));
+                            int beginIndex = findFirstNonSpacePosition(line, RETRY);
+                            builder = getOrCreate(builder).reconnectDelay(line.substring(beginIndex));
                         } else if (line.startsWith(DATA)) {
-                            builder = getOrCreate(builder).data(line.substring(DATA.length()));
+                            int beginIndex = findFirstNonSpacePosition(line, DATA);
+                            builder = getOrCreate(builder).appendData(line.substring(beginIndex));
                         }
                     }
                     line = reader.readLine();
                 }
                 
                 if (builder != null) {
-                    listener.onNext(builder.build(factory, message));
+                    // As per https://www.w3.org/TR/2021/SPSD-eventsource-20210128/#event-stream-interpretation:
+                    //
+                    //   ... Once the end of the file is reached, any pending data must be discarded. 
+                    //   (If the file ends in the middle of an event, before the final empty line, 
+                    //   the incomplete event is not dispatched.) ...
+                    //
+                    if (discardIncomplete /* default */) {
+                        LOG.fine("Discarding incomplete SSE event");
+                    } else {
+                        listener.onNext(builder.build(factory, message));
+                    }
                 }
 
                 // complete the stream
@@ -114,6 +141,7 @@ public class InboundSseEventProcessor {
             }
 
             if (response != null) {
+                LOG.fine("Closing the response");
                 response.close();
             }
 
@@ -133,7 +161,11 @@ public class InboundSseEventProcessor {
                 return true;
             }
             
-            executor.shutdown();
+            AccessController.doPrivileged((PrivilegedAction<Void>)
+                () -> { 
+                    executor.shutdown();
+                    return null;
+                });
             return executor.awaitTermination(timeout, unit);
         } catch (final InterruptedException ex) {
             return false;
@@ -145,5 +177,28 @@ public class InboundSseEventProcessor {
      */
     private static Builder getOrCreate(final Builder builder) {
         return (builder == null) ? new InboundSseEventImpl.Builder() : builder;
+    }
+    
+    /**
+     * Remove only leading spaces from the line as per specification, space after 
+     * the colon is optional.
+     * 
+     * The following stream fires two identical events:
+     * 
+     *   data:test
+     *   data: test
+     *   
+     *   This is because the space after the colon is ignored if present.
+     */
+    private static int findFirstNonSpacePosition(final String str, final String prefix) {
+        int beginIndex = prefix.length();
+        
+        for (; beginIndex < str.length(); ++beginIndex) {
+            if (str.charAt(beginIndex) != ' ') {
+                break;
+            }
+        }
+        
+        return beginIndex;
     }
 }

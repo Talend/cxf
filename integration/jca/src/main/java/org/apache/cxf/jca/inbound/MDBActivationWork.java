@@ -26,11 +26,11 @@ import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import javax.resource.spi.endpoint.MessageEndpoint;
-import javax.resource.spi.endpoint.MessageEndpointFactory;
-import javax.resource.spi.work.Work;
 import javax.xml.namespace.QName;
 
+import jakarta.resource.spi.endpoint.MessageEndpoint;
+import jakarta.resource.spi.endpoint.MessageEndpointFactory;
+import jakarta.resource.spi.work.Work;
 import org.apache.cxf.Bus;
 import org.apache.cxf.BusFactory;
 import org.apache.cxf.bus.spring.SpringBusFactory;
@@ -45,7 +45,7 @@ import org.apache.cxf.service.model.EndpointInfo;
 /**
  *
  * MDBActivationWork is a type of {@link Work} that is executed by
- * {@link javax.resource.spi.work.WorkManager}.  MDBActivationWork
+ * {@link jakarta.resource.spi.work.WorkManager}.  MDBActivationWork
  * starts an CXF service endpoint to accept inbound calls for
  * the JCA connector.
  *
@@ -100,7 +100,7 @@ public class MDBActivationWork implements Work {
     }
 
     /**
-     * @param endpoint
+     * @param invoker
      * @param classLoader
      */
     private void activate(MDBInvoker invoker, ClassLoader classLoader) {
@@ -163,7 +163,7 @@ public class MDBActivationWork implements Work {
     private Server createServer(Bus bus, Class<?> serviceClass, MDBInvoker invoker) {
 
         // create server bean factory
-        ServerFactoryBean factory = null;
+        final ServerFactoryBean factory;
         if (serviceClass != null && EndpointUtils.hasWebServiceAnnotation(serviceClass)) {
             factory = new JaxWsServerFactoryBean();
         } else {
@@ -205,7 +205,7 @@ public class MDBActivationWork implements Work {
         // Don't start the server yet
         factory.setStart(false);
 
-        Server retval = null;
+        final Server retval;
         if (factory instanceof JaxWsServerFactoryBean) {
             retval = createServerFromJaxwsEndpoint((JaxWsServerFactoryBean)factory);
         } else {
@@ -233,10 +233,6 @@ public class MDBActivationWork implements Work {
         return endpoint.getServer(factory.getAddress());
     }
 
-    /**
-     * @param str
-     * @return
-     */
     private List<String> getListOfString(String str) {
         if (str == null) {
             return null;
@@ -245,12 +241,8 @@ public class MDBActivationWork implements Work {
         return Arrays.asList(str.split(","));
     }
 
-    /**
-     * @param endpoint
-     * @return
-     */
     private MDBInvoker createInvoker() {
-        MDBInvoker answer = null;
+        final MDBInvoker answer;
         if (spec instanceof DispatchMDBActivationSpec) {
             answer = new DispatchMDBInvoker(endpointFactory,
                     ((DispatchMDBActivationSpec)spec).getTargetBeanJndiName());

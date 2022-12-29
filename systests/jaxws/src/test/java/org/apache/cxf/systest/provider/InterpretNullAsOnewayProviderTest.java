@@ -25,15 +25,19 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 
 import javax.xml.transform.Source;
-import javax.xml.ws.Endpoint;
-import javax.xml.ws.Provider;
 
+import jakarta.xml.ws.Endpoint;
+import jakarta.xml.ws.Provider;
 import org.apache.cxf.helpers.IOUtils;
 import org.apache.cxf.testutil.common.AbstractBusClientServerTestBase;
 import org.apache.cxf.testutil.common.AbstractBusTestServerBase;
 
 import org.junit.BeforeClass;
 import org.junit.Test;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 /**
  * Testing the null response behavior of jaxws provider (jaxws 2.2 section 5.1.1)
@@ -79,9 +83,9 @@ public class InterpretNullAsOnewayProviderTest extends AbstractBusClientServerTe
         }
     }
 
-    @javax.xml.ws.WebServiceProvider(serviceName = "NullService",
+    @jakarta.xml.ws.WebServiceProvider(serviceName = "NullService",
                                      portName = "NullPort")
-    @javax.xml.ws.ServiceMode(value = javax.xml.ws.Service.Mode.PAYLOAD)
+    @jakarta.xml.ws.ServiceMode(value = jakarta.xml.ws.Service.Mode.PAYLOAD)
     public static class NullProviderService implements Provider<Source> {
         public Source invoke(Source request) {
             return null;

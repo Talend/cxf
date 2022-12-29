@@ -24,8 +24,8 @@ import java.util.Arrays;
 import java.util.Collection;
 
 import javax.xml.namespace.QName;
-import javax.xml.ws.Service;
 
+import jakarta.xml.ws.Service;
 import org.apache.cxf.Bus;
 import org.apache.cxf.BusFactory;
 import org.apache.cxf.bus.spring.SpringBusFactory;
@@ -37,6 +37,8 @@ import org.example.contract.doubleit.DoubleItPortType;
 import org.junit.BeforeClass;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized.Parameters;
+
+import static org.junit.Assert.assertTrue;
 
 /**
  * A set of tests for SecureConversation using policies defined in the OASIS spec:
@@ -73,18 +75,17 @@ public class SecureConversationTest extends AbstractBusClientServerTestBase {
     }
 
     @Parameters(name = "{0}")
-    public static Collection<TestParam[]> data() {
+    public static Collection<TestParam> data() {
 
-        return Arrays.asList(new TestParam[][] {{new TestParam(PORT, false)},
-                                                {new TestParam(PORT, true)},
-                                                {new TestParam(STAX_PORT, false)},
-                                                {new TestParam(STAX_PORT, true)},
+        return Arrays.asList(new TestParam[] {new TestParam(PORT, false),
+                                              new TestParam(PORT, true),
+                                              new TestParam(STAX_PORT, false),
+                                              new TestParam(STAX_PORT, true),
         });
     }
 
     @org.junit.AfterClass
     public static void cleanup() throws Exception {
-        SecurityTestUtil.cleanup();
         stopAllServers();
     }
 

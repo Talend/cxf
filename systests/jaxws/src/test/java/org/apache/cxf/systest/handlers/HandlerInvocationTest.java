@@ -26,39 +26,39 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.Unmarshaller;
 import javax.xml.namespace.QName;
-import javax.xml.soap.Detail;
-import javax.xml.soap.MessageFactory;
-import javax.xml.soap.SOAPBody;
-import javax.xml.soap.SOAPConstants;
-import javax.xml.soap.SOAPEnvelope;
-import javax.xml.soap.SOAPFault;
-import javax.xml.soap.SOAPMessage;
 import javax.xml.transform.OutputKeys;
 import javax.xml.transform.Source;
 import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerException;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.stream.StreamResult;
-import javax.xml.ws.Binding;
-import javax.xml.ws.BindingProvider;
-import javax.xml.ws.Dispatch;
-import javax.xml.ws.LogicalMessage;
-import javax.xml.ws.ProtocolException;
-import javax.xml.ws.Service;
-import javax.xml.ws.WebServiceException;
-import javax.xml.ws.handler.Handler;
-import javax.xml.ws.handler.HandlerResolver;
-import javax.xml.ws.handler.LogicalMessageContext;
-import javax.xml.ws.handler.MessageContext;
-import javax.xml.ws.handler.PortInfo;
-import javax.xml.ws.handler.soap.SOAPMessageContext;
-import javax.xml.ws.soap.SOAPFaultException;
 
 import org.w3c.dom.Element;
 
+import jakarta.xml.bind.JAXBContext;
+import jakarta.xml.bind.Unmarshaller;
+import jakarta.xml.soap.Detail;
+import jakarta.xml.soap.MessageFactory;
+import jakarta.xml.soap.SOAPBody;
+import jakarta.xml.soap.SOAPConstants;
+import jakarta.xml.soap.SOAPEnvelope;
+import jakarta.xml.soap.SOAPFault;
+import jakarta.xml.soap.SOAPMessage;
+import jakarta.xml.ws.Binding;
+import jakarta.xml.ws.BindingProvider;
+import jakarta.xml.ws.Dispatch;
+import jakarta.xml.ws.LogicalMessage;
+import jakarta.xml.ws.ProtocolException;
+import jakarta.xml.ws.Service;
+import jakarta.xml.ws.WebServiceException;
+import jakarta.xml.ws.handler.Handler;
+import jakarta.xml.ws.handler.HandlerResolver;
+import jakarta.xml.ws.handler.LogicalMessageContext;
+import jakarta.xml.ws.handler.MessageContext;
+import jakarta.xml.ws.handler.PortInfo;
+import jakarta.xml.ws.handler.soap.SOAPMessageContext;
+import jakarta.xml.ws.soap.SOAPFaultException;
 import org.apache.cxf.common.util.PackageUtils;
 import org.apache.cxf.helpers.DOMUtils;
 import org.apache.cxf.testutil.common.AbstractBusClientServerTestBase;
@@ -72,6 +72,11 @@ import org.apache.handler_test.types.PingResponse;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 public class HandlerInvocationTest extends AbstractBusClientServerTestBase {
     private static String port = TestUtil.getPortNumber(Server.class);
@@ -106,8 +111,8 @@ public class HandlerInvocationTest extends AbstractBusClientServerTestBase {
 
     @Test
     public void testAddHandlerThroughHandlerResolverClientSide() throws Exception {
-        TestHandler<LogicalMessageContext> handler1 = new TestHandler<LogicalMessageContext>(false);
-        TestHandler<LogicalMessageContext> handler2 = new TestHandler<LogicalMessageContext>(false);
+        TestHandler<LogicalMessageContext> handler1 = new TestHandler<>(false);
+        TestHandler<LogicalMessageContext> handler2 = new TestHandler<>(false);
 
         MyHandlerResolver myHandlerResolver = new MyHandlerResolver(handler1, handler2);
 
@@ -148,8 +153,8 @@ public class HandlerInvocationTest extends AbstractBusClientServerTestBase {
 
     @Test
     public void testLogicalHandlerOneWay() {
-        TestHandler<LogicalMessageContext> handler1 = new TestHandler<LogicalMessageContext>(false);
-        TestHandler<LogicalMessageContext> handler2 = new TestHandler<LogicalMessageContext>(false);
+        TestHandler<LogicalMessageContext> handler1 = new TestHandler<>(false);
+        TestHandler<LogicalMessageContext> handler2 = new TestHandler<>(false);
         addHandlersToChain((BindingProvider)handlerTest, handler1, handler2);
 
         handlerTest.pingOneWay();
@@ -160,8 +165,8 @@ public class HandlerInvocationTest extends AbstractBusClientServerTestBase {
 
     @Test
     public void testLogicalHandlerTwoWay() throws Exception {
-        TestHandler<LogicalMessageContext> handler1 = new TestHandler<LogicalMessageContext>(false);
-        TestHandler<LogicalMessageContext> handler2 = new TestHandler<LogicalMessageContext>(false);
+        TestHandler<LogicalMessageContext> handler1 = new TestHandler<>(false);
+        TestHandler<LogicalMessageContext> handler2 = new TestHandler<>(false);
         addHandlersToChain((BindingProvider)handlerTest, handler1, handler2);
 
         handlerTest.pingWithArgs("hello");
@@ -172,7 +177,7 @@ public class HandlerInvocationTest extends AbstractBusClientServerTestBase {
 
     @Test
     public void testSOAPHandlerHandleMessageReturnTrueClient() throws Exception {
-        TestHandler<LogicalMessageContext> handler1 = new TestHandler<LogicalMessageContext>(false);
+        TestHandler<LogicalMessageContext> handler1 = new TestHandler<>(false);
         TestHandler<LogicalMessageContext> handler2 = new TestHandler<LogicalMessageContext>(false) {
             public boolean handleMessage(LogicalMessageContext ctx) {
                 super.handleMessage(ctx);
@@ -234,7 +239,7 @@ public class HandlerInvocationTest extends AbstractBusClientServerTestBase {
     public void testLogicalHandlerHandleMessageReturnFalseClientOutBound() throws Exception {
         final String clientHandlerMessage = "handler2 client side";
 
-        TestHandler<LogicalMessageContext> handler1 = new TestHandler<LogicalMessageContext>(false);
+        TestHandler<LogicalMessageContext> handler1 = new TestHandler<>(false);
         TestHandler<LogicalMessageContext> handler2 = new TestHandler<LogicalMessageContext>(false) {
             public boolean handleMessage(LogicalMessageContext ctx) {
                 super.handleMessage(ctx);
@@ -258,7 +263,7 @@ public class HandlerInvocationTest extends AbstractBusClientServerTestBase {
                 return true;
             }
         };
-        TestHandler<LogicalMessageContext> handler3 = new TestHandler<LogicalMessageContext>(false);
+        TestHandler<LogicalMessageContext> handler3 = new TestHandler<>(false);
         TestSOAPHandler soapHandler1 = new TestSOAPHandler(false);
 
         addHandlersToChain((BindingProvider)handlerTest, handler1, handler2, handler3, soapHandler1);
@@ -285,7 +290,7 @@ public class HandlerInvocationTest extends AbstractBusClientServerTestBase {
 
     @Test
     public void testLogicalHandlerHandleMessageReturnFalseClientInBound() throws Exception {
-        TestHandler<LogicalMessageContext> handler1 = new TestHandler<LogicalMessageContext>(false);
+        TestHandler<LogicalMessageContext> handler1 = new TestHandler<>(false);
         TestHandler<LogicalMessageContext> handler2 = new TestHandler<LogicalMessageContext>(false) {
             public boolean handleMessage(LogicalMessageContext ctx) {
                 super.handleMessage(ctx);
@@ -297,7 +302,7 @@ public class HandlerInvocationTest extends AbstractBusClientServerTestBase {
                 return true;
             }
         };
-        TestHandler<LogicalMessageContext> handler3 = new TestHandler<LogicalMessageContext>(false);
+        TestHandler<LogicalMessageContext> handler3 = new TestHandler<>(false);
         TestSOAPHandler soapHandler1 = new TestSOAPHandler(false);
 
         addHandlersToChain((BindingProvider)handlerTest, handler1, handler2, handler3, soapHandler1);
@@ -324,7 +329,7 @@ public class HandlerInvocationTest extends AbstractBusClientServerTestBase {
     @Test
     public void testSOAPHandlerHandleMessageReturnFalseClientOutbound() throws Exception {
         final String clientHandlerMessage = "client side";
-        TestHandler<LogicalMessageContext> handler1 = new TestHandler<LogicalMessageContext>(false);
+        TestHandler<LogicalMessageContext> handler1 = new TestHandler<>(false);
         TestHandler<LogicalMessageContext> handler2 = new TestHandler<LogicalMessageContext>(false) {
             public boolean handleMessage(LogicalMessageContext ctx) {
                 super.handleMessage(ctx);
@@ -383,8 +388,8 @@ public class HandlerInvocationTest extends AbstractBusClientServerTestBase {
 
     @Test
     public void testSOAPHandlerHandleMessageReturnFalseClientInbound() throws Exception {
-        TestHandler<LogicalMessageContext> handler1 = new TestHandler<LogicalMessageContext>(false);
-        TestHandler<LogicalMessageContext> handler2 = new TestHandler<LogicalMessageContext>(false);
+        TestHandler<LogicalMessageContext> handler1 = new TestHandler<>(false);
+        TestHandler<LogicalMessageContext> handler2 = new TestHandler<>(false);
         TestSOAPHandler soapHandler1 = new TestSOAPHandler(false);
         TestSOAPHandler soapHandler2 = new TestSOAPHandler(false) {
             public boolean handleMessage(SOAPMessageContext ctx) {
@@ -475,7 +480,7 @@ public class HandlerInvocationTest extends AbstractBusClientServerTestBase {
     public void testLogicalHandlerHandleMessageThrowsProtocolExceptionClientOutbound() throws Exception {
         final String clientHandlerMessage = "handler1 client side";
 
-        TestHandler<LogicalMessageContext> handler1 = new TestHandler<LogicalMessageContext>(false);
+        TestHandler<LogicalMessageContext> handler1 = new TestHandler<>(false);
         TestHandler<LogicalMessageContext> handler2 = new TestHandler<LogicalMessageContext>(false) {
             public boolean handleMessage(LogicalMessageContext ctx) {
                 super.handleMessage(ctx);
@@ -516,7 +521,7 @@ public class HandlerInvocationTest extends AbstractBusClientServerTestBase {
     public void testLogicalHandlerHandleMessageThrowsProtocolExceptionClientInbound() throws Exception {
         final String clientHandlerMessage = "handler1 client side";
 
-        TestHandler<LogicalMessageContext> handler1 = new TestHandler<LogicalMessageContext>(false);
+        TestHandler<LogicalMessageContext> handler1 = new TestHandler<>(false);
         TestHandler<LogicalMessageContext> handler2 = new TestHandler<LogicalMessageContext>(false) {
             public boolean handleMessage(LogicalMessageContext ctx) {
                 super.handleMessage(ctx);
@@ -557,7 +562,7 @@ public class HandlerInvocationTest extends AbstractBusClientServerTestBase {
     public void testLogicalHandlerHandleMessageThrowsRuntimeExceptionClientOutbound() throws Exception {
         final String clientHandlerMessage = "handler1 client side";
 
-        TestHandler<LogicalMessageContext> handler1 = new TestHandler<LogicalMessageContext>(false);
+        TestHandler<LogicalMessageContext> handler1 = new TestHandler<>(false);
         TestHandler<LogicalMessageContext> handler2 = new TestHandler<LogicalMessageContext>(false) {
             public boolean handleMessage(LogicalMessageContext ctx) {
                 super.handleMessage(ctx);
@@ -598,7 +603,7 @@ public class HandlerInvocationTest extends AbstractBusClientServerTestBase {
     public void testLogicalHandlerHandleMessageThrowsRuntimeExceptionClientInbound() throws Exception {
         final String clientHandlerMessage = "handler1 client side";
 
-        TestHandler<LogicalMessageContext> handler1 = new TestHandler<LogicalMessageContext>(false);
+        TestHandler<LogicalMessageContext> handler1 = new TestHandler<>(false);
         TestHandler<LogicalMessageContext> handler2 = new TestHandler<LogicalMessageContext>(false) {
             public boolean handleMessage(LogicalMessageContext ctx) {
                 super.handleMessage(ctx);
@@ -639,8 +644,8 @@ public class HandlerInvocationTest extends AbstractBusClientServerTestBase {
     public void testSOAPHandlerHandleMessageThrowsProtocolExceptionClientOutbound() throws Exception {
         final String clientHandlerMessage = "handler1 client side";
 
-        TestHandler<LogicalMessageContext> handler1 = new TestHandler<LogicalMessageContext>(false);
-        TestHandler<LogicalMessageContext> handler2 = new TestHandler<LogicalMessageContext>(false);
+        TestHandler<LogicalMessageContext> handler1 = new TestHandler<>(false);
+        TestHandler<LogicalMessageContext> handler2 = new TestHandler<>(false);
         TestSOAPHandler soapHandler1 = new TestSOAPHandler(false) {
             public boolean handleMessage(SOAPMessageContext ctx) {
                 super.handleMessage(ctx);
@@ -684,8 +689,8 @@ public class HandlerInvocationTest extends AbstractBusClientServerTestBase {
     public void testSOAPHandlerHandleMessageThrowsProtocolExceptionClientInbound() throws Exception {
         final String clientHandlerMessage = "handler1 client side";
 
-        TestHandler<LogicalMessageContext> handler1 = new TestHandler<LogicalMessageContext>(false);
-        TestHandler<LogicalMessageContext> handler2 = new TestHandler<LogicalMessageContext>(false);
+        TestHandler<LogicalMessageContext> handler1 = new TestHandler<>(false);
+        TestHandler<LogicalMessageContext> handler2 = new TestHandler<>(false);
         TestSOAPHandler soapHandler1 = new TestSOAPHandler(false) {
             public boolean handleMessage(SOAPMessageContext ctx) {
                 super.handleMessage(ctx);
@@ -729,8 +734,8 @@ public class HandlerInvocationTest extends AbstractBusClientServerTestBase {
     public void testSOAPHandlerHandleMessageThrowsRuntimeExceptionClientOutbound() throws Exception {
         final String clientHandlerMessage = "handler1 client side";
 
-        TestHandler<LogicalMessageContext> handler1 = new TestHandler<LogicalMessageContext>(false);
-        TestHandler<LogicalMessageContext> handler2 = new TestHandler<LogicalMessageContext>(false);
+        TestHandler<LogicalMessageContext> handler1 = new TestHandler<>(false);
+        TestHandler<LogicalMessageContext> handler2 = new TestHandler<>(false);
         TestSOAPHandler soapHandler1 = new TestSOAPHandler(false) {
             public boolean handleMessage(SOAPMessageContext ctx) {
                 super.handleMessage(ctx);
@@ -873,7 +878,7 @@ public class HandlerInvocationTest extends AbstractBusClientServerTestBase {
 
     @Test
     public void testServerSOAPInboundHandlerThrowsSOAPFaultToClientHandlers() throws Exception {
-        TestHandler<LogicalMessageContext> handler1 = new TestHandler<LogicalMessageContext>(false);
+        TestHandler<LogicalMessageContext> handler1 = new TestHandler<>(false);
         TestHandler<LogicalMessageContext> handler2 = new TestHandler<LogicalMessageContext>(false) {
             public boolean handleFault(LogicalMessageContext ctx) {
                 super.handleFault(ctx);
@@ -923,8 +928,8 @@ public class HandlerInvocationTest extends AbstractBusClientServerTestBase {
             e.printStackTrace(ps);
             assertTrue("Did not get expected exception message",  baos.toString()
                 .indexOf("HandleMessage throws exception") > -1);
-            assertTrue("Did not get expected javax.xml.ws.soap.SOAPFaultException", baos.toString()
-                .indexOf("javax.xml.ws.soap.SOAPFaultException") > -1);*/
+            assertTrue("Did not get expected jakarta.xml.ws.soap.SOAPFaultException", baos.toString()
+                .indexOf("jakarta.xml.ws.soap.SOAPFaultException") > -1);*/
 
         }
 
@@ -987,7 +992,7 @@ public class HandlerInvocationTest extends AbstractBusClientServerTestBase {
     @Test
     public void testServerEndpointRemoteFault() throws PingException {
 
-        TestHandler<LogicalMessageContext> handler1 = new TestHandler<LogicalMessageContext>(false);
+        TestHandler<LogicalMessageContext> handler1 = new TestHandler<>(false);
         TestHandler<LogicalMessageContext> handler2 = new TestHandler<LogicalMessageContext>(false) {
             public boolean handleFault(LogicalMessageContext ctx) {
                 super.handleFault(ctx);
@@ -1102,8 +1107,8 @@ public class HandlerInvocationTest extends AbstractBusClientServerTestBase {
             e.printStackTrace(ps);
             assertTrue("Did not get expected exception message", baos.toString()
                 .indexOf("handler2 HandleFault throws RuntimeException") > -1);
-            assertTrue("Did not get expected javax.xml.ws.soap.SOAPFaultException", baos.toString()
-                .indexOf("javax.xml.ws.soap.SOAPFaultException") > -1);*/
+            assertTrue("Did not get expected jakarta.xml.ws.soap.SOAPFaultException", baos.toString()
+                .indexOf("jakarta.xml.ws.soap.SOAPFaultException") > -1);*/
 
         }
     }
@@ -1121,8 +1126,8 @@ public class HandlerInvocationTest extends AbstractBusClientServerTestBase {
             e.printStackTrace(ps);
             assertTrue("Did not get expected exception message", baos.toString()
                 .indexOf("handler2 HandleFault throws SOAPFaultException") > -1);
-            assertTrue("Did not get expected javax.xml.ws.soap.SOAPFaultException", baos.toString()
-                .indexOf("javax.xml.ws.soap.SOAPFaultException") > -1);*/
+            assertTrue("Did not get expected jakarta.xml.ws.soap.SOAPFaultException", baos.toString()
+                .indexOf("jakarta.xml.ws.soap.SOAPFaultException") > -1);*/
         }
     }
 
@@ -1173,8 +1178,8 @@ public class HandlerInvocationTest extends AbstractBusClientServerTestBase {
             .createDispatch(portName, SOAPMessage.class, Service.Mode.MESSAGE);
         setAddress(disp, "http://localhost:" + port + "/HandlerTest/SoapPort");
 
-        TestHandler<LogicalMessageContext> handler1 = new TestHandler<LogicalMessageContext>(false);
-        TestHandler<LogicalMessageContext> handler2 = new TestHandler<LogicalMessageContext>(false);
+        TestHandler<LogicalMessageContext> handler1 = new TestHandler<>(false);
+        TestHandler<LogicalMessageContext> handler2 = new TestHandler<>(false);
         TestSOAPHandler soapHandler1 = new TestSOAPHandler(false);
         TestSOAPHandler soapHandler2 = new TestSOAPHandler(false);
 
@@ -1216,7 +1221,7 @@ public class HandlerInvocationTest extends AbstractBusClientServerTestBase {
     @Test
     public void testMustUnderstandSoapFaultOneWay() {
         TestMustUnderstandHandler<SOAPMessageContext> handler =
-            new TestMustUnderstandHandler<SOAPMessageContext>();
+            new TestMustUnderstandHandler<>();
         addHandlersToChain((BindingProvider)handlerTest, handler);
         try {
             handlerTest.pingOneWay();
@@ -1284,6 +1289,6 @@ public class HandlerInvocationTest extends AbstractBusClientServerTestBase {
 
     private boolean isValidWsdlDescription(Object wsdlDescription) {
         return (wsdlDescription != null)
-               && ((wsdlDescription instanceof java.net.URI) || (wsdlDescription instanceof java.net.URL));
+               && (wsdlDescription instanceof java.net.URI || wsdlDescription instanceof java.net.URL);
     }
 }

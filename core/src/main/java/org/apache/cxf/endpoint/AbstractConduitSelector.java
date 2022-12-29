@@ -52,9 +52,9 @@ public abstract class AbstractConduitSelector implements ConduitSelector, Closea
 
 
     //collection of conduits that were created so we can close them all at the end
-    protected List<Conduit> conduits = new CopyOnWriteArrayList<Conduit>();
+    protected List<Conduit> conduits = new CopyOnWriteArrayList<>();
 
-    //protected Conduit selectedConduit;
+   
     protected Endpoint endpoint;
 
 
@@ -113,9 +113,7 @@ public abstract class AbstractConduitSelector implements ConduitSelector, Closea
                 } else {
                     getLogger().warning("ConduitInitiatorManager not found");
                 }
-            } catch (BusException ex) {
-                throw new Fault(ex);
-            } catch (IOException ex) {
+            } catch (BusException | IOException ex) {
                 throw new Fault(ex);
             }
         }
@@ -130,7 +128,7 @@ public abstract class AbstractConduitSelector implements ConduitSelector, Closea
 
     protected Conduit createConduit(Message message, Exchange exchange, ConduitInitiator conduitInitiator)
         throws IOException {
-        Conduit c = null;
+        Conduit c;
         synchronized (endpoint) {
             if (!conduits.isEmpty()) {
                 c = findCompatibleConduit(message);
@@ -274,9 +272,9 @@ public abstract class AbstractConduitSelector implements ConduitSelector, Closea
             if (conduitAddress.equalsIgnoreCase(actualAddress)) {
                 return true;
             }
-            return cbg.isFullComparison() ? false : matchAddressSubstrings(conduitAddress, actualAddress);
+            return !cbg.isFullComparison() && matchAddressSubstrings(conduitAddress, actualAddress);
         }
-        return cbg.isFullComparison() ? false : matchAddressSubstrings(conduitAddress, actualAddress);
+        return !cbg.isFullComparison() && matchAddressSubstrings(conduitAddress, actualAddress);
     }
 
     //smart address substring comparison that tries to avoid building and comparing substrings unless strictly required
@@ -286,9 +284,7 @@ public abstract class AbstractConduitSelector implements ConduitSelector, Closea
             if (idx <= 0) {
                 return true;
             }
-            conduitAddress = conduitAddress.substring(0, idx);
-            actualAddress = actualAddress.substring(0, idx);
-            return conduitAddress.equalsIgnoreCase(actualAddress);
+            return conduitAddress.substring(0, idx).equalsIgnoreCase(actualAddress.substring(0, idx));
         }
         //no possible match as for sure the substrings before idx will be different
         return false;

@@ -20,16 +20,16 @@ package org.apache.cxf.systest.jaxrs.validation.spring;
 
 import java.util.Arrays;
 
-import javax.validation.ConstraintViolationException;
-import javax.ws.rs.BadRequestException;
-import javax.ws.rs.core.Form;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
 import javax.xml.namespace.QName;
-import javax.xml.ws.Service;
-import javax.xml.ws.soap.SOAPBinding;
-import javax.xml.ws.soap.SOAPFaultException;
 
+import jakarta.validation.ConstraintViolationException;
+import jakarta.ws.rs.BadRequestException;
+import jakarta.ws.rs.core.Form;
+import jakarta.ws.rs.core.Response;
+import jakarta.ws.rs.core.Response.Status;
+import jakarta.xml.ws.Service;
+import jakarta.xml.ws.soap.SOAPBinding;
+import jakarta.xml.ws.soap.SOAPFaultException;
 import org.apache.cxf.jaxrs.client.JAXRSClientFactory;
 import org.apache.cxf.jaxrs.client.JAXRSClientFactoryBean;
 import org.apache.cxf.jaxrs.client.validation.JAXRSClientBeanValidationFeature;
@@ -41,6 +41,10 @@ import org.apache.cxf.systest.jaxrs.validation.BookWithValidation;
 import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Test;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 public class JAXRSClientServerValidationSpringTest extends AbstractJAXRSValidationTest {
     public static final String PORT = allocatePort(JAXRSClientServerValidationSpringTest.class);

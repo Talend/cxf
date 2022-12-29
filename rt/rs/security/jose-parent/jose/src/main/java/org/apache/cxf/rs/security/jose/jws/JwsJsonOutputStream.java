@@ -32,9 +32,10 @@ import org.apache.cxf.common.util.StringUtils;
 
 public class JwsJsonOutputStream extends FilterOutputStream {
     private boolean flushed;
-    private List<String> protectedHeaders;
-    private List<JwsSignature> signatures;
-    private ExecutorService executor;
+    private final List<String> protectedHeaders;
+    private final List<JwsSignature> signatures;
+    private final ExecutorService executor;
+
     public JwsJsonOutputStream(OutputStream out,
                                List<String> protectedHeaders,
                                List<JwsSignature> signatures) {
@@ -53,7 +54,7 @@ public class JwsJsonOutputStream extends FilterOutputStream {
     }
 
     @Override
-    public void write(final byte b[], final int off, final int len) throws IOException {
+    public void write(final byte[] b, final int off, final int len) throws IOException {
         //TODO: Review if it is at least theoretically possible that a given b[] region
         // can be modified in a subsequent write which might affect the signature calculation
         executor.execute(new Runnable() {

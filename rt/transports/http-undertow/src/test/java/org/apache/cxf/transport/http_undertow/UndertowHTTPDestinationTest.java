@@ -32,18 +32,17 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
 
-import javax.servlet.ServletInputStream;
-import javax.servlet.ServletOutputStream;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.xml.bind.JAXBElement;
 import javax.xml.namespace.QName;
 
+import jakarta.servlet.ServletInputStream;
+import jakarta.servlet.ServletOutputStream;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import jakarta.xml.bind.JAXBElement;
 import org.apache.cxf.Bus;
 import org.apache.cxf.BusException;
 import org.apache.cxf.BusFactory;
 import org.apache.cxf.bus.extension.ExtensionManagerBus;
-import org.apache.cxf.common.util.Base64Utility;
 import org.apache.cxf.common.util.StringUtils;
 import org.apache.cxf.configuration.security.AuthorizationPolicy;
 import org.apache.cxf.continuations.SuspendedInvocationException;
@@ -66,6 +65,7 @@ import org.apache.cxf.transport.http.AbstractHTTPDestination;
 import org.apache.cxf.transport.http.ContinuationProviderFactory;
 import org.apache.cxf.transport.http.DestinationRegistry;
 import org.apache.cxf.transport.http.HTTPTransportFactory;
+import org.apache.cxf.transport.http.auth.DefaultBasicAuthSupplier;
 import org.apache.cxf.transports.http.configuration.HTTPServerPolicy;
 import org.apache.cxf.ws.addressing.AddressingProperties;
 import org.apache.cxf.ws.addressing.EndpointReferenceType;
@@ -77,16 +77,22 @@ import io.undertow.util.HttpString;
 
 import org.easymock.EasyMock;
 import org.junit.After;
-import org.junit.Assert;
 import org.junit.Test;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNotSame;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertSame;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
-public class UndertowHTTPDestinationTest extends Assert {
+
+public class UndertowHTTPDestinationTest {
     protected static final String AUTH_HEADER = "Authorization";
     protected static final String USER = "copernicus";
     protected static final String PASSWD = "epicycles";
-    protected static final String BASIC_AUTH =
-        "Basic " + Base64Utility.encode((USER + ":" + PASSWD).getBytes());
+    protected static final String BASIC_AUTH = DefaultBasicAuthSupplier.getBasicAuthHeader(USER, PASSWD);
 
     private static final String NOWHERE = "http://nada.nothing.nowhere.null/";
     private static final String PAYLOAD = "message payload";
@@ -660,6 +666,8 @@ public class UndertowHTTPDestinationTest extends Assert {
                 EasyMock.expect(request.getRequestURI()).andReturn("/foo");
                 EasyMock.expect(request.getRequestURL())
                     .andReturn(new StringBuffer("http://localhost/foo")).anyTimes();
+                request.setAttribute("org.springframework.web.servlet.HandlerMapping.bestMatchingPattern", "/foo");
+                EasyMock.expectLastCall();
                 EasyMock.expect(request.getCharacterEncoding()).andReturn(StandardCharsets.UTF_8.name());
                 EasyMock.expect(request.getQueryString()).andReturn(query);
                 EasyMock.expect(request.getHeader("Accept")).andReturn("*/*");
@@ -702,11 +710,11 @@ public class UndertowHTTPDestinationTest extends Assert {
                     response.flushBuffer();
                     EasyMock.expectLastCall();
                 }
-                request.getAttribute("javax.servlet.request.cipher_suite");
+                request.getAttribute("jakarta.servlet.request.cipher_suite");
                 EasyMock.expectLastCall().andReturn("anythingwilldoreally");
                 request.getAttribute("javax.net.ssl.session");
                 EasyMock.expectLastCall().andReturn(null);
-                request.getAttribute("javax.servlet.request.X509Certificate");
+                request.getAttribute("jakarta.servlet.request.X509Certificate");
                 EasyMock.expectLastCall().andReturn(null);
             }
         }

@@ -24,7 +24,8 @@ import java.io.File;
 import java.net.URL;
 
 import javax.xml.namespace.QName;
-import javax.xml.ws.Holder;
+
+import jakarta.xml.ws.Holder;
 import org.apache.headers.HeaderService;
 import org.apache.headers.HeaderTester;
 import org.apache.headers.InHeader;
@@ -44,7 +45,7 @@ public final class Client {
     private Client() {
     }
 
-    public static void main(String args[]) throws Exception {
+    public static void main(String[] args) throws Exception {
 
         if (args.length == 0) {
             System.out.println("please specify wsdl");
@@ -85,8 +86,8 @@ public final class Client {
         System.out.println("Invoking outHeader operation");
         OutHeader me = new OutHeader();
         me.setRequestType("CXF user");
-        Holder<OutHeaderResponse> theResponse = new Holder<OutHeaderResponse>();
-        Holder<SOAPHeaderData> headerInfo = new Holder<SOAPHeaderData>();
+        Holder<OutHeaderResponse> theResponse = new Holder<>();
+        Holder<SOAPHeaderData> headerInfo = new Holder<>();
         proxy.outHeader(me, theResponse, headerInfo);
         System.out.println("\toutHeader invocation returned: ");
         System.out.println("\t\tOut parameter: " + theResponse.value.getResponseType());
@@ -99,7 +100,7 @@ public final class Client {
         System.out.println("Invoking inoutHeader operation");
         InoutHeader me = new InoutHeader();
         me.setRequestType("CXF user");
-        Holder<SOAPHeaderData> headerInfo = new Holder<SOAPHeaderData>();
+        Holder<SOAPHeaderData> headerInfo = new Holder<>();
         SOAPHeaderData shd = new SOAPHeaderData();
         shd.setOriginator("CXF client");
         shd.setMessage("Invoking inoutHeader operation");

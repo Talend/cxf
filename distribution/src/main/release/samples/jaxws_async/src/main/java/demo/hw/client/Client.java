@@ -27,7 +27,8 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
 import javax.xml.namespace.QName;
-import javax.xml.ws.Response;
+
+import jakarta.xml.ws.Response;
 
 import org.apache.hello_world_async_soap_http.GreeterAsync;
 import org.apache.hello_world_async_soap_http.SOAPService;
@@ -42,7 +43,7 @@ public final class Client {
     private Client() {
     }
 
-    public static void main(String args[]) throws Exception {
+    public static void main(String[] args) throws Exception {
 
         if (args.length == 0) {
             System.out.println("please specify wsdl");

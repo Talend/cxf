@@ -21,11 +21,11 @@ package org.apache.cxf.jaxws.support;
 
 import java.lang.reflect.Method;
 
-import javax.activation.DataSource;
 import javax.xml.namespace.QName;
-import javax.xml.soap.SOAPMessage;
 import javax.xml.transform.Source;
 
+import jakarta.activation.DataSource;
+import jakarta.xml.soap.SOAPMessage;
 import org.apache.cxf.wsdl.service.factory.ReflectionServiceFactoryBean;
 
 public class WebServiceProviderConfiguration extends JaxWsServiceConfiguration {
@@ -34,7 +34,7 @@ public class WebServiceProviderConfiguration extends JaxWsServiceConfiguration {
 
     @Override
     public Boolean isOperation(Method method) {
-        return method.getName().equals("invoke")
+        return "invoke".equals(method.getName())
             && method.getParameterTypes().length == 1
             && (Source.class.isAssignableFrom(method.getParameterTypes()[0])
                 || SOAPMessage.class.isAssignableFrom(method.getParameterTypes()[0])

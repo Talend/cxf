@@ -26,18 +26,17 @@ import java.util.Collection;
 
 import javax.xml.namespace.QName;
 import javax.xml.transform.stream.StreamSource;
-import javax.xml.ws.Dispatch;
-import javax.xml.ws.Service;
 
 import org.w3c.dom.Document;
 
+import jakarta.xml.ws.Dispatch;
+import jakarta.xml.ws.Service;
 import org.apache.cxf.Bus;
 import org.apache.cxf.BusFactory;
 import org.apache.cxf.bus.spring.SpringBusFactory;
 import org.apache.cxf.endpoint.Client;
 import org.apache.cxf.jaxws.DispatchImpl;
 import org.apache.cxf.staxutils.StaxUtils;
-import org.apache.cxf.systest.ws.common.SecurityTestUtil;
 import org.apache.cxf.systest.ws.common.TestParam;
 import org.apache.cxf.testutil.common.AbstractBusClientServerTestBase;
 import org.apache.cxf.transport.http.HTTPConduit;
@@ -47,6 +46,10 @@ import org.example.contract.doubleit.DoubleItPortType;
 import org.junit.BeforeClass;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized.Parameters;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 /**
  * A test for CXF-5679.
@@ -83,15 +86,14 @@ public class SignatureWhitespaceTest extends AbstractBusClientServerTestBase {
 
     @org.junit.AfterClass
     public static void cleanup() throws Exception {
-        SecurityTestUtil.cleanup();
         stopAllServers();
     }
 
     @Parameters(name = "{0}")
-    public static Collection<TestParam[]> data() {
+    public static Collection<TestParam> data() {
 
-        return Arrays.asList(new TestParam[][] {{new TestParam(PORT, false)},
-                                                {new TestParam(STAX_PORT, false)},
+        return Arrays.asList(new TestParam[] {new TestParam(PORT, false),
+                                              new TestParam(STAX_PORT, false),
         });
     }
 

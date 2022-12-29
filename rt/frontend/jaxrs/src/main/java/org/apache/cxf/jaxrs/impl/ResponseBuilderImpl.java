@@ -27,18 +27,17 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Set;
 
-import javax.ws.rs.core.CacheControl;
-import javax.ws.rs.core.EntityTag;
-import javax.ws.rs.core.HttpHeaders;
-import javax.ws.rs.core.Link;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.MultivaluedMap;
-import javax.ws.rs.core.NewCookie;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.ResponseBuilder;
-import javax.ws.rs.core.UriInfo;
-import javax.ws.rs.core.Variant;
-
+import jakarta.ws.rs.core.CacheControl;
+import jakarta.ws.rs.core.EntityTag;
+import jakarta.ws.rs.core.HttpHeaders;
+import jakarta.ws.rs.core.Link;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.MultivaluedMap;
+import jakarta.ws.rs.core.NewCookie;
+import jakarta.ws.rs.core.Response;
+import jakarta.ws.rs.core.Response.ResponseBuilder;
+import jakarta.ws.rs.core.UriInfo;
+import jakarta.ws.rs.core.Variant;
 import org.apache.cxf.message.Message;
 import org.apache.cxf.phase.PhaseInterceptorChain;
 
@@ -48,7 +47,7 @@ public class ResponseBuilderImpl extends ResponseBuilder implements Cloneable {
     private String reasonPhrase;
     private boolean statusSet;
     private Object entity;
-    private MultivaluedMap<String, Object> metadata = new MetadataMap<String, Object>();
+    private MultivaluedMap<String, Object> metadata = new MetadataMap<>();
     private Annotation[] annotations;
 
     public ResponseBuilderImpl() {
@@ -68,7 +67,7 @@ public class ResponseBuilderImpl extends ResponseBuilder implements Cloneable {
         }
         ResponseImpl r = new ResponseImpl(status, null, reasonPhrase);
         MetadataMap<String, Object> m =
-            new MetadataMap<String, Object>(metadata, false, true);
+            new MetadataMap<>(metadata, false, true);
         r.addMetadata(m);
         r.setEntity(entity, annotations);
         reset();
@@ -227,7 +226,7 @@ public class ResponseBuilderImpl extends ResponseBuilder implements Cloneable {
 
 //  CHECKSTYLE:OFF
     @Override
-    public ResponseBuilder clone() {
+    public ResponseBuilder clone() { //NOPMD
         return new ResponseBuilderImpl(this);
     }
 //  CHECKSTYLE:ON
@@ -280,7 +279,7 @@ public class ResponseBuilderImpl extends ResponseBuilder implements Cloneable {
         if (methods == null) {
             return allow();
         }
-        return allow(methods.toArray(new String[methods.size()]));
+        return allow(methods.toArray(new String[0]));
     }
 
     @Override

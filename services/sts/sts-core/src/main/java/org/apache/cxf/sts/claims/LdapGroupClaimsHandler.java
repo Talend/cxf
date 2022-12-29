@@ -19,9 +19,9 @@
 package org.apache.cxf.sts.claims;
 
 import java.net.URI;
-import java.net.URISyntaxException;
 import java.security.Principal;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.StringTokenizer;
@@ -169,14 +169,8 @@ public class LdapGroupClaimsHandler implements ClaimsHandler, RealmSupport {
         this.groupNameScopedFilter = groupNameScopedFilter;
     }
 
-    public List<URI> getSupportedClaimTypes() {
-        List<URI> list = new ArrayList<>();
-        try {
-            list.add(new URI(this.groupURI));
-        } catch (URISyntaxException e) {
-            LOG.warning("Invalid groupURI '" + this.groupURI + "'");
-        }
-        return list;
+    public List<String> getSupportedClaimTypes() {
+        return Collections.singletonList(groupURI);
     }
 
     public ProcessedClaimCollection retrieveClaimValues(
@@ -255,7 +249,7 @@ public class LdapGroupClaimsHandler implements ClaimsHandler, RealmSupport {
         }
 
         String scope = null;
-        if (getAppliesToScopeMapping() != null && getAppliesToScopeMapping().size() > 0
+        if (getAppliesToScopeMapping() != null && !getAppliesToScopeMapping().isEmpty()
             && parameters.getAppliesToAddress() != null) {
             scope = getAppliesToScopeMapping().get(parameters.getAppliesToAddress());
             if (LOG.isLoggable(Level.FINE)) {
@@ -284,7 +278,7 @@ public class LdapGroupClaimsHandler implements ClaimsHandler, RealmSupport {
                 //  Demo_User -> Role=User
                 //  Demo_Admin -> Role=Admin
                 String filter = this.groupNameScopedFilter;
-                String role = null;
+                final String role;
                 if (isUseFullGroupNameAsValue()) {
                     role = group;
                 } else {
@@ -297,7 +291,7 @@ public class LdapGroupClaimsHandler implements ClaimsHandler, RealmSupport {
                     //ex. (default groupNameGlobalFilter)
                     //  User -> Role=User
                     //  Admin -> Role=Admin
-                    String role = null;
+                    final String role;
                     if (isUseFullGroupNameAsValue()) {
                         role = group;
                     } else {

@@ -19,15 +19,14 @@
 package org.apache.cxf.sts.operation;
 
 import java.security.Principal;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Collections;
 import java.util.Properties;
 
-import javax.xml.bind.JAXBElement;
 import javax.xml.namespace.QName;
 
 import org.w3c.dom.Element;
 
+import jakarta.xml.bind.JAXBElement;
 import org.apache.cxf.jaxws.context.WrappedMessageContext;
 import org.apache.cxf.message.MessageImpl;
 import org.apache.cxf.security.SecurityContext;
@@ -50,23 +49,34 @@ import org.apache.cxf.ws.security.sts.provider.model.CancelTargetType;
 import org.apache.cxf.ws.security.sts.provider.model.RequestSecurityTokenResponseType;
 import org.apache.cxf.ws.security.sts.provider.model.RequestSecurityTokenType;
 import org.apache.cxf.ws.security.tokenstore.TokenStore;
+import org.apache.cxf.ws.security.tokenstore.TokenStoreException;
 import org.apache.cxf.ws.security.trust.STSUtils;
 import org.apache.wss4j.common.crypto.Crypto;
 import org.apache.wss4j.common.crypto.CryptoFactory;
 import org.apache.wss4j.common.ext.WSSecurityException;
 import org.apache.wss4j.common.principal.CustomTokenPrincipal;
 
+import org.junit.BeforeClass;
+
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+
 /**
  * Some unit tests for the cancel operation to cancel SecurityContextTokens.
  */
-public class CancelSCTUnitTest extends org.junit.Assert {
+public class CancelSCTUnitTest {
 
     public static final QName REQUESTED_SECURITY_TOKEN =
         QNameConstants.WS_TRUST_FACTORY.createRequestedSecurityToken(null).getName();
     private static final QName QNAME_REQ_TOKEN_CANCELLED =
         QNameConstants.WS_TRUST_FACTORY.createRequestedTokenCancelled(null).getName();
 
-    private static TokenStore tokenStore = new DefaultInMemoryTokenStore();
+    private static TokenStore tokenStore;
+
+    @BeforeClass
+    public static void init() throws TokenStoreException {
+        tokenStore = new DefaultInMemoryTokenStore();
+    }
 
     /**
      * Test to successfully cancel a SecurityContextToken
@@ -77,11 +87,9 @@ public class CancelSCTUnitTest extends org.junit.Assert {
         cancelOperation.setTokenStore(tokenStore);
 
         // Add Token Canceller
-        List<TokenCanceller> cancellerList = new ArrayList<>();
         TokenCanceller sctCanceller = new SCTCanceller();
         sctCanceller.setVerifyProofOfPossession(false);
-        cancellerList.add(sctCanceller);
-        cancelOperation.setTokenCancellers(cancellerList);
+        cancelOperation.setTokenCancellers(Collections.singletonList(sctCanceller));
 
         // Add STSProperties object
         STSPropertiesMBean stsProperties = new StaticSTSProperties();
@@ -180,7 +188,7 @@ public class CancelSCTUnitTest extends org.junit.Assert {
 
         assertTrue(sctTokenProvider.canHandleToken(STSUtils.TOKEN_TYPE_SCT_05_12));
         TokenProviderResponse providerResponse = sctTokenProvider.createToken(providerParameters);
-        assertTrue(providerResponse != null);
+        assertNotNull(providerResponse);
         assertTrue(providerResponse.getToken() != null && providerResponse.getTokenId() != null);
 
         return providerResponse;

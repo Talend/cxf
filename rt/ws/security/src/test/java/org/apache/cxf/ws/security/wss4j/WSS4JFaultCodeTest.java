@@ -21,17 +21,13 @@ package org.apache.cxf.ws.security.wss4j;
 import java.io.ByteArrayInputStream;
 
 import javax.xml.namespace.QName;
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.soap.SOAPConstants;
-import javax.xml.soap.SOAPMessage;
-import javax.xml.stream.XMLStreamReader;
 
 import org.w3c.dom.Document;
 
+import jakarta.xml.soap.SOAPConstants;
+import jakarta.xml.soap.SOAPMessage;
 import org.apache.cxf.binding.soap.SoapFault;
 import org.apache.cxf.binding.soap.SoapMessage;
-import org.apache.cxf.helpers.DOMUtils.NullResolver;
 import org.apache.cxf.message.Exchange;
 import org.apache.cxf.message.ExchangeImpl;
 import org.apache.cxf.message.MessageImpl;
@@ -43,6 +39,9 @@ import org.apache.wss4j.common.WSS4JConstants;
 
 import org.junit.Test;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 /**
  * A number of tests for fault codes that are thrown from WSS4JInInterceptor.
@@ -64,18 +63,7 @@ public class WSS4JFaultCodeTest extends AbstractSecurityTest {
         doc = saajMsg.getSOAPPart();
 
         byte[] docbytes = getMessageBytes(doc);
-        XMLStreamReader reader = StaxUtils.createXMLStreamReader(new ByteArrayInputStream(docbytes));
-
-        DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
-
-        dbf.setValidating(false);
-        dbf.setIgnoringComments(false);
-        dbf.setIgnoringElementContentWhitespace(true);
-        dbf.setNamespaceAware(true);
-
-        DocumentBuilder db = dbf.newDocumentBuilder();
-        db.setEntityResolver(new NullResolver());
-        doc = StaxUtils.read(db, reader, false);
+        StaxUtils.read(new ByteArrayInputStream(docbytes));
 
         WSS4JInInterceptor inHandler = new WSS4JInInterceptor();
 
@@ -84,7 +72,7 @@ public class WSS4JFaultCodeTest extends AbstractSecurityTest {
         ex.setInMessage(inmsg);
         inmsg.setContent(SOAPMessage.class, saajMsg);
 
-        inHandler.setProperty(ConfigurationConstants.ACTION, ConfigurationConstants.ENCRYPT);
+        inHandler.setProperty(ConfigurationConstants.ACTION, ConfigurationConstants.ENCRYPTION);
         inHandler.setProperty(ConfigurationConstants.DEC_PROP_FILE, "insecurity.properties");
         inHandler.setProperty(ConfigurationConstants.PW_CALLBACK_CLASS, TestPwdCallback.class.getName());
 
@@ -97,7 +85,7 @@ public class WSS4JFaultCodeTest extends AbstractSecurityTest {
             assertTrue(fault.getReason().startsWith(
                 "An error was discovered processing the <wsse:Security> header"));
             QName faultCode = new QName(WSS4JConstants.WSSE_NS, "InvalidSecurity");
-            assertTrue(fault.getFaultCode().equals(faultCode));
+            assertEquals(fault.getFaultCode(), faultCode);
         }
     }
 
@@ -124,18 +112,7 @@ public class WSS4JFaultCodeTest extends AbstractSecurityTest {
         assertValid("//wsse:Security", doc);
 
         byte[] docbytes = getMessageBytes(doc);
-        XMLStreamReader reader = StaxUtils.createXMLStreamReader(new ByteArrayInputStream(docbytes));
-
-        DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
-
-        dbf.setValidating(false);
-        dbf.setIgnoringComments(false);
-        dbf.setIgnoringElementContentWhitespace(true);
-        dbf.setNamespaceAware(true);
-
-        DocumentBuilder db = dbf.newDocumentBuilder();
-        db.setEntityResolver(new NullResolver());
-        doc = StaxUtils.read(db, reader, false);
+        StaxUtils.read(new ByteArrayInputStream(docbytes));
 
         WSS4JInInterceptor inHandler = new WSS4JInInterceptor();
 
@@ -158,7 +135,7 @@ public class WSS4JFaultCodeTest extends AbstractSecurityTest {
         } catch (SoapFault fault) {
             assertTrue(fault.getReason().contains("Invalid timestamp"));
             QName faultCode = new QName(WSS4JConstants.WSSE_NS, "MessageExpired");
-            assertTrue(fault.getFaultCode().equals(faultCode));
+            assertEquals(fault.getFaultCode(), faultCode);
         }
     }
 
@@ -184,18 +161,7 @@ public class WSS4JFaultCodeTest extends AbstractSecurityTest {
         assertValid("//wsse:Security", doc);
 
         byte[] docbytes = getMessageBytes(doc);
-        XMLStreamReader reader = StaxUtils.createXMLStreamReader(new ByteArrayInputStream(docbytes));
-
-        DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
-
-        dbf.setValidating(false);
-        dbf.setIgnoringComments(false);
-        dbf.setIgnoringElementContentWhitespace(true);
-        dbf.setNamespaceAware(true);
-
-        DocumentBuilder db = dbf.newDocumentBuilder();
-        db.setEntityResolver(new NullResolver());
-        doc = StaxUtils.read(db, reader, false);
+        StaxUtils.read(new ByteArrayInputStream(docbytes));
 
         WSS4JInInterceptor inHandler = new WSS4JInInterceptor();
 
@@ -217,7 +183,7 @@ public class WSS4JFaultCodeTest extends AbstractSecurityTest {
             assertTrue(fault.getReason().startsWith(
                 "An error was discovered processing the <wsse:Security> header"));
             QName faultCode = new QName(WSS4JConstants.WSSE_NS, "InvalidSecurity");
-            assertTrue(fault.getFaultCode().equals(faultCode));
+            assertEquals(fault.getFaultCode(), faultCode);
         }
     }
 
@@ -231,18 +197,7 @@ public class WSS4JFaultCodeTest extends AbstractSecurityTest {
         doc = saajMsg.getSOAPPart();
 
         byte[] docbytes = getMessageBytes(doc);
-        XMLStreamReader reader = StaxUtils.createXMLStreamReader(new ByteArrayInputStream(docbytes));
-
-        DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
-
-        dbf.setValidating(false);
-        dbf.setIgnoringComments(false);
-        dbf.setIgnoringElementContentWhitespace(true);
-        dbf.setNamespaceAware(true);
-
-        DocumentBuilder db = dbf.newDocumentBuilder();
-        db.setEntityResolver(new NullResolver());
-        doc = StaxUtils.read(db, reader, false);
+        StaxUtils.read(new ByteArrayInputStream(docbytes));
 
         WSS4JInInterceptor inHandler = new WSS4JInInterceptor();
 
@@ -252,7 +207,7 @@ public class WSS4JFaultCodeTest extends AbstractSecurityTest {
         inmsg.setContent(SOAPMessage.class, saajMsg);
 
         inHandler.setProperty(ConfigurationConstants.ACTION,
-                              ConfigurationConstants.SIGNATURE + " "  + ConfigurationConstants.ENCRYPT);
+                              ConfigurationConstants.SIGNATURE + " "  + ConfigurationConstants.ENCRYPTION);
         inHandler.setProperty(ConfigurationConstants.DEC_PROP_FILE, "insecurity.properties");
         inHandler.setProperty(ConfigurationConstants.SIG_VER_PROP_FILE, "insecurity.properties");
         inHandler.setProperty(ConfigurationConstants.PW_CALLBACK_CLASS, TestPwdCallback.class.getName());

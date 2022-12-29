@@ -28,8 +28,7 @@ import java.security.cert.Certificate;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 
-import javax.ws.rs.core.Response;
-
+import jakarta.ws.rs.core.Response;
 import org.apache.cxf.common.classloader.ClassLoaderUtils;
 import org.apache.cxf.jaxrs.client.WebClient;
 import org.apache.cxf.rs.security.jose.jwa.SignatureAlgorithm;
@@ -42,34 +41,60 @@ import org.apache.cxf.rs.security.oidc.common.IdToken;
 import org.apache.cxf.rs.security.oidc.common.UserInfo;
 import org.apache.cxf.systest.jaxrs.security.oauth2.common.OAuth2TestUtils;
 import org.apache.cxf.testutil.common.AbstractBusClientServerTestBase;
-import org.apache.cxf.testutil.common.TestUtil;
 
-import org.junit.Assert;
 import org.junit.BeforeClass;
+import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized.Parameters;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 /**
  * Some unit tests for the UserInfo Service in OpenId Connect. This can be used to return the User's claims given
- * an access token.
+ * an access token. The tests are run multiple times with different OAuthDataProvider implementations:
+ * a) JCACHE_SERVER - JCache
+ * b) JWT_JCACHE_SERVER - JCache with useJwtFormatForAccessTokens enabled
+ * c) JPA_SERVER - JPA provider
+ * d) JWT_NON_PERSIST_JCACHE_SERVER-  JCache with useJwtFormatForAccessTokens + !persistJwtEncoding
  */
+@RunWith(value = org.junit.runners.Parameterized.class)
 public class UserInfoTest extends AbstractBusClientServerTestBase {
 
-    static final String PORT = TestUtil.getPortNumber("jaxrs-userinfo");
+    private static final SpringBusTestServer JCACHE_SERVER = new SpringBusTestServer("userinfo-server-jcache");
+    private static final SpringBusTestServer JWT_JCACHE_SERVER = new SpringBusTestServer("userinfo-server-jcache-jwt");
+    private static final SpringBusTestServer JPA_SERVER = new SpringBusTestServer("userinfo-server-jpa");
+    private static final SpringBusTestServer JWT_NON_PERSIST_JCACHE_SERVER =
+            new SpringBusTestServer("userinfo-server-jcache-jwt-non-persist");
+
+    final String port;
+
+    public UserInfoTest(String port) {
+        this.port = port;
+    }
 
     @BeforeClass
     public static void startServers() throws Exception {
-        assertTrue(
-                "Server failed to launch",
-                // run the server in the same process
-                // set this to false to fork
-                launchServer(UserInfoServer.class, true)
-        );
+        assertTrue("Server failed to launch", launchServer(JCACHE_SERVER));
+        assertTrue("Server failed to launch", launchServer(JWT_JCACHE_SERVER));
+        assertTrue("Server failed to launch", launchServer(JPA_SERVER));
+        assertTrue("Server failed to launch", launchServer(JWT_NON_PERSIST_JCACHE_SERVER));
+    }
+
+    @Parameters(name = "{0}")
+    public static String[] data() {
+        return new String[]{
+                JCACHE_SERVER.getPort(),
+                JWT_JCACHE_SERVER.getPort(),
+                JPA_SERVER.getPort(),
+                JWT_NON_PERSIST_JCACHE_SERVER.getPort()};
     }
 
     @org.junit.Test
     public void testPlainUserInfo() throws Exception {
         URL busFile = UserInfoTest.class.getResource("client.xml");
 
-        String address = "https://localhost:" + PORT + "/services/oidc";
+        String address = "https://localhost:" + port + "/services/oidc";
         WebClient client = WebClient.create(address, OAuth2TestUtils.setupProviders(),
                                             "alice", "security", busFile.toString());
 
@@ -98,7 +123,7 @@ public class UserInfoTest extends AbstractBusClientServerTestBase {
         validateIdToken(idToken, null);
 
         // Now invoke on the UserInfo service with the access token
-        String userInfoAddress = "https://localhost:" + PORT + "/services/plain/userinfo";
+        String userInfoAddress = "https://localhost:" + port + "/services/plain/userinfo";
         WebClient userInfoClient = WebClient.create(userInfoAddress, OAuth2TestUtils.setupProviders(),
                                                     busFile.toString());
         userInfoClient.accept("application/json");
@@ -118,7 +143,7 @@ public class UserInfoTest extends AbstractBusClientServerTestBase {
     public void testSignedUserInfo() throws Exception {
         URL busFile = UserInfoTest.class.getResource("client.xml");
 
-        String address = "https://localhost:" + PORT + "/services/oidc";
+        String address = "https://localhost:" + port + "/services/oidc";
         WebClient client = WebClient.create(address, OAuth2TestUtils.setupProviders(),
                                             "alice", "security", busFile.toString());
 
@@ -147,7 +172,7 @@ public class UserInfoTest extends AbstractBusClientServerTestBase {
         validateIdToken(idToken, null);
 
         // Now invoke on the UserInfo service with the access token
-        String userInfoAddress = "https://localhost:" + PORT + "/services/signed/userinfo";
+        String userInfoAddress = "https://localhost:" + port + "/services/signed/userinfo";
         WebClient userInfoClient = WebClient.create(userInfoAddress, OAuth2TestUtils.setupProviders(),
                                                     busFile.toString());
         userInfoClient.accept("application/jwt");
@@ -169,9 +194,9 @@ public class UserInfoTest extends AbstractBusClientServerTestBase {
         keystore.load(ClassLoaderUtils.getResourceAsStream("keys/alice.jks", this.getClass()),
                       "password".toCharArray());
         Certificate cert = keystore.getCertificate("alice");
-        Assert.assertNotNull(cert);
+        assertNotNull(cert);
 
-        Assert.assertTrue(jwtConsumer.verifySignatureWith((X509Certificate)cert,
+        assertTrue(jwtConsumer.verifySignatureWith((X509Certificate)cert,
                                                           SignatureAlgorithm.RS256));
     }
 
@@ -179,7 +204,7 @@ public class UserInfoTest extends AbstractBusClientServerTestBase {
     public void testEncryptedUserInfo() throws Exception {
         URL busFile = UserInfoTest.class.getResource("client.xml");
 
-        String address = "https://localhost:" + PORT + "/services/oidc";
+        String address = "https://localhost:" + port + "/services/oidc";
         WebClient client = WebClient.create(address, OAuth2TestUtils.setupProviders(),
                                             "alice", "security", busFile.toString());
 
@@ -208,7 +233,7 @@ public class UserInfoTest extends AbstractBusClientServerTestBase {
         validateIdToken(idToken, null);
 
         // Now invoke on the UserInfo service with the access token
-        String userInfoAddress = "https://localhost:" + PORT + "/services/encrypted/userinfo";
+        String userInfoAddress = "https://localhost:" + port + "/services/encrypted/userinfo";
         WebClient userInfoClient = WebClient.create(userInfoAddress, OAuth2TestUtils.setupProviders(),
                                                     busFile.toString());
         userInfoClient.accept("application/jwt");
@@ -221,11 +246,11 @@ public class UserInfoTest extends AbstractBusClientServerTestBase {
         assertNotNull(token);
 
         KeyStore keystore = KeyStore.getInstance("JKS");
-        keystore.load(ClassLoaderUtils.getResourceAsStream("keys/bob.jks", this.getClass()),
+        keystore.load(ClassLoaderUtils.getResourceAsStream("keys/alice.jks", this.getClass()),
                       "password".toCharArray());
 
         JweJwtCompactConsumer jwtConsumer = new JweJwtCompactConsumer(token);
-        PrivateKey privateKey = (PrivateKey)keystore.getKey("bob", "password".toCharArray());
+        PrivateKey privateKey = (PrivateKey)keystore.getKey("alice", "password".toCharArray());
         JwtToken jwt = jwtConsumer.decryptWith(privateKey);
 
         assertEquals("alice", jwt.getClaim(JwtConstants.CLAIM_SUBJECT));
@@ -238,22 +263,23 @@ public class UserInfoTest extends AbstractBusClientServerTestBase {
         JwtToken jwt = jwtConsumer.getJwtToken();
 
         // Validate claims
-        Assert.assertEquals("alice", jwt.getClaim(JwtConstants.CLAIM_SUBJECT));
-        Assert.assertEquals("OIDC IdP", jwt.getClaim(JwtConstants.CLAIM_ISSUER));
-        Assert.assertEquals("consumer-id", jwt.getClaim(JwtConstants.CLAIM_AUDIENCE));
-        Assert.assertNotNull(jwt.getClaim(JwtConstants.CLAIM_EXPIRY));
-        Assert.assertNotNull(jwt.getClaim(JwtConstants.CLAIM_ISSUED_AT));
+        assertEquals("alice", jwt.getClaim(JwtConstants.CLAIM_SUBJECT));
+        assertEquals("OIDC IdP", jwt.getClaim(JwtConstants.CLAIM_ISSUER));
+        assertEquals("consumer-id", jwt.getClaim(JwtConstants.CLAIM_AUDIENCE));
+        assertNotNull(jwt.getClaim(JwtConstants.CLAIM_EXPIRY));
+        assertNotNull(jwt.getClaim(JwtConstants.CLAIM_ISSUED_AT));
         if (nonce != null) {
-            Assert.assertEquals(nonce, jwt.getClaim(IdToken.NONCE_CLAIM));
+            assertEquals(nonce, jwt.getClaim(IdToken.NONCE_CLAIM));
         }
 
         KeyStore keystore = KeyStore.getInstance("JKS");
         keystore.load(ClassLoaderUtils.getResourceAsStream("keys/alice.jks", this.getClass()),
                       "password".toCharArray());
         Certificate cert = keystore.getCertificate("alice");
-        Assert.assertNotNull(cert);
+        assertNotNull(cert);
 
-        Assert.assertTrue(jwtConsumer.verifySignatureWith((X509Certificate)cert,
+        assertTrue(jwtConsumer.verifySignatureWith((X509Certificate)cert,
                                                           SignatureAlgorithm.RS256));
     }
+
 }

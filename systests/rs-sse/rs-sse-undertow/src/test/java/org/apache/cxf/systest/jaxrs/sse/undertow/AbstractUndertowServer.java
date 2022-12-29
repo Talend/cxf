@@ -19,12 +19,12 @@
 
 package org.apache.cxf.systest.jaxrs.sse.undertow;
 
-import com.fasterxml.jackson.jaxrs.json.JacksonJsonProvider;
+import com.fasterxml.jackson.jakarta.rs.json.JacksonJsonProvider;
 
 import org.apache.cxf.jaxrs.servlet.CXFNonSpringJaxrsServlet;
 import org.apache.cxf.systest.jaxrs.sse.BookStore;
+import org.apache.cxf.systest.jaxrs.sse.BookStoreResponseFilter;
 import org.apache.cxf.testutil.common.AbstractBusTestServerBase;
-import org.apache.cxf.transport.sse.SseHttpTransportFactory;
 
 import io.undertow.Handlers;
 import io.undertow.Undertow;
@@ -35,6 +35,7 @@ import io.undertow.servlet.api.DeploymentManager;
 import static io.undertow.servlet.Servlets.defaultContainer;
 import static io.undertow.servlet.Servlets.deployment;
 import static io.undertow.servlet.Servlets.servlet;
+import static org.junit.Assert.fail;
 
 public abstract class AbstractUndertowServer extends AbstractBusTestServerBase {
     private Undertow server;
@@ -54,8 +55,9 @@ public abstract class AbstractUndertowServer extends AbstractBusTestServerBase {
                 .setDeploymentName("sse-test")
                 .addServlets(
                     servlet("MessageServlet", CXFNonSpringJaxrsServlet.class)
-                        .addInitParam(CXFNonSpringJaxrsServlet.TRANSPORT_ID, SseHttpTransportFactory.TRANSPORT_ID)
-                        .addInitParam("jaxrs.providers", JacksonJsonProvider.class.getName())
+                        .addInitParam("jaxrs.providers", String.join(",",
+                            JacksonJsonProvider.class.getName(),
+                            BookStoreResponseFilter.class.getName()))
                         .addInitParam("jaxrs.serviceClasses", BookStore.class.getName())
                         .setAsyncSupported(true)
                         .setLoadOnStartup(1)
@@ -68,12 +70,12 @@ public abstract class AbstractUndertowServer extends AbstractBusTestServerBase {
             PathHandler path = Handlers
                 .path(Handlers.redirect("/"))
                 .addPrefixPath("/", manager.start());
-            
+
             server = Undertow.builder()
                 .addHttpListener(port, "localhost")
                 .setHandler(path)
                 .build();
-            
+
             server.start();
         } catch (final Exception ex) {
             ex.printStackTrace();

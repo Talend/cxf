@@ -26,10 +26,14 @@ import org.apache.cxf.service.model.MessageInfo;
 import org.apache.cxf.service.model.OperationInfo;
 import org.apache.cxf.tools.common.model.JavaMethod;
 
-import org.junit.Assert;
 import org.junit.Test;
 
-public class MethodMapperTest extends Assert {
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+
+public class MethodMapperTest {
 
     private OperationInfo getOperation() {
         OperationInfo operation = new OperationInfo();
@@ -42,7 +46,7 @@ public class MethodMapperTest extends Assert {
         JavaMethod method = new MethodMapper().map(getOperation());
         assertNotNull(method);
 
-        assertEquals(javax.jws.soap.SOAPBinding.Style.DOCUMENT, method.getSoapStyle());
+        assertEquals(jakarta.jws.soap.SOAPBinding.Style.DOCUMENT, method.getSoapStyle());
         assertEquals("operationTest", method.getName());
         assertEquals("OperationTest", method.getOperationName());
         assertEquals(OperationType.REQUEST_RESPONSE, method.getStyle());

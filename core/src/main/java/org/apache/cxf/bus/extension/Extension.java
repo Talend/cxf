@@ -34,6 +34,8 @@ import org.apache.cxf.common.util.StringUtils;
 
 public class Extension {
     protected static final Logger LOG = LogUtils.getL7dLogger(Extension.class);
+    
+    private static final String PROBLEM_CREATING_EXTENSION_CLASS = "PROBLEM_CREATING_EXTENSION_CLASS";
 
     protected String className;
     protected ClassLoader classloader;
@@ -42,10 +44,11 @@ public class Extension {
     protected String interfaceName;
     protected boolean deferred;
     protected Collection<String> namespaces = new ArrayList<>();
-    protected Object args[];
+    protected Object[] args;
     protected volatile Object obj;
     protected boolean optional;
     protected boolean notFound;
+    
 
     public Extension() {
     }
@@ -102,7 +105,7 @@ public class Extension {
     }
 
     public String toString() {
-        StringBuilder buf = new StringBuilder();
+        StringBuilder buf = new StringBuilder(128);
         buf.append("class: ");
         buf.append(className);
         buf.append(", interface: ");
@@ -118,7 +121,7 @@ public class Extension {
             buf.append(ns);
             n++;
         }
-        buf.append(")");
+        buf.append(')');
         return buf.toString();
     }
 
@@ -153,7 +156,7 @@ public class Extension {
         return namespaces;
     }
 
-    public void setArgs(Object a[]) {
+    public void setArgs(Object[] a) {
         args = a;
     }
 
@@ -177,10 +180,8 @@ public class Extension {
             } catch (Throwable nex) {
                 notFound = true;
                 if (!optional) {
-                    if (origEx != null) {
-                        ex = origEx;
-                    }
-                    throw new ExtensionException(new Message("PROBLEM_LOADING_EXTENSION_CLASS", LOG, name), ex);
+                    throw new ExtensionException(new Message("PROBLEM_LOADING_EXTENSION_CLASS", LOG, name),
+                        origEx != null ? origEx : ex);
                 }
             }
         }
@@ -217,18 +218,10 @@ public class Extension {
                     obj = con.newInstance(b);
                     return obj;
                 } else if (b != null && args != null) {
-                    Constructor<?> con;
-                    boolean noBus = false;
                     try {
-                        con = cls.getConstructor(Bus.class, Object[].class);
-                    } catch (Exception ex) {
-                        con = cls.getConstructor(Object[].class);
-                        noBus = true;
-                    }
-                    if (noBus) {
-                        obj = con.newInstance(args);
-                    } else {
-                        obj = con.newInstance(b, args);
+                        obj = cls.getConstructor(Bus.class, Object[].class).newInstance(b, args);
+                    } catch (NoSuchMethodException ex) { // no bus
+                        obj = cls.getConstructor(Object[].class).newInstance(args);
                     }
                     return obj;
                 } else if (args != null) {
@@ -237,12 +230,10 @@ public class Extension {
                     return obj;
                 }
             } catch (InvocationTargetException ex) {
-                throw new ExtensionException(new Message("PROBLEM_CREATING_EXTENSION_CLASS", LOG, cls.getName()),
+                throw new ExtensionException(new Message(PROBLEM_CREATING_EXTENSION_CLASS, LOG, cls.getName()),
                                              ex.getCause());
-            } catch (InstantiationException ex) {
-                throw new ExtensionException(new Message("PROBLEM_CREATING_EXTENSION_CLASS", LOG, cls.getName()), ex);
-            } catch (SecurityException ex) {
-                throw new ExtensionException(new Message("PROBLEM_CREATING_EXTENSION_CLASS", LOG, cls.getName()), ex);
+            } catch (InstantiationException | SecurityException ex) {
+                throw new ExtensionException(new Message(PROBLEM_CREATING_EXTENSION_CLASS, LOG, cls.getName()), ex);
             } catch (NoSuchMethodException e) {
                 //ignore
             }
@@ -256,7 +247,7 @@ public class Extension {
         } catch (InvocationTargetException ex) {
             notFound = true;
             if (!optional) {
-                throw new ExtensionException(new Message("PROBLEM_CREATING_EXTENSION_CLASS", LOG, cls.getName()),
+                throw new ExtensionException(new Message(PROBLEM_CREATING_EXTENSION_CLASS, LOG, cls.getName()),
                                              ex.getCause());
             }
             LOG.log(Level.FINE, "Could not load optional extension " + getName(), ex);
@@ -277,7 +268,7 @@ public class Extension {
         } catch (Throwable e) {
             notFound = true;
             if (!optional) {
-                throw new ExtensionException(new Message("PROBLEM_CREATING_EXTENSION_CLASS", LOG, cls.getName()), e);
+                throw new ExtensionException(new Message(PROBLEM_CREATING_EXTENSION_CLASS, LOG, cls.getName()), e);
             }
             LOG.log(Level.FINE, "Could not load optional extension " + getName(), e);
         }

@@ -20,7 +20,6 @@ package org.apache.cxf.sts.operation;
 
 import java.net.URI;
 import java.security.Principal;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -28,13 +27,13 @@ import java.util.Map;
 import java.util.Properties;
 
 import javax.security.auth.callback.CallbackHandler;
-import javax.xml.bind.JAXBElement;
 import javax.xml.namespace.QName;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.DocumentFragment;
 import org.w3c.dom.Element;
 
+import jakarta.xml.bind.JAXBElement;
 import org.apache.cxf.helpers.DOMUtils;
 import org.apache.cxf.jaxws.context.WrappedMessageContext;
 import org.apache.cxf.message.MessageImpl;
@@ -62,9 +61,7 @@ import org.apache.cxf.sts.service.ServiceMBean;
 import org.apache.cxf.sts.service.StaticService;
 import org.apache.cxf.sts.token.delegation.SAMLDelegationHandler;
 import org.apache.cxf.sts.token.delegation.TokenDelegationHandler;
-import org.apache.cxf.sts.token.provider.AttributeStatementProvider;
 import org.apache.cxf.sts.token.provider.SAMLTokenProvider;
-import org.apache.cxf.sts.token.provider.TokenProvider;
 import org.apache.cxf.sts.token.provider.TokenProviderParameters;
 import org.apache.cxf.sts.token.provider.TokenProviderResponse;
 import org.apache.cxf.sts.token.provider.jwt.JWTTokenProvider;
@@ -72,7 +69,6 @@ import org.apache.cxf.sts.token.realm.RealmProperties;
 import org.apache.cxf.sts.token.realm.Relationship;
 import org.apache.cxf.sts.token.validator.IssuerSAMLRealmCodec;
 import org.apache.cxf.sts.token.validator.SAMLTokenValidator;
-import org.apache.cxf.sts.token.validator.TokenValidator;
 import org.apache.cxf.ws.security.sts.provider.model.ClaimsType;
 import org.apache.cxf.ws.security.sts.provider.model.OnBehalfOfType;
 import org.apache.cxf.ws.security.sts.provider.model.RequestSecurityTokenResponseCollectionType;
@@ -87,12 +83,15 @@ import org.apache.wss4j.common.principal.CustomTokenPrincipal;
 import org.apache.wss4j.common.saml.builder.SAML2Constants;
 import org.apache.wss4j.common.util.DOM2Writer;
 
-import org.junit.Assert;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 /**
  * Some unit tests for the issue operation to issue JWT tokens with Claims information.
  */
-public class IssueJWTClaimsUnitTest extends org.junit.Assert {
+public class IssueJWTClaimsUnitTest {
 
     public static final QName REQUESTED_SECURITY_TOKEN =
         QNameConstants.WS_TRUST_FACTORY.createRequestedSecurityToken(null).getName();
@@ -108,9 +107,8 @@ public class IssueJWTClaimsUnitTest extends org.junit.Assert {
         TokenIssueOperation issueOperation = new TokenIssueOperation();
 
         // Add Token Provider
-        List<TokenProvider> providerList = new ArrayList<>();
-        providerList.add(new JWTTokenProvider());
-        issueOperation.setTokenProviders(providerList);
+        issueOperation.setTokenProviders(Collections.singletonList(
+            new JWTTokenProvider()));
 
         addService(issueOperation);
 
@@ -156,7 +154,7 @@ public class IssueJWTClaimsUnitTest extends org.junit.Assert {
         // Validate the token
         JwsJwtCompactConsumer jwtConsumer = new JwsJwtCompactConsumer(token.getTextContent());
         JwtToken jwt = jwtConsumer.getJwtToken();
-        Assert.assertEquals("alice", jwt.getClaim(JwtConstants.CLAIM_SUBJECT));
+        assertEquals("alice", jwt.getClaim(JwtConstants.CLAIM_SUBJECT));
         assertEquals(jwt.getClaim(ClaimTypes.LASTNAME.toString()), "doe");
         assertEquals(jwt.getClaim(ROLE_CLAIM.toString()), "administrator");
     }
@@ -173,7 +171,7 @@ public class IssueJWTClaimsUnitTest extends org.junit.Assert {
             issueOperation.issue(request, principal, msgCtx);
         List<RequestSecurityTokenResponseType> securityTokenResponse =
             response.getRequestSecurityTokenResponse();
-        assertTrue(!securityTokenResponse.isEmpty());
+        assertFalse(securityTokenResponse.isEmpty());
         return securityTokenResponse;
     }
 
@@ -224,9 +222,8 @@ public class IssueJWTClaimsUnitTest extends org.junit.Assert {
         TokenIssueOperation issueOperation = new TokenIssueOperation();
 
         // Add Token Provider
-        List<TokenProvider> providerList = new ArrayList<>();
-        providerList.add(new JWTTokenProvider());
-        issueOperation.setTokenProviders(providerList);
+        issueOperation.setTokenProviders(Collections.singletonList(
+            new JWTTokenProvider()));
 
         addService(issueOperation);
 
@@ -284,7 +281,7 @@ public class IssueJWTClaimsUnitTest extends org.junit.Assert {
         // Validate the token
         JwsJwtCompactConsumer jwtConsumer = new JwsJwtCompactConsumer(token.getTextContent());
         JwtToken jwt = jwtConsumer.getJwtToken();
-        Assert.assertEquals("alice", jwt.getClaim(JwtConstants.CLAIM_SUBJECT));
+        assertEquals("alice", jwt.getClaim(JwtConstants.CLAIM_SUBJECT));
         assertEquals(jwt.getClaim(ClaimTypes.LASTNAME.toString()), "doe");
     }
 
@@ -301,35 +298,29 @@ public class IssueJWTClaimsUnitTest extends org.junit.Assert {
         Map<String, RealmProperties> realms = createSamlRealms();
 
         // Add Token Provider
-        List<TokenProvider> providerList = new ArrayList<>();
         JWTTokenProvider tokenProvider = new JWTTokenProvider();
         tokenProvider.setRealmMap(realms);
-        providerList.add(tokenProvider);
-        issueOperation.setTokenProviders(providerList);
+        issueOperation.setTokenProviders(Collections.singletonList(tokenProvider));
 
         TokenDelegationHandler delegationHandler = new SAMLDelegationHandler();
         issueOperation.setDelegationHandlers(Collections.singletonList(delegationHandler));
 
         // Add Token Validator
-        List<TokenValidator> validatorList = new ArrayList<>();
         SAMLTokenValidator samlTokenValidator = new SAMLTokenValidator();
         samlTokenValidator.setSamlRealmCodec(new IssuerSAMLRealmCodec());
-        validatorList.add(samlTokenValidator);
-        issueOperation.setTokenValidators(validatorList);
+        issueOperation.setTokenValidators(Collections.singletonList(samlTokenValidator));
 
         addService(issueOperation);
 
         // Add Relationship list
-        List<Relationship> relationshipList = new ArrayList<>();
         Relationship rs = createRelationship();
-        relationshipList.add(rs);
 
         // Add STSProperties object
         Crypto crypto = CryptoFactory.getInstance(getEncryptionProperties());
         STSPropertiesMBean stsProperties = createSTSPropertiesMBean(crypto);
         stsProperties.setRealmParser(new CustomRealmParser());
         stsProperties.setIdentityMapper(new CustomIdentityMapper());
-        stsProperties.setRelationships(relationshipList);
+        stsProperties.setRelationships(Collections.singletonList(rs));
         issueOperation.setStsProperties(stsProperties);
 
         // Set the ClaimsManager
@@ -367,7 +358,7 @@ public class IssueJWTClaimsUnitTest extends org.junit.Assert {
         Element samlToken =
             createSAMLAssertion(WSS4JConstants.WSS_SAML2_TOKEN_TYPE, crypto, "mystskey",
                     callbackHandler, realms);
-        
+
         DocumentFragment f = samlToken.getOwnerDocument().createDocumentFragment();
         f.appendChild(samlToken);
         Document docToken = samlToken.getOwnerDocument();
@@ -413,7 +404,7 @@ public class IssueJWTClaimsUnitTest extends org.junit.Assert {
         JwsJwtCompactConsumer jwtConsumer = new JwsJwtCompactConsumer(token.getTextContent());
         JwtToken jwt = jwtConsumer.getJwtToken();
         // subject unchanged
-        Assert.assertEquals("alice", jwt.getClaim(JwtConstants.CLAIM_SUBJECT));
+        assertEquals("alice", jwt.getClaim(JwtConstants.CLAIM_SUBJECT));
         // transformed claim (to uppercase)
         assertEquals(jwt.getClaim(ClaimTypes.LASTNAME.toString()), "DOE");
     }
@@ -450,30 +441,24 @@ public class IssueJWTClaimsUnitTest extends org.junit.Assert {
         Map<String, RealmProperties> realms = createSamlRealms();
 
         // Add Token Provider
-        List<TokenProvider> providerList = new ArrayList<>();
         JWTTokenProvider tokenProvider = new JWTTokenProvider();
         tokenProvider.setRealmMap(realms);
-        providerList.add(tokenProvider);
-        issueOperation.setTokenProviders(providerList);
+        issueOperation.setTokenProviders(Collections.singletonList(tokenProvider));
 
         TokenDelegationHandler delegationHandler = new SAMLDelegationHandler();
         issueOperation.setDelegationHandlers(Collections.singletonList(delegationHandler));
 
         // Add Token Validator
-        List<TokenValidator> validatorList = new ArrayList<>();
         SAMLTokenValidator samlTokenValidator = new SAMLTokenValidator();
         samlTokenValidator.setSamlRealmCodec(new IssuerSAMLRealmCodec());
-        validatorList.add(samlTokenValidator);
-        issueOperation.setTokenValidators(validatorList);
+        issueOperation.setTokenValidators(Collections.singletonList(samlTokenValidator));
 
         addService(issueOperation);
 
         // Add Relationship list
-        List<Relationship> relationshipList = new ArrayList<>();
         Relationship rs = createRelationship();
         rs.setType(Relationship.FED_TYPE_IDENTITY);
         rs.setIdentityMapper(new CustomIdentityMapper());
-        relationshipList.add(rs);
 
         // Add STSProperties object
         Crypto crypto = CryptoFactory.getInstance(getEncryptionProperties());
@@ -483,7 +468,7 @@ public class IssueJWTClaimsUnitTest extends org.junit.Assert {
         if (useGlobalIdentityMapper) {
             stsProperties.setIdentityMapper(new CustomIdentityMapper());
         } else {
-            stsProperties.setRelationships(relationshipList);
+            stsProperties.setRelationships(Collections.singletonList(rs));
         }
 
         issueOperation.setStsProperties(stsProperties);
@@ -564,7 +549,7 @@ public class IssueJWTClaimsUnitTest extends org.junit.Assert {
         JwsJwtCompactConsumer jwtConsumer = new JwsJwtCompactConsumer(token.getTextContent());
         JwtToken jwt = jwtConsumer.getJwtToken();
         // subject changed (to uppercase)
-        Assert.assertEquals("ALICE", jwt.getClaim(JwtConstants.CLAIM_SUBJECT));
+        assertEquals("ALICE", jwt.getClaim(JwtConstants.CLAIM_SUBJECT));
         // claim unchanged but requested
         assertEquals(jwt.getClaim(ClaimTypes.LASTNAME.toString()), "doe");
     }
@@ -700,10 +685,8 @@ public class IssueJWTClaimsUnitTest extends org.junit.Assert {
 
         SAMLTokenProvider samlTokenProvider = new SAMLTokenProvider();
         samlTokenProvider.setRealmMap(realms);
-        List<AttributeStatementProvider> customProviderList =
-            new ArrayList<>();
-        customProviderList.add(new ClaimsAttributeStatementProvider());
-        samlTokenProvider.setAttributeStatementProviders(customProviderList);
+        samlTokenProvider.setAttributeStatementProviders(Collections.singletonList(
+            new ClaimsAttributeStatementProvider()));
 
         TokenProviderParameters providerParameters =
             createProviderParameters(
@@ -727,7 +710,7 @@ public class IssueJWTClaimsUnitTest extends org.junit.Assert {
         providerParameters.setRequestedSecondaryClaims(requestedClaims);
 
         TokenProviderResponse providerResponse = samlTokenProvider.createToken(providerParameters);
-        assertTrue(providerResponse != null);
+        assertNotNull(providerResponse);
         assertTrue(providerResponse.getToken() != null && providerResponse.getTokenId() != null);
 
         return (Element)providerResponse.getToken();

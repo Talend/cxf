@@ -33,24 +33,23 @@ import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.stream.StreamResult;
 import javax.xml.transform.stream.StreamSource;
-import javax.xml.ws.Binding;
-import javax.xml.ws.BindingProvider;
-import javax.xml.ws.Dispatch;
-import javax.xml.ws.Service;
-import javax.xml.ws.handler.Handler;
-import javax.xml.ws.handler.MessageContext;
-import javax.xml.ws.http.HTTPBinding;
-import javax.xml.ws.soap.AddressingFeature;
-import javax.xml.ws.soap.SOAPBinding;
-import javax.xml.ws.soap.SOAPFaultException;
 
+import jakarta.xml.ws.Binding;
+import jakarta.xml.ws.BindingProvider;
+import jakarta.xml.ws.Dispatch;
+import jakarta.xml.ws.Service;
+import jakarta.xml.ws.handler.Handler;
+import jakarta.xml.ws.handler.MessageContext;
+import jakarta.xml.ws.http.HTTPBinding;
+import jakarta.xml.ws.soap.AddressingFeature;
+import jakarta.xml.ws.soap.SOAPBinding;
+import jakarta.xml.ws.soap.SOAPFaultException;
 import org.apache.cxf.Bus;
 import org.apache.cxf.BusFactory;
 import org.apache.cxf.bus.spring.SpringBusFactory;
 import org.apache.cxf.endpoint.Client;
 import org.apache.cxf.frontend.ClientProxy;
 import org.apache.cxf.jaxws.DispatchImpl;
-import org.apache.cxf.systest.ws.common.SecurityTestUtil;
 import org.apache.cxf.systest.ws.common.TestParam;
 import org.apache.cxf.testutil.common.AbstractBusClientServerTestBase;
 import org.apache.cxf.transport.http.HTTPConduit;
@@ -63,6 +62,11 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized.Parameters;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 /**
  *
@@ -128,23 +132,22 @@ public class WSSecurityClientTest extends AbstractBusClientServerTestBase {
     }
 
     @Parameters(name = "{0}")
-    public static Collection<TestParam[]> data() {
+    public static Collection<TestParam> data() {
 
-        return Arrays.asList(new TestParam[][] {{new TestParam(PORT, false)},
-                                                {new TestParam(STAX_PORT, true)},
+        return Arrays.asList(new TestParam[] {new TestParam(PORT, false),
+                                              new TestParam(STAX_PORT, true),
         });
     }
 
     @org.junit.AfterClass
     public static void cleanup() throws Exception {
-        SecurityTestUtil.cleanup();
         stopAllServers();
     }
 
     @Test
     public void testUsernameToken() throws Exception {
-        final javax.xml.ws.Service svc
-            = javax.xml.ws.Service.create(WSDL_LOC, GREETER_SERVICE_QNAME);
+        final jakarta.xml.ws.Service svc
+            = jakarta.xml.ws.Service.create(WSDL_LOC, GREETER_SERVICE_QNAME);
         final Greeter greeter = svc.getPort(USERNAME_TOKEN_PORT_QNAME, Greeter.class);
         updateAddressPort(greeter, test.getPort());
 
@@ -191,8 +194,8 @@ public class WSSecurityClientTest extends AbstractBusClientServerTestBase {
 
     @Test
     public void testUsernameTokenStreaming() throws Exception {
-        final javax.xml.ws.Service svc
-            = javax.xml.ws.Service.create(WSDL_LOC, GREETER_SERVICE_QNAME);
+        final jakarta.xml.ws.Service svc
+            = jakarta.xml.ws.Service.create(WSDL_LOC, GREETER_SERVICE_QNAME);
         final Greeter greeter = svc.getPort(USERNAME_TOKEN_PORT_QNAME, Greeter.class);
         updateAddressPort(greeter, test.getPort());
 
@@ -252,7 +255,7 @@ public class WSSecurityClientTest extends AbstractBusClientServerTestBase {
         Bus b = new SpringBusFactory()
             .createBus("org/apache/cxf/systest/ws/security/client.xml");
         BusFactory.setDefaultBus(b);
-        final javax.xml.ws.Service svc = javax.xml.ws.Service.create(
+        final jakarta.xml.ws.Service svc = jakarta.xml.ws.Service.create(
             WSDL_LOC,
             GREETER_SERVICE_QNAME
         );
@@ -342,7 +345,7 @@ public class WSSecurityClientTest extends AbstractBusClientServerTestBase {
             dispatcher.invoke(new StreamSource(is));
             fail("exception should have been generated");
         } catch (SOAPFaultException ex) {
-            assertTrue(ex.getMessage().equals(WSSecurityException.UNIFIED_SECURITY_ERR));
+            assertEquals(ex.getMessage(), WSSecurityException.UNIFIED_SECURITY_ERR);
         }
 
         //
@@ -354,7 +357,7 @@ public class WSSecurityClientTest extends AbstractBusClientServerTestBase {
             dispatcher.invoke(new StreamSource(is));
             fail("exception should have been generated");
         } catch (SOAPFaultException ex) {
-            assertTrue(ex.getMessage().equals(WSSecurityException.UNIFIED_SECURITY_ERR));
+            assertEquals(ex.getMessage(), WSSecurityException.UNIFIED_SECURITY_ERR);
         }
         //
         // Sending and empty security header should result in a Fault
@@ -365,7 +368,7 @@ public class WSSecurityClientTest extends AbstractBusClientServerTestBase {
             dispatcher.invoke(new StreamSource(is));
             fail("exception should have been generated");
         } catch (SOAPFaultException ex) {
-            assertTrue(ex.getMessage().equals(WSSecurityException.UNIFIED_SECURITY_ERR));
+            assertEquals(ex.getMessage(), WSSecurityException.UNIFIED_SECURITY_ERR);
         }
 
     }

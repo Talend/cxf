@@ -23,16 +23,15 @@
     <packaging>bundle</packaging>
     <name>Apache CXF JAX-RS Extensions: Search</name>
     <description>Apache CXF JAX-RS Extensions: Search</description>
-    <url>http://cxf.apache.org</url>
+    <url>https://cxf.apache.org</url>
     <parent>
         <groupId>org.apache.cxf</groupId>
         <artifactId>cxf-parent</artifactId>
-        <version>3.2.5-SNAPSHOT</version>
+        <version>4.0.1-SNAPSHOT</version>
         <relativePath>../../../../parent/pom.xml</relativePath>
     </parent>
     <properties>
-        <hibernate.em.version>4.1.0.Final</hibernate.em.version>
-        <hsqldb.version>1.8.0.10</hsqldb.version>
+        <cxf.module.name>org.apache.cxf.rs.search</cxf.module.name>
     </properties>
     <dependencies>
         <dependency>
@@ -46,7 +45,7 @@
             <version>${project.version}</version>
             <exclusions>
                <exclusion>
-                    <groupId>javax.validation</groupId>
+                    <groupId>jakarta.validation</groupId>
                     <artifactId>validation-api</artifactId>
                </exclusion>
             </exclusions>
@@ -58,9 +57,9 @@
             <optional>true</optional>
         </dependency>
         <dependency>
-            <groupId>org.apache.geronimo.specs</groupId>
-            <artifactId>geronimo-jpa_2.0_spec</artifactId>
-            <version>${cxf.geronimo.jpa.version}</version>
+            <groupId>jakarta.persistence</groupId>
+            <artifactId>jakarta.persistence-api</artifactId>
+            <version>${cxf.persistence-api.version}</version>
             <scope>provided</scope>
             <optional>true</optional>
         </dependency>
@@ -75,6 +74,12 @@
             <groupId>org.apache.olingo</groupId>
             <artifactId>olingo-odata2-core</artifactId>
             <optional>true</optional>
+            <exclusions>
+                <exclusion>
+                    <groupId>javax.ws.rs</groupId>
+                    <artifactId>javax.ws.rs-api</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <dependency>
             <groupId>org.apache.tika</groupId>
@@ -82,31 +87,14 @@
             <optional>true</optional>
         </dependency>
         <dependency>
-           <groupId>org.apache.hbase</groupId>
-           <artifactId>hbase-client</artifactId>
-           <optional>true</optional>
-           <scope>provided</scope>
-           <exclusions>
-               <exclusion>
-                    <groupId>jdk.tools</groupId>
-                    <artifactId>jdk.tools</artifactId>
-               </exclusion>
-            </exclusions>
-        </dependency>
-        <dependency>
             <groupId>org.apache.tika</groupId>
-            <artifactId>tika-parsers</artifactId>
+            <artifactId>tika-parser-pdf-module</artifactId>
+            <version>${cxf.tika.version}</version>
             <scope>test</scope>
-            <exclusions>
-                <exclusion>
-                    <groupId>org.apache.poi</groupId>
-                    <artifactId>poi-ooxml</artifactId>                
-                </exclusion>       
-            </exclusions>
         </dependency>
         <dependency>
             <groupId>org.apache.lucene</groupId>
-            <artifactId>lucene-analyzers-common</artifactId>
+            <artifactId>lucene-analysis-common</artifactId>
             <version>${cxf.lucene.version}</version>
             <scope>test</scope>
         </dependency>
@@ -122,74 +110,30 @@
             <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>org.hibernate</groupId>
-            <artifactId>hibernate-entitymanager</artifactId>
-            <version>${hibernate.em.version}</version>
+            <groupId>org.hibernate.orm</groupId>
+            <artifactId>hibernate-core</artifactId>
+            <version>${cxf.hibernate.em.version}</version>
             <scope>test</scope>
-            <!-- Conflicts with Apache Tika dependencies -->
             <exclusions>
                 <exclusion>
-                    <groupId>xml-apis</groupId>
-                    <artifactId>xml-apis</artifactId>                
+                    <groupId>jakarta.xml.bind</groupId>
+                    <artifactId>bind-api</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>jakarta.activation</groupId>
+                    <artifactId>jakarta.activation-api</artifactId>
                 </exclusion>
             </exclusions>
         </dependency>
         <dependency>
-            <groupId>hsqldb</groupId>
+            <groupId>org.hsqldb</groupId>
             <artifactId>hsqldb</artifactId>
-            <version>${hsqldb.version}</version>
+            <version>${cxf.hsqldb.version}</version>
             <scope>test</scope>
         </dependency>
-        <!--
-           <dependency>
-             <groupId>org.apache.openjpa</groupId>
-             <artifactId>openjpa</artifactId>
-             <version>2.2.0</version>
-             <scope>test</scope>
-           </dependency>
-        -->
     </dependencies>
     <build>
         <plugins>
         </plugins>
     </build>
-    <profiles>
-        <profile>
-            <id>java9</id>
-            <activation>
-                <jdk>9</jdk>
-            </activation>
-            <build>
-                <plugins>
-                    <plugin>
-                        <groupId>org.apache.maven.plugins</groupId>
-                        <artifactId>maven-dependency-plugin</artifactId>
-                        <executions>
-                            <execution>
-                                <id>copy</id>
-                                <phase>validate</phase>
-                                <goals>
-                                    <goal>unpack</goal>
-                                </goals>
-                                <configuration>
-                                    <artifactItems>
-                                        <artifactItem>
-                                            <groupId>org.apache.geronimo.specs</groupId>
-                                            <artifactId>geronimo-jta_1.1_spec</artifactId>
-                                            <type>jar</type>
-                                            <overWrite>false</overWrite>
-                                            <outputDirectory>${project.basedir}/target/java9</outputDirectory>
-                                            <excludes>**/xa/*.class</excludes>
-                                        </artifactItem>
-                                    </artifactItems>
-                                    <overWriteReleases>false</overWriteReleases>
-                                    <overWriteSnapshots>true</overWriteSnapshots>
-                                </configuration>
-                            </execution>
-                        </executions>
-                    </plugin>
-                </plugins>
-            </build>
-        </profile>
-    </profiles>
 </project>

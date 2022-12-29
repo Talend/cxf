@@ -40,15 +40,18 @@ import org.springframework.util.ClassUtils;
 
 class SpringClasspathScanner extends ClasspathScanner {
 
-    private static final Boolean IN_OSGI;
-    static {
-        IN_OSGI = isSpringInOsgi();
-    }
+    //TODO: [OSGi+Jakarta] uncoment this when osgi comes back
+    //private static final boolean IN_OSGI =  isSpringInOsgi();
+    private static final boolean IN_OSGI = false;
+
+    
+    
     SpringClasspathScanner() throws Exception {
         Class.forName("org.springframework.core.io.support.PathMatchingResourcePatternResolver");
         Class.forName("org.springframework.core.type.classreading.CachingMetadataReaderFactory");
     }
-    private static boolean isSpringInOsgi() {
+    //TODO: [OSGi+Jakarta] uncoment this when osgi comes back
+    /*private static boolean isSpringInOsgi() {
         try {
             Class.forName("org.springframework.osgi.io.OsgiBundleResourcePatternResolver");
             Class.forName("org.springframework.osgi.util.BundleDelegatingClassLoader");
@@ -56,8 +59,9 @@ class SpringClasspathScanner extends ClasspathScanner {
         } catch (Throwable ex) {
             return false;
         }
-    }
+    }*/
 
+    @Override
     protected Map< Class< ? extends Annotation >, Collection< Class< ? > > > findClassesInternal(
         Collection< String > basePackages,
         List<Class< ? extends Annotation > > annotations,
@@ -68,14 +72,14 @@ class SpringClasspathScanner extends ClasspathScanner {
         MetadataReaderFactory factory = new CachingMetadataReaderFactory(resolver);
 
         final Map< Class< ? extends Annotation >, Collection< Class< ? > > > classes =
-            new HashMap< Class< ? extends Annotation >, Collection< Class< ? > > >();
+            new HashMap<>();
         final Map< Class< ? extends Annotation >, Collection< String > > matchingInterfaces =
-            new HashMap< Class< ? extends Annotation >, Collection< String > >();
+            new HashMap<>();
         final Map<String, String[]> nonMatchingClasses = new HashMap<>();
 
         for (Class< ? extends Annotation > annotation: annotations) {
-            classes.put(annotation, new HashSet< Class < ? > >());
-            matchingInterfaces.put(annotation, new HashSet< String >());
+            classes.put(annotation, new HashSet<>());
+            matchingInterfaces.put(annotation, new HashSet<>());
         }
 
         if (basePackages == null || basePackages.isEmpty()) {
@@ -137,6 +141,7 @@ class SpringClasspathScanner extends ClasspathScanner {
         return classes;
     }
 
+    @Override
     protected List<URL> findResourcesInternal(Collection<String> basePackages,
                                               String extension,
                                               ClassLoader loader)
@@ -170,9 +175,10 @@ class SpringClasspathScanner extends ClasspathScanner {
 
     private ResourcePatternResolver getResolver(ClassLoader loader) {
         ResourcePatternResolver resolver = null;
-        if (IN_OSGI) {
+        //TODO: [OSGi+Jakarta] uncoment this when osgi comes back
+        /*if (IN_OSGI) {
             resolver = SpringOsgiUtil.getResolver(loader);
-        }
+        }*/
         if (resolver == null) {
             resolver = loader != null
                 ? new PathMatchingResourcePatternResolver(loader) : new PathMatchingResourcePatternResolver();

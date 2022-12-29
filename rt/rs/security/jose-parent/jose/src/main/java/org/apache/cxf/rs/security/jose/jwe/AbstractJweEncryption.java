@@ -25,6 +25,7 @@ import java.util.logging.Logger;
 
 import javax.crypto.Cipher;
 import javax.crypto.SecretKey;
+import javax.security.auth.DestroyFailedException;
 
 import org.apache.cxf.common.logging.LogUtils;
 import org.apache.cxf.jaxrs.json.basic.JsonMapObjectReaderWriter;
@@ -37,9 +38,10 @@ import org.apache.cxf.rt.security.crypto.KeyProperties;
 public abstract class AbstractJweEncryption implements JweEncryptionProvider {
     protected static final Logger LOG = LogUtils.getL7dLogger(AbstractJweEncryption.class);
     protected static final int DEFAULT_AUTH_TAG_LENGTH = 128;
-    private ContentEncryptionProvider contentEncryptionAlgo;
-    private KeyEncryptionProvider keyEncryptionAlgo;
-    private JsonMapObjectReaderWriter writer = new JsonMapObjectReaderWriter();
+    private final ContentEncryptionProvider contentEncryptionAlgo;
+    private final KeyEncryptionProvider keyEncryptionAlgo;
+    private final JsonMapObjectReaderWriter writer = new JsonMapObjectReaderWriter();
+
     protected AbstractJweEncryption(ContentEncryptionProvider contentEncryptionAlgo,
                                     KeyEncryptionProvider keyEncryptionAlgo) {
         this.keyEncryptionAlgo = keyEncryptionAlgo;
@@ -114,7 +116,16 @@ public abstract class AbstractJweEncryption implements JweEncryptionProvider {
     }
     protected byte[] encryptInternal(JweEncryptionInternal state, byte[] content) {
         try {
-            return CryptoUtils.encryptBytes(content, createCekSecretKey(state), state.keyProps);
+            SecretKey createCekSecretKey = createCekSecretKey(state);
+            byte[] encryptedBytes = CryptoUtils.encryptBytes(content, createCekSecretKey, state.keyProps);
+
+            // Here we're finished with the SecretKey we created, so we can destroy it
+            try {
+                createCekSecretKey.destroy();
+            } catch (DestroyFailedException e) {
+                // ignore
+            }
+            return encryptedBytes;
         } catch (SecurityException ex) {
             LOG.fine(ex.getMessage());
             if (ex.getCause() instanceof NoSuchAlgorithmException) {
@@ -162,7 +173,7 @@ public abstract class AbstractJweEncryption implements JweEncryptionProvider {
         }
         theHeaders.setContentEncryptionAlgorithm(getContentEncryptionAlgorithm().getAlgorithm());
 
-        JweHeaders protectedHeaders = null;
+        final JweHeaders protectedHeaders;
         if (jweInHeaders != null) {
             if (jweInHeaders.getKeyEncryptionAlgorithm() != null
                 && (getKeyAlgorithm() == null
@@ -187,7 +198,8 @@ public abstract class AbstractJweEncryption implements JweEncryptionProvider {
 
         JweEncryptionInternal state = new JweEncryptionInternal();
         state.jweContentEncryptionKey = getEncryptedContentEncryptionKey(theHeaders, theCek);
-
+        state.theHeaders = theHeaders;
+        
         if (jweInput.isContentEncryptionRequired()) {
             String contentEncryptionAlgoJavaName = getContentEncryptionAlgoJava();
             KeyProperties keyProps = new KeyProperties(contentEncryptionAlgoJavaName);
@@ -205,9 +217,8 @@ public abstract class AbstractJweEncryption implements JweEncryptionProvider {
 
             state.keyProps = keyProps;
             state.theIv = theIv;
-            state.theHeaders = theHeaders;
             state.protectedHeadersJson = protectedHeadersJson;
-            state.aad = jweInput != null ? jweInput.getAad() : null;
+            state.aad = jweInput.getAad();
             state.secretKey = theCek;
         }
 

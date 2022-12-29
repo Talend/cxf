@@ -23,13 +23,14 @@ import java.nio.charset.StandardCharsets;
 import java.security.PrivateKey;
 import java.security.cert.X509Certificate;
 
+import javax.security.auth.DestroyFailedException;
 import javax.security.auth.callback.CallbackHandler;
-import javax.ws.rs.container.ContainerRequestContext;
-import javax.ws.rs.core.HttpHeaders;
-import javax.ws.rs.core.Response;
 
 import org.w3c.dom.Element;
 
+import jakarta.ws.rs.container.ContainerRequestContext;
+import jakarta.ws.rs.core.HttpHeaders;
+import jakarta.ws.rs.core.Response;
 import org.apache.cxf.common.util.Base64Utility;
 import org.apache.cxf.jaxrs.ext.MessageContextImpl;
 import org.apache.cxf.jaxrs.utils.ExceptionUtils;
@@ -93,7 +94,7 @@ public class SamlPostBindingFilter extends AbstractServiceProviderFilter {
     protected String encodeAuthnRequest(Element authnRequest) throws IOException {
         String requestMessage = DOM2Writer.nodeToString(authnRequest);
 
-        byte[] deflatedBytes = null;
+        final byte[] deflatedBytes;
         // Not correct according to the spec but required by some IDPs.
         if (useDeflateEncoding) {
             DeflateEncoderDecoder encoder = new DeflateEncoderDecoder();
@@ -108,17 +109,17 @@ public class SamlPostBindingFilter extends AbstractServiceProviderFilter {
     protected void signAuthnRequest(AuthnRequest authnRequest) throws Exception {
         Crypto crypto = getSignatureCrypto();
         if (crypto == null) {
-            LOG.fine("No crypto instance of properties file configured for signature");
+            LOG.warning("No crypto instance of properties file configured for signature");
             throw ExceptionUtils.toInternalServerErrorException(null, null);
         }
         String signatureUser = getSignatureUsername();
         if (signatureUser == null) {
-            LOG.fine("No user configured for signature");
+            LOG.warning("No user configured for signature");
             throw ExceptionUtils.toInternalServerErrorException(null, null);
         }
         CallbackHandler callbackHandler = getCallbackHandler();
         if (callbackHandler == null) {
-            LOG.fine("No CallbackHandler configured to supply a password for signature");
+            LOG.warning("No CallbackHandler configured to supply a password for signature");
             throw ExceptionUtils.toInternalServerErrorException(null, null);
         }
 
@@ -131,10 +132,10 @@ public class SamlPostBindingFilter extends AbstractServiceProviderFilter {
             );
         }
 
-        String sigAlgo = SSOConstants.RSA_SHA1;
+        String sigAlgo = getSignatureAlgorithm();
         String pubKeyAlgo = issuerCerts[0].getPublicKey().getAlgorithm();
         LOG.fine("automatic sig algo detection: " + pubKeyAlgo);
-        if (pubKeyAlgo.equalsIgnoreCase("DSA")) {
+        if ("DSA".equalsIgnoreCase(pubKeyAlgo)) {
             sigAlgo = SSOConstants.DSA_SHA1;
         }
         LOG.fine("Using Signature algorithm " + sigAlgo);
@@ -171,6 +172,13 @@ public class SamlPostBindingFilter extends AbstractServiceProviderFilter {
         signableObject.setSignature(signature);
         signableObject.releaseDOM();
         signableObject.releaseChildrenDOM(true);
+
+        // Clean the private key from memory when we're done
+        try {
+            privateKey.destroy();
+        } catch (DestroyFailedException ex) {
+            // ignore
+        }
 
     }
 

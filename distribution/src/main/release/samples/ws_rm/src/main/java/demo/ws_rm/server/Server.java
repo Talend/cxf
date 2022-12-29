@@ -20,7 +20,7 @@
 package demo.ws_rm.server;
 
 import java.net.URL;
-import javax.xml.ws.Endpoint;
+import jakarta.xml.ws.Endpoint;
 
 import org.apache.cxf.Bus;
 import org.apache.cxf.BusFactory;
@@ -37,7 +37,7 @@ public class Server {
         Endpoint.publish(address, implementor);
     }
 
-    public static void main(String args[]) throws Exception {
+    public static void main(String[] args) throws Exception {
 
         SpringBusFactory bf = new SpringBusFactory();
         URL busFile = Server.class.getResource("/server.xml");

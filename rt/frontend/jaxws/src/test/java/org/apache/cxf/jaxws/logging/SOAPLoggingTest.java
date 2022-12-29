@@ -23,10 +23,10 @@ import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.List;
 
-import javax.jws.WebService;
 import javax.xml.namespace.QName;
-import javax.xml.ws.Endpoint;
 
+import jakarta.jws.WebService;
+import jakarta.xml.ws.Endpoint;
 import org.apache.cxf.binding.Binding;
 import org.apache.cxf.binding.soap.SoapBinding;
 import org.apache.cxf.ext.logging.LoggingFeature;
@@ -74,7 +74,7 @@ public class SOAPLoggingTest extends AbstractJaxWsTest {
         BindingOperationInfo boi = new BindingOperationInfo(info, opInfo);
         exchange.put(BindingOperationInfo.class, boi);
         message.setExchange(exchange);
-        LogEvent event = mapper.map(message);
+        LogEvent event = mapper.map(message, Collections.emptySet());
         Assert.assertEquals("{http://my}Operation", event.getOperationName());
     }
     @Test
@@ -137,7 +137,7 @@ public class SOAPLoggingTest extends AbstractJaxWsTest {
 
     private void checkResponseOut(LogEvent responseOut) {
         // Not yet available
-        Assert.assertNull(responseOut.getAddress());
+        Assert.assertEquals(SERVICE_URI, responseOut.getAddress());
         Assert.assertEquals("text/xml", responseOut.getContentType());
         Assert.assertEquals(EventType.RESP_OUT, responseOut.getType());
         Assert.assertEquals(StandardCharsets.UTF_8.name(), responseOut.getEncoding());
@@ -153,7 +153,7 @@ public class SOAPLoggingTest extends AbstractJaxWsTest {
     }
 
     private void checkResponseIn(LogEvent responseIn) {
-        Assert.assertNull(responseIn.getAddress());
+        Assert.assertEquals(SERVICE_URI, responseIn.getAddress());
         Assert.assertTrue(responseIn.getContentType(), responseIn.getContentType().contains("text/xml"));
         Assert.assertEquals(EventType.RESP_IN, responseIn.getType());
         Assert.assertEquals(StandardCharsets.UTF_8.name(), responseIn.getEncoding());

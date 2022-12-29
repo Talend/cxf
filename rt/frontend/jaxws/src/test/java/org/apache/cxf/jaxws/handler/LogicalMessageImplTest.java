@@ -22,9 +22,8 @@ package org.apache.cxf.jaxws.handler;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.JAXBElement;
-
+import jakarta.xml.bind.JAXBContext;
+import jakarta.xml.bind.JAXBElement;
 import org.apache.cxf.jaxws.handler.logical.LogicalMessageContextImpl;
 import org.apache.cxf.jaxws.handler.logical.LogicalMessageImpl;
 import org.apache.cxf.message.Exchange;
@@ -34,11 +33,13 @@ import org.apache.cxf.message.MessageImpl;
 import org.apache.handlers.types.AddNumbers;
 import org.apache.handlers.types.ObjectFactory;
 
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
-public class LogicalMessageImplTest extends Assert {
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+
+public class LogicalMessageImplTest {
     AddNumbers req;
     List<Object> args;
 

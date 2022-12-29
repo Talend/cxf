@@ -29,11 +29,10 @@ import java.util.concurrent.Executor;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import javax.servlet.ServletConfig;
-import javax.servlet.ServletContext;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
+import jakarta.servlet.ServletConfig;
+import jakarta.servlet.ServletContext;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import org.apache.cxf.Bus;
 import org.apache.cxf.common.logging.LogUtils;
 import org.apache.cxf.common.util.StringUtils;
@@ -44,6 +43,7 @@ import org.apache.cxf.transport.http_undertow.UndertowHTTPHandler;
 import org.apache.cxf.transport.http_undertow.UndertowHTTPServerEngineFactory;
 import org.apache.cxf.transport.websocket.WebSocketConstants;
 import org.apache.cxf.transport.websocket.WebSocketDestinationService;
+import org.apache.cxf.transport.websocket.WebSocketUtils;
 import org.apache.cxf.workqueue.WorkQueueManager;
 import org.xnio.StreamConnection;
 
@@ -71,7 +71,7 @@ public class UndertowWebSocketDestination extends UndertowHTTPDestination
     implements WebSocketDestinationService {
     private static final Logger LOG = LogUtils.getL7dLogger(UndertowWebSocketDestination.class);
     private final Executor executor;
-        
+
     public UndertowWebSocketDestination(Bus bus, DestinationRegistry registry, EndpointInfo ei,
                                                   UndertowHTTPServerEngineFactory serverEngineFactory)
                                                       throws IOException {
@@ -156,7 +156,7 @@ public class UndertowWebSocketDestination extends UndertowHTTPDestination
                     public void handleUpgrade(StreamConnection streamConnection,
                                               HttpServerExchange exchange) {
                         try {
-                            
+
                             WebSocketChannel channel = selected.createChannel(facade, streamConnection,
                                                                               facade.getBufferPool());
                             peerConnections.add(channel);
@@ -177,7 +177,7 @@ public class UndertowWebSocketDestination extends UndertowHTTPDestination
                                 }
                             });
                             channel.resumeReceives();
-                            
+
                         } catch (Exception e) {
                             LOG.log(Level.WARNING, "Failed to invoke service", e);
                         }
@@ -215,18 +215,23 @@ public class UndertowWebSocketDestination extends UndertowHTTPDestination
                         HttpServletRequest request = new WebSocketUndertowServletRequest(channel, message, exchange);
                         HttpServletResponse response = new WebSocketUndertowServletResponse(channel);
                         if (request.getHeader(WebSocketConstants.DEFAULT_REQUEST_ID_KEY) != null) {
-                            response.setHeader(WebSocketConstants.DEFAULT_RESPONSE_ID_KEY,
-                                               request.getHeader(WebSocketConstants.DEFAULT_REQUEST_ID_KEY));
+                            String headerValue = request.getHeader(WebSocketConstants.DEFAULT_REQUEST_ID_KEY);
+                            if (WebSocketUtils.isContainingCRLF(headerValue)) {
+                                LOG.warning("Invalid characters (CR/LF) in header "
+                                    + WebSocketConstants.DEFAULT_REQUEST_ID_KEY);
+                            } else {
+                                response.setHeader(WebSocketConstants.DEFAULT_RESPONSE_ID_KEY, headerValue);
+                            }
                         }
                         handleNormalRequest(request, response);
                     } catch (Exception ex) {
                         ex.printStackTrace();
                     }
-                    
+
                 }
-                
+
             });
-            
+
         }
     }
 }

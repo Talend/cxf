@@ -21,7 +21,6 @@ package org.apache.cxf.ws.security.trust;
 
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.util.Base64;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -32,6 +31,7 @@ import org.apache.cxf.message.Message;
 import org.apache.cxf.ws.security.SecurityConstants;
 import org.apache.cxf.ws.security.tokenstore.SecurityToken;
 import org.apache.cxf.ws.security.tokenstore.TokenStore;
+import org.apache.cxf.ws.security.tokenstore.TokenStoreException;
 import org.apache.cxf.ws.security.tokenstore.TokenStoreUtils;
 import org.apache.wss4j.common.WSS4JConstants;
 import org.apache.wss4j.common.ext.WSSecurityException;
@@ -40,8 +40,8 @@ import org.apache.wss4j.common.util.XMLUtils;
 
 public class DefaultSTSTokenCacher implements STSTokenCacher {
 
-    public SecurityToken retrieveToken(Message message, boolean retrieveTokenFromEndpoint) {
-        SecurityToken tok = null;
+    public SecurityToken retrieveToken(Message message, boolean retrieveTokenFromEndpoint) throws TokenStoreException {
+        SecurityToken tok;
         if (retrieveTokenFromEndpoint) {
             tok = (SecurityToken)message.getContextualProperty(SecurityConstants.TOKEN);
             if (tok == null) {
@@ -62,7 +62,8 @@ public class DefaultSTSTokenCacher implements STSTokenCacher {
         return tok;
     }
 
-    public SecurityToken retrieveToken(Message message, Element delegationToken, String cacheKey) {
+    public SecurityToken retrieveToken(Message message, Element delegationToken, String cacheKey)
+            throws TokenStoreException {
         if (delegationToken == null) {
             return null;
         }
@@ -86,7 +87,8 @@ public class DefaultSTSTokenCacher implements STSTokenCacher {
         return null;
     }
 
-    public void storeToken(Message message, SecurityToken securityToken, boolean storeTokenInEndpoint) {
+    public void storeToken(Message message, SecurityToken securityToken, boolean storeTokenInEndpoint)
+            throws TokenStoreException {
         if (storeTokenInEndpoint && !isOneTimeUse(securityToken)) {
             message.getExchange().getEndpoint().put(SecurityConstants.TOKEN, securityToken);
             message.getExchange().put(SecurityConstants.TOKEN, securityToken);
@@ -101,7 +103,8 @@ public class DefaultSTSTokenCacher implements STSTokenCacher {
         TokenStoreUtils.getTokenStore(message).add(securityToken);
     }
 
-    public void storeToken(Message message, Element delegationToken, String secTokenId, String cacheKey) {
+    public void storeToken(Message message, Element delegationToken, String secTokenId, String cacheKey)
+            throws TokenStoreException {
         if (secTokenId == null || delegationToken == null) {
             return;
         }
@@ -123,7 +126,7 @@ public class DefaultSTSTokenCacher implements STSTokenCacher {
         tokenStore.add(cachedToken);
     }
 
-    public void removeToken(Message message, SecurityToken securityToken) {
+    public void removeToken(Message message, SecurityToken securityToken) throws TokenStoreException {
         // Remove token from cache
         message.getExchange().getEndpoint().remove(SecurityConstants.TOKEN);
         message.getExchange().getEndpoint().remove(SecurityConstants.TOKEN_ID);
@@ -186,7 +189,7 @@ public class DefaultSTSTokenCacher implements STSTokenCacher {
                     try {
                         MessageDigest digest = MessageDigest.getInstance("SHA-256");
                         byte[] bytes = digest.digest(text.getBytes());
-                        return Base64.getMimeEncoder().encodeToString(bytes);
+                        return org.apache.xml.security.utils.XMLUtils.encodeToString(bytes);
                     } catch (NoSuchAlgorithmException e) {
                         // SHA-256 must be supported so not going to happen...
                     }

@@ -29,24 +29,24 @@ import javax.security.auth.callback.Callback;
 import javax.security.auth.callback.CallbackHandler;
 import javax.security.auth.callback.UnsupportedCallbackException;
 import javax.xml.namespace.QName;
-import javax.xml.soap.MessageFactory;
-import javax.xml.soap.SOAPMessage;
 import javax.xml.transform.Source;
 import javax.xml.transform.stream.StreamSource;
-import javax.xml.ws.BindingProvider;
-import javax.xml.ws.Dispatch;
-import javax.xml.ws.Endpoint;
-import javax.xml.ws.Provider;
-import javax.xml.ws.Service;
-import javax.xml.ws.Service.Mode;
-import javax.xml.ws.ServiceMode;
-import javax.xml.ws.WebServiceProvider;
-import javax.xml.ws.soap.SOAPFaultException;
 import javax.xml.xpath.XPathConstants;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 
+import jakarta.xml.soap.MessageFactory;
+import jakarta.xml.soap.SOAPMessage;
+import jakarta.xml.ws.BindingProvider;
+import jakarta.xml.ws.Dispatch;
+import jakarta.xml.ws.Endpoint;
+import jakarta.xml.ws.Provider;
+import jakarta.xml.ws.Service;
+import jakarta.xml.ws.Service.Mode;
+import jakarta.xml.ws.ServiceMode;
+import jakarta.xml.ws.WebServiceProvider;
+import jakarta.xml.ws.soap.SOAPFaultException;
 import org.apache.cxf.Bus;
 import org.apache.cxf.BusFactory;
 import org.apache.cxf.bus.spring.SpringBusFactory;
@@ -56,7 +56,7 @@ import org.apache.cxf.jaxws.EndpointImpl;
 import org.apache.cxf.message.Message;
 import org.apache.cxf.service.model.EndpointInfo;
 import org.apache.cxf.staxutils.StaxUtils;
-import org.apache.cxf.systest.ws.common.DoubleItImpl;
+import org.apache.cxf.systest.ws.common.DoubleItPortTypeImpl;
 import org.apache.cxf.systest.ws.common.KeystorePasswordCallback;
 import org.apache.cxf.systest.ws.common.SecurityTestUtil;
 import org.apache.cxf.testutil.common.AbstractBusClientServerTestBase;
@@ -69,6 +69,10 @@ import org.example.schema.doubleit.DoubleIt;
 
 import org.junit.BeforeClass;
 import org.junit.Test;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 public class SecurityPolicyTest extends AbstractBusClientServerTestBase  {
     public static final String PORT = allocatePort(SecurityPolicyTest.class);
@@ -101,7 +105,7 @@ public class SecurityPolicyTest extends AbstractBusClientServerTestBase  {
                 UnsupportedCallbackException {
             WSPasswordCallback pc = (WSPasswordCallback) callbacks[0];
 
-            if (pc.getIdentifier().equals("bob")) {
+            if ("bob".equals(pc.getIdentifier())) {
                 // set the password on the callback. This will be compared to the
                 // password which was sent from the client.
                 pc.setPassword("pwd");
@@ -118,16 +122,18 @@ public class SecurityPolicyTest extends AbstractBusClientServerTestBase  {
             .getExtension(PolicyEngine.class).setEnabled(true);
         getStaticBus().getOutInterceptors().add(new LoggingOutInterceptor());
 
-        EndpointImpl ep = (EndpointImpl)Endpoint.create(new DoubleItImpl());
+        DoubleItPortTypeImpl implementor = new DoubleItPortTypeImpl();
+        implementor.setEnforcePrincipal(false);
+        EndpointImpl ep = (EndpointImpl)Endpoint.create(implementor);
         ep.setEndpointName(new QName("http://www.example.org/contract/DoubleIt", "DoubleItPortHttps"));
         ep.setWsdlLocation(wsdl.getPath());
         ep.setAddress(POLICY_HTTPS_ADDRESS);
         ep.publish();
         ep.getServer().getEndpoint().getEndpointInfo().setProperty(SecurityConstants.CALLBACK_HANDLER,
                                                                    new ServerPasswordCallback());
-        Endpoint.publish(POLICY_ADDRESS, new DoubleItImpl());
+        Endpoint.publish(POLICY_ADDRESS, implementor);
 
-        ep = (EndpointImpl)Endpoint.create(new DoubleItImpl());
+        ep = (EndpointImpl)Endpoint.create(implementor);
         ep.setEndpointName(
             new QName("http://www.example.org/contract/DoubleIt", "DoubleItPortEncryptThenSign")
         );
@@ -137,7 +143,7 @@ public class SecurityPolicyTest extends AbstractBusClientServerTestBase  {
         EndpointInfo ei = ep.getServer().getEndpoint().getEndpointInfo();
         setCryptoProperties(ei, "bob.properties", "alice.properties");
 
-        ep = (EndpointImpl)Endpoint.create(new DoubleItImpl());
+        ep = (EndpointImpl)Endpoint.create(implementor);
         ep.setEndpointName(
             new QName("http://www.example.org/contract/DoubleIt", "DoubleItPortSignThenEncrypt")
         );
@@ -147,7 +153,7 @@ public class SecurityPolicyTest extends AbstractBusClientServerTestBase  {
         ei = ep.getServer().getEndpoint().getEndpointInfo();
         setCryptoProperties(ei, "bob.properties", "alice.properties");
 
-        ep = (EndpointImpl)Endpoint.create(new DoubleItImpl());
+        ep = (EndpointImpl)Endpoint.create(implementor);
         ep.setEndpointName(new QName("http://www.example.org/contract/DoubleIt", "DoubleItPortSign"));
         ep.setWsdlLocation(wsdl.getPath());
         ep.setAddress(POLICY_SIGN_ADDRESS);
@@ -155,7 +161,7 @@ public class SecurityPolicyTest extends AbstractBusClientServerTestBase  {
         ei = ep.getServer().getEndpoint().getEndpointInfo();
         setCryptoProperties(ei, "bob.properties", "alice.properties");
 
-        ep = (EndpointImpl)Endpoint.create(new DoubleItImpl());
+        ep = (EndpointImpl)Endpoint.create(implementor);
         ep.setEndpointName(new QName("http://www.example.org/contract/DoubleIt", "DoubleItPortXPath"));
         ep.setWsdlLocation(wsdl.getPath());
         ep.setAddress(POLICY_XPATH_ADDRESS);
@@ -175,7 +181,7 @@ public class SecurityPolicyTest extends AbstractBusClientServerTestBase  {
         ei = ep.getServer().getEndpoint().getEndpointInfo();
         setCryptoProperties(ei, "bob.properties", "alice.properties");
 
-        ep = (EndpointImpl)Endpoint.create(new DoubleItImpl());
+        ep = (EndpointImpl)Endpoint.create(implementor);
         ep.setEndpointName(new QName("http://www.example.org/contract/DoubleIt", "DoubleItPortSignedOnly"));
         ep.setWsdlLocation(wsdl.getPath());
         ep.setAddress(POLICY_SIGNONLY_ADDRESS);
@@ -183,7 +189,7 @@ public class SecurityPolicyTest extends AbstractBusClientServerTestBase  {
         ei = ep.getServer().getEndpoint().getEndpointInfo();
         setCryptoProperties(ei, "bob.properties", "alice.properties");
 
-        ep = (EndpointImpl)Endpoint.create(new DoubleItImpl());
+        ep = (EndpointImpl)Endpoint.create(implementor);
         ep.setEndpointName(new QName("http://www.example.org/contract/DoubleIt", "DoubleItPortCXF3041"));
         ep.setWsdlLocation(wsdl.getPath());
         ep.setAddress(POLICY_CXF3041_ADDRESS);
@@ -191,7 +197,7 @@ public class SecurityPolicyTest extends AbstractBusClientServerTestBase  {
         ei = ep.getServer().getEndpoint().getEndpointInfo();
         setCryptoProperties(ei, "bob.properties", "alice.properties");
 
-        ep = (EndpointImpl)Endpoint.create(new DoubleItImpl());
+        ep = (EndpointImpl)Endpoint.create(implementor);
         ep.setEndpointName(new QName("http://www.example.org/contract/DoubleIt", "DoubleItPortCXF3042"));
         ep.setWsdlLocation(wsdl.getPath());
         ep.setAddress(POLICY_CXF3042_ADDRESS);
@@ -199,7 +205,7 @@ public class SecurityPolicyTest extends AbstractBusClientServerTestBase  {
         ei = ep.getServer().getEndpoint().getEndpointInfo();
         setCryptoProperties(ei, "alice.properties", "alice.properties");
 
-        ep = (EndpointImpl)Endpoint.create(new DoubleItImpl());
+        ep = (EndpointImpl)Endpoint.create(implementor);
         ep.setEndpointName(new QName("http://www.example.org/contract/DoubleIt", "DoubleItPortCXF3452"));
         ep.setWsdlLocation(wsdl.getPath());
         ep.setAddress(POLICY_CXF3452_ADDRESS);
@@ -211,7 +217,6 @@ public class SecurityPolicyTest extends AbstractBusClientServerTestBase  {
 
     @org.junit.AfterClass
     public static void cleanup() throws Exception {
-        SecurityTestUtil.cleanup();
         stopAllServers();
     }
 
@@ -259,11 +264,11 @@ public class SecurityPolicyTest extends AbstractBusClientServerTestBase  {
                                                       "bob.properties");
 
         // DOM
-        pt.doubleIt(5);
+        assertEquals(10, pt.doubleIt(5));
 
         // TODO See WSS-464
         // SecurityTestUtil.enableStreaming(pt);
-        // pt.doubleIt(5);
+        // assertEquals(10, pt.doubleIt(5));
 
         ((java.io.Closeable)pt).close();
 
@@ -277,11 +282,11 @@ public class SecurityPolicyTest extends AbstractBusClientServerTestBase  {
         ((BindingProvider)pt).getRequestContext().put(SecurityConstants.ENCRYPT_PROPERTIES,
                                                       "bob.properties");
         // DOM
-        pt.doubleIt(5);
+        assertEquals(10, pt.doubleIt(5));
 
         // Streaming
         SecurityTestUtil.enableStreaming(pt);
-        pt.doubleIt(5);
+        assertEquals(10, pt.doubleIt(5));
 
         ((java.io.Closeable)pt).close();
 
@@ -296,11 +301,11 @@ public class SecurityPolicyTest extends AbstractBusClientServerTestBase  {
                                                       "bob.properties");
 
         // DOM
-        pt.doubleIt(5);
+        assertEquals(10, pt.doubleIt(5));
 
         // Streaming
         SecurityTestUtil.enableStreaming(pt);
-        pt.doubleIt(5);
+        assertEquals(10, pt.doubleIt(5));
 
         ((java.io.Closeable)pt).close();
 
@@ -320,11 +325,11 @@ public class SecurityPolicyTest extends AbstractBusClientServerTestBase  {
         ((BindingProvider)pt).getRequestContext().put(SecurityConstants.PASSWORD, "pwd");
 
         // DOM
-        pt.doubleIt(25);
+        assertEquals(50, pt.doubleIt(25));
 
         // Streaming
         SecurityTestUtil.enableStreaming(pt);
-        pt.doubleIt(25);
+        assertEquals(50, pt.doubleIt(25));
 
         ((java.io.Closeable)pt).close();
 
@@ -647,7 +652,9 @@ public class SecurityPolicyTest extends AbstractBusClientServerTestBase  {
         Bus epBus = BusFactory.newInstance().createBus();
         BusFactory.setDefaultBus(epBus);
         URL wsdl = SecurityPolicyTest.class.getResource("DoubleIt.wsdl");
-        EndpointImpl ep = (EndpointImpl)Endpoint.create(new DoubleItImpl());
+        DoubleItPortTypeImpl implementor = new DoubleItPortTypeImpl();
+        implementor.setEnforcePrincipal(false);
+        EndpointImpl ep = (EndpointImpl)Endpoint.create(implementor);
         ep.setEndpointName(
             new QName("http://www.example.org/contract/DoubleIt", "DoubleItPortCXF4122")
         );

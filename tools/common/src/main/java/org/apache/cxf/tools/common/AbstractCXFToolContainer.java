@@ -178,17 +178,17 @@ public abstract class AbstractCXFToolContainer extends AbstractToolContainer {
     }
 
     public String getFileName(String loc) {
-        int idx = loc.lastIndexOf("/");
+        int idx = loc.lastIndexOf('/');
 
         if (idx != -1) {
             loc = loc.substring(idx + 1);
         }
-        idx = loc.lastIndexOf("\\");
+        idx = loc.lastIndexOf('\\');
         if (idx != -1) {
             loc = loc.substring(idx + 1);
         }
 
-        idx = loc.lastIndexOf(".");
+        idx = loc.lastIndexOf('.');
         if (idx != -1) {
             loc = loc.substring(0, idx);
         }
@@ -203,7 +203,7 @@ public abstract class AbstractCXFToolContainer extends AbstractToolContainer {
         while (strToken.hasMoreTokens()) {
             strBuf.append(strToken.nextToken());
             if (strToken.countTokens() != 0) {
-                strBuf.append("_");
+                strBuf.append('_');
             }
         }
 
@@ -253,12 +253,12 @@ public abstract class AbstractCXFToolContainer extends AbstractToolContainer {
         while (nexcludes.hasMoreElements()) {
             result.add(props.getProperty((String)nexcludes.nextElement()));
         }
-        return result.toArray(new String[result.size()]);
+        return result.toArray(new String[0]);
     }
 
     /**
      * get all parameters in a map
-     * @param stringArrayKeys, contains keys, whose value should be string array
+     * @param stringArrayKeys contains keys, whose value should be string array
      */
     protected Map<String, Object> getParametersMap(Set<String> stringArrayKeys) {
         Map<String, Object> map = new HashMap<>();
@@ -282,7 +282,7 @@ public abstract class AbstractCXFToolContainer extends AbstractToolContainer {
 
     protected ClassCollector createClassCollector() {
         ClassCollector collector = new ClassCollector();
-        String reserved[] = (String[])context.get(ToolConstants.CFG_RESERVE_NAME);
+        String[] reserved = (String[])context.get(ToolConstants.CFG_RESERVE_NAME);
         if (reserved != null) {
             for (String r : reserved) {
                 collector.reserveClass(r);

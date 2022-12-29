@@ -30,29 +30,32 @@ import java.util.Map;
 import java.util.logging.Handler;
 import java.util.logging.LogRecord;
 
-import javax.ws.rs.ConstrainedTo;
-import javax.ws.rs.RuntimeType;
-import javax.ws.rs.client.Client;
-import javax.ws.rs.client.ClientRequestContext;
-import javax.ws.rs.client.ClientRequestFilter;
-import javax.ws.rs.client.ClientResponseContext;
-import javax.ws.rs.client.ClientResponseFilter;
-import javax.ws.rs.container.ContainerRequestContext;
-import javax.ws.rs.container.ContainerRequestFilter;
-import javax.ws.rs.container.ContainerResponseContext;
-import javax.ws.rs.container.ContainerResponseFilter;
-import javax.ws.rs.core.Configurable;
-import javax.ws.rs.core.Configuration;
-import javax.ws.rs.core.Feature;
-import javax.ws.rs.core.FeatureContext;
-import javax.ws.rs.ext.MessageBodyReader;
-
+import jakarta.ws.rs.ConstrainedTo;
+import jakarta.ws.rs.RuntimeType;
+import jakarta.ws.rs.client.Client;
+import jakarta.ws.rs.client.ClientRequestContext;
+import jakarta.ws.rs.client.ClientRequestFilter;
+import jakarta.ws.rs.client.ClientResponseContext;
+import jakarta.ws.rs.client.ClientResponseFilter;
+import jakarta.ws.rs.container.ContainerRequestContext;
+import jakarta.ws.rs.container.ContainerRequestFilter;
+import jakarta.ws.rs.container.ContainerResponseContext;
+import jakarta.ws.rs.container.ContainerResponseFilter;
+import jakarta.ws.rs.core.Configurable;
+import jakarta.ws.rs.core.Configuration;
+import jakarta.ws.rs.core.Feature;
+import jakarta.ws.rs.core.FeatureContext;
+import jakarta.ws.rs.ext.MessageBodyReader;
 import org.apache.cxf.common.logging.LogUtils;
 
-import org.junit.Assert;
 import org.junit.Test;
 
-public class ConfigurationImplTest extends Assert {
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+
+public class ConfigurationImplTest {
 
     @Test
     public void testIsRegistered() throws Exception {
@@ -81,7 +84,7 @@ public class ConfigurationImplTest extends Assert {
         assertTrue(c.register(provider,
                               Collections.<Class<?>, Integer>singletonMap(ContainerResponseFilter.class, 1000)));
         assertTrue(c.isRegistered(provider));
-        assertFalse(c.isRegistered(providerClass.newInstance()));
+        assertFalse(c.isRegistered(providerClass.getDeclaredConstructor().newInstance()));
         assertTrue(c.isRegistered(providerClass));
         assertFalse(c.isRegistered(ContainerResponseFilter.class));
         assertFalse(c.register(provider,
@@ -180,6 +183,24 @@ public class ConfigurationImplTest extends Assert {
         }
     }
 
+    public interface MyClientFilter extends ClientRequestFilter, ClientResponseFilter {
+        // reduced to just the intermediate layer. Could contain user code
+    }
+
+    public static class NestedInterfaceTestFilter implements MyClientFilter {
+
+        @Override
+        public void filter(ClientRequestContext requestContext) throws IOException {
+            // no-op
+        }
+
+        @Override
+        public void filter(ClientRequestContext requestContext, ClientResponseContext responseContext)
+                throws IOException {
+            // no-op
+        }
+    }
+
     private Client createClientProxy() {
         return (Client) Proxy.newProxyInstance(this.getClass().getClassLoader(), 
             new Class<?>[]{Client.class},
@@ -205,14 +226,28 @@ public class ConfigurationImplTest extends Assert {
     
     @Test
     public void testServerFilterContractsOnClientIsRejected() {
-        Configurable<Client> configurable = new ConfigurableImpl<Client>(createClientProxy(), RuntimeType.CLIENT);
-        Configuration config = configurable.getConfiguration();
-        configurable.register(TestFilter.class);
-        Map<Class<?>, Integer> contracts = config.getContracts(TestFilter.class);
-        assertTrue(contracts.containsKey(ClientRequestFilter.class));
-        assertTrue(contracts.containsKey(ClientResponseFilter.class));
-        assertFalse(contracts.containsKey(ContainerRequestFilter.class));
-        assertFalse(contracts.containsKey(ContainerResponseFilter.class));
+        try (ConfigurableImpl<Client> configurable 
+                = new ConfigurableImpl<>(createClientProxy(), RuntimeType.CLIENT)) {
+            Configuration config = configurable.getConfiguration();
+            configurable.register(TestFilter.class);
+            Map<Class<?>, Integer> contracts = config.getContracts(TestFilter.class);
+            assertTrue(contracts.containsKey(ClientRequestFilter.class));
+            assertTrue(contracts.containsKey(ClientResponseFilter.class));
+            assertFalse(contracts.containsKey(ContainerRequestFilter.class));
+            assertFalse(contracts.containsKey(ContainerResponseFilter.class));
+        }
+    }
+
+    @Test
+    public void testClientFilterWithNestedInterfacesIsAccepted() {
+        try (ConfigurableImpl<Client> configurable 
+                = new ConfigurableImpl<>(createClientProxy(), RuntimeType.CLIENT)) {
+            Configuration config = configurable.getConfiguration();
+            configurable.register(NestedInterfaceTestFilter.class);
+            Map<Class<?>, Integer> contracts = config.getContracts(NestedInterfaceTestFilter.class);
+            assertTrue(contracts.containsKey(ClientRequestFilter.class));
+            assertTrue(contracts.containsKey(ClientResponseFilter.class));
+        }
     }
 
     @Test
@@ -306,16 +341,18 @@ public class ConfigurationImplTest extends Assert {
         TestHandler handler = new TestHandler();
         LogUtils.getL7dLogger(ConfigurableImpl.class).addHandler(handler);
 
-        Configurable<Client> configurable = new ConfigurableImpl<Client>(createClientProxy(), RuntimeType.CLIENT);
-        Configuration config = configurable.getConfiguration();
-
-        configurable.register(ClientFilterConstrainedToServer.class);
-
-        assertEquals(0, config.getInstances().size());
-
-        for (String message : handler.messages) {
-            if (message.startsWith("WARN") && message.contains("cannot be registered in ")) {
-                return; // success
+        try (ConfigurableImpl<Client> configurable 
+                = new ConfigurableImpl<>(createClientProxy(), RuntimeType.CLIENT)) {
+            Configuration config = configurable.getConfiguration();
+    
+            configurable.register(ClientFilterConstrainedToServer.class);
+    
+            assertEquals(0, config.getInstances().size());
+    
+            for (String message : handler.messages) {
+                if (message.startsWith("WARN") && message.contains("cannot be registered in ")) {
+                    return; // success
+                }
             }
         }
         fail("did not log expected message");
@@ -327,16 +364,18 @@ public class ConfigurationImplTest extends Assert {
         TestHandler handler = new TestHandler();
         LogUtils.getL7dLogger(ConfigurableImpl.class).addHandler(handler);
 
-        Configurable<Client> configurable = new ConfigurableImpl<Client>(createClientProxy(), RuntimeType.CLIENT);
-        Configuration config = configurable.getConfiguration();
-
-        configurable.register(ContainerResponseFilterImpl.class);
-
-        assertEquals(0, config.getInstances().size());
-
-        for (String message : handler.messages) {
-            if (message.startsWith("WARN") && message.contains("Null, empty or invalid contracts specified")) {
-                return; // success
+        try (ConfigurableImpl<Client> configurable 
+                = new ConfigurableImpl<>(createClientProxy(), RuntimeType.CLIENT)) {
+            Configuration config = configurable.getConfiguration();
+    
+            configurable.register(ContainerResponseFilterImpl.class);
+    
+            assertEquals(0, config.getInstances().size());
+    
+            for (String message : handler.messages) {
+                if (message.startsWith("WARN") && message.contains("Null, empty or invalid contracts specified")) {
+                    return; // success
+                }
             }
         }
         fail("did not log expected message");

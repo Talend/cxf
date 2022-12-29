@@ -23,9 +23,8 @@ import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Proxy;
 import java.net.URL;
 
-import javax.xml.ws.BindingProvider;
-import javax.xml.ws.Endpoint;
-
+import jakarta.xml.ws.BindingProvider;
+import jakarta.xml.ws.Endpoint;
 import org.apache.cxf.Bus;
 import org.apache.cxf.BusFactory;
 import org.apache.cxf.bus.spring.SpringBusFactory;
@@ -39,10 +38,11 @@ import org.apache.hello_world_soap_http.Greeter;
 import org.apache.hello_world_soap_http.GreeterImpl;
 import org.apache.hello_world_soap_http.SOAPService;
 
-import org.junit.Assert;
 import org.junit.Test;
 
-public class BusShutdownTest extends Assert {
+import static org.junit.Assert.assertNotNull;
+
+public class BusShutdownTest {
     public static final String PORT = TestUtil.getPortNumber(BusShutdownTest.class);
 
     @Test

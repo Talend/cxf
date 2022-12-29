@@ -32,6 +32,7 @@ import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -164,10 +165,24 @@ public abstract class HTTPConduit
 
     public static final String PROCESS_FAULT_ON_HTTP_400 = "org.apache.cxf.transport.process_fault_on_http_400";
     public static final String NO_IO_EXCEPTIONS = "org.apache.cxf.transport.no_io_exceptions";
+
+    /** 
+     * The HTTP status codes as contextual property (comma-separated integers as String) 
+     * on the outgoing {@link Message} which lead to setting {@code org.apache.cxf.transport.service_not_available} 
+     * for all responses with those status codes. This is used e.g. by the 
+     * {@code org.apache.cxf.clustering.FailoverTargetSelector} to determine if it should do the fail-over.
+     * Default: {@code 404,429,503} as per {@code DEFAULT_SERVICE_NOT_AVAILABLE_ON_HTTP_STATUS_CODES}
+     */
+    public static final String SERVICE_NOT_AVAILABLE_ON_HTTP_STATUS_CODES = 
+        "org.apache.cxf.transport.service_not_available_on_http_status_codes";
+
     /**
      * The Logger for this class.
      */
     protected static final Logger LOG = LogUtils.getL7dLogger(HTTPConduit.class);
+
+    private static final Collection<Integer> DEFAULT_SERVICE_NOT_AVAILABLE_ON_HTTP_STATUS_CODES = 
+            Arrays.asList(404, 429, 503);
 
     private static boolean hasLoggedAsyncWarning;
 
@@ -186,6 +201,9 @@ public abstract class HTTPConduit
     private static final String HTTP_GET_METHOD = "GET";
     private static final Set<String> KNOWN_HTTP_VERBS_WITH_NO_CONTENT =
         new HashSet<>(Arrays.asList(new String[]{"GET", "HEAD", "OPTIONS", "TRACE"}));
+
+    private static final String AUTHORIZED_REDIRECTED_HTTP_VERBS = "http.redirect.allowed.verbs";
+
     /**
      * This constant is the Message(Map) key for a list of visited URLs that
      * is used in redirect loop protection.
@@ -588,10 +606,8 @@ public abstract class HTTPConduit
             MessageContentsList objs = MessageContentsList.getContentsList(message);
             if (objs != null && !objs.isEmpty()) {
                 Object obj = objs.get(0);
-                if (obj.getClass() != String.class
-                    || (obj.getClass() == String.class && ((String)obj).length() > 0)) {
-                    return true;
-                }
+                return obj.getClass() != String.class
+                    || (obj.getClass() == String.class && ((String)obj).length() > 0);
             }
         }
         return false;
@@ -659,7 +675,7 @@ public abstract class HTTPConduit
         try {
             if (in != null) {
                 int count = 0;
-                byte buffer[] = new byte[1024];
+                byte[] buffer = new byte[1024];
                 while (in.read(buffer) != -1
                     && count < 25) {
                     //don't do anything, we just need to pull off the unread data (like
@@ -1242,10 +1258,10 @@ public abstract class HTTPConduit
                         ex.execute(runnable);
                     }
                 } catch (RejectedExecutionException rex) {
-                    if (allowCurrentThread
-                        && policy != null
+                    if (!allowCurrentThread
+                        || (policy != null
                         && policy.isSetAsyncExecuteTimeoutRejection()
-                        && policy.isAsyncExecuteTimeoutRejection()) {
+                        && policy.isAsyncExecuteTimeoutRejection())) {
                         throw rex;
                     }
                     if (!hasLoggedAsyncWarning) {
@@ -1277,7 +1293,7 @@ public abstract class HTTPConduit
 
             // If this is a GET method we must not touch the output
             // stream as this automagically turns the request into a POST.
-            if (getMethod().equals("GET") || cachedStream == null) {
+            if ("GET".equals(getMethod()) || cachedStream == null) {
                 handleNoOutput();
                 return;
             }
@@ -1397,14 +1413,13 @@ public abstract class HTTPConduit
 
         private <T extends Exception> T mapException(String msg,
                                                      T ex, Class<T> cls) {
-            T ex2 = ex;
+            T ex2;
             try {
                 ex2 = cls.cast(ex.getClass().getConstructor(String.class).newInstance(msg));
                 ex2.initCause(ex);
             } catch (Throwable e) {
                 ex2 = ex;
             }
-
 
             return ex2;
         }
@@ -1415,9 +1430,13 @@ public abstract class HTTPConduit
          * @throws IOException
          */
         protected void handleRetransmits() throws IOException {
+
+            Set<String> allowedVerbsSet = MessageUtils.getContextualStrings(outMessage,
+                    AUTHORIZED_REDIRECTED_HTTP_VERBS, KNOWN_HTTP_VERBS_WITH_NO_CONTENT);
+
             // If we have a cachedStream, we are caching the request.
             if (cachedStream != null
-                || getClient().isAutoRedirect() && KNOWN_HTTP_VERBS_WITH_NO_CONTENT.contains(getMethod())
+                || getClient().isAutoRedirect() && allowedVerbsSet.contains(getMethod())
                 || authSupplier != null && authSupplier.requiresRequestCaching()) {
 
                 if (LOG.isLoggable(Level.FINE) && cachedStream != null) {
@@ -1426,7 +1445,7 @@ public abstract class HTTPConduit
                         .append("\" Transmit cached message to: ")
                         .append(url)
                         .append(": ");
-                    cachedStream.writeCacheTo(b, 16 * 1024);
+                    cachedStream.writeCacheTo(b, 16L * 1024L);
                     LOG.fine(b.toString());
                 }
 
@@ -1457,6 +1476,7 @@ public abstract class HTTPConduit
             case HttpURLConnection.HTTP_MOVED_TEMP:
             case HttpURLConnection.HTTP_SEE_OTHER:
             case 307:
+            case 308:
                 return redirectRetransmit();
             case HttpURLConnection.HTTP_UNAUTHORIZED:
             case HttpURLConnection.HTTP_PROXY_AUTH:
@@ -1602,7 +1622,10 @@ public abstract class HTTPConduit
             }
             if (exchange != null) {
                 exchange.put(Message.RESPONSE_CODE, rc);
-                if (rc == 404 || rc == 503) {
+                final Collection<Integer> serviceNotAvailableOnHttpStatusCodes = MessageUtils
+                    .getContextualIntegers(outMessage, SERVICE_NOT_AVAILABLE_ON_HTTP_STATUS_CODES, 
+                        DEFAULT_SERVICE_NOT_AVAILABLE_ON_HTTP_STATUS_CODES);
+                if (serviceNotAvailableOnHttpStatusCodes.contains(rc)) {
                     exchange.put("org.apache.cxf.transport.service_not_available", true);
                 }
             }
@@ -1638,8 +1661,10 @@ public abstract class HTTPConduit
             }
             propagateConduit(exchange, inMessage);
 
-            if (!doProcessResponse(outMessage, responseCode)
-                || HttpURLConnection.HTTP_ACCEPTED == responseCode) {
+            if ((!doProcessResponse(outMessage, responseCode)
+                || HttpURLConnection.HTTP_ACCEPTED == responseCode)
+                && MessageUtils.getContextualBoolean(outMessage, 
+                    Message.PROCESS_202_RESPONSE_ONEWAY_OR_PARTIAL, true)) {
                 in = getPartialResponse();
                 if (in == null
                     || !MessageUtils.getContextualBoolean(outMessage, Message.PROCESS_ONEWAY_RESPONSE, false)) {
@@ -1660,7 +1685,13 @@ public abstract class HTTPConduit
                         }
                     }
                     exchange.put("IN_CHAIN_COMPLETE", Boolean.TRUE);
+
                     exchange.setInMessage(inMessage);
+                    if (MessageUtils.getContextualBoolean(outMessage, 
+                            Message.PROPAGATE_202_RESPONSE_ONEWAY_OR_PARTIAL, false)) {
+                        incomingObserver.onMessage(inMessage);
+                    }
+
                     return;
                 }
             } else {
@@ -1933,7 +1964,7 @@ public abstract class HTTPConduit
         // retransmit, it means we have already supplied information
         // which must have been wrong, or we wouldn't be here again.
         // Otherwise, the server may be 401 looping us around the realms.
-        if (authURLs.contains(currentURL.toString() + realm)) {
+        if (!authURLs.add(currentURL.toString() + realm)) {
             String logMessage = "Authorization loop detected on Conduit \""
                 + conduitName
                 + "\" on URL \""
@@ -1947,7 +1978,5 @@ public abstract class HTTPConduit
 
             throw new IOException(logMessage);
         }
-        // Register that we have been here before we go.
-        authURLs.add(currentURL.toString() + realm);
     }
 }

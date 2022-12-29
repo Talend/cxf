@@ -22,8 +22,7 @@ package org.apache.cxf.systest.jaxws;
 import java.util.LinkedList;
 import java.util.List;
 
-import javax.xml.ws.Endpoint;
-
+import jakarta.xml.ws.Endpoint;
 import org.apache.cxf.testutil.common.AbstractBusTestServerBase;
 import org.apache.headers.HeaderTesterImpl;
 import org.apache.hello_world_xml_http.bare.GreeterImpl;
@@ -35,7 +34,7 @@ public class ServerXMLBinding extends AbstractBusTestServerBase {
     static final String WRAP_PORT = allocatePort(ServerXMLBinding.class, 1);
     static final String MIX_PORT = allocatePort(ServerXMLBinding.class, 2);
 
-    List<Endpoint> eps = new LinkedList<Endpoint>();
+    List<Endpoint> eps = new LinkedList<>();
 
     protected void run() {
         Object implementor = new GreeterImpl();

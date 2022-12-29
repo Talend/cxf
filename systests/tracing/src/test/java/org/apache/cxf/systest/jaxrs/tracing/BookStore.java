@@ -23,22 +23,21 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.UUID;
-import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
-import javax.ws.rs.GET;
-import javax.ws.rs.PUT;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
-import javax.ws.rs.container.AsyncResponse;
-import javax.ws.rs.container.Suspended;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-
+import jakarta.ws.rs.GET;
+import jakarta.ws.rs.InternalServerErrorException;
+import jakarta.ws.rs.PUT;
+import jakarta.ws.rs.Path;
+import jakarta.ws.rs.PathParam;
+import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.container.AsyncResponse;
+import jakarta.ws.rs.container.Suspended;
+import jakarta.ws.rs.core.Context;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.Response;
 import org.apache.cxf.systest.Book;
 import org.apache.cxf.tracing.Traceable;
 import org.apache.cxf.tracing.TracerContext;
@@ -46,17 +45,14 @@ import org.apache.cxf.tracing.TracerContext;
 @Path("/bookstore/")
 public class BookStore<T extends Closeable> {
     @Context private TracerContext tracer;
-    private ExecutorService executor = Executors.newSingleThreadExecutor();
+    private final ScheduledExecutorService executor = Executors.newScheduledThreadPool(1);
 
     @GET
     @Path("/books")
     @Produces(MediaType.APPLICATION_JSON)
-    public Collection< Book > getBooks() throws IOException {
+    public Collection<Book> getBooks() throws IOException {
         try (T span = tracer.startSpan("Get Books")) {
-            return Arrays.asList(
-                new Book("Apache CXF in Action", UUID.randomUUID().toString()),
-                new Book("Mastering Apache CXF", UUID.randomUUID().toString())
-            );
+            return books();
         }
     }
 
@@ -67,25 +63,15 @@ public class BookStore<T extends Closeable> {
         tracer.continueSpan(new Traceable<Void>() {
             @Override
             public Void call(final TracerContext context) throws Exception {
-                executor.submit(
+                executor.schedule(
                     tracer.wrap("Processing books", new Traceable<Void>() {
                         @Override
                         public Void call(final TracerContext context) throws Exception {
-                            // Simulate some running job
-                            Thread.sleep(200);
-
-                            response.resume(
-                                Arrays.asList(
-                                    new Book("Apache CXF in Action", UUID.randomUUID().toString()),
-                                    new Book("Mastering Apache CXF", UUID.randomUUID().toString())
-                                )
-                            );
-
+                            response.resume(books());
                             return null;
                         }
                     }
-                ));
-
+                ), 200L, TimeUnit.MILLISECONDS); // Simulate some running job
                 return null;
             }
         });
@@ -94,25 +80,9 @@ public class BookStore<T extends Closeable> {
     @GET
     @Path("/books/async/notrace")
     @Produces(MediaType.APPLICATION_JSON)
-    public void getBooksAsyncNoTrace(@Suspended final AsyncResponse response) throws Exception {
-        executor.submit(
-            new Callable<Void>() {
-                @Override
-                public Void call() throws Exception {
-                    // Simulate some running job
-                    Thread.sleep(200);
-
-                    response.resume(
-                        Arrays.asList(
-                            new Book("Apache CXF in Action", UUID.randomUUID().toString()),
-                            new Book("Mastering Apache CXF", UUID.randomUUID().toString())
-                        )
-                    );
-
-                    return null;
-                }
-            }
-        );
+    public void getBooksAsyncNoTrace(@Suspended final AsyncResponse response) {
+        executor.schedule(() -> response.resume(books()),
+                200L, TimeUnit.MILLISECONDS); // Simulate some running job
     }
 
     @GET
@@ -125,10 +95,7 @@ public class BookStore<T extends Closeable> {
                 return tracer.wrap("Processing books", new Traceable<Collection<Book>>() {
                     @Override
                     public Collection<Book> call(final TracerContext context) throws Exception {
-                        return Arrays.asList(
-                            new Book("Apache CXF in Action", UUID.randomUUID().toString()),
-                            new Book("Mastering Apache CXF", UUID.randomUUID().toString())
-                        );
+                        return books();
                     }
                 }).call();
             }
@@ -146,22 +113,51 @@ public class BookStore<T extends Closeable> {
     @PUT
     @Path("/process")
     @Produces(MediaType.APPLICATION_JSON)
-    public Response processBooks() throws InterruptedException {
-        final Future<Void> future = executor.submit(
-            tracer.wrap("Processing books", new Traceable<Void>() {
-                @Override
-                public Void call(final TracerContext context) throws Exception {
-                    context.timeline("Processing started");
-                    return null;
-                }
-            })
-        );
-        
-        if (!future.isDone()) {
-            // Just give it some time to have trace finished 
-            Thread.sleep(20);
-        }
-
+    public Response processBooks() throws Exception {
+        tracer.wrap("Processing books", new Traceable<Void>() {
+            @Override
+            public Void call(final TracerContext context) throws Exception {
+                context.timeline("Processing started");
+                return null;
+            }
+        }).call();
         return Response.ok().build();
     }
+
+    @GET
+    @Path("/books/long")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Collection<Book> getBooksLong() throws InterruptedException {
+        Thread.sleep(500);
+        return books();
+    }
+
+    @GET
+    @Path("/books/exception")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Collection<Book> getBooksException() {
+        throw new InternalServerErrorException("Simulated failure");
+    }
+
+    @GET
+    @Path("/books/error")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response getBooksError() {
+        return Response.status(503).build();
+    }
+
+    @GET
+    @Path("/books/mapper")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response getNpe() {
+        throw new NullPointerException("Simulated failure");
+    }
+
+    private static Collection<Book> books() {
+        return Arrays.asList(
+                new Book("Apache CXF in Action", UUID.randomUUID().toString()),
+                new Book("Mastering Apache CXF", UUID.randomUUID().toString())
+            );
+    }
+
 }

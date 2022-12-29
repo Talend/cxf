@@ -28,10 +28,9 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.logging.Logger;
 
-import javax.ws.rs.RuntimeType;
-import javax.ws.rs.core.Configuration;
-import javax.ws.rs.core.Feature;
-
+import jakarta.ws.rs.RuntimeType;
+import jakarta.ws.rs.core.Configuration;
+import jakarta.ws.rs.core.Feature;
 import org.apache.cxf.common.logging.LogUtils;
 import org.apache.cxf.jaxrs.utils.AnnotationUtils;
 
@@ -40,8 +39,8 @@ public class ConfigurationImpl implements Configuration {
     private Map<String, Object> props = new HashMap<>();
     private RuntimeType runtimeType;
     private Map<Object, Map<Class<?>, Integer>> providers =
-        new LinkedHashMap<Object, Map<Class<?>, Integer>>();
-    private Map<Feature, Boolean> features = new LinkedHashMap<Feature, Boolean>();
+        new LinkedHashMap<>();
+    private Map<Feature, Boolean> features = new LinkedHashMap<>();
 
     public ConfigurationImpl(RuntimeType rt) {
         this.runtimeType = rt;
@@ -52,7 +51,7 @@ public class ConfigurationImpl implements Configuration {
             this.props.putAll(parent.getProperties());
             this.runtimeType = parent.getRuntimeType();
 
-            Set<Class<?>> providerClasses = new HashSet<Class<?>>(parent.getClasses());
+            Set<Class<?>> providerClasses = new HashSet<>(parent.getClasses());
             for (Object o : parent.getInstances()) {
                 if (!(o instanceof Feature)) {
                     registerParentProvider(o, parent);
@@ -81,7 +80,7 @@ public class ConfigurationImpl implements Configuration {
 
     @Override
     public Set<Class<?>> getClasses() {
-        Set<Class<?>> classes = new HashSet<Class<?>>();
+        Set<Class<?>> classes = new HashSet<>();
         for (Object o : getInstances()) {
             classes.add(o.getClass());
         }
@@ -235,7 +234,7 @@ public class ConfigurationImpl implements Configuration {
 
     public static Object createProvider(Class<?> cls) {
         try {
-            return cls.newInstance();
+            return cls.getDeclaredConstructor().newInstance();
         } catch (Throwable ex) {
             throw new RuntimeException(ex);
         }

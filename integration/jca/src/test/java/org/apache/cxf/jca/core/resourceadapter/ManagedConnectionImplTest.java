@@ -19,20 +19,24 @@
 package org.apache.cxf.jca.core.resourceadapter;
 
 import java.io.PrintWriter;
+import java.io.StringWriter;
+import java.util.concurrent.atomic.AtomicBoolean;
 
-import javax.resource.NotSupportedException;
-import javax.resource.spi.ConnectionEvent;
-import javax.resource.spi.ConnectionEventListener;
-import javax.resource.spi.ConnectionRequestInfo;
 import javax.security.auth.Subject;
 
+import jakarta.resource.spi.ConnectionEvent;
+import jakarta.resource.spi.ConnectionEventListener;
+import jakarta.resource.spi.ConnectionRequestInfo;
 
 import org.easymock.EasyMock;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
-public class ManagedConnectionImplTest extends Assert {
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertSame;
+import static org.junit.Assert.assertTrue;
+
+public class ManagedConnectionImplTest {
     private DummyManagedConnectionImpl mc;
 
     @Before
@@ -42,15 +46,19 @@ public class ManagedConnectionImplTest extends Assert {
 
     @Test
     public void testGetSetLogWriter() throws Exception {
-        PrintWriter writer = EasyMock.createMock(PrintWriter.class);
+        final AtomicBoolean closed = new AtomicBoolean();
+        PrintWriter writer = new PrintWriter(new StringWriter()) {
+            @Override
+            public void close() {
+                super.close();
+                closed.set(true);
+            }
+        };
         mc.setLogWriter(writer);
-        assertTrue(mc.getLogWriter() == writer);
-        writer.close();
-        EasyMock.expectLastCall();
-        EasyMock.replay(writer);
-        mc.destroy();
-        EasyMock.verify(writer);
+        assertSame(writer, mc.getLogWriter());
 
+        mc.destroy();
+        assertTrue(closed.get());
     }
 
     @Test
@@ -82,11 +90,7 @@ public class ManagedConnectionImplTest extends Assert {
 
     @Test
     public void testGetMetaData() throws Exception {
-        try {
-            mc.getMetaData();
-        } catch (NotSupportedException expected) {
-            fail("Got the Exception here");
-        }
+        mc.getMetaData();
     }
 
     @Test

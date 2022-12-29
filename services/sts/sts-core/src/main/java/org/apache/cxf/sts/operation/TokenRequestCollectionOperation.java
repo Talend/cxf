@@ -25,9 +25,9 @@ import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import javax.xml.bind.JAXBElement;
 import javax.xml.namespace.QName;
 
+import jakarta.xml.bind.JAXBElement;
 import org.apache.cxf.common.logging.LogUtils;
 import org.apache.cxf.sts.QNameConstants;
 import org.apache.cxf.sts.STSConstants;
@@ -84,7 +84,7 @@ public class TokenRequestCollectionOperation extends AbstractOperation
                         if (val == null || (requestType != null && !requestType.equals(val))) {
                             LOG.log(
                                 Level.WARNING,
-                                "All RequestSecurityTokenCollection elements do not share the same"
+                                "All RequestSecurityTokenCollection elements do not share the same "
                                 + "RequestType"
                             );
                             throw new STSException(

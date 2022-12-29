@@ -25,8 +25,8 @@ import java.util.Set;
 import javax.management.MBeanServer;
 import javax.management.ObjectName;
 import javax.xml.namespace.QName;
-import javax.xml.ws.Endpoint;
 
+import jakarta.xml.ws.Endpoint;
 import org.apache.cxf.Bus;
 import org.apache.cxf.BusFactory;
 import org.apache.cxf.management.InstrumentationManager;
@@ -43,6 +43,9 @@ import org.apache.hello_world_soap_http.SOAPService;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 public class CountersClientServerTest extends AbstractBusClientServerTestBase {
     public static final String PORT = allocatePort(CountersClientServerTest.class);

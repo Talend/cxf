@@ -23,9 +23,9 @@ package demo.hw.server;
 
 import java.util.concurrent.Future;
 import java.util.logging.Logger;
-import javax.jws.WebService;
-import javax.xml.ws.AsyncHandler;
-import javax.xml.ws.Response;
+import jakarta.jws.WebService;
+import jakarta.xml.ws.AsyncHandler;
+import jakarta.xml.ws.Response;
 
 import org.apache.cxf.annotations.UseAsyncMethod;
 import org.apache.cxf.jaxws.ServerAsyncResponse;
@@ -56,7 +56,7 @@ public class GreeterImpl implements GreeterAsync {
         LOG.info("Executing operation greetMeSometimeAsync asynchronously");
         System.out.println("Executing operation greetMeSometimeAsync asynchronously\n");
         final ServerAsyncResponse<GreetMeSometimeResponse> r
-            = new ServerAsyncResponse<GreetMeSometimeResponse>();
+            = new ServerAsyncResponse<>();
         new Thread() {
             public void run() {
                 GreetMeSometimeResponse resp = new GreetMeSometimeResponse();

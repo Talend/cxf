@@ -20,17 +20,16 @@ package org.apache.cxf.sts.operation;
 
 import java.security.Principal;
 import java.security.cert.X509Certificate;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Properties;
 
-import javax.xml.bind.JAXBElement;
 import javax.xml.namespace.QName;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
+import jakarta.xml.bind.JAXBElement;
 import org.apache.cxf.helpers.DOMUtils;
 import org.apache.cxf.jaxws.context.WrappedMessageContext;
 import org.apache.cxf.message.MessageImpl;
@@ -47,13 +46,13 @@ import org.apache.cxf.sts.cache.DefaultInMemoryTokenStore;
 import org.apache.cxf.sts.common.PasswordCallbackHandler;
 import org.apache.cxf.sts.service.ServiceMBean;
 import org.apache.cxf.sts.service.StaticService;
-import org.apache.cxf.sts.token.provider.TokenProvider;
 import org.apache.cxf.sts.token.provider.jwt.JWTTokenProvider;
 import org.apache.cxf.ws.security.sts.provider.model.RequestSecurityTokenResponseCollectionType;
 import org.apache.cxf.ws.security.sts.provider.model.RequestSecurityTokenResponseType;
 import org.apache.cxf.ws.security.sts.provider.model.RequestSecurityTokenType;
 import org.apache.cxf.ws.security.sts.provider.model.RequestedSecurityTokenType;
 import org.apache.cxf.ws.security.tokenstore.TokenStore;
+import org.apache.cxf.ws.security.tokenstore.TokenStoreException;
 import org.apache.wss4j.common.WSS4JConstants;
 import org.apache.wss4j.common.crypto.Crypto;
 import org.apache.wss4j.common.crypto.CryptoFactory;
@@ -61,11 +60,16 @@ import org.apache.wss4j.common.crypto.CryptoType;
 import org.apache.wss4j.common.principal.CustomTokenPrincipal;
 
 import org.junit.Assert;
+import org.junit.BeforeClass;
+
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 /**
  * Some unit tests for the issue operation to issue JWT Tokens.
  */
-public class IssueJWTUnitTest extends org.junit.Assert {
+public class IssueJWTUnitTest {
 
     public static final QName REQUESTED_SECURITY_TOKEN =
         QNameConstants.WS_TRUST_FACTORY.createRequestedSecurityToken(null).getName();
@@ -74,7 +78,12 @@ public class IssueJWTUnitTest extends org.junit.Assert {
     public static final QName UNATTACHED_REFERENCE =
         QNameConstants.WS_TRUST_FACTORY.createRequestedUnattachedReference(null).getName();
 
-    private static TokenStore tokenStore = new DefaultInMemoryTokenStore();
+    private static TokenStore tokenStore;
+    
+    @BeforeClass
+    public static void init() throws TokenStoreException {
+        tokenStore = new DefaultInMemoryTokenStore();
+    }
 
     /**
      * Test to successfully issue a JWT Token
@@ -85,9 +94,8 @@ public class IssueJWTUnitTest extends org.junit.Assert {
         issueOperation.setTokenStore(tokenStore);
 
         // Add Token Provider
-        List<TokenProvider> providerList = new ArrayList<>();
-        providerList.add(new JWTTokenProvider());
-        issueOperation.setTokenProviders(providerList);
+        issueOperation.setTokenProviders(Collections.singletonList(
+            new JWTTokenProvider()));
 
         // Add Service
         ServiceMBean service = new StaticService();
@@ -128,7 +136,7 @@ public class IssueJWTUnitTest extends org.junit.Assert {
             issueOperation.issue(request, principal, msgCtx);
         List<RequestSecurityTokenResponseType> securityTokenResponse =
             response.getRequestSecurityTokenResponse();
-        assertTrue(!securityTokenResponse.isEmpty());
+        assertFalse(securityTokenResponse.isEmpty());
 
         // Test the generated token.
         Element token = null;

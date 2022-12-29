@@ -27,17 +27,16 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.JAXBElement;
-import javax.xml.bind.JAXBException;
 import javax.xml.namespace.QName;
-import javax.xml.ws.BindingProvider;
-import javax.xml.ws.Holder;
-import javax.xml.ws.soap.SOAPFaultException;
 
 import org.w3c.dom.Node;
 
-
+import jakarta.xml.bind.JAXBContext;
+import jakarta.xml.bind.JAXBElement;
+import jakarta.xml.bind.JAXBException;
+import jakarta.xml.ws.BindingProvider;
+import jakarta.xml.ws.Holder;
+import jakarta.xml.ws.soap.SOAPFaultException;
 import org.apache.cxf.binding.soap.SoapHeader;
 import org.apache.cxf.headers.Header;
 import org.apache.cxf.jaxb.JAXBDataBinding;
@@ -51,6 +50,10 @@ import org.apache.hello_world_doc_lit_bare.types.TradePriceData;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 public class OOBHeaderTest extends AbstractBusClientServerTestBase {
     public static final String PORT = Server.PORT;
@@ -220,7 +223,7 @@ public class OOBHeaderTest extends AbstractBusClientServerTestBase {
         ((BindingProvider)putLastTradedPrice).getRequestContext()
             .put(BindingProvider.ENDPOINT_ADDRESS_PROPERTY, address);
 
-        Holder<TradePriceData> holder = new Holder<TradePriceData>(priceData);
+        Holder<TradePriceData> holder = new Holder<>(priceData);
         try {
             addOutOfBoundHeader(putLastTradedPrice, invalid, mu);
             putLastTradedPrice.sayHi(holder);

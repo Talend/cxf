@@ -34,7 +34,7 @@ public class AnnotationInterceptors {
 
     private static final ResourceBundle BUNDLE = BundleUtils.getBundle(AnnotationInterceptors.class);
 
-    private Class<?> clazzes[];
+    private Class<?>[] clazzes;
 
     public AnnotationInterceptors(Class<?> ... clz) {
         clazzes = clz;
@@ -96,9 +96,9 @@ public class AnnotationInterceptors {
     }
 
     private <T> T initializeAnnotationObject(String annObjectName, Class<T> type) {
-        Object object = null;
         try {
-            object = ClassLoaderUtils.loadClass(annObjectName, this.getClass()).newInstance();
+            final Object object = ClassLoaderUtils.loadClass(annObjectName, this.getClass())
+                .getDeclaredConstructor().newInstance();
             return type.cast(object);
         } catch (Throwable e) {
             throw new Fault(new org.apache.cxf.common.i18n.Message(
@@ -107,10 +107,8 @@ public class AnnotationInterceptors {
         }
     }
     private <T> T initializeAnnotationObject(Class<T> type) {
-        Object object = null;
         try {
-            object = type.newInstance();
-            return type.cast(object);
+            return type.cast(type.getDeclaredConstructor().newInstance());
         } catch (Throwable e) {
             throw new Fault(new org.apache.cxf.common.i18n.Message(
                                             "COULD_NOT_CREATE_ANNOTATION_OBJECT",
@@ -124,7 +122,7 @@ public class AnnotationInterceptors {
         if (i == null) {
             return null;
         }
-        List<Interceptor<? extends Message>> m = new ArrayList<Interceptor<? extends Message>>();
+        List<Interceptor<? extends Message>> m = new ArrayList<>();
         for (Interceptor<?> i2 : i) {
             m.add(i2);
         }

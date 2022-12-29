@@ -18,20 +18,30 @@
  */
 package org.apache.cxf.rs.security.jose.jwk;
 
+import java.io.InputStream;
 import java.math.BigInteger;
+import java.security.cert.CertificateFactory;
+import java.security.interfaces.ECPublicKey;
 import java.security.interfaces.RSAPrivateKey;
 import java.security.interfaces.RSAPublicKey;
+import java.util.Properties;
 
+import org.apache.cxf.common.util.Base64UrlUtility;
+import org.apache.cxf.rs.security.jose.common.JoseConstants;
 import org.apache.cxf.rs.security.jose.common.JoseException;
 import org.apache.cxf.rs.security.jose.common.JoseUtils;
 import org.apache.cxf.rs.security.jose.common.KeyManagementUtils;
 import org.apache.cxf.rs.security.jose.jwa.KeyAlgorithm;
 import org.apache.cxf.rt.security.crypto.CryptoUtils;
 
-import org.junit.Assert;
 import org.junit.Test;
 
-public class JwkUtilsTest extends Assert {
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.fail;
+
+public class JwkUtilsTest {
     private static final String RSA_KEY = "{"
       + "\"kty\": \"RSA\","
       + "\"n\": \"0vx7agoebGcQSuuPiLJXZptN9nndrQmbXEps2aiAFbWhM78LhWx4cbbfAAt"
@@ -184,6 +194,31 @@ public class JwkUtilsTest extends Assert {
     public void testEc521KeyThumbprint() throws Exception {
         String thumbprint = JwkUtils.getThumbprint(EC_521_KEY);
         assertEquals("rz4Ohmpxg-UOWIWqWKHlOe0bHSjNUFlHW5vwG_M7qYg", thumbprint);
+    }
+    @Test
+    public void testLoadPublicJwkSet() throws Exception {
+        final Properties props = new Properties();
+        props.setProperty(JoseConstants.RSSEC_KEY_STORE_FILE, "unavailable");
+        try {
+            JwkUtils.loadPublicJwkSet(null, props);
+            fail();
+        } catch (JwkException e) {
+            assertNull(e.getCause());
+        }
+    }
+
+    @Test
+    public void testEcLeadingZeros() throws Exception {
+        try (InputStream inputStream = this.getClass().getResourceAsStream("cert.pem")) {
+            ECPublicKey publicKey = (ECPublicKey) CertificateFactory.getInstance("X.509")
+                    .generateCertificate(inputStream).getPublicKey();
+            JsonWebKey jwk = JwkUtils.fromECPublicKey(publicKey, "P-256");
+            String x = (String)jwk.getProperty(JsonWebKey.EC_X_COORDINATE);
+            String y = (String)jwk.getProperty(JsonWebKey.EC_Y_COORDINATE);
+            int xLength = Base64UrlUtility.decode(x).length;
+            int yLength = Base64UrlUtility.decode(y).length;
+            assertEquals(xLength, yLength);
+        }
     }
 
 }

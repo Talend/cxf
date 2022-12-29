@@ -25,8 +25,8 @@ import org.apache.cxf.common.i18n.Message;
 
 public final class ValidationResult {
 
-    private Stack<String> errors = new Stack<String>();
-    private Stack<String> warnings = new Stack<String>();
+    private Stack<String> errors = new Stack<>();
+    private Stack<String> warnings = new Stack<>();
 
     public Stack<String> getErrors() {
         return this.errors;
@@ -57,11 +57,11 @@ public final class ValidationResult {
     }
 
     public boolean isSuccessful() {
-        return errors.isEmpty() && warnings.size() == 0;
+        return errors.isEmpty() && warnings.isEmpty();
     }
 
     public String toString() {
-        StringBuilder sb = new StringBuilder();
+        StringBuilder sb = new StringBuilder(128);
         sb.append("\n Summary: ");
         sb.append(" Failures: ");
         sb.append(errors.size());
@@ -71,14 +71,14 @@ public final class ValidationResult {
             sb.append("\n\n <<< ERROR! \n");
             while (!errors.empty()) {
                 sb.append(errors.pop());
-                sb.append("\n");
+                sb.append('\n');
             }
         }
         if (!warnings.isEmpty()) {
             sb.append("\n <<< WARNING! \n");
             while (!warnings.empty()) {
                 sb.append(warnings.pop());
-                sb.append("\n");
+                sb.append('\n');
             }
         }
         return sb.toString();

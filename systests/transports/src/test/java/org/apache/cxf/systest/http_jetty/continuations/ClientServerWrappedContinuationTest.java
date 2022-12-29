@@ -26,8 +26,8 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 import javax.xml.namespace.QName;
-import javax.xml.ws.Endpoint;
 
+import jakarta.xml.ws.Endpoint;
 import org.apache.cxf.Bus;
 import org.apache.cxf.BusFactory;
 import org.apache.cxf.bus.spring.SpringBusFactory;
@@ -36,6 +36,10 @@ import org.apache.cxf.testutil.common.AbstractClientServerTestBase;
 
 import org.junit.BeforeClass;
 import org.junit.Test;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 public class ClientServerWrappedContinuationTest extends AbstractClientServerTestBase {
     public static final String PORT = allocatePort(Server.class);

@@ -80,7 +80,7 @@ public class BeanTypeInfo {
      *
      * @param typeClass
      * @param defaultNamespace
-     * @param initiallize If true attempt default property/xml mappings.
+     * @param initialize If true attempt default property/xml mappings.
      */
     public BeanTypeInfo(Class<?> typeClass, String defaultNamespace, boolean initialize) {
         this.beanClass = typeClass;
@@ -99,10 +99,9 @@ public class BeanTypeInfo {
             if (!initialized) {
                 initializeSync();
             }
+        } catch (DatabindingException e) {
+            throw e;
         } catch (Exception e) {
-            if (e instanceof DatabindingException) {
-                throw (DatabindingException)e;
-            }
             throw new DatabindingException("Couldn't create TypeInfo.", e);
         }
     }
@@ -171,10 +170,9 @@ public class BeanTypeInfo {
             PropertyDescriptor desc;
             try {
                 desc = getPropertyDescriptorFromMappedName(name);
+            } catch (DatabindingException e) {
+                throw e;
             } catch (Exception e) {
-                if (e instanceof DatabindingException) {
-                    throw (DatabindingException)e;
-                }
                 throw new DatabindingException("Couldn't get properties.", e);
             }
 
@@ -309,7 +307,7 @@ public class BeanTypeInfo {
 
         getInterfacePropertyDescriptors(clazz, pds, new HashSet<Class<?>>());
 
-        return pds.toArray(new PropertyDescriptor[pds.size()]);
+        return pds.toArray(new PropertyDescriptor[0]);
     }
 
     private void getInterfacePropertyDescriptors(Class<?> clazz, List<PropertyDescriptor> pds,

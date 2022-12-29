@@ -61,7 +61,7 @@ import org.apache.cxf.tools.validator.AbstractValidator;
 import org.apache.cxf.wsdl.WSDLManager;
 
 public class WSDL11Validator extends AbstractDefinitionValidator {
-    protected static final Logger LOG = LogUtils.getL7dLogger(SchemaValidator.class);
+    protected static final Logger LOG = LogUtils.getL7dLogger(WSDL11Validator.class);
     private final List<AbstractValidator> validators = new ArrayList<>();
 
     public WSDL11Validator(final Definition definition) {
@@ -98,7 +98,6 @@ public class WSDL11Validator extends AbstractDefinitionValidator {
     public boolean isValid() throws ToolException {
         //boolean isValid = true;
         String schemaDir = getSchemaDir();
-        SchemaValidator schemaValidator = null;
         String[] schemas = (String[])env.get(ToolConstants.CFG_SCHEMA_URL);
         // Tool will use the following sequence to find the schema files
         // 1.ToolConstants.CFG_SCHEMA_DIR from ToolContext
@@ -145,6 +144,7 @@ public class WSDL11Validator extends AbstractDefinitionValidator {
             return true;
         }
 
+        final SchemaValidator schemaValidator;
         if (!StringUtils.isEmpty(schemaDir)) {
             schemaValidator = new SchemaValidator(schemaDir, wsdl, schemas);
         } else {
@@ -165,7 +165,7 @@ public class WSDL11Validator extends AbstractDefinitionValidator {
     }
 
     public String getSchemaDir() {
-        String dir = "";
+        final String dir;
         if (env.get(ToolConstants.CFG_SCHEMA_DIR) == null) {
             dir = System.getProperty(ToolConstants.CXF_SCHEMA_DIR);
         } else {

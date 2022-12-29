@@ -23,14 +23,35 @@
     <packaging>bundle</packaging>
     <name>Apache CXF Test Utilities</name>
     <description>Apache CXF Test Utilities</description>
-    <url>http://cxf.apache.org</url>
+    <url>https://cxf.apache.org</url>
     <parent>
         <groupId>org.apache.cxf</groupId>
         <artifactId>cxf-parent</artifactId>
-        <version>3.2.5-SNAPSHOT</version>
+        <version>4.0.1-SNAPSHOT</version>
         <relativePath>../parent/pom.xml</relativePath>
     </parent>
+    <properties>
+        <cxf.module.name>org.apache.cxf.testutils</cxf.module.name>
+    </properties>
     <dependencies>
+        <dependency>
+            <groupId>jakarta.xml.ws</groupId>
+            <artifactId>jakarta.xml.ws-api</artifactId>
+            <scope>provided</scope>
+            <optional>true</optional>
+        </dependency>
+        <dependency>
+            <groupId>jakarta.jws</groupId>
+            <artifactId>jakarta.jws-api</artifactId>
+            <scope>provided</scope>
+            <optional>true</optional>
+        </dependency>
+        <dependency>
+            <groupId>jakarta.xml.soap</groupId>
+            <artifactId>jakarta.xml.soap-api</artifactId>
+            <scope>provided</scope>
+            <optional>true</optional>
+        </dependency>
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
@@ -48,13 +69,13 @@
         </dependency>
         <dependency>
             <groupId>org.apache.activemq</groupId>
-            <artifactId>activemq-broker</artifactId>
+            <artifactId>artemis-jakarta-server</artifactId>
             <scope>provided</scope>
             <optional>true</optional>
         </dependency>
         <dependency>
-            <groupId>org.apache.geronimo.javamail</groupId>
-            <artifactId>geronimo-javamail_1.4_mail</artifactId>
+            <groupId>jakarta.mail</groupId>
+            <artifactId>jakarta.mail-api</artifactId>
         </dependency>
         <dependency>
             <groupId>org.springframework</groupId>
@@ -84,8 +105,7 @@
                         <id>validate</id>
                         <phase>validate</phase>
                         <configuration>
-                            <sourceRoot>${basedir}/target/generated/src/main/java</sourceRoot>
-                            <tasks>
+                            <target>
                                 <property name="generated.target" value="${basedir}/target/generated" />
                                 <property name="generated.src.test" value="${generated.target}/src/main/java" />
                                 <property name="generated.resources.test" value="${generated.target}/src/main/resources" />
@@ -134,7 +154,7 @@
                                 <xslt style="${test.resources.dir}/wsdl/type_test/type_test_impl_java.xsl" in="${test.resources.dir}/wsdl/type_test/type_test.xsd" out="${generated.src.test}/org/apache/cxf/systest/type_test/TypeTestImpl.java" />
                                 <xslt style="${test.resources.dir}/wsdl/type_test/type_test_tester_java.xsl" in="${test.resources.dir}/wsdl/type_test/type_test.xsd" out="${generated.src.test}/org/apache/cxf/systest/type_test/TypeTestTester.java" />
                                 <xslt style="${test.resources.dir}/wsdl/type_test/validation.xsl" in="${generated.resources.test}/wsdl/type_test/type_test_1.xsd" out="${generated.resources.test}/wsdl/type_test/type_test_1_validation.xsd" />
-                            </tasks>
+                            </target>
                         </configuration>
                         <goals>
                             <goal>run</goal>
@@ -142,23 +162,19 @@
                     </execution>
                 </executions>
             </plugin>
-            <plugin>
+            <!--plugin>
                 <groupId>org.apache.cxf</groupId>
                 <artifactId>cxf-wsdl-validator-plugin</artifactId>
                 <version>${project.version}</version>
-                <configuration>
-                    <wsdlRoot>${basedir}/src/main/resources/wsdl</wsdlRoot>
-                </configuration>
                 <executions>
-                    <!-- execution>
-                        <id>validate</id>
+                    <execution>
                         <phase>validate</phase>
                         <goals>
-                          <goal>wsdlvalidator</goal>
+                            <goal>wsdlvalidator</goal>
                         </goals>
-                    </execution -->
+                    </execution>
                 </executions>
-            </plugin>
+            </plugin-->
             <plugin>
                 <groupId>org.apache.cxf</groupId>
                 <artifactId>cxf-codegen-plugin</artifactId>
@@ -187,7 +203,7 @@
                                     <xjcarg>-Xbug986</xjcarg>
                                 </xjcargs>
                                 <!--extraargs>
-                                    <extraarg>-verbose</extraarg>
+                                    <extraarg>${cxf.test.keep}</extraarg>
                                 </extraargs-->
                                 <markGenerated>true</markGenerated>
                                 <faultSerialVersionUID>1</faultSerialVersionUID>
@@ -302,12 +318,24 @@
                             <includes>
                                 <include>**/*.*</include>
                             </includes>
+                            <archive>
+                                <manifestEntries>
+                                    <Automatic-Module-Name>${cxf.module.name}.key</Automatic-Module-Name>
+                                </manifestEntries>
+                            </archive>
                         </configuration>
                     </execution>
                     <execution>
                         <goals>
                             <goal>test-jar</goal>
                         </goals>
+                        <configuration>
+                            <archive>
+                                <manifestEntries>
+                                    <Automatic-Module-Name>${cxf.module.name}.tests</Automatic-Module-Name>
+                                </manifestEntries>
+                            </archive>
+                        </configuration>
                     </execution>
                 </executions>
             </plugin>

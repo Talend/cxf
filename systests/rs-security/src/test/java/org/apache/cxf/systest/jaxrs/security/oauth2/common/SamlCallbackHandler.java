@@ -20,6 +20,7 @@
 package org.apache.cxf.systest.jaxrs.security.oauth2.common;
 
 import java.io.IOException;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -31,7 +32,7 @@ import javax.security.auth.callback.UnsupportedCallbackException;
 import org.apache.cxf.helpers.CastUtils;
 import org.apache.cxf.message.Message;
 import org.apache.cxf.phase.PhaseInterceptorChain;
-import org.apache.cxf.rt.security.saml.claims.SAMLClaim;
+import org.apache.cxf.rt.security.claims.SAMLClaim;
 import org.apache.wss4j.common.crypto.Crypto;
 import org.apache.wss4j.common.crypto.CryptoFactory;
 import org.apache.wss4j.common.ext.WSSecurityException;
@@ -47,7 +48,6 @@ import org.apache.wss4j.common.saml.bean.ConditionsBean;
 import org.apache.wss4j.common.saml.bean.SubjectBean;
 import org.apache.wss4j.common.saml.bean.Version;
 import org.apache.wss4j.common.saml.builder.SAML2Constants;
-import org.joda.time.DateTime;
 
 /**
  * A CallbackHandler instance that is used by the STS to mock up a SAML Attribute Assertion.
@@ -111,7 +111,7 @@ public class SamlCallbackHandler implements CallbackHandler {
 
                 AuthenticationStatementBean authBean = new AuthenticationStatementBean();
                 authBean.setSubject(subjectBean);
-                authBean.setAuthenticationInstant(new DateTime());
+                authBean.setAuthenticationInstant(Instant.now());
                 authBean.setSessionIndex("123456");
                 authBean.setSubject(subjectBean);
 

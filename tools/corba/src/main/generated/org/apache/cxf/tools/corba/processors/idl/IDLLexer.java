@@ -46,7 +46,7 @@ public IDLLexer(LexerSharedInputState state) {
 	super(state);
 	caseSensitiveLiterals = true;
 	setCaseSensitive(true);
-	literals = new Hashtable<ANTLRHashString, Integer>();
+	literals = new Hashtable<>();
 	literals.put(new ANTLRHashString("switch", this), Integer.valueOf(56));
 	literals.put(new ANTLRHashString("typeprefix", this), Integer.valueOf(78));
 	literals.put(new ANTLRHashString("case", this), Integer.valueOf(57));
@@ -313,31 +313,31 @@ tryAgain:
 						mFLOAT(true);
 						theRetToken=_returnToken;
 					}
-					else if ((LA(1)==':') && (true)) {
+					else if (LA(1)==':') {
 						mCOLON(true);
 						theRetToken=_returnToken;
 					}
-					else if ((LA(1)=='.') && (true)) {
+					else if (LA(1)=='.') {
 						mDOT(true);
 						theRetToken=_returnToken;
 					}
-					else if ((LA(1)=='<') && (true)) {
+					else if (LA(1)=='<') {
 						mLT(true);
 						theRetToken=_returnToken;
 					}
-					else if ((LA(1)=='>') && (true)) {
+					else if (LA(1)=='>') {
 						mGT(true);
 						theRetToken=_returnToken;
 					}
-					else if ((LA(1)=='/') && (true)) {
+					else if (LA(1)=='/') {
 						mDIV(true);
 						theRetToken=_returnToken;
 					}
-					else if ((LA(1)=='0') && (true)) {
+					else if (LA(1)=='0') {
 						mOCTAL(true);
 						theRetToken=_returnToken;
 					}
-					else if ((_tokenSet_0.member(LA(1))) && (true)) {
+					else if (_tokenSet_0.member(LA(1))) {
 						mIDENT(true);
 						theRetToken=_returnToken;
 					}
@@ -977,19 +977,19 @@ tryAgain:
 		case '?':
 		{
 			match('?');
-			text.setLength(_begin); text.append("?");
+			text.setLength(_begin); text.append('?');
 			break;
 		}
 		case '\'':
 		{
 			match('\'');
-			text.setLength(_begin); text.append("'");
+			text.setLength(_begin); text.append('\'');
 			break;
 		}
 		case '"':
 		{
 			match('"');
-			text.setLength(_begin); text.append("\"");
+			text.setLength(_begin); text.append('"');
 			break;
 		}
 		case '0':  case '1':  case '2':  case '3':
@@ -997,13 +997,13 @@ tryAgain:
 		{
 			mOCTDIGIT(false);
 			{
-			if (((LA(1) >= '0' && LA(1) <= '7')) && ((LA(2) >= '\u0000' && LA(2) <= '\ufffe')) && (true) && (true)) {
+			if (((LA(1) >= '0' && LA(1) <= '7')) && ((LA(2) >= '\u0000' && LA(2) <= '\ufffe'))) {
 				mOCTDIGIT(false);
 				{
-				if (((LA(1) >= '0' && LA(1) <= '7')) && ((LA(2) >= '\u0000' && LA(2) <= '\ufffe')) && (true) && (true)) {
+				if (((LA(1) >= '0' && LA(1) <= '7')) && ((LA(2) >= '\u0000' && LA(2) <= '\ufffe'))) {
 					mOCTDIGIT(false);
 				}
-				else if (((LA(1) >= '\u0000' && LA(1) <= '\ufffe')) && (true) && (true) && (true)) {
+				else if (((LA(1) >= '\u0000' && LA(1) <= '\ufffe'))) {
 				}
 				else {
 					throw new NoViableAltForCharException(LA(1), getFilename(), getLine(), getColumn());
@@ -1011,7 +1011,7 @@ tryAgain:
 
 				}
 			}
-			else if (((LA(1) >= '\u0000' && LA(1) <= '\ufffe')) && (true) && (true) && (true)) {
+			else if (((LA(1) >= '\u0000' && LA(1) <= '\ufffe'))) {
 			}
 			else {
 				throw new NoViableAltForCharException(LA(1), getFilename(), getLine(), getColumn());
@@ -1028,10 +1028,10 @@ tryAgain:
 			text.setLength(_saveIndex);
 			mHEXDIGIT(false);
 			{
-			if ((_tokenSet_6.member(LA(1))) && ((LA(2) >= '\u0000' && LA(2) <= '\ufffe')) && (true) && (true)) {
+			if ((_tokenSet_6.member(LA(1))) && ((LA(2) >= '\u0000' && LA(2) <= '\ufffe'))) {
 				mHEXDIGIT(false);
 			}
-			else if (((LA(1) >= '\u0000' && LA(1) <= '\ufffe')) && (true) && (true) && (true)) {
+			else if (((LA(1) >= '\u0000' && LA(1) <= '\ufffe'))) {
 			}
 			else {
 				throw new NoViableAltForCharException(LA(1), getFilename(), getLine(), getColumn());
@@ -1048,16 +1048,16 @@ tryAgain:
 			text.setLength(_saveIndex);
 			mHEXDIGIT(false);
 			{
-			if ((_tokenSet_6.member(LA(1))) && ((LA(2) >= '\u0000' && LA(2) <= '\ufffe')) && (true) && (true)) {
+			if ((_tokenSet_6.member(LA(1))) && ((LA(2) >= '\u0000' && LA(2) <= '\ufffe'))) {
 				mHEXDIGIT(false);
 				{
-				if ((_tokenSet_6.member(LA(1))) && ((LA(2) >= '\u0000' && LA(2) <= '\ufffe')) && (true) && (true)) {
+				if ((_tokenSet_6.member(LA(1))) && ((LA(2) >= '\u0000' && LA(2) <= '\ufffe'))) {
 					mHEXDIGIT(false);
 					{
-					if ((_tokenSet_6.member(LA(1))) && ((LA(2) >= '\u0000' && LA(2) <= '\ufffe')) && (true) && (true)) {
+					if ((_tokenSet_6.member(LA(1))) && ((LA(2) >= '\u0000' && LA(2) <= '\ufffe'))) {
 						mHEXDIGIT(false);
 					}
-					else if (((LA(1) >= '\u0000' && LA(1) <= '\ufffe')) && (true) && (true) && (true)) {
+					else if (((LA(1) >= '\u0000' && LA(1) <= '\ufffe'))) {
 					}
 					else {
 						throw new NoViableAltForCharException(LA(1), getFilename(), getLine(), getColumn());
@@ -1065,7 +1065,7 @@ tryAgain:
 
 					}
 				}
-				else if (((LA(1) >= '\u0000' && LA(1) <= '\ufffe')) && (true) && (true) && (true)) {
+				else if (((LA(1) >= '\u0000' && LA(1) <= '\ufffe'))) {
 				}
 				else {
 					throw new NoViableAltForCharException(LA(1), getFilename(), getLine(), getColumn());
@@ -1073,7 +1073,7 @@ tryAgain:
 
 				}
 			}
-			else if (((LA(1) >= '\u0000' && LA(1) <= '\ufffe')) && (true) && (true) && (true)) {
+			else if (((LA(1) >= '\u0000' && LA(1) <= '\ufffe'))) {
 			}
 			else {
 				throw new NoViableAltForCharException(LA(1), getFilename(), getLine(), getColumn());

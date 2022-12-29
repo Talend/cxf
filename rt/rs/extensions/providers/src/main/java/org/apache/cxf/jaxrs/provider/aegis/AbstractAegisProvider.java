@@ -26,19 +26,18 @@ import java.util.Map;
 import java.util.Set;
 import java.util.WeakHashMap;
 
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.ext.ContextResolver;
-import javax.ws.rs.ext.MessageBodyReader;
-import javax.ws.rs.ext.MessageBodyWriter;
-
+import jakarta.ws.rs.core.Context;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.ext.ContextResolver;
+import jakarta.ws.rs.ext.MessageBodyReader;
+import jakarta.ws.rs.ext.MessageBodyWriter;
 import org.apache.cxf.aegis.AegisContext;
 
 public abstract class AbstractAegisProvider<T>
     implements MessageBodyReader<T>, MessageBodyWriter<T> {
 
     private static Map<java.lang.reflect.Type, AegisContext> classContexts
-        = new WeakHashMap<java.lang.reflect.Type, AegisContext>();
+        = new WeakHashMap<>();
 
     protected boolean writeXsiType = true;
     protected boolean readXsiType = true;
@@ -92,7 +91,7 @@ public abstract class AbstractAegisProvider<T>
                 context = new AegisContext();
                 context.setWriteXsiTypes(writeXsiType);
                 context.setReadXsiTypes(readXsiType);
-                Set<java.lang.reflect.Type> rootClasses = new HashSet<java.lang.reflect.Type>();
+                Set<java.lang.reflect.Type> rootClasses = new HashSet<>();
                 rootClasses.add(reflectionType);
                 context.setRootClasses(rootClasses);
                 context.initialize();

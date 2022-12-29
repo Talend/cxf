@@ -23,18 +23,16 @@
     <packaging>bundle</packaging>
     <name>Apache CXF Runtime CORBA Binding</name>
     <description>Apache CXF Runtime CORBA Binding</description>
-    <url>http://cxf.apache.org</url>
+    <url>https://cxf.apache.org</url>
     <parent>
         <groupId>org.apache.cxf</groupId>
         <artifactId>cxf-parent</artifactId>
-        <version>3.2.5-SNAPSHOT</version>
+        <version>4.0.1-SNAPSHOT</version>
         <relativePath>../../../parent/pom.xml</relativePath>
     </parent>
     <properties>
+        <cxf.module.name>org.apache.cxf.binding.corba</cxf.module.name>
         <cxf.checkstyle.extension>-corba</cxf.checkstyle.extension>
-        <cxf.osgi.import>
-            org.objectweb.asm*;version="${cxf.osgi.asm.version}",
-        </cxf.osgi.import>
     </properties>
     <dependencies>
         <dependency>
@@ -76,6 +74,24 @@
             <artifactId>spring-context</artifactId>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>org.jacorb</groupId>
+            <artifactId>jacorb-omgapi</artifactId>
+            <version>${cxf.jacorb.version}</version>
+            <optional>true</optional>
+        </dependency>
+        <dependency>
+            <groupId>org.jboss.spec.javax.rmi</groupId>
+            <artifactId>jboss-rmi-api_1.0_spec</artifactId>
+            <version>1.0.6.Final</version>
+            <optional>true</optional>
+        </dependency>
+        <dependency>
+            <groupId>org.jacorb</groupId>
+            <artifactId>jacorb</artifactId>
+            <version>${cxf.jacorb.version}</version>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
     <build>
         <plugins>
@@ -101,6 +117,7 @@
                                     </deleteDirs>
                                     <extensionArgs>
                                         <extensionArg>-Xdv</extensionArg>
+                                        <extensionArg>-npa</extensionArg>
                                     </extensionArgs>
                                 </xsdOption>
                             </xsdOptions>

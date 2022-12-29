@@ -23,12 +23,11 @@ import java.security.Principal;
 import java.security.cert.X509Certificate;
 import java.util.List;
 
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.MultivaluedMap;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.ResponseBuilder;
-import javax.ws.rs.core.SecurityContext;
-
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.MultivaluedMap;
+import jakarta.ws.rs.core.Response;
+import jakarta.ws.rs.core.Response.ResponseBuilder;
+import jakarta.ws.rs.core.SecurityContext;
 import org.apache.cxf.common.util.StringUtils;
 import org.apache.cxf.jaxrs.utils.ExceptionUtils;
 import org.apache.cxf.jaxrs.utils.JAXRSUtils;
@@ -56,8 +55,8 @@ public class AbstractTokenService extends AbstractOAuthService {
         SecurityContext sc = getMessageContext().getSecurityContext();
         Principal principal = sc.getUserPrincipal();
 
+        String clientId = retrieveClientId(params);
         if (principal == null) {
-            String clientId = retrieveClientId(params);
             if (clientId != null) {
                 String clientSecret = params.getFirst(OAuthConstants.CLIENT_SECRET);
                 if (clientSecret != null) {
@@ -77,11 +76,12 @@ public class AbstractTokenService extends AbstractOAuthService {
                 }
             }
         } else {
-            String clientId = retrieveClientId(params);
             if (clientId != null) {
-                if (clientId.equals(principal.getName())) {
-                    client = (Client)getMessageContext().get(Client.class.getName());
+                if (!clientId.equals(principal.getName())) {
+                    reportInvalidClient();
                 }
+
+                client = (Client)getMessageContext().get(Client.class.getName());
                 if (client == null) {
                     client = getClient(clientId, params);
                 }
@@ -108,7 +108,7 @@ public class AbstractTokenService extends AbstractOAuthService {
             reportInvalidClient(new OAuthError(OAuthConstants.UNAUTHORIZED_CLIENT));
         }
     }
-    
+
     protected String retrieveClientId(MultivaluedMap<String, String> params) {
         String clientId = params.getFirst(OAuthConstants.CLIENT_ID);
         if (clientId == null) {
@@ -164,14 +164,14 @@ public class AbstractTokenService extends AbstractOAuthService {
             reportInvalidClient();
         }
         X509Certificate cert = OAuthUtils.getRootTLSCertificate(tlsSessionInfo);
-        
-        if (subjectDn != null 
+
+        if (subjectDn != null
             && !subjectDn.equals(OAuthUtils.getSubjectDnFromTLSCertificates(cert))) {
             LOG.warning("Client \"" + client.getClientId() + "\" can not be bound to the TLS certificate");
             reportInvalidClient();
         }
         String issuerDn = client.getProperties().get(OAuthConstants.TLS_CLIENT_AUTH_ISSUER_DN);
-        if (issuerDn != null 
+        if (issuerDn != null
             && !issuerDn.equals(OAuthUtils.getIssuerDnFromTLSCertificates(cert))) {
             LOG.warning("Client \"" + client.getClientId() + "\" can not be bound to the TLS certificate");
             reportInvalidClient();
@@ -187,7 +187,7 @@ public class AbstractTokenService extends AbstractOAuthService {
         return (TLSSessionInfo)getMessageContext().get(TLSSessionInfo.class.getName());
     }
 
-    
+
     protected Client getClientFromTLSCertificates(SecurityContext sc,
                                                   TLSSessionInfo tlsSessionInfo,
                                                   MultivaluedMap<String, String> params) {
@@ -206,11 +206,11 @@ public class AbstractTokenService extends AbstractOAuthService {
         }
         return client;
     }
-    
+
     protected void compareTlsCertificates(TLSSessionInfo tlsInfo,
                                           List<String> base64EncodedCerts) {
         if (!OAuthUtils.compareTlsCertificates(tlsInfo, base64EncodedCerts)) {
-            reportInvalidClient();    
+            reportInvalidClient();
         }
     }
 
@@ -239,12 +239,12 @@ public class AbstractTokenService extends AbstractOAuthService {
      * Get the {@link Client} reference
      * @param clientId the provided client id
      * @return Client the client reference
-     * @throws {@link javax.ws.rs.WebApplicationException} if no matching Client is found
+     * @throws {@link jakarta.ws.rs.WebApplicationException} if no matching Client is found
      */
     protected Client getClient(String clientId, MultivaluedMap<String, String> params) {
         return getClient(clientId, params.getFirst(OAuthConstants.CLIENT_SECRET), params);
     }
-    
+
     protected Client getClient(String clientId, String clientSecret, MultivaluedMap<String, String> params) {
         if (clientId == null) {
             reportInvalidRequestError("Client ID is null");

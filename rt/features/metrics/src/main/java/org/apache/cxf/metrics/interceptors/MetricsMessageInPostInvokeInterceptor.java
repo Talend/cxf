@@ -20,17 +20,18 @@ package org.apache.cxf.metrics.interceptors;
 
 import org.apache.cxf.interceptor.Fault;
 import org.apache.cxf.message.Message;
+import org.apache.cxf.message.MessageUtils;
 import org.apache.cxf.metrics.MetricsProvider;
 import org.apache.cxf.phase.Phase;
 
 public class MetricsMessageInPostInvokeInterceptor extends AbstractMetricsInterceptor {
 
-    public MetricsMessageInPostInvokeInterceptor(MetricsProvider p[]) {
+    public MetricsMessageInPostInvokeInterceptor(MetricsProvider[] p) {
         super(Phase.POST_INVOKE, p);
     }
 
     public void handleMessage(Message message) throws Fault {
-        if (isRequestor(message)) {
+        if (isRequestor(message) && !MessageUtils.isOutbound(message)) {
             stop(message);
         }
     }

@@ -21,11 +21,10 @@ package org.apache.cxf.rs.security.saml;
 
 import java.net.URI;
 
-import javax.ws.rs.container.ContainerRequestContext;
-import javax.ws.rs.core.Form;
-import javax.ws.rs.core.MultivaluedMap;
-import javax.ws.rs.core.Response;
-
+import jakarta.ws.rs.container.ContainerRequestContext;
+import jakarta.ws.rs.core.Form;
+import jakarta.ws.rs.core.MultivaluedMap;
+import jakarta.ws.rs.core.Response;
 import org.apache.cxf.jaxrs.impl.UriInfoImpl;
 import org.apache.cxf.jaxrs.provider.FormEncodingProvider;
 import org.apache.cxf.jaxrs.utils.FormUtils;
@@ -37,7 +36,7 @@ public class SamlFormInHandler extends AbstractSamlBase64InHandler {
     private static final String SAML_ELEMENT = "SAMLToken";
     private static final String SAML_RELAY_STATE = "RelayState";
 
-    private FormEncodingProvider<Form> provider = new FormEncodingProvider<Form>(true);
+    private FormEncodingProvider<Form> provider = new FormEncodingProvider<>(true);
 
     public SamlFormInHandler() {
     }

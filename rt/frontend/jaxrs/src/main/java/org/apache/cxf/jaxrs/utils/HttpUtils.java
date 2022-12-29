@@ -38,19 +38,18 @@ import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import javax.servlet.ServletConfig;
-import javax.servlet.ServletContext;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.ws.rs.core.HttpHeaders;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.MultivaluedMap;
-import javax.ws.rs.core.PathSegment;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.UriBuilder;
-import javax.ws.rs.ext.RuntimeDelegate;
-import javax.ws.rs.ext.RuntimeDelegate.HeaderDelegate;
-
+import jakarta.servlet.ServletConfig;
+import jakarta.servlet.ServletContext;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import jakarta.ws.rs.core.HttpHeaders;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.MultivaluedMap;
+import jakarta.ws.rs.core.PathSegment;
+import jakarta.ws.rs.core.Response;
+import jakarta.ws.rs.core.UriBuilder;
+import jakarta.ws.rs.ext.RuntimeDelegate;
+import jakarta.ws.rs.ext.RuntimeDelegate.HeaderDelegate;
 import org.apache.cxf.common.i18n.BundleUtils;
 import org.apache.cxf.common.logging.LogUtils;
 import org.apache.cxf.common.util.PropertyUtils;
@@ -99,6 +98,8 @@ public final class HttpUtils {
         new HashSet<>(Arrays.asList(new String[]{"GET", "HEAD", "OPTIONS", "TRACE"}));
     private static final Set<String> KNOWN_HTTP_VERBS_WITH_NO_RESPONSE_CONTENT =
         new HashSet<>(Arrays.asList(new String[]{"HEAD", "OPTIONS"}));
+    
+    private static final Pattern HTTP_SCHEME_PATTERN = Pattern.compile("^(?i)(http|https)$");
 
     private HttpUtils() {
     }
@@ -117,24 +118,29 @@ public final class HttpUtils {
 
     private static String componentEncode(String reservedChars, String value) {
 
-        StringBuilder buffer = new StringBuilder();
-        StringBuilder bufferToEncode = new StringBuilder();
-
-        for (int i = 0; i < value.length(); i++) {
+        StringBuilder buffer = null;
+        int length = value.length();
+        int startingIndex = 0;
+        for (int i = 0; i < length; i++) {
             char currentChar = value.charAt(i);
             if (reservedChars.indexOf(currentChar) != -1) {
-                if (bufferToEncode.length() > 0) {
-                    buffer.append(urlEncode(bufferToEncode.toString()));
-                    bufferToEncode.setLength(0);
+                if (buffer == null) {
+                    buffer = new StringBuilder(length + 8);
+                }
+                // If it is going to be an empty string nothing to encode.
+                if (i != startingIndex) {
+                    buffer.append(urlEncode(value.substring(startingIndex, i)));
                 }
                 buffer.append(currentChar);
-            } else {
-                bufferToEncode.append(currentChar);
+                startingIndex = i + 1;
             }
         }
 
-        if (bufferToEncode.length() > 0) {
-            buffer.append(urlEncode(bufferToEncode.toString()));
+        if (buffer == null) {
+            return urlEncode(value);
+        }
+        if (startingIndex < length) {
+            buffer.append(urlEncode(value.substring(startingIndex, length)));
         }
 
         return buffer.toString();
@@ -186,15 +192,21 @@ public final class HttpUtils {
             return encoded;
         }
         Matcher m = ENCODE_PATTERN.matcher(encoded);
-        StringBuilder sb = new StringBuilder();
+
+        if (!m.find()) {
+            return query ? HttpUtils.queryEncode(encoded) : HttpUtils.pathEncode(encoded);
+        }
+
+        int length = encoded.length();
+        StringBuilder sb = new StringBuilder(length + 8);
         int i = 0;
-        while (m.find()) {
+        do {
             String before = encoded.substring(i, m.start());
             sb.append(query ? HttpUtils.queryEncode(before) : HttpUtils.pathEncode(before));
             sb.append(m.group());
             i = m.end();
-        }
-        String tail = encoded.substring(i, encoded.length());
+        } while (m.find());
+        String tail = encoded.substring(i, length);
         sb.append(query ? HttpUtils.queryEncode(tail) : HttpUtils.pathEncode(tail));
         return sb.toString();
     }
@@ -292,7 +304,7 @@ public final class HttpUtils {
         if (value == null) {
             return null;
         }
-        String language = null;
+        final String language;
         String locale = null;
         int index = value.indexOf('-');
         if (index == 0 || index == value.length() - 1) {
@@ -337,7 +349,7 @@ public final class HttpUtils {
             }
             sb.append(value);
             if (i + 1 < values.size()) {
-                sb.append(",");
+                sb.append(',');
             }
         }
         return sb.toString();
@@ -360,6 +372,13 @@ public final class HttpUtils {
             (HttpServletRequest)message.get(AbstractHTTPDestination.HTTP_REQUEST));
         return URI.create(base + relativePath);
     }
+    
+    public static void setHttpRequestURI(Message message, String uriTemplate) {
+        HttpServletRequest request =
+            (HttpServletRequest)message.get(AbstractHTTPDestination.HTTP_REQUEST);
+        request.setAttribute("org.springframework.web.servlet.HandlerMapping.bestMatchingPattern", uriTemplate);
+    }
+
 
     public static URI toAbsoluteUri(URI u, Message message) {
         HttpServletRequest request =
@@ -460,18 +479,34 @@ public final class HttpUtils {
             URI uri = new URI(endpointAddress);
             String path = uri.getRawPath();
             String scheme = uri.getScheme();
-            if (scheme != null && !scheme.startsWith(HttpUtils.HTTP_SCHEME)
+            // RFC-3986: the scheme and host are case-insensitive and therefore should 
+            // be normalized to lowercase. 
+            if (scheme != null && !scheme.toLowerCase().startsWith(HttpUtils.HTTP_SCHEME)
                 && HttpUtils.isHttpRequest(m)) {
                 path = HttpUtils.toAbsoluteUri(path, m).getRawPath();
             }
             return (path == null || path.length() == 0) ? "/" : path;
         } catch (URISyntaxException ex) {
-            return endpointAddress == null ? "/" : endpointAddress;
+            return endpointAddress;
         }
     }
 
+    public static String getEndpointUri(Message m) {
+        final Object servletRequest = m.get(AbstractHTTPDestination.HTTP_REQUEST);
+        
+        if (servletRequest != null) {
+            final Object property = ((jakarta.servlet.http.HttpServletRequest)servletRequest)
+                .getAttribute("org.apache.cxf.transport.endpoint.uri");
+            if (property != null) {
+                return property.toString();
+            }
+        }
+        
+        return getEndpointAddress(m);
+    }
+
     public static String getEndpointAddress(Message m) {
-        String address = null;
+        String address;
         Destination d = m.getExchange().getDestination();
         if (d != null) {
             if (d instanceof AbstractHTTPDestination) {
@@ -516,7 +551,7 @@ public final class HttpUtils {
             ind = 0;
         }
         if (ind == 0) {
-            path = path.substring(ind + address.length());
+            path = path.substring(address.length());
         }
         if (addSlash && !path.startsWith("/")) {
             path = "/" + path;
@@ -633,7 +668,7 @@ public final class HttpUtils {
 
         // No, then just keep climbing up until we find a common base.
         URI relative = URI.create("");
-        while (!(uriRel.getPath().startsWith(commonBase.getPath())) && !(commonBase.getPath().equals("/"))) {
+        while (!(uriRel.getPath().startsWith(commonBase.getPath())) && !"/".equals(commonBase.getPath())) {
             commonBase = commonBase.resolve("../");
             relative = relative.resolve("../");
         }
@@ -689,5 +724,9 @@ public final class HttpUtils {
     
     public static boolean isMethodWithNoResponseContent(String method) {
         return KNOWN_HTTP_VERBS_WITH_NO_RESPONSE_CONTENT.contains(method);
+    }
+    
+    public static boolean isHttpScheme(final String scheme) {
+        return scheme != null && HTTP_SCHEME_PATTERN.matcher(scheme).matches();
     }
 }

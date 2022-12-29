@@ -39,7 +39,6 @@ import org.apache.cxf.endpoint.Server;
 import org.apache.cxf.helpers.MapNamespaceContext;
 
 import org.junit.After;
-import org.junit.Assert;
 import org.junit.Before;
 
 
@@ -47,7 +46,7 @@ import org.junit.Before;
  * A basic test case meant for helping users unit test their services.
  * @see TestUtilities
  */
-public abstract class AbstractCXFTest extends Assert {
+public abstract class AbstractCXFTest {
 
     protected TestUtilities testUtilities;
     protected Bus bus;
@@ -92,12 +91,6 @@ public abstract class AbstractCXFTest extends Assert {
     protected Node invoke(String address,
                           String transport,
                           String message) throws Exception {
-        return testUtilities.invoke(address, transport, message);
-    }
-
-    protected Node invoke(String address,
-                          String transport,
-                          byte[] message) throws Exception {
         return testUtilities.invoke(address, transport, message);
     }
 
@@ -201,10 +194,4 @@ public abstract class AbstractCXFTest extends Assert {
         return testUtilities.getWSDLDocument(server);
     }
 
-    public static class TestMessageObserver extends TestUtilities.TestMessageObserver {
-
-        public TestMessageObserver() {
-            super();
-        }
-    }
 }

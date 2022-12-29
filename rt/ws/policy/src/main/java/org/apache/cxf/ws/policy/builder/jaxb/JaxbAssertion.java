@@ -21,13 +21,13 @@ package org.apache.cxf.ws.policy.builder.jaxb;
 
 import java.util.Set;
 
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.JAXBException;
-import javax.xml.bind.Marshaller;
 import javax.xml.namespace.QName;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamWriter;
 
+import jakarta.xml.bind.JAXBContext;
+import jakarta.xml.bind.JAXBException;
+import jakarta.xml.bind.Marshaller;
 import org.apache.cxf.common.jaxb.JAXBContextCache;
 import org.apache.cxf.common.jaxb.JAXBContextCache.CachedContextAndSchemas;
 import org.apache.cxf.ws.policy.builder.primitive.PrimitiveAssertion;
@@ -91,7 +91,7 @@ public class JaxbAssertion<T> extends PrimitiveAssertion {
     }
 
     protected Assertion clone(boolean optional) {
-        JaxbAssertion<T> a = new JaxbAssertion<T>(getName(), optional, ignorable);
+        JaxbAssertion<T> a = new JaxbAssertion<>(getName(), optional, ignorable);
         a.setData(data);
         return a;
     }

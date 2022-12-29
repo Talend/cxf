@@ -22,11 +22,11 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import javax.ws.rs.client.ClientRequestFilter;
-import javax.ws.rs.client.ClientResponseFilter;
-import javax.ws.rs.client.RxInvokerProvider;
-import javax.ws.rs.core.Configuration;
-
+import jakarta.ws.rs.RuntimeType;
+import jakarta.ws.rs.client.ClientRequestFilter;
+import jakarta.ws.rs.client.ClientResponseFilter;
+import jakarta.ws.rs.client.RxInvokerProvider;
+import jakarta.ws.rs.core.Configuration;
 import org.apache.cxf.Bus;
 import org.apache.cxf.BusFactory;
 import org.apache.cxf.common.util.ClassHelper;
@@ -37,11 +37,11 @@ import org.apache.cxf.message.Message;
 
 public final class ClientProviderFactory extends ProviderFactory {
     private List<ProviderInfo<ClientRequestFilter>> clientRequestFilters =
-        new ArrayList<ProviderInfo<ClientRequestFilter>>(1);
+        new ArrayList<>(1);
     private List<ProviderInfo<ClientResponseFilter>> clientResponseFilters =
-        new ArrayList<ProviderInfo<ClientResponseFilter>>(1);
+        new ArrayList<>(1);
     private List<ProviderInfo<ResponseExceptionMapper<?>>> responseExceptionMappers =
-        new ArrayList<ProviderInfo<ResponseExceptionMapper<?>>>(1);
+        new ArrayList<>(1);
     private RxInvokerProvider<?> rxInvokerProvider;
     private ClientProviderFactory(Bus bus) {
         super(bus);
@@ -58,8 +58,7 @@ public final class ClientProviderFactory extends ProviderFactory {
     }
 
     public static ClientProviderFactory getInstance(Message m) {
-        Endpoint e = m.getExchange().getEndpoint();
-        return (ClientProviderFactory)e.get(CLIENT_FACTORY_NAME);
+        return getInstance(m.getExchange().getEndpoint());
     }
 
     public static ClientProviderFactory getInstance(Endpoint e) {
@@ -71,9 +70,19 @@ public final class ClientProviderFactory extends ProviderFactory {
     protected void setProviders(boolean custom, boolean busGlobal, Object... providers) {
         List<ProviderInfo<? extends Object>> theProviders =
             prepareProviders(custom, busGlobal, providers, null);
-        super.setCommonProviders(theProviders);
+        super.setCommonProviders(theProviders, RuntimeType.CLIENT);
         for (ProviderInfo<? extends Object> provider : theProviders) {
             Class<?> providerCls = ClassHelper.getRealClass(getBus(), provider.getProvider());
+            if (providerCls == Object.class) {
+                // If the provider is a lambda, ClassHelper.getRealClass returns Object.class
+                providerCls = provider.getProvider().getClass();
+            }
+            
+            // Check if provider is constrained to client
+            if (!constrainedTo(providerCls, RuntimeType.CLIENT)) {
+                continue;
+            }
+            
             if (filterContractSupported(provider, providerCls, ClientRequestFilter.class)) {
                 addProviderToList(clientRequestFilters, provider);
             }

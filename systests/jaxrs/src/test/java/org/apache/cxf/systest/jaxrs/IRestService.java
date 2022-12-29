@@ -18,18 +18,18 @@
  */
 package org.apache.cxf.systest.jaxrs;
 
-import javax.ws.rs.GET;
-import javax.ws.rs.POST;
-import javax.ws.rs.Path;
-import javax.ws.rs.QueryParam;
+import jakarta.ws.rs.GET;
+import jakarta.ws.rs.POST;
+import jakarta.ws.rs.Path;
+import jakarta.ws.rs.QueryParam;
 
 
 @SuppressWarnings("all")
 @Path("books")
-public interface IRestService<T extends Book, PK extends Long> {
+public interface IRestService<T extends Book> {
     @GET
-    T getById(@QueryParam("id") PK id);
+    T getById(@QueryParam("id") Long id);
 
     @POST
-    PK postEntity(T instance);
+    Long postEntity(T instance);
 }

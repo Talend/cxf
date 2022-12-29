@@ -26,18 +26,17 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import javax.ws.rs.Consumes;
-import javax.ws.rs.PUT;
-import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
-import javax.ws.rs.core.HttpHeaders;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import javax.xml.bind.annotation.XmlRootElement;
-
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
+import jakarta.ws.rs.Consumes;
+import jakarta.ws.rs.PUT;
+import jakarta.ws.rs.Path;
+import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.core.HttpHeaders;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.Response;
+import jakarta.xml.bind.annotation.XmlRootElement;
 import org.apache.cxf.common.util.StringUtils;
 import org.apache.cxf.endpoint.Endpoint;
 import org.apache.cxf.endpoint.EndpointImpl;
@@ -61,11 +60,16 @@ import org.apache.ws.commons.schema.constants.Constants;
 
 import org.easymock.EasyMock;
 import org.easymock.IMocksControl;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
-public class WadlGeneratorTest extends Assert {
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+
+public class WadlGeneratorTest {
 
     private IMocksControl control;
 
@@ -84,11 +88,11 @@ public class WadlGeneratorTest extends Assert {
     }
 
     @Test
-    public void testWhiteList() throws Exception {
+    public void testAllowList() throws Exception {
         WadlGenerator wg = new WadlGenerator();
-        List<String> whiteList = new ArrayList<String>();
-        whiteList.add("123.123.123.123");
-        wg.setWhiteList(whiteList);
+        List<String> allowList = new ArrayList<>();
+        allowList.add("123.123.123.123");
+        wg.setAllowList(allowList);
         wg.setExternalLinks(Collections.singletonList("http://books.xsd"));
 
         ClassResourceInfo cri =
@@ -413,7 +417,7 @@ public class WadlGeneratorTest extends Assert {
     }
 
     private void checkGrammarsWithLinks(Element appElement, List<String> links) {
-        assertTrue(!links.isEmpty());
+        assertFalse(links.isEmpty());
         List<Element> grammarEls = DOMUtils.getChildrenWithName(appElement, WadlGenerator.WADL_NS,
                                                                 "grammars");
         assertEquals(1, grammarEls.size());
@@ -563,11 +567,13 @@ public class WadlGeneratorTest extends Assert {
 
         checkDocs(requestEls.get(0), "", "Request", "");
 
-        verifyParameters(requestEls.get(0), 4,
+        verifyParameters(requestEls.get(0), 5,
                          new Param("hid", "header", "xs:int"),
                          new Param("provider.bar", "query", "xs:int"),
                          new Param("bookstate", "query", "xs:string",
                                  new HashSet<>(Arrays.asList("NEW", "USED", "OLD"))),
+                         new Param("orderstatus", "query", "xs:string",
+                                 new HashSet<>(Arrays.asList("INVOICED", "NOT_INVOICED"))),
                          new Param("a", "query", "xs:string", true));
 
         verifyXmlJsonRepresentations(requestEls.get(0), book2El, "InputBook");
@@ -1019,7 +1025,7 @@ public class WadlGeneratorTest extends Assert {
         List<Element> importEls = DOMUtils.getChildrenWithName(schemasEls.get(0),
                                                                Constants.URI_2001_SCHEMA_XSD,
                                                                "import");
-        int schemaElementsIndex = importEls.size() > 0 ? 0 : 1;
+        int schemaElementsIndex = !importEls.isEmpty() ? 0 : 1;
         int schemaTypesIndex = schemaElementsIndex == 0 ? 1 : 0;
         
         checkGenericImplSchemaWithTypes(schemasEls.get(schemaTypesIndex));

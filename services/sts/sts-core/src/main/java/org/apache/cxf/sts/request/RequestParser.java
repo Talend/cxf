@@ -34,7 +34,6 @@ import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import javax.xml.bind.JAXBElement;
 import javax.xml.crypto.MarshalException;
 import javax.xml.crypto.dom.DOMStructure;
 import javax.xml.crypto.dsig.keyinfo.KeyInfo;
@@ -45,6 +44,7 @@ import javax.xml.crypto.dsig.keyinfo.X509Data;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 
+import jakarta.xml.bind.JAXBElement;
 import org.apache.cxf.common.logging.LogUtils;
 import org.apache.cxf.common.util.Base64Utility;
 import org.apache.cxf.helpers.CastUtils;
@@ -111,7 +111,7 @@ public class RequestParser {
             // JAXB types
             if (requestObject instanceof JAXBElement<?>) {
                 JAXBElement<?> jaxbElement = (JAXBElement<?>) requestObject;
-                if (jaxbElement != null && LOG.isLoggable(Level.FINE)) {
+                if (LOG.isLoggable(Level.FINE)) {
                     LOG.fine("Found " + jaxbElement.getName() + ": " + jaxbElement.getValue());
                 }
                 try {
@@ -133,9 +133,6 @@ public class RequestParser {
                             );
                         }
                     }
-                } catch (STSException ex) {
-                    LOG.log(Level.WARNING, "", ex);
-                    throw ex;
                 } catch (RuntimeException ex) {
                     LOG.log(Level.WARNING, "", ex);
                     throw ex;
@@ -217,8 +214,8 @@ public class RequestParser {
             keyRequirements.setKeywrapAlgorithm(keywrapAlgorithm);
         } else if (QNameConstants.USE_KEY.equals(jaxbElement.getName())) {
             UseKeyType useKey = (UseKeyType)jaxbElement.getValue();
-            ReceivedKey receivedKey = parseUseKey(useKey, messageContext);
-            keyRequirements.setReceivedKey(receivedKey);
+            ReceivedCredential receivedCredential = parseUseKey(useKey, messageContext);
+            keyRequirements.setReceivedCredential(receivedCredential);
         } else if (QNameConstants.ENTROPY.equals(jaxbElement.getName())) {
             EntropyType entropyType = (EntropyType)jaxbElement.getValue();
             Entropy entropy = parseEntropy(entropyType, stsProperties);
@@ -323,7 +320,7 @@ public class RequestParser {
      * @return the ReceivedKey that has been parsed
      * @throws STSException
      */
-    private static ReceivedKey parseUseKey(
+    private static ReceivedCredential parseUseKey(
         UseKeyType useKey,
         Map<String, Object> messageContext
     ) throws STSException {
@@ -403,9 +400,9 @@ public class RequestParser {
                 X509Certificate cert =
                     (X509Certificate)cf.generateCertificate(new ByteArrayInputStream(x509));
                 LOG.fine("Successfully parsed X509 Certificate from UseKey");
-                ReceivedKey receivedKey = new ReceivedKey();
-                receivedKey.setX509Cert(cert);
-                return receivedKey;
+                ReceivedCredential receivedCredential = new ReceivedCredential();
+                receivedCredential.setX509Cert(cert);
+                return receivedCredential;
             } catch (CertificateException ex) {
                 LOG.log(Level.WARNING, "", ex);
                 throw new STSException("Error in parsing certificate: ", ex, STSException.INVALID_REQUEST);
@@ -445,11 +442,11 @@ public class RequestParser {
     }
 
     /**
-     * Parse the KeyInfo Element to return a ReceivedKey object containing the found certificate or
+     * Parse the KeyInfo Element to return a ReceivedCredential object containing the found certificate or
      * public key.
      */
-    private static ReceivedKey parseKeyInfoElement(Element keyInfoElement) throws STSException {
-        KeyInfoFactory keyInfoFactory = null;
+    private static ReceivedCredential parseKeyInfoElement(Element keyInfoElement) throws STSException {
+        KeyInfoFactory keyInfoFactory;
         try {
             keyInfoFactory = KeyInfoFactory.getInstance("DOM", "ApacheXMLDSig");
         } catch (NoSuchProviderException ex) {
@@ -463,28 +460,25 @@ public class RequestParser {
             for (int i = 0; i < list.size(); i++) {
                 if (list.get(i) instanceof KeyValue) {
                     KeyValue keyValue = (KeyValue)list.get(i);
-                    ReceivedKey receivedKey = new ReceivedKey();
+                    ReceivedCredential receivedKey = new ReceivedCredential();
                     receivedKey.setPublicKey(keyValue.getPublicKey());
                     return receivedKey;
                 } else if (list.get(i) instanceof X509Certificate) {
-                    ReceivedKey receivedKey = new ReceivedKey();
+                    ReceivedCredential receivedKey = new ReceivedCredential();
                     receivedKey.setX509Cert((X509Certificate)list.get(i));
                     return receivedKey;
                 } else if (list.get(i) instanceof X509Data) {
                     X509Data x509Data = (X509Data)list.get(i);
                     for (int j = 0; j < x509Data.getContent().size(); j++) {
                         if (x509Data.getContent().get(j) instanceof X509Certificate) {
-                            ReceivedKey receivedKey = new ReceivedKey();
+                            ReceivedCredential receivedKey = new ReceivedCredential();
                             receivedKey.setX509Cert((X509Certificate)x509Data.getContent().get(j));
                             return receivedKey;
                         }
                     }
                 }
             }
-        } catch (MarshalException e) {
-            LOG.log(Level.WARNING, "", e);
-            throw new STSException(e.getMessage(), e, STSException.INVALID_REQUEST);
-        } catch (KeyException e) {
+        } catch (MarshalException | KeyException e) {
             LOG.log(Level.WARNING, "", e);
             throw new STSException(e.getMessage(), e, STSException.INVALID_REQUEST);
         }
@@ -493,7 +487,7 @@ public class RequestParser {
 
     /**
      * Parse an Entropy object
-     * @param entropy an Entropy object
+     * @param entropyType an EntropyType object
      * @param stsProperties A STSPropertiesMBean object used to decrypt an EncryptedKey
      */
     private static Entropy parseEntropy(

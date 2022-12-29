@@ -32,6 +32,9 @@ import org.apache.ws.commons.schema.constants.Constants;
 
 import org.junit.Test;
 
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+
 
 
 public class DateTimezoneTest extends AbstractAegisTest {
@@ -81,7 +84,7 @@ public class DateTimezoneTest extends AbstractAegisTest {
         type.setSchemaType(new QName("urn:Bean", "bean"));
 
         DateBean bean = new DateBean();
-        bean.setDate(Calendar.getInstance().getTime());
+        bean.setDate(new Date());
         // Test writing
         Element element = writeObjectToElement(type, bean, getContext());
         assertTimezoneLessString(element.getTextContent());

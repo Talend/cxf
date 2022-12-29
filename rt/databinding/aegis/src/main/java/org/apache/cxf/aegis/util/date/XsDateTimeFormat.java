@@ -44,7 +44,7 @@ public class XsDateTimeFormat extends Format {
     final boolean parseTimezone;
 
     XsDateTimeFormat(boolean pParseDate, boolean pParseTime) {
-      this(pParseDate, pParseTime, true);
+        this(pParseDate, pParseTime, true);
     }
 
     XsDateTimeFormat(boolean pParseDate, boolean pParseTime, boolean pParseTimezone) {
@@ -75,7 +75,7 @@ public class XsDateTimeFormat extends Format {
         if (idxCom != -1 && idxCom < idxSpc) {
             idxSpc = idxCom;
         }
-        String newVal = null;
+        final String newVal;
         if (idxSpc == -1) {
             newVal = pString.substring(offset);
         } else {
@@ -147,7 +147,7 @@ public class XsDateTimeFormat extends Format {
             TimeZone tz = cal.getTimeZone();
             // JDK 1.4: int offset = tz.getOffset(cal.getTimeInMillis());
             int offset = cal.get(Calendar.ZONE_OFFSET);
-            if (tz.inDaylightTime(cal.getTime())) {
+            if (tz.inDaylightTime(cal.getTime())) { //NOPMD
                 offset += cal.get(Calendar.DST_OFFSET);
             }
             if (offset == 0) {

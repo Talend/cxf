@@ -58,8 +58,7 @@ public class ConfigurerImpl extends BeanConfigurerSupport
     private static final Logger LOG = LogUtils.getL7dLogger(ConfigurerImpl.class);
 
     private Set<ApplicationContext> appContexts;
-    private final Map<String, List<MatcherHolder>> wildCardBeanDefinitions
-        = new TreeMap<String, List<MatcherHolder>>();
+    private final Map<String, List<MatcherHolder>> wildCardBeanDefinitions = new TreeMap<>();
     private BeanFactory beanFactory;
 
     static class MatcherHolder implements Comparable<MatcherHolder> {
@@ -69,12 +68,13 @@ public class ConfigurerImpl extends BeanConfigurerSupport
             wildCardId = orig;
             this.matcher = matcher;
         }
+        
         @Override
         public int compareTo(MatcherHolder mh) {
-            Integer literalCharsLen1 = this.wildCardId.replaceAll("\\*", "").length();
-            Integer literalCharsLen2 = mh.wildCardId.replaceAll("\\*", "").length();
+            int literalCharsLen1 = this.wildCardId.replace("*", "").length();
+            int literalCharsLen2 = mh.wildCardId.replace("*", "").length();
             // The expression with more literal characters should end up on the top of the list
-            return literalCharsLen1.compareTo(literalCharsLen2) * -1;
+            return Integer.compare(literalCharsLen1, literalCharsLen2) * -1;
         }
     }
 
@@ -86,6 +86,7 @@ public class ConfigurerImpl extends BeanConfigurerSupport
         setApplicationContext(ac);
     }
 
+    @Override
     public void setBeanFactory(BeanFactory beanFactory) {
         this.beanFactory = beanFactory;
         super.setBeanFactory(beanFactory);
@@ -101,19 +102,16 @@ public class ConfigurerImpl extends BeanConfigurerSupport
                         BeanDefinition bd = bdr.getBeanDefinition(n);
                         String className = bd.getBeanClassName();
                         if (null != className) {
-                            String orig = n;
-                            if (n.charAt(0) == '*') {
-                                //old wildcard
-                                n = "." + n.replaceAll("\\.", "\\.");
-                            }
+                            final String name = n.charAt(0) != '*' ? n
+                                    : "." + n.replaceAll("\\.", "\\."); //old wildcard
                             try {
-                                Matcher matcher = Pattern.compile(n).matcher("");
+                                Matcher matcher = Pattern.compile(name).matcher("");
                                 List<MatcherHolder> m = wildCardBeanDefinitions.get(className);
                                 if (m == null) {
                                     m = new ArrayList<>();
                                     wildCardBeanDefinitions.put(className, m);
                                 }
-                                MatcherHolder holder = new MatcherHolder(orig, matcher);
+                                MatcherHolder holder = new MatcherHolder(n, matcher);
                                 m.add(holder);
                             } catch (PatternSyntaxException npe) {
                                 //not a valid patter, we'll ignore
@@ -142,11 +140,11 @@ public class ConfigurerImpl extends BeanConfigurerSupport
 
         if (null == bn) {
             bn = getBeanName(beanInstance);
+            if (null == bn) {
+                return;
+            }
         }
 
-        if (null == bn) {
-            return;
-        }
         if (checkWildcards) {
             configureWithWildCard(bn, beanInstance);
         }
@@ -154,7 +152,7 @@ public class ConfigurerImpl extends BeanConfigurerSupport
         final String beanName = bn;
         setBeanWiringInfoResolver(new BeanWiringInfoResolver() {
             public BeanWiringInfo resolveWiringInfo(Object instance) {
-                if (!"".equals(beanName)) {
+                if (!beanName.isEmpty()) {
                     return new BeanWiringInfo(beanName);
                 }
                 return null;
@@ -247,7 +245,7 @@ public class ConfigurerImpl extends BeanConfigurerSupport
     }
 
     public final void setApplicationContext(ApplicationContext ac) {
-        appContexts = new CopyOnWriteArraySet<ApplicationContext>();
+        appContexts = new CopyOnWriteArraySet<>();
         addApplicationContext(ac);
         this.beanFactory = ac.getAutowireCapableBeanFactory();
         super.setBeanFactory(this.beanFactory);
@@ -273,6 +271,7 @@ public class ConfigurerImpl extends BeanConfigurerSupport
         }
     }
 
+    @Override
     public void destroy() {
         super.destroy();
         appContexts.clear();

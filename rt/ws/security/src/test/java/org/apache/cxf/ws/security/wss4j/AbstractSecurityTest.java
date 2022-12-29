@@ -21,29 +21,27 @@ package org.apache.cxf.ws.security.wss4j;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
 import java.util.Map;
 
-import javax.crypto.Cipher;
-import javax.crypto.SecretKey;
-import javax.crypto.spec.SecretKeySpec;
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.namespace.QName;
 import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.soap.MessageFactory;
-import javax.xml.soap.SOAPConstants;
-import javax.xml.soap.SOAPMessage;
-import javax.xml.soap.SOAPPart;
-import javax.xml.stream.XMLStreamReader;
 import javax.xml.stream.XMLStreamWriter;
 
 import org.w3c.dom.Document;
+import org.w3c.dom.Element;
 
+import jakarta.xml.soap.MessageFactory;
+import jakarta.xml.soap.SOAPConstants;
+import jakarta.xml.soap.SOAPMessage;
+import jakarta.xml.soap.SOAPPart;
+import org.apache.commons.io.FileUtils;
 import org.apache.cxf.binding.soap.Soap11;
+import org.apache.cxf.binding.soap.SoapHeader;
 import org.apache.cxf.binding.soap.SoapMessage;
 import org.apache.cxf.binding.soap.saaj.SAAJStreamWriter;
-import org.apache.cxf.helpers.DOMUtils.NullResolver;
 import org.apache.cxf.message.Exchange;
 import org.apache.cxf.message.ExchangeImpl;
 import org.apache.cxf.message.MessageImpl;
@@ -51,6 +49,7 @@ import org.apache.cxf.phase.PhaseInterceptor;
 import org.apache.cxf.staxutils.StaxUtils;
 import org.apache.cxf.test.AbstractCXFTest;
 import org.apache.wss4j.common.WSS4JConstants;
+import org.apache.wss4j.dom.util.WSSecurityUtil;
 
 
 public abstract class AbstractSecurityTest extends AbstractCXFTest {
@@ -135,18 +134,7 @@ public abstract class AbstractSecurityTest extends AbstractCXFTest {
         }
 
         byte[] docbytes = getMessageBytes(doc);
-        XMLStreamReader reader = StaxUtils.createXMLStreamReader(new ByteArrayInputStream(docbytes));
-
-        DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
-
-        dbf.setValidating(false);
-        dbf.setIgnoringComments(false);
-        dbf.setIgnoringElementContentWhitespace(true);
-        dbf.setNamespaceAware(true);
-
-        DocumentBuilder db = dbf.newDocumentBuilder();
-        db.setEntityResolver(new NullResolver());
-        doc = StaxUtils.read(db, reader, false);
+        doc = StaxUtils.read(new ByteArrayInputStream(docbytes));
 
         WSS4JInInterceptor inHandler = new WSS4JInInterceptor(inProperties);
 
@@ -155,43 +143,29 @@ public abstract class AbstractSecurityTest extends AbstractCXFTest {
         ex.setInMessage(inmsg);
         inmsg.setContent(SOAPMessage.class, saajMsg);
 
+        Element securityHeaderElem = WSSecurityUtil.getSecurityHeader(doc, "");
+        SoapHeader securityHeader = new SoapHeader(new QName(securityHeaderElem.getNamespaceURI(),
+                                                             securityHeaderElem.getLocalName()), securityHeaderElem);
+        inmsg.getHeaders().add(securityHeader);
 
         inHandler.handleMessage(inmsg);
 
         return inmsg;
     }
 
-    protected static boolean checkUnrestrictedPoliciesInstalled() {
-        try {
-            byte[] data = {0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07};
-
-            SecretKey key192 = new SecretKeySpec(
-                new byte[] {0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07,
-                            0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f,
-                            0x10, 0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17},
-                            "AES");
-            Cipher c = Cipher.getInstance("AES");
-            c.init(Cipher.ENCRYPT_MODE, key192);
-            c.doFinal(data);
-            return true;
-        } catch (Exception e) {
-            //ignore
-        }
-        return false;
-    }
-
     @org.junit.AfterClass
-    public static void cleanup() {
+    public static void cleanup() throws IOException {
         String tmpDir = System.getProperty("java.io.tmpdir");
         if (tmpDir != null) {
             File[] tmpFiles = new File(tmpDir).listFiles();
             if (tmpFiles != null) {
                 for (File tmpFile : tmpFiles) {
                     if (tmpFile.exists() && (tmpFile.getName().startsWith("ws-security.nonce.cache.instance")
-                            || tmpFile.getName().startsWith("wss4j-nonce-cache")
                             || tmpFile.getName().startsWith("ws-security.timestamp.cache.instance")
+                            || tmpFile.getName().startsWith("ws-security.saml.cache.instance")
+                            || tmpFile.getName().startsWith("wss4j-nonce-cache")
                             || tmpFile.getName().startsWith("wss4j-timestamp-cache"))) {
-                        tmpFile.delete();
+                        FileUtils.forceDeleteOnExit(tmpFile);
                     }
                 }
             }

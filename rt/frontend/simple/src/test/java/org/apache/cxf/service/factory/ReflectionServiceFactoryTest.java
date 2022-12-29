@@ -23,9 +23,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import javax.xml.bind.JAXBException;
 import javax.xml.namespace.QName;
 
+import jakarta.xml.bind.JAXBException;
 import org.apache.cxf.binding.soap.model.SoapBindingInfo;
 import org.apache.cxf.binding.soap.model.SoapOperationInfo;
 import org.apache.cxf.endpoint.Endpoint;
@@ -46,6 +46,11 @@ import org.apache.cxf.wsdl.service.factory.ReflectionServiceFactoryBean;
 import org.apache.ws.commons.schema.XmlSchemaElement;
 
 import org.junit.Test;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 public class ReflectionServiceFactoryTest extends AbstractSimpleFrontendTest {
     private ReflectionServiceFactoryBean serviceFactory;

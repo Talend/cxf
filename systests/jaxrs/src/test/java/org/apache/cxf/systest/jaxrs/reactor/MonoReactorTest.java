@@ -19,21 +19,21 @@
 
 package org.apache.cxf.systest.jaxrs.reactor;
 
-import java.util.ArrayList;
-import java.util.List;
+import com.fasterxml.jackson.jakarta.rs.json.JacksonJsonProvider;
 
-import javax.ws.rs.client.ClientBuilder;
-import javax.xml.ws.Holder;
-
-import com.fasterxml.jackson.jaxrs.json.JacksonJsonProvider;
-
+import jakarta.ws.rs.InternalServerErrorException;
+import jakarta.ws.rs.client.ClientBuilder;
+import jakarta.ws.rs.core.MediaType;
 import org.apache.cxf.jaxrs.model.AbstractResourceInfo;
 import org.apache.cxf.jaxrs.reactor.client.ReactorInvoker;
 import org.apache.cxf.jaxrs.reactor.client.ReactorInvokerProvider;
 import org.apache.cxf.testutil.common.AbstractBusClientServerTestBase;
+import reactor.test.StepVerifier;
 
 import org.junit.BeforeClass;
 import org.junit.Test;
+
+import static org.junit.Assert.assertTrue;
 
 public class MonoReactorTest extends AbstractBusClientServerTestBase {
     public static final String PORT = ReactorServer.PORT;
@@ -46,56 +46,87 @@ public class MonoReactorTest extends AbstractBusClientServerTestBase {
     @Test
     public void testGetHelloWorldJson() throws Exception {
         String address = "http://localhost:" + PORT + "/reactor/mono/textJson";
-        List<HelloWorldBean> holder = new ArrayList<>();
-        ClientBuilder.newClient()
+
+        StepVerifier
+            .create(ClientBuilder
+                .newClient()
                 .register(new JacksonJsonProvider())
                 .register(new ReactorInvokerProvider())
                 .target(address)
-                .request("application/json")
+                .request(MediaType.APPLICATION_JSON)
                 .rx(ReactorInvoker.class)
-                .get(HelloWorldBean.class)
-                .doOnNext(holder::add)
-                .subscribe();
-        Thread.sleep(500);
-        assertEquals(1, holder.size());
-        HelloWorldBean bean = holder.get(0);
-        assertEquals("Hello", bean.getGreeting());
-        assertEquals("World", bean.getAudience());
+                .get(HelloWorldBean.class))
+            .expectNextMatches(r -> "Hello".equals(r.getGreeting()) && "World".equals(r.getAudience()))
+            .expectComplete()
+            .verify();
     }
 
     @Test
     public void testTextJsonImplicitListAsyncStream() throws Exception {
         String address = "http://localhost:" + PORT + "/reactor/mono/textJsonImplicitListAsyncStream";
-        Holder<HelloWorldBean> holder = new Holder<>();
-        ClientBuilder.newClient()
+        
+        StepVerifier
+            .create(ClientBuilder
+                .newClient()
                 .register(new JacksonJsonProvider())
                 .register(new ReactorInvokerProvider())
                 .target(address)
-                .request("application/json")
+                .request(MediaType.APPLICATION_JSON)
                 .rx(ReactorInvoker.class)
-                .get(HelloWorldBean.class)
-                .doOnNext(helloWorldBean -> holder.value = helloWorldBean)
-                .subscribe();
-        Thread.sleep(500);
-        assertNotNull(holder.value);
-        assertEquals("Hello", holder.value.getGreeting());
-        assertEquals("World", holder.value.getAudience());
+                .get(HelloWorldBean.class))
+            .expectNextMatches(r -> "Hello".equals(r.getGreeting()) && "World".equals(r.getAudience()))
+            .expectComplete()
+            .verify();
     }
 
     @Test
     public void testGetString() throws Exception {
         String address = "http://localhost:" + PORT + "/reactor/mono/textAsync";
-        Holder<String> holder = new Holder<>();
-        ClientBuilder.newClient()
+        
+        StepVerifier
+            .create(ClientBuilder
+                .newClient()
                 .register(new ReactorInvokerProvider())
                 .target(address)
-                .request("text/plain")
+                .request(MediaType.TEXT_PLAIN)
                 .rx(ReactorInvoker.class)
-                .get(String.class)
-                .doOnNext(msg -> holder.value = msg)
-                .subscribe();
-
-        Thread.sleep(500);
-        assertEquals("Hello, world!", holder.value);
+                .get(String.class))
+            .expectNextMatches(r -> "Hello, world!".equals(r))
+            .expectComplete()
+            .verify();
+    }
+    
+    @Test
+    public void testMonoEmpty() throws Exception {
+        String address = "http://localhost:" + PORT + "/reactor/mono/empty";
+        
+        StepVerifier
+            .create(ClientBuilder
+                .newClient()
+                .register(new JacksonJsonProvider())
+                .register(new ReactorInvokerProvider())
+                .target(address)
+                .request(MediaType.APPLICATION_JSON)
+                .rx(ReactorInvoker.class)
+                .get(HelloWorldBean.class))
+            .expectComplete()
+            .verify();
+    }
+    
+    @Test
+    public void testGetError() throws Exception {
+        String address = "http://localhost:" + PORT + "/reactor/mono/error";
+        
+        StepVerifier
+        .create(ClientBuilder
+            .newClient()
+            .register(new JacksonJsonProvider())
+            .register(new ReactorInvokerProvider())
+            .target(address)
+            .request(MediaType.APPLICATION_JSON)
+            .rx(ReactorInvoker.class)
+            .get(HelloWorldBean.class))
+        .expectErrorMatches(ex -> ex.getCause() instanceof InternalServerErrorException)
+        .verify();
     }
 }

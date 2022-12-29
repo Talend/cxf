@@ -33,13 +33,16 @@
                 <wsp:PolicyReference URI="#DoubleItBinding_DoubleIt_Output_Policy"/>
             </wsdl:output>
             <wsdl:fault name="DoubleItFault">
-                <soap:body use="literal" name="DoubleItFault"/>
+                <soap:body use="literal" />
             </wsdl:fault>
         </wsdl:operation>
     </wsdl:binding>
     <wsdl:service name="DoubleItService">
         <wsdl:port name="DoubleItSaml2TransportPort" binding="tns:DoubleItSaml2TransportBinding">
             <soap:address location="https://localhost:9009/DoubleItSaml2Transport"/>
+        </wsdl:port>
+        <wsdl:port name="DoubleItSaml2TransportPort2" binding="tns:DoubleItSaml2TransportBinding">
+            <soap:address location="https://localhost:9009/DoubleItSaml2Transport2"/>
         </wsdl:port>
     </wsdl:service>
     <wsp:Policy wsu:Id="DoubleItSaml2TransportPolicy">

@@ -21,9 +21,8 @@ package org.apache.cxf.systest.jaxrs.security;
 
 import java.util.Collections;
 
-import javax.ws.rs.core.HttpHeaders;
-import javax.ws.rs.core.Response;
-
+import jakarta.ws.rs.core.HttpHeaders;
+import jakarta.ws.rs.core.Response;
 import org.apache.cxf.configuration.security.AuthorizationPolicy;
 import org.apache.cxf.jaxrs.client.JAXRSClientFactory;
 import org.apache.cxf.jaxrs.client.WebClient;
@@ -31,6 +30,10 @@ import org.apache.cxf.systest.jaxrs.Book;
 
 import org.junit.BeforeClass;
 import org.junit.Test;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 public class JAXRSJaasSecurityTest extends AbstractSpringSecurityTest {
     public static final int PORT = BookServerJaasSecurity.PORT;
@@ -123,10 +126,8 @@ public class JAXRSJaasSecurityTest extends AbstractSpringSecurityTest {
     public void testJaasFilterAuthenticationFailureWithRedirection() throws Exception {
         String endpointAddress =
             "http://localhost:" + PORT + "/service/jaas2/bookstorestorage/thosebooks/123";
-        WebClient wc = WebClient.create(endpointAddress);
+        WebClient wc = WebClient.create(endpointAddress, "foo", "bar1", null);
         wc.accept("text/xml,text/html");
-        wc.header(HttpHeaders.AUTHORIZATION,
-                  "Basic " + base64Encode("foo" + ":" + "bar1"));
         Response r = wc.get();
         assertEquals(307, r.getStatus());
         Object locationHeader = r.getMetadata().getFirst(HttpHeaders.LOCATION);

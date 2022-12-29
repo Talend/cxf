@@ -48,10 +48,11 @@ import org.apache.cxf.wsdl11.WSDLServiceBuilder;
 import org.easymock.EasyMock;
 import org.easymock.IMocksControl;
 import org.junit.After;
-import org.junit.Assert;
 import org.junit.Before;
 
-public class TestBase extends Assert {
+import static org.junit.Assert.assertNotNull;
+
+public class TestBase {
 
     protected PhaseInterceptorChain chain;
     protected SoapMessage soapMessage;
@@ -61,7 +62,7 @@ public class TestBase extends Assert {
 
     @Before
     public void setUp() throws Exception {
-        SortedSet<Phase> phases = new TreeSet<Phase>();
+        SortedSet<Phase> phases = new TreeSet<>();
         Phase phase1 = new Phase("phase1", 1);
         Phase phase2 = new Phase("phase2", 2);
         Phase phase3 = new Phase("phase3", 3);

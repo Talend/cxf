@@ -1,5 +1,4 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
-<!DOCTYPE web-app PUBLIC "-//Sun Microsystems, Inc.//DTD Web Application 2.3//EN" "http://java.sun.com/dtd/web-app_2_3.dtd">
 <!--
         Licensed to the Apache Software Foundation (ASF) under one
         or more contributor license agreements. See the NOTICE file
@@ -19,7 +18,9 @@
         under the License.
 -->
 <!-- START SNIPPET: webxml -->
-<web-app>
+<web-app xmlns="http://java.sun.com/xml/ns/javaee" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_3_0.xsd"
+    version="3.0">
     <context-param>
         <param-name>contextConfigLocation</param-name>
         <param-value>WEB-INF/beans.xml</param-value>
@@ -59,6 +60,22 @@
                 </servlet-class>
         <load-on-startup>1</load-on-startup>
     </servlet>
+    <servlet>
+        <servlet-name>CXFServlet4</servlet-name>
+        <display-name>CXF Servlet4</display-name>
+        <servlet-class>
+                        org.apache.cxf.transport.servlet.CXFServlet
+                </servlet-class>
+        <init-param>
+            <param-name>static-resources-list</param-name>
+            <param-value>.*\.html</param-value>
+        </init-param>
+        <init-param>
+            <param-name>redirect-query-check</param-name>
+            <param-value>true</param-value>
+        </init-param>
+        <load-on-startup>1</load-on-startup>
+    </servlet>
     <servlet-mapping>
         <servlet-name>CXFServlet</servlet-name>
         <url-pattern>/the/*</url-pattern>
@@ -70,6 +87,10 @@
     <servlet-mapping>
         <servlet-name>CXFServlet3</servlet-name>
         <url-pattern>/services/list/*</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>CXFServlet4</servlet-name>
+        <url-pattern>/services/*</url-pattern>
     </servlet-mapping>
 </web-app>
 <!-- END SNIPPET: webxml -->

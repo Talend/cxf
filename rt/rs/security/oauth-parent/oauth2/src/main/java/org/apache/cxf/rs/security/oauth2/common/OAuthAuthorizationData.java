@@ -25,8 +25,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
-import javax.xml.bind.annotation.XmlRootElement;
-
+import jakarta.xml.bind.annotation.XmlRootElement;
 import org.apache.cxf.rs.security.oauth2.utils.OAuthUtils;
 
 /**
@@ -47,7 +46,7 @@ public class OAuthAuthorizationData extends OAuthRedirectionState implements Ser
     private String applicationWebUri;
     private String applicationDescription;
     private String applicationLogoUri;
-    private List<String> applicationCertificates = new LinkedList<String>();
+    private List<String> applicationCertificates = new LinkedList<>();
     private Map<String, String> extraApplicationProperties = new HashMap<>();
     private boolean implicitFlow;
 
@@ -104,7 +103,7 @@ public class OAuthAuthorizationData extends OAuthRedirectionState implements Ser
 
     /**
      * Set the list of scopes already approved by a user
-     * @param permissions the list of approved scopes
+     * @param perms the list of approved scopes
      */
     public void setAlreadyAuthorizedPermissions(List<OAuthPermission> perms) {
         this.alreadyAuthorizedPermissions = perms;
@@ -243,7 +242,7 @@ public class OAuthAuthorizationData extends OAuthRedirectionState implements Ser
             : Collections.emptyList();
     }
     public List<OAuthPermission> getAllPermissions() {
-        List<OAuthPermission> allPerms = new LinkedList<OAuthPermission>();
+        List<OAuthPermission> allPerms = new LinkedList<>();
         if (alreadyAuthorizedPermissions != null) {
             allPerms.addAll(alreadyAuthorizedPermissions);
             if (permissions != null) {
@@ -283,5 +282,5 @@ public class OAuthAuthorizationData extends OAuthRedirectionState implements Ser
     public String getPreauthorizedTokenKey() {
         return this.preauthorizedTokenKey;
     }
-    
+
 }

@@ -22,10 +22,9 @@ package org.apache.cxf.no_body_parts;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
-import javax.jws.WebService;
-import javax.xml.ws.Holder;
-import javax.xml.ws.WebServiceException;
-
+import jakarta.jws.WebService;
+import jakarta.xml.ws.Holder;
+import jakarta.xml.ws.WebServiceException;
 import org.apache.cxf.no_body_parts.types.Operation1;
 import org.apache.cxf.no_body_parts.types.Operation1Response;
 import org.apache.cxf.no_body_parts.wsdl.NoBodyPartsSEI;
@@ -36,11 +35,11 @@ import org.apache.cxf.no_body_parts.wsdl.NoBodyPartsSEI;
 @WebService(targetNamespace = "urn:org:apache:cxf:no_body_parts/wsdl")
 public class NoBodyPartsImpl implements NoBodyPartsSEI {
 
-    private String md5(byte[] bytes) throws NoSuchAlgorithmException {
-        MessageDigest algorithm = MessageDigest.getInstance("MD5");
+    private String digest(byte[] bytes) throws NoSuchAlgorithmException {
+        MessageDigest algorithm = MessageDigest.getInstance("SHA-256");
         algorithm.reset();
         algorithm.update(bytes);
-        byte messageDigest[] = algorithm.digest();
+        byte[] messageDigest = algorithm.digest();
 
         StringBuilder hexString = new StringBuilder();
         for (int i = 0; i < messageDigest.length; i++) {
@@ -53,7 +52,7 @@ public class NoBodyPartsImpl implements NoBodyPartsSEI {
     public Operation1Response operation1(Operation1 parameters, Holder<byte[]> mimeAttachment) {
         Operation1Response r = new Operation1Response();
         try {
-            r.setStatus(md5(mimeAttachment.value));
+            r.setStatus(digest(mimeAttachment.value));
         } catch (NoSuchAlgorithmException e) {
             throw new WebServiceException(e);
         }

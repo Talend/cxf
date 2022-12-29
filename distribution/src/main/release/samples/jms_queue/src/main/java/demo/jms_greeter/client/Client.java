@@ -26,8 +26,8 @@ import java.lang.reflect.Proxy;
 import java.util.Map;
 
 import javax.xml.namespace.QName;
-import javax.xml.ws.BindingProvider;
 
+import jakarta.xml.ws.BindingProvider;
 import org.apache.cxf.jms_greeter.JMSGreeterPortType;
 import org.apache.cxf.jms_greeter.JMSGreeterService;
 import org.apache.cxf.transport.jms.JMSMessageHeadersType;
@@ -86,7 +86,7 @@ public final class Client {
             requestHeader.putProperty("Test.Prop", "mustReturn");
             requestContext.put("org.apache.cxf.jms.client.request.headers", requestHeader);
             //To override the default receive timeout.
-            requestContext.put("org.apache.cxf.jms.client.timeout", new Long(1000));
+            requestContext.put("org.apache.cxf.jms.client.timeout", Long.valueOf(1000));
         }
 
         System.out.println("Invoking sayHi with JMS Context information ...");

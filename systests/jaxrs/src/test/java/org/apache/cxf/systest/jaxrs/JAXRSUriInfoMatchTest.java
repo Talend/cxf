@@ -21,20 +21,21 @@ package org.apache.cxf.systest.jaxrs;
 import java.util.Iterator;
 import java.util.List;
 
-import javax.ws.rs.GET;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.UriInfo;
-
+import jakarta.ws.rs.GET;
+import jakarta.ws.rs.Path;
+import jakarta.ws.rs.PathParam;
+import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.core.Context;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.UriInfo;
 import org.apache.cxf.jaxrs.client.WebClient;
 import org.apache.cxf.testutil.common.AbstractClientServerTestBase;
 
 import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Test;
+
+import static org.junit.Assert.assertEquals;
 
 public class JAXRSUriInfoMatchTest extends AbstractClientServerTestBase {
     public static final int PORT = SpringServer.PORT;
@@ -53,7 +54,7 @@ public class JAXRSUriInfoMatchTest extends AbstractClientServerTestBase {
         }
     }
 
-    
+
     @Test
     public void testMatchedUris() throws Exception {
         WebClient wc = WebClient.create("http://localhost:" + PORT + "/match/my/resource/1/matched/uris");
@@ -64,7 +65,7 @@ public class JAXRSUriInfoMatchTest extends AbstractClientServerTestBase {
     }
     @Test
     public void testMatchedUrisParam() throws Exception {
-        WebClient wc = WebClient.create("http://localhost:" + PORT 
+        WebClient wc = WebClient.create("http://localhost:" + PORT
                                         + "/match/my/resource/1/matched/uris/param");
         WebClient.getConfig(wc).getHttpConduit().getClient().setReceiveTimeout(100000000L);
         wc.accept("text/plain");
@@ -73,7 +74,7 @@ public class JAXRSUriInfoMatchTest extends AbstractClientServerTestBase {
     }
     @Test
     public void testMatchedUrisParam2() throws Exception {
-        WebClient wc = WebClient.create("http://localhost:" + PORT 
+        WebClient wc = WebClient.create("http://localhost:" + PORT
                                         + "/match/my/resource/1/matched/uris/param/2");
         WebClient.getConfig(wc).getHttpConduit().getClient().setReceiveTimeout(100000000L);
         wc.accept("text/plain");
@@ -117,20 +118,20 @@ public class JAXRSUriInfoMatchTest extends AbstractClientServerTestBase {
         public Object getMatchedResources() {
             return concat(uriInfo.getMatchedResources());
         }
-        
+
     }
-    
+
     private static String concat(List<?> data) {
         StringBuilder builder = new StringBuilder();
         Iterator<?> iterator = data.iterator();
         while (iterator.hasNext()) {
             builder.append(iterator.next().toString());
             if (iterator.hasNext()) {
-                builder.append(",");
+                builder.append(',');
             }
         }
         return builder.toString();
     }
 
-    
+
 }

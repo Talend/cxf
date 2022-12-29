@@ -21,14 +21,19 @@
     <parent>
         <groupId>org.apache.cxf.systests</groupId>
         <artifactId>cxf-systests-rs-sse</artifactId>
-        <version>3.2.5-SNAPSHOT</version>
+        <version>4.0.1-SNAPSHOT</version>
         <relativePath>../</relativePath>
     </parent>
     <modelVersion>4.0.0</modelVersion>
     <artifactId>cxf-systests-rs-sse-undertow</artifactId>
     <name>Apache CXF SSE Integration System Tests for Undertow</name>
     <description>Apache CXF SSE Integration System Tests Undertow</description>
-    <url>http://cxf.apache.org</url>
+    <url>https://cxf.apache.org</url>
+    
+    <properties>
+        <cxf.module.name>org.apache.cxf.systests.rs.sse.undertow</cxf.module.name>
+    </properties>
+    
     <dependencies>
         <dependency>
             <groupId>io.undertow</groupId>
@@ -37,13 +42,18 @@
         </dependency>
         <dependency>
             <groupId>io.undertow</groupId>
-            <artifactId>undertow-servlet</artifactId>
+            <artifactId>undertow-servlet-jakarta</artifactId>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.apache.cxf.systests</groupId>
             <artifactId>cxf-systests-rs-sse-base</artifactId>
             <version>${project.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.cxf</groupId>
+            <artifactId>cxf-rt-transports-http-jetty</artifactId>
             <scope>test</scope>
         </dependency>
     </dependencies>

@@ -24,12 +24,15 @@ import java.util.logging.Logger;
 import org.apache.cxf.common.logging.LogUtils;
 
 import org.junit.After;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
-public class ResourceAdapterInternalExceptionTest extends Assert {
+
+public class ResourceAdapterInternalExceptionTest {
     private static final Logger EXCEPTION_LOGGER =
         LogUtils.getLogger(ResourceAdapterInternalException.class);
     private Level logLevel;
@@ -59,7 +62,7 @@ public class ResourceAdapterInternalExceptionTest extends Assert {
     public void testMessageWithNullTx() {
         final String msg = "msg1".intern();
 
-        javax.resource.spi.ResourceAdapterInternalException e = new ResourceAdapterInternalException(msg,
+        jakarta.resource.spi.ResourceAdapterInternalException e = new ResourceAdapterInternalException(msg,
                                                                                                      null);
         assertTrue(e.toString().indexOf(msg) != -1);
         assertTrue(e.toString().indexOf("reason") == -1);
@@ -73,7 +76,7 @@ public class ResourceAdapterInternalExceptionTest extends Assert {
         final String causeMsg = "cause";
 
         Exception cause = new RuntimeException(causeMsg);
-        javax.resource.spi.ResourceAdapterInternalException e = new ResourceAdapterInternalException(msg,
+        jakarta.resource.spi.ResourceAdapterInternalException e = new ResourceAdapterInternalException(msg,
                                                                                                      cause);
         assertTrue(e.toString().indexOf(msg) != -1);
         assertTrue(e.toString().indexOf("reason") != -1);
@@ -88,7 +91,7 @@ public class ResourceAdapterInternalExceptionTest extends Assert {
         final String causeMsg = "cause";
 
         Throwable cause = new Throwable(causeMsg);
-        javax.resource.spi.ResourceAdapterInternalException e = new ResourceAdapterInternalException(msg,
+        jakarta.resource.spi.ResourceAdapterInternalException e = new ResourceAdapterInternalException(msg,
                                                                                                      cause);
         assertTrue(e.toString().indexOf(msg) != -1);
         assertTrue(e.toString().indexOf("reason") != -1);
@@ -103,7 +106,7 @@ public class ResourceAdapterInternalExceptionTest extends Assert {
         final String causeMsg = "cause";
 
         Exception cause = new RuntimeException(causeMsg);
-        javax.resource.spi.ResourceAdapterInternalException re =
+        jakarta.resource.spi.ResourceAdapterInternalException re =
             new ResourceAdapterInternalException(
                 msg,
                 new java.lang.reflect.InvocationTargetException(cause));

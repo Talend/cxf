@@ -28,11 +28,10 @@ import java.util.Map;
 import java.util.Set;
 import java.util.logging.Logger;
 
-import javax.ws.rs.ApplicationPath;
-import javax.ws.rs.Path;
-import javax.ws.rs.core.Application;
-import javax.ws.rs.ext.Provider;
-
+import jakarta.ws.rs.ApplicationPath;
+import jakarta.ws.rs.Path;
+import jakarta.ws.rs.core.Application;
+import jakarta.ws.rs.ext.Provider;
 import org.apache.cxf.annotations.Provider.Scope;
 import org.apache.cxf.common.logging.LogUtils;
 import org.apache.cxf.common.util.ClassHelper;
@@ -68,9 +67,9 @@ public abstract class AbstractSpringComponentScanServer extends AbstractSpringCo
     @Value("${cxf.jaxrs.component-scan-beans:}")
     private String componentScanBeans;
 
-    private List<ResourceProvider> resourceProviders = new LinkedList<ResourceProvider>();
-    private List<Object> jaxrsProviders = new LinkedList<Object>();
-    private List<Feature> cxfFeatures = new LinkedList<Feature>();
+    private List<ResourceProvider> resourceProviders = new LinkedList<>();
+    private List<Object> jaxrsProviders = new LinkedList<>();
+    private List<Feature> cxfFeatures = new LinkedList<>();
     private Class<? extends Annotation> serviceAnnotation;
 
     protected AbstractSpringComponentScanServer() {
@@ -113,7 +112,7 @@ public abstract class AbstractSpringComponentScanServer extends AbstractSpringCo
                 List<Application> apps = CastUtils.cast(JAXRSServerFactoryBeanDefinitionParser
                     .createBeansFromDiscoveredClasses(super.applicationContext, 
                                                       appClasses.get(ApplicationPath.class), null));
-                if (apps.size() > 0) {
+                if (!apps.isEmpty()) {
                     factoryBean = createFactoryBeanFromApplication(apps.get(0));
                     final Map< Class< ? extends Annotation >, Collection< Class< ? > > > cxfClasses =
                         ClasspathScanner.findClasses(classesScanPackages, org.apache.cxf.annotations.Provider.class);

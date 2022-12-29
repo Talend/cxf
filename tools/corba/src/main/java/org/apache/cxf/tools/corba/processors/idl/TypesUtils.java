@@ -84,15 +84,15 @@ public final class TypesUtils {
     }
 
     public static Scope generateAnonymousScopedName(Scope scope, XmlSchema schema) {
-        Scope scopedName = null;
-        XmlSchemaType anonSchemaType = null;
-        Integer id = 0;
+        Scope scopedName;
+        XmlSchemaType anonSchemaType;
+        int id = 0;
         do {
             id++;
             StringBuilder name = new StringBuilder();
-            name.append("_");
-            name.append("Anon" + id.toString());
-            name.append("_");
+            name.append('_');
+            name.append("Anon").append(Integer.toString(id));
+            name.append('_');
             name.append(scope.tail());
             scopedName = new Scope(scope.getParent(), name.toString());
             QName scopedQName = new QName(schema.getTargetNamespace(), scopedName.toString());

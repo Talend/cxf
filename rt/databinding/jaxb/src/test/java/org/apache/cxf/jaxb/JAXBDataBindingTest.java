@@ -38,11 +38,6 @@ import javax.wsdl.Definition;
 import javax.wsdl.Service;
 import javax.wsdl.factory.WSDLFactory;
 import javax.wsdl.xml.WSDLReader;
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.annotation.XmlAttribute;
-import javax.xml.bind.annotation.XmlRootElement;
-import javax.xml.bind.annotation.adapters.XmlAdapter;
-import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 import javax.xml.stream.XMLEventReader;
 import javax.xml.stream.XMLEventWriter;
 import javax.xml.stream.XMLInputFactory;
@@ -52,10 +47,16 @@ import javax.xml.stream.XMLStreamWriter;
 
 import org.w3c.dom.Node;
 
+import jakarta.xml.bind.annotation.XmlAttribute;
+import jakarta.xml.bind.annotation.XmlRootElement;
+import jakarta.xml.bind.annotation.adapters.XmlAdapter;
+import jakarta.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 import org.apache.cxf.Bus;
 import org.apache.cxf.binding.BindingFactoryManager;
+import org.apache.cxf.bus.extension.ExtensionManagerBus;
 import org.apache.cxf.common.logging.LogUtils;
 import org.apache.cxf.common.util.ASMHelper;
+import org.apache.cxf.common.util.ASMHelperImpl;
 import org.apache.cxf.common.util.ReflectionUtil;
 import org.apache.cxf.databinding.DataReader;
 import org.apache.cxf.databinding.DataWriter;
@@ -72,11 +73,16 @@ import org.apache.hello_world_soap_http.types.GreetMeOneWay;
 import org.easymock.EasyMock;
 import org.easymock.IMocksControl;
 import org.junit.After;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
-public class JAXBDataBindingTest extends Assert {
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+
+public class JAXBDataBindingTest {
 
     private static final Logger LOG = LogUtils.getLogger(JAXBDataBindingTest.class);
     private static final String WSDL_PATH = "/wsdl/jaxb/hello_world.wsdl";
@@ -191,9 +197,9 @@ public class JAXBDataBindingTest extends Assert {
         nsMap.put("uri:ultima:thule", "");
         db.setNamespaceMap(nsMap);
         Map<String, Object> contextProperties = new HashMap<>();
-        contextProperties.put("com.sun.xml.bind.defaultNamespaceRemap", "uri:ultima:thule");
+        contextProperties.put("org.glassfish.jaxb.defaultNamespaceRemap", "uri:ultima:thule");
         db.setContextProperties(contextProperties);
-        Set<Class<?>> classes = new HashSet<Class<?>>();
+        Set<Class<?>> classes = new HashSet<>();
         classes.add(UnqualifiedBean.class);
         db.setContext(db.createJAXBContext(classes));
         DataWriter<XMLStreamWriter> writer = db.createWriter(XMLStreamWriter.class);
@@ -215,37 +221,35 @@ public class JAXBDataBindingTest extends Assert {
         db.setNamespaceMap(nsMap);
         Map<String, Object> contextProperties = new HashMap<>();
         db.setContextProperties(contextProperties);
-        Set<Class<?>> classes = new HashSet<Class<?>>();
+        Set<Class<?>> classes = new HashSet<>();
         classes.add(QualifiedBean.class);
 
         //have to fastboot to avoid conflicts of generated accessors
-        System.setProperty("com.sun.xml.bind.v2.runtime.JAXBContextImpl.fastBoot", "true");
-        System.setProperty("com.sun.xml.internal.bind.v2.runtime.JAXBContextImpl.fastBoot", "true");
-        if (internal) {
-            System.setProperty(JAXBContext.JAXB_CONTEXT_FACTORY, "com.sun.xml.internal.bind.v2.ContextFactory");
-            db.setContext(db.createJAXBContext(classes));
-            System.clearProperty(JAXBContext.JAXB_CONTEXT_FACTORY);
-        } else {
-            db.setContext(db.createJAXBContext(classes));
-        }
-        System.clearProperty("com.sun.xml.bind.v2.runtime.JAXBContextImpl.fastBoot");
-        System.clearProperty("com.sun.xml.internal.bind.v2.runtime.JAXBContextImpl.fastBoot");
+        System.setProperty("org.glassfish.jaxb.v2.runtime.JAXBContextImpl.fastBoot", "true");
+        db.setContext(db.createJAXBContext(classes));
+        System.clearProperty("org.glassfish.jaxb.v2.runtime.JAXBContextImpl.fastBoot");
         return db;
     }
 
     void doNamespaceMappingTest(boolean internal, boolean asm) throws Exception {
-        if (internal) {
+        //TODO: review this to see if we can remove the below check
+        /*if (internal) {
             try {
                 Class.forName("com.sun.xml.internal.bind.v2.ContextFactory");
             } catch (Throwable t) {
                 //on a JVM (likely IBM's) that doesn't rename the ContextFactory package to include "internal"
                 return;
             }
-        }
+        }*/
+        Bus b = new ExtensionManagerBus();
+        ASMHelper helper = new ASMHelperImpl();
+        b.setExtension(helper, ASMHelper.class);
+        FactoryClassCreator extr = new FactoryClassProxyService(b);
+        b.setExtension(extr, FactoryClassCreator.class);
         try {
             if (!asm) {
-                ReflectionUtil.setAccessible(ReflectionUtil.getDeclaredField(ASMHelper.class, "badASM"))
-                    .set(null, Boolean.TRUE);
+                ReflectionUtil.setAccessible(ReflectionUtil.getDeclaredField(ASMHelperImpl.class, "badASM"))
+                    .set(helper, Boolean.TRUE);
             }
 
             JAXBDataBinding db = createJaxbContext(internal);
@@ -262,8 +266,8 @@ public class JAXBDataBindingTest extends Assert {
             assertTrue("Failed to map namespace " + xml, xml.contains("greenland=\"uri:ultima:thule"));
         } finally {
             if (!asm) {
-                ReflectionUtil.setAccessible(ReflectionUtil.getDeclaredField(ASMHelper.class, "badASM"))
-                    .set(null, Boolean.FALSE);
+                ReflectionUtil.setAccessible(ReflectionUtil.getDeclaredField(ASMHelperImpl.class, "badASM"))
+                    .set(helper, Boolean.FALSE);
             }
         }
     }
@@ -284,22 +288,27 @@ public class JAXBDataBindingTest extends Assert {
             doNamespaceMappingTest(true, false);
             fail("Internal needs ASM");
         } catch (AssertionError er) {
-            er.getMessage().contains("Failed to map namespace");
+            assertTrue(er.getMessage().contains("Failed to map namespace")
+                || er.getMessage().contains("Internal needs ASM"));
         }
     }
 
 
     @Test
     public void testResursiveType() throws Exception {
-        Set<Class<?>> classes = new HashSet<Class<?>>();
+        Set<Class<?>> classes = new HashSet<>();
         Collection<Object> typeReferences = new ArrayList<>();
         Map<String, Object> props = new HashMap<>();
-        JAXBContextInitializer init = new JAXBContextInitializer(null, classes, typeReferences, props);
+        Bus b = new ExtensionManagerBus();
+        b.setExtension(new ASMHelperImpl(), ASMHelper.class);
+        FactoryClassCreator extr = new FactoryClassProxyService(b);
+        b.setExtension(extr, FactoryClassCreator.class);
+        JAXBContextInitializer init = new JAXBContextInitializer(b, null, classes, typeReferences, props);
         init.addClass(Type2.class);
         assertEquals(2, classes.size());
     }
 
-    public abstract static class Type2 extends AddressEntity<Type2> {
+    public abstract static class Type2 extends AddressEntity<Type2> { //NOPMD
     }
 
     public abstract static class AddressEntity<T extends AddressEntity<T>> {
@@ -338,7 +347,11 @@ public class JAXBDataBindingTest extends Assert {
         Set<Class<?>> classes = new HashSet<>();
         Collection<Object> typeReferences = new ArrayList<>();
         Map<String, Object> props = new HashMap<>();
-        JAXBContextInitializer init = new JAXBContextInitializer(null, classes, typeReferences, props);
+        Bus b = new ExtensionManagerBus();
+        b.setExtension(new ASMHelperImpl(), ASMHelper.class);
+        FactoryClassCreator extr = new FactoryClassProxyService(b);
+        b.setExtension(extr, FactoryClassCreator.class);
+        JAXBContextInitializer init = new JAXBContextInitializer(b, null, classes, typeReferences, props);
         init.addClass(sampleClassInDefaultPackage);
         assertEquals(1, classes.size());
     }

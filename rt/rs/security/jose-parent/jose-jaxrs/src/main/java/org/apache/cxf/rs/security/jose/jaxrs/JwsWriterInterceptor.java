@@ -25,13 +25,12 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 
-import javax.annotation.Priority;
-import javax.ws.rs.WebApplicationException;
-import javax.ws.rs.core.HttpHeaders;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.ext.WriterInterceptor;
-import javax.ws.rs.ext.WriterInterceptorContext;
-
+import jakarta.annotation.Priority;
+import jakarta.ws.rs.WebApplicationException;
+import jakarta.ws.rs.core.HttpHeaders;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.ext.WriterInterceptor;
+import jakarta.ws.rs.ext.WriterInterceptorContext;
 import org.apache.cxf.common.util.Base64UrlOutputStream;
 import org.apache.cxf.common.util.Base64UrlUtility;
 import org.apache.cxf.common.util.StringUtils;
@@ -50,7 +49,7 @@ import org.apache.cxf.rs.security.jose.jws.JwsSignatureProvider;
 @Priority(Priorities.JWS_WRITE_PRIORITY)
 public class JwsWriterInterceptor extends AbstractJwsWriterProvider implements WriterInterceptor {
     private static final Set<String> DEFAULT_PROTECTED_HTTP_HEADERS = 
-        new HashSet<String>(Arrays.asList(HttpHeaders.CONTENT_TYPE, HttpHeaders.ACCEPT));
+        new HashSet<>(Arrays.asList(HttpHeaders.CONTENT_TYPE, HttpHeaders.ACCEPT));
     private Set<String> protectedHttpHeaders = DEFAULT_PROTECTED_HTTP_HEADERS;
     private boolean protectHttpHeaders;
     

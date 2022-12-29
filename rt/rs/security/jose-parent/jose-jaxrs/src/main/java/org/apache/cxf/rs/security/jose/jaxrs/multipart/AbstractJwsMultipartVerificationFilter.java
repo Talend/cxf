@@ -18,8 +18,7 @@
  */
 package org.apache.cxf.rs.security.jose.jaxrs.multipart;
 
-import javax.ws.rs.core.MediaType;
-
+import jakarta.ws.rs.core.MediaType;
 import org.apache.cxf.jaxrs.ext.multipart.MultipartInputFilter;
 import org.apache.cxf.jaxrs.utils.JAXRSUtils;
 import org.apache.cxf.jaxrs.utils.multipart.AttachmentUtils;
@@ -36,7 +35,7 @@ public abstract class AbstractJwsMultipartVerificationFilter {
     }
     
     protected void addMultipartFilterIfNeeded(MediaType contentType) {
-        if (contentType != null && contentType.getType().equals("multipart")) {
+        if (contentType != null && "multipart".equals(contentType.getType())) {
             Message m = JAXRSUtils.getCurrentMessage();
             MultipartInputFilter jwsFilter = new JwsMultipartSignatureInFilter(m, 
                                                     sigVerifier, 

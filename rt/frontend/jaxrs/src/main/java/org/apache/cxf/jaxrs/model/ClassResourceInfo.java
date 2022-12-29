@@ -28,13 +28,12 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
-import javax.ws.rs.BeanParam;
-import javax.ws.rs.Consumes;
-import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
-import javax.ws.rs.core.Application;
-import javax.ws.rs.core.MediaType;
-
+import jakarta.ws.rs.BeanParam;
+import jakarta.ws.rs.Consumes;
+import jakarta.ws.rs.Path;
+import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.core.Application;
+import jakarta.ws.rs.core.MediaType;
 import org.apache.cxf.Bus;
 import org.apache.cxf.BusFactory;
 import org.apache.cxf.common.util.ClassHelper;
@@ -52,12 +51,14 @@ public class ClassResourceInfo extends BeanResourceInfo {
     private MethodDispatcher methodDispatcher;
     private ResourceProvider resourceProvider;
     private ConcurrentHashMap<SubresourceKey, ClassResourceInfo> subResources
-        = new ConcurrentHashMap<SubresourceKey, ClassResourceInfo>();
+        = new ConcurrentHashMap<>();
 
     private boolean enableStatic;
     private boolean createdFromModel;
     private String consumesTypes;
     private String producesTypes;
+    private List<MediaType> defaultConsumes = Collections.singletonList(JAXRSUtils.ALL_TYPES);
+    private List<MediaType> defaultProduces = Collections.singletonList(JAXRSUtils.ALL_TYPES);
     private Set<String> nameBindings = Collections.emptySet();
     private ClassResourceInfo parent;
     private Set<String> injectedSubInstances = new HashSet<>();
@@ -87,21 +88,33 @@ public class ClassResourceInfo extends BeanResourceInfo {
         super(theResourceClass, theServiceClass, theRoot, theRoot || enableStatic, bus);
         this.enableStatic = enableStatic;
         if (resourceClass != null) {
-            nameBindings = AnnotationUtils.getNameBindings(serviceClass.getAnnotations());
+            nameBindings = AnnotationUtils.getNameBindings(bus, serviceClass);
         }
     }
-
+    //CHECKSTYLE:OFF
+    public ClassResourceInfo(Class<?> theResourceClass, Class<?> theServiceClass,
+                             boolean theRoot, boolean enableStatic, Bus bus, List<MediaType> defaultProduces,
+                             List<MediaType> defaultConsumes) {
+    //CHECKSTYLE:ON
+        this(theResourceClass, theServiceClass, theRoot, enableStatic, bus);
+        if (defaultProduces != null) {
+            this.defaultProduces = defaultProduces;
+        }
+        if (defaultConsumes != null) {
+            this.defaultConsumes = defaultConsumes;
+        }
+    }
     public ClassResourceInfo(Class<?> theResourceClass, Class<?> theServiceClass,
                              boolean theRoot, boolean enableStatic, boolean createdFromModel, Bus bus) {
         this(theResourceClass, theServiceClass, theRoot, enableStatic, bus);
         this.createdFromModel = createdFromModel;
     }
     //CHECKSTYLE:OFF
-    public ClassResourceInfo(Class<?> theResourceClass, Class<?> c,
+    public ClassResourceInfo(Class<?> theResourceClass, Class<?> theServiceClass,
                              boolean theRoot, boolean enableStatic, boolean createdFromModel,
                              String consumesTypes, String producesTypes, Bus bus) {
     //CHECKSTYLE:ON
-        this(theResourceClass, theResourceClass, theRoot, enableStatic, createdFromModel, bus);
+        this(theResourceClass, theServiceClass, theRoot, enableStatic, createdFromModel, bus);
         this.consumesTypes = consumesTypes;
         this.producesTypes = producesTypes;
     }
@@ -258,7 +271,7 @@ public class ClassResourceInfo extends BeanResourceInfo {
         }
         Produces produces = AnnotationUtils.getClassAnnotation(getServiceClass(), Produces.class);
         if (produces != null || parent == null) {
-            return JAXRSUtils.getProduceTypes(produces);
+            return JAXRSUtils.getProduceTypes(produces, defaultProduces);
         }
         return parent.getProduceMime();
     }
@@ -269,7 +282,7 @@ public class ClassResourceInfo extends BeanResourceInfo {
         }
         Consumes consumes = AnnotationUtils.getClassAnnotation(getServiceClass(), Consumes.class);
         if (consumes != null || parent == null) {
-            return JAXRSUtils.getConsumeTypes(consumes);
+            return JAXRSUtils.getConsumeTypes(consumes, defaultConsumes);
         }
         return parent.getConsumeMime();
     }

@@ -21,7 +21,6 @@ package org.apache.cxf.workqueue;
 
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
-import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
@@ -63,11 +62,11 @@ public class AutomaticWorkQueueImpl implements AutomaticWorkQueue {
     int lowWaterMark;
     int highWaterMark;
     long dequeueTimeout;
-    volatile int approxThreadCount;
+    AtomicInteger approxThreadCount = new AtomicInteger();
 
     ThreadPoolExecutor executor;
     Method addWorkerMethod;
-    Object addWorkerArgs[];
+    Object[] addWorkerArgs;
 
     AWQThreadFactory threadFactory;
     ReentrantLock mainLock;
@@ -173,12 +172,11 @@ public class AutomaticWorkQueueImpl implements AutomaticWorkQueue {
 
 
             if (LOG.isLoggable(Level.FINE)) {
-                StringBuilder buf = new StringBuilder();
-                buf.append("Constructing automatic work queue with:\n");
-                buf.append("max queue size: " + maxQueueSize + "\n");
-                buf.append("initialThreads: " + initialThreads + "\n");
-                buf.append("lowWaterMark: " + lowWaterMark + "\n");
-                buf.append("highWaterMark: " + highWaterMark + "\n");
+                StringBuilder buf = new StringBuilder(128).append("Constructing automatic work queue with:\n")
+                        .append("max queue size: ").append(maxQueueSize).append('\n')
+                        .append("initialThreads: ").append(initialThreads).append('\n')
+                        .append("lowWaterMark: ").append(lowWaterMark).append('\n')
+                        .append("highWaterMark: ").append(highWaterMark).append('\n');
                 LOG.fine(buf.toString());
             }
 
@@ -201,11 +199,13 @@ public class AutomaticWorkQueueImpl implements AutomaticWorkQueue {
                 executor.setCorePoolSize(lowWaterMark);
             }
 
-            ReentrantLock l = null;
+            ReentrantLock l;
             try {
-                Field f = ThreadPoolExecutor.class.getDeclaredField("mainLock");
-                ReflectionUtil.setAccessible(f);
-                l = (ReentrantLock)f.get(executor);
+                l = ReflectionUtil.accessDeclaredField("mainLock", ThreadPoolExecutor.class,
+                                                       executor, ReentrantLock.class);
+                if (l == null) {
+                    l = new ReentrantLock();
+                }
             } catch (Throwable t) {
                 l = new ReentrantLock();
             }
@@ -341,11 +341,11 @@ public class AutomaticWorkQueueImpl implements AutomaticWorkQueue {
             }
             Runnable wrapped = new Runnable() {
                 public void run() {
-                    ++approxThreadCount;
+                    approxThreadCount.incrementAndGet();
                     try {
                         r.run();
                     } finally {
-                        --approxThreadCount;
+                        approxThreadCount.decrementAndGet();
                     }
                 }
             };
@@ -391,22 +391,14 @@ public class AutomaticWorkQueueImpl implements AutomaticWorkQueue {
     }
 
     public String toString() {
-        StringBuilder buf = new StringBuilder();
-        buf.append(super.toString());
-        buf.append(" [queue size: ");
-        buf.append(getSize());
-        buf.append(", max size: ");
-        buf.append(maxQueueSize);
-        buf.append(", threads: ");
-        buf.append(getPoolSize());
-        buf.append(", active threads: ");
-        buf.append(getActiveCount());
-        buf.append(", low water mark: ");
-        buf.append(getLowWaterMark());
-        buf.append(", high water mark: ");
-        buf.append(getHighWaterMark());
-        buf.append("]");
-        return buf.toString();
+        return new StringBuilder(super.toString())
+                .append(" [queue size: ").append(getSize())
+                .append(", max size: ").append(maxQueueSize)
+                .append(", threads: ").append(getPoolSize())
+                .append(", active threads: ").append(getActiveCount())
+                .append(", low water mark: ").append(getLowWaterMark())
+                .append(", high water mark: ").append(getHighWaterMark())
+                .append(']').toString();
     }
 
     public void execute(final Runnable command) {
@@ -435,7 +427,7 @@ public class AutomaticWorkQueueImpl implements AutomaticWorkQueue {
         ex.execute(r);
         if (addWorkerMethod != null
             && !ex.getQueue().isEmpty()
-            && this.approxThreadCount < highWaterMark
+            && this.approxThreadCount.get() < highWaterMark
             && addThreadLock.tryLock()) {
             try {
                 mainLock.lock();
@@ -445,6 +437,7 @@ public class AutomaticWorkQueueImpl implements AutomaticWorkQueue {
                     int sz2 = this.getActiveCount();
 
                     if ((sz + sz2) > ps) {
+                        // Needs --add-opens java.base/java.util.concurrent=ALL-UNNAMED for JDK16+
                         ReflectionUtil.setAccessible(addWorkerMethod).invoke(executor, addWorkerArgs);
                     }
                 } catch (Exception exc) {
@@ -475,7 +468,7 @@ public class AutomaticWorkQueueImpl implements AutomaticWorkQueue {
 
     public synchronized void schedule(final Runnable work, final long delay) {
         if (delayQueue == null) {
-            delayQueue = new DelayQueue<DelayedTaskWrapper>();
+            delayQueue = new DelayQueue<>();
             watchDog = new WatchDog(delayQueue);
             watchDog.setDaemon(true);
             watchDog.start();
@@ -513,11 +506,11 @@ public class AutomaticWorkQueueImpl implements AutomaticWorkQueue {
 
 
     public boolean isEmpty() {
-        return executor == null ? true : executor.getQueue().isEmpty();
+        return executor == null || executor.getQueue().isEmpty();
     }
 
     public boolean isFull() {
-        return executor == null ? false : executor.getQueue().remainingCapacity() == 0;
+        return executor != null && executor.getQueue().remainingCapacity() == 0;
     }
 
     public int getHighWaterMark() {
@@ -614,7 +607,7 @@ public class AutomaticWorkQueueImpl implements AutomaticWorkQueue {
         }
     }
     public Dictionary<String, String> getProperties() {
-        Dictionary<String, String> properties = new Hashtable<String, String>();
+        Dictionary<String, String> properties = new Hashtable<>();
         NumberFormat nf = NumberFormat.getIntegerInstance();
         properties.put("name", nf.format(getName()));
         properties.put("highWaterMark", nf.format(getHighWaterMark()));

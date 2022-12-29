@@ -217,7 +217,7 @@ public final class JSONUtils {
                     return namespaceMap.get(ns);
                 }
 
-                public Iterator<?> getPrefixes(String ns) {
+                public Iterator<String> getPrefixes(String ns) {
                     String prefix = getPrefix(ns);
                     return prefix == null ? null : Collections.singletonList(prefix).iterator();
                 }
@@ -278,7 +278,7 @@ public final class JSONUtils {
     private static class IgnoreMixedContentWriter extends DelegatingXMLStreamWriter {
         String lastText;
         boolean isMixed;
-        List<Boolean> mixed = new LinkedList<Boolean>();
+        List<Boolean> mixed = new LinkedList<>();
 
         IgnoreMixedContentWriter(XMLStreamWriter writer) {
             super(writer);

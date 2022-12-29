@@ -22,9 +22,9 @@ import java.lang.reflect.InvocationHandler;
 import java.net.URI;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
-import javax.ws.rs.core.MultivaluedMap;
-
+import jakarta.ws.rs.core.MultivaluedMap;
 import org.apache.cxf.common.util.ProxyHelper;
 import org.apache.cxf.feature.Feature;
 import org.apache.cxf.jaxrs.model.UserResource;
@@ -88,6 +88,19 @@ public final class JAXRSClientFactory {
 
     /**
      * Creates a proxy
+     * @param baseAddress baseAddres
+     * @param cls resource class, if not interface then a CGLIB proxy will be created
+     * @param properties additional properties
+     * @return typed proxy
+     */
+    public static <T> T create(String baseAddress, Class<T> cls, Map<String, Object> properties) {
+        JAXRSClientFactoryBean bean = getBean(baseAddress, cls, null);
+        bean.setProperties(properties);
+        return bean.create(cls);
+    }
+
+    /**
+     * Creates a proxy
      * @param baseAddress baseAddress
      * @param cls resource class, if not interface then a CGLIB proxy will be created
      * @param configLocation classpath location of the configuration resource
@@ -135,10 +148,24 @@ public final class JAXRSClientFactory {
      * @return typed proxy
      */
     public static <T> T create(String baseAddress, Class<T> cls, List<?> providers, boolean threadSafe) {
+        return create(baseAddress, cls, providers, Collections.emptyMap(), threadSafe);
+    }
+    /**
+     * Creates a thread safe proxy
+     * @param baseAddress baseAddress
+     * @param cls proxy class, if not interface then a CGLIB proxy will be created
+     * @param providers list of providers
+     * @param threadSafe if true then a thread-safe proxy will be created
+     * @param properties additional properties
+     * @return typed proxy
+     */
+    public static <T> T create(String baseAddress, Class<T> cls, List<?> providers, 
+            Map<String, Object> properties, boolean threadSafe) {
         JAXRSClientFactoryBean bean = getBean(baseAddress, cls, null);
         bean.setProviders(providers);
+        bean.setProperties(properties);
         if (threadSafe) {
-            bean.setInitialState(new ThreadLocalClientState(baseAddress));
+            bean.setInitialState(new ThreadLocalClientState(baseAddress, properties));
         }
         return bean.create(cls);
     }
@@ -354,7 +381,7 @@ public final class JAXRSClientFactory {
 
         ClientState clientState = WebClient.getClientState(client);
 
-        T proxy = null;
+        final T proxy;
         if (clientState == null) {
             proxy = bean.create(cls);
             if (inheritHeaders) {
@@ -362,7 +389,7 @@ public final class JAXRSClientFactory {
             }
         } else {
             MultivaluedMap<String, String> headers = inheritHeaders ? client.getHeaders() : null;
-            bean.setInitialState(clientState.newState(client.getCurrentURI(), headers, null));
+            bean.setInitialState(clientState.newState(client.getCurrentURI(), headers, null, bean.getProperties()));
             proxy = bean.create(cls);
         }
         WebClient.copyProperties(WebClient.client(proxy), client);

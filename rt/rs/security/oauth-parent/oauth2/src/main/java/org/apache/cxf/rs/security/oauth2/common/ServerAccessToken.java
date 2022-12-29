@@ -23,14 +23,13 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
-import javax.persistence.ElementCollection;
-import javax.persistence.FetchType;
-import javax.persistence.ManyToMany;
-import javax.persistence.ManyToOne;
-import javax.persistence.MapKeyColumn;
-import javax.persistence.MappedSuperclass;
-import javax.persistence.OrderColumn;
-
+import jakarta.persistence.ElementCollection;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.ManyToMany;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.MapKeyColumn;
+import jakarta.persistence.MappedSuperclass;
+import jakarta.persistence.OrderColumn;
 import org.apache.cxf.rs.security.oauth2.provider.OAuthServiceException;
 import org.apache.cxf.rs.security.oauth2.utils.OAuthConstants;
 import org.apache.cxf.rs.security.oauth2.utils.OAuthUtils;
@@ -45,14 +44,14 @@ public abstract class ServerAccessToken extends AccessToken {
 
     private String grantType;
     private Client client;
-    private List<OAuthPermission> scopes = new LinkedList<OAuthPermission>();
+    private List<OAuthPermission> scopes = new LinkedList<>();
     private UserSubject subject;
-    private List<String> audiences = new LinkedList<String>();
+    private List<String> audiences = new LinkedList<>();
     private String clientCodeVerifier;
     private String nonce;
     private String responseType;
     private String grantCode;
-    private Map<String, String> extraProperties = new LinkedHashMap<String, String>();
+    private Map<String, String> extraProperties = new LinkedHashMap<>();
 
     protected ServerAccessToken() {
 

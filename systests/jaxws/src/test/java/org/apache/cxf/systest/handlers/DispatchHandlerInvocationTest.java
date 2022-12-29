@@ -25,32 +25,31 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
-import javax.activation.DataSource;
-import javax.activation.URLDataSource;
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.JAXBElement;
 import javax.xml.namespace.QName;
-import javax.xml.soap.MessageFactory;
-import javax.xml.soap.SOAPBody;
-import javax.xml.soap.SOAPElement;
-import javax.xml.soap.SOAPEnvelope;
-import javax.xml.soap.SOAPMessage;
 import javax.xml.transform.Source;
 import javax.xml.transform.dom.DOMSource;
-import javax.xml.ws.BindingProvider;
-import javax.xml.ws.Dispatch;
-import javax.xml.ws.LogicalMessage;
-import javax.xml.ws.Service;
-import javax.xml.ws.Service.Mode;
-import javax.xml.ws.handler.Handler;
-import javax.xml.ws.handler.LogicalHandler;
-import javax.xml.ws.handler.LogicalMessageContext;
-import javax.xml.ws.handler.MessageContext;
-import javax.xml.ws.handler.soap.SOAPHandler;
-import javax.xml.ws.handler.soap.SOAPMessageContext;
-import javax.xml.ws.soap.SOAPFaultException;
 
-
+import jakarta.activation.DataSource;
+import jakarta.activation.URLDataSource;
+import jakarta.xml.bind.JAXBContext;
+import jakarta.xml.bind.JAXBElement;
+import jakarta.xml.soap.MessageFactory;
+import jakarta.xml.soap.SOAPBody;
+import jakarta.xml.soap.SOAPElement;
+import jakarta.xml.soap.SOAPEnvelope;
+import jakarta.xml.soap.SOAPMessage;
+import jakarta.xml.ws.BindingProvider;
+import jakarta.xml.ws.Dispatch;
+import jakarta.xml.ws.LogicalMessage;
+import jakarta.xml.ws.Service;
+import jakarta.xml.ws.Service.Mode;
+import jakarta.xml.ws.handler.Handler;
+import jakarta.xml.ws.handler.LogicalHandler;
+import jakarta.xml.ws.handler.LogicalMessageContext;
+import jakarta.xml.ws.handler.MessageContext;
+import jakarta.xml.ws.handler.soap.SOAPHandler;
+import jakarta.xml.ws.handler.soap.SOAPMessageContext;
+import jakarta.xml.ws.soap.SOAPFaultException;
 import org.apache.cxf.testutil.common.AbstractBusClientServerTestBase;
 import org.apache.cxf.testutil.common.TestUtil;
 import org.apache.handlers.AddNumbersService;
@@ -62,6 +61,10 @@ import org.apache.hello_world_xml_http.wrapped.XMLService;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 public class DispatchHandlerInvocationTest extends AbstractBusClientServerTestBase {
     private static String addNumbersAddress
@@ -484,11 +487,11 @@ public class DispatchHandlerInvocationTest extends AbstractBusClientServerTestBa
                                 if (elem2 instanceof SOAPElement) {
                                     String value = ((SOAPElement)elem2).getValue();
                                     String name = ((SOAPElement)elem2).getLocalName();
-                                    if (name.indexOf("arg0") >= 0 && value.equalsIgnoreCase("11")) {
+                                    if (name.indexOf("arg0") >= 0 && "11".equalsIgnoreCase(value)) {
                                         value = "12";
                                         ((SOAPElement)elem2).setValue(value);
                                     }
-                                    if (name.indexOf("arg1") >= 0 && value.equalsIgnoreCase("21")) {
+                                    if (name.indexOf("arg1") >= 0 && "21".equalsIgnoreCase(value)) {
                                         value = "22";
                                         ((SOAPElement)elem2).setValue(value);
                                     }
@@ -519,7 +522,7 @@ public class DispatchHandlerInvocationTest extends AbstractBusClientServerTestBa
                                 if (elem2 instanceof SOAPElement) {
                                     String value = ((SOAPElement)elem2).getValue();
                                     String name = ((SOAPElement)elem2).getLocalName();
-                                    if (name.indexOf("return") >= 0 && value.equalsIgnoreCase("264")) {
+                                    if (name.indexOf("return") >= 0 && "264".equalsIgnoreCase(value)) {
                                         value = "333";
                                         ((SOAPElement)elem2).setValue(value);
                                     }

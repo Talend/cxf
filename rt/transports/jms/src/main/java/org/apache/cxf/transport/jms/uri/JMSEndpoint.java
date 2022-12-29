@@ -24,9 +24,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import javax.jms.ConnectionFactory;
-import javax.jms.Message;
-
+import jakarta.jms.ConnectionFactory;
+import jakarta.jms.Message;
 import org.apache.cxf.common.util.StringUtils;
 import org.apache.cxf.service.model.EndpointInfo;
 import org.apache.cxf.ws.addressing.EndpointReferenceType;
@@ -89,10 +88,10 @@ public class JMSEndpoint {
     private String messageSelector;
     private int retryInterval = 5000;
     private boolean oneSessionPerConnection;
+    private boolean ignoreTimeoutException;
 
     /**
-     * @param uri
-     * @param subject
+     * @param endpointUri
      */
     public JMSEndpoint(String endpointUri) {
         this(null, endpointUri);
@@ -101,6 +100,7 @@ public class JMSEndpoint {
     /**
      * Get the extensors from the wsdl and/or configuration that will
      * then be used to configure the JMSConfiguration object
+     * @param endpointInfo
      * @param target
      */
     public JMSEndpoint(EndpointInfo endpointInfo, EndpointReferenceType target) {
@@ -108,14 +108,14 @@ public class JMSEndpoint {
     }
 
     /**
-     * @param uri
-     * @param subject
+     * @param endpointInfo
+     * @param endpointUri
      */
-    public JMSEndpoint(EndpointInfo ei, String endpointUri) {
+    public JMSEndpoint(EndpointInfo endpointInfo, String endpointUri) {
         this.jmsVariant = JMSEndpoint.QUEUE;
 
-        if (ei != null) {
-            JMSEndpointWSDLUtil.retrieveWSDLInformation(this, ei);
+        if (endpointInfo != null) {
+            JMSEndpointWSDLUtil.retrieveWSDLInformation(this, endpointInfo);
         }
         if (!(StringUtils.isEmpty(endpointUri) || "jms://".equals(endpointUri) || !endpointUri.startsWith("jms"))) {
             this.endpointUri = endpointUri;
@@ -127,11 +127,11 @@ public class JMSEndpoint {
 
             // Use the properties like e.g. from JAXWS properties with "jms." prefix
             Map<String, Object> jmsProps = new HashMap<>();
-            if (ei != null) {
-                getJaxWsJmsProps(ei.getProperties(), jmsProps);
+            if (endpointInfo != null) {
+                getJaxWsJmsProps(endpointInfo.getProperties(), jmsProps);
             }
-            if (ei != null && ei.getBinding() != null) {
-                getJaxWsJmsProps(ei.getBinding().getProperties(), jmsProps);
+            if (endpointInfo != null && endpointInfo.getBinding() != null) {
+                getJaxWsJmsProps(endpointInfo.getBinding().getProperties(), jmsProps);
             }
             configureProperties(jmsProps);
         }
@@ -160,10 +160,8 @@ public class JMSEndpoint {
         }
     }
 
-    private String getPropSetterName(String name) {
-        String first = name.substring(0, 1);
-        String rest = name.substring(1);
-        return "set" + first.toUpperCase() + rest;
+    private static String getPropSetterName(String name) {
+        return "set" + StringUtils.capitalize(name);
     }
 
     /**
@@ -173,7 +171,6 @@ public class JMSEndpoint {
      * depending on the prefix of the key. If it matches JNDI_PARAMETER_NAME_PREFIX it is stored in the
      * jndiParameters else in the parameters
      *
-     * @param endpoint
      * @param params
      */
     private void configureProperties(Map<String, Object> params) {
@@ -206,20 +203,20 @@ public class JMSEndpoint {
 
     public String getRequestURI() {
         StringBuilder requestUri = new StringBuilder("jms:");
-        if (jmsVariant == JNDI_TOPIC) {
+        if (JNDI_TOPIC.equals(jmsVariant)) {
             requestUri.append("jndi");
         } else {
             requestUri.append(jmsVariant);
         }
-        requestUri.append(":" + destinationName);
+        requestUri.append(':').append(destinationName);
         boolean first = true;
         for (Map.Entry<String, String> entry : parameters.entrySet()) {
             String value = entry.getValue();
             if (first) {
-                requestUri.append("?" + entry.getKey() + "=" + value);
+                requestUri.append('?').append(entry.getKey()).append('=').append(value);
                 first = false;
             } else {
-                requestUri.append("&" + entry.getKey() + "=" + value);
+                requestUri.append('&').append(entry.getKey()).append('=').append(value);
             }
         }
         return requestUri.toString();
@@ -238,7 +235,7 @@ public class JMSEndpoint {
     }
 
     /**
-     * @param targetserviceParameterName
+     * @param key
      * @return
      */
     public String getParameter(String key) {
@@ -510,6 +507,14 @@ public class JMSEndpoint {
 
     public void setOneSessionPerConnection(boolean oneSessionPerConnection) {
         this.oneSessionPerConnection = oneSessionPerConnection;
+    }
+
+    public boolean isIgnoreTimeoutException() {
+        return ignoreTimeoutException;
+    }
+
+    public void setIgnoreTimeoutException(boolean ignoreTimeoutException) {
+        this.ignoreTimeoutException = ignoreTimeoutException;
     }
 
 }

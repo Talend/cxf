@@ -21,17 +21,19 @@ package org.apache.cxf.systest.jaxrs.security;
 
 import java.io.InputStream;
 
-import javax.ws.rs.core.Form;
-import javax.ws.rs.core.Response;
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.Unmarshaller;
-
+import jakarta.ws.rs.core.Form;
+import jakarta.ws.rs.core.Response;
+import jakarta.xml.bind.JAXBContext;
+import jakarta.xml.bind.Unmarshaller;
 import org.apache.cxf.jaxrs.client.WebClient;
 import org.apache.cxf.systest.jaxrs.Book;
 
 import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Test;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 public class JAXRSSpringSecurityClassTest extends AbstractSpringSecurityTest {
     public static final int PORT = BookServerSecuritySpringClass.PORT;

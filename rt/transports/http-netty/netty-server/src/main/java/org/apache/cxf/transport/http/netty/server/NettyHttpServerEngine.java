@@ -27,13 +27,14 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.logging.Logger;
 
-import javax.annotation.PostConstruct;
-
+import jakarta.annotation.PostConstruct;
+import org.apache.cxf.Bus;
 import org.apache.cxf.common.i18n.Message;
 import org.apache.cxf.common.logging.LogUtils;
 import org.apache.cxf.configuration.jsse.TLSServerParameters;
 import org.apache.cxf.interceptor.Fault;
 import org.apache.cxf.transport.HttpUriMapper;
+import org.apache.cxf.transport.http.HttpServerEngineSupport;
 
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.Channel;
@@ -44,7 +45,7 @@ import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.util.concurrent.DefaultEventExecutorGroup;
 import io.netty.util.concurrent.EventExecutorGroup;
 
-public class NettyHttpServerEngine implements ServerEngine {
+public class NettyHttpServerEngine implements ServerEngine, HttpServerEngineSupport {
 
     private static final Logger LOG =
             LogUtils.getL7dLogger(NettyHttpServerEngine.class);
@@ -69,7 +70,7 @@ public class NettyHttpServerEngine implements ServerEngine {
 
     private NettyHttpServletPipelineFactory servletPipeline;
 
-    private Map<String, NettyHttpContextHandler> handlerMap = new ConcurrentHashMap<String, NettyHttpContextHandler>();
+    private Map<String, NettyHttpContextHandler> handlerMap = new ConcurrentHashMap<>();
 
     /**
      * This field holds the TLS ServerParameters that are programatically
@@ -80,7 +81,7 @@ public class NettyHttpServerEngine implements ServerEngine {
 
     private ThreadingParameters threadingParameters = new ThreadingParameters();
 
-    private List<String> registedPaths = new CopyOnWriteArrayList<String>();
+    private List<String> registedPaths = new CopyOnWriteArrayList<>();
 
     // TODO need to setup configuration about them
     private int readIdleTime = 60;
@@ -95,21 +96,36 @@ public class NettyHttpServerEngine implements ServerEngine {
     private EventLoopGroup bossGroup;
     private EventLoopGroup workerGroup;
     private EventExecutorGroup applicationExecutor;
+    
+    private Bus bus;
 
+    
     public NettyHttpServerEngine() {
 
     }
 
-    public NettyHttpServerEngine(
-            String host,
-            int port) {
+    @Deprecated
+    public NettyHttpServerEngine(String host, int port) {
+        this(host, port, null);
+    }
+
+    public NettyHttpServerEngine(String host, int port, Bus bus) {
         this.host = host;
         this.port = port;
+        this.bus = bus;
     }
 
     @PostConstruct
     public void finalizeConfig() {
         // need to check if we need to any other thing other than Setting the TLSServerParameter
+    }
+    
+    public void setBus(Bus bus) {
+        this.bus = bus;
+    }
+    
+    public Bus getBus() {
+        return bus;
     }
 
     /**
@@ -163,7 +179,7 @@ public class NettyHttpServerEngine implements ServerEngine {
             new NettyHttpServletPipelineFactory(
                  tlsServerParameters, sessionSupport,
                  maxChunkContentSize, handlerMap,
-                 this, applicationExecutor);
+                 this, applicationExecutor, isHttp2Enabled(bus));
         // Start the servletPipeline's timer
         servletPipeline.start();
         bootstrap.childHandler(servletPipeline);

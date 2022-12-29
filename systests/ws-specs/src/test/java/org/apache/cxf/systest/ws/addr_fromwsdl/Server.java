@@ -23,8 +23,7 @@ package org.apache.cxf.systest.ws.addr_fromwsdl;
 import java.util.LinkedList;
 import java.util.List;
 
-import javax.jws.WebService;
-
+import jakarta.jws.WebService;
 import org.apache.cxf.BusFactory;
 import org.apache.cxf.jaxws.EndpointImpl;
 import org.apache.cxf.systest.ws.addr_feature.AddNumbersPortType;
@@ -33,7 +32,7 @@ import org.apache.cxf.ws.addressing.WSAddressingFeature;
 
 public class Server extends AbstractBusTestServerBase {
     static final String PORT = allocatePort(Server.class);
-    List<EndpointImpl> eps = new LinkedList<EndpointImpl>();
+    List<EndpointImpl> eps = new LinkedList<>();
 
     @WebService(serviceName = "AddNumbersService",
                 portName = "AddNumbersPort",

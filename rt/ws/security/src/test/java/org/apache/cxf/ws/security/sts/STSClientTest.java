@@ -28,9 +28,6 @@ import javax.wsdl.Definition;
 import javax.wsdl.Types;
 import javax.wsdl.extensions.ExtensibilityElement;
 import javax.wsdl.extensions.schema.Schema;
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.JAXBElement;
-import javax.xml.bind.Unmarshaller;
 import javax.xml.namespace.QName;
 
 import org.w3c.dom.Document;
@@ -38,6 +35,9 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
+import jakarta.xml.bind.JAXBContext;
+import jakarta.xml.bind.JAXBElement;
+import jakarta.xml.bind.Unmarshaller;
 import org.apache.cxf.Bus;
 import org.apache.cxf.BusFactory;
 import org.apache.cxf.common.jaxb.JAXBContextCache;
@@ -50,15 +50,18 @@ import org.apache.cxf.ws.security.trust.STSClient;
 import org.apache.cxf.wsdl.WSDLManager;
 import org.apache.cxf.wsdl11.WSDLServiceFactory;
 
-import org.junit.Assert;
 import org.junit.Test;
 
-public class STSClientTest extends Assert {
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+
+public class STSClientTest {
 
     @Test
     public void testConfigureViaEPR() throws Exception {
 
-        final Set<Class<?>> addressingClasses = new HashSet<Class<?>>();
+        final Set<Class<?>> addressingClasses = new HashSet<>();
         addressingClasses.add(org.apache.cxf.ws.addressing.wsdl.ObjectFactory.class);
         addressingClasses.add(org.apache.cxf.ws.addressing.ObjectFactory.class);
 
@@ -109,7 +112,7 @@ public class STSClientTest extends Assert {
         }
 
         assertNotNull(wsdlDefinition);
-        assertTrue(!schemas.isEmpty());
+        assertFalse(schemas.isEmpty());
 
         WSDLManager wsdlManager = bus.getExtension(WSDLManager.class);
         Definition definition = wsdlManager.getDefinition(wsdlDefinition);

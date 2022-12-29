@@ -22,21 +22,19 @@ import java.net.URI;
 import java.util.Arrays;
 import java.util.List;
 
-import javax.annotation.Priority;
 import javax.security.auth.callback.CallbackHandler;
 import javax.security.auth.login.Configuration;
-import javax.ws.rs.Priorities;
-import javax.ws.rs.container.ContainerRequestContext;
-import javax.ws.rs.container.ContainerRequestFilter;
-import javax.ws.rs.container.PreMatching;
-import javax.ws.rs.core.HttpHeaders;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.ResponseBuilder;
-import javax.ws.rs.core.UriBuilder;
 
-import org.apache.cxf.common.util.StringUtils;
-import org.apache.cxf.interceptor.security.AuthenticationException;
+import jakarta.annotation.Priority;
+import jakarta.ws.rs.Priorities;
+import jakarta.ws.rs.container.ContainerRequestContext;
+import jakarta.ws.rs.container.ContainerRequestFilter;
+import jakarta.ws.rs.container.PreMatching;
+import jakarta.ws.rs.core.HttpHeaders;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.Response;
+import jakarta.ws.rs.core.Response.ResponseBuilder;
+import jakarta.ws.rs.core.UriBuilder;
 import org.apache.cxf.interceptor.security.JAASLoginInterceptor;
 import org.apache.cxf.interceptor.security.NamePasswordCallbackHandler;
 import org.apache.cxf.jaxrs.impl.HttpHeadersImpl;
@@ -110,8 +108,6 @@ public class JAASAuthenticationFilter implements ContainerRequestFilter {
         Message m = JAXRSUtils.getCurrentMessage();
         try {
             interceptor.handleMessage(m);
-        } catch (AuthenticationException ex) {
-            context.abortWith(handleAuthenticationException(ex, m));
         } catch (SecurityException ex) {
             context.abortWith(handleAuthenticationException(ex, m));
         }
@@ -121,7 +117,7 @@ public class JAASAuthenticationFilter implements ContainerRequestFilter {
         HttpHeaders headers = new HttpHeadersImpl(m);
         if (redirectURI != null && isRedirectPossible(headers)) {
 
-            URI finalRedirectURI = null;
+            final URI finalRedirectURI;
 
             if (!redirectURI.isAbsolute()) {
                 String endpointAddress = HttpUtils.getEndpointAddress(m);
@@ -147,7 +143,7 @@ public class JAASAuthenticationFilter implements ContainerRequestFilter {
         List<String> authHeader = headers.getRequestHeader(HttpHeaders.AUTHORIZATION);
         if (authHeader != null && !authHeader.isEmpty()) {
             // should HttpHeadersImpl do it ?
-            String[] authValues = StringUtils.split(authHeader.get(0), " ");
+            String[] authValues = authHeader.get(0).split(" ");
             if (authValues.length > 0) {
                 sb.append(authValues[0]);
             }

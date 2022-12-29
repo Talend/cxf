@@ -25,8 +25,8 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javax.xml.namespace.QName;
-import javax.xml.soap.SOAPException;
 
+import jakarta.xml.soap.SOAPException;
 import org.apache.cxf.binding.soap.SoapMessage;
 import org.apache.cxf.common.logging.LogUtils;
 import org.apache.cxf.interceptor.Fault;
@@ -35,6 +35,7 @@ import org.apache.cxf.ws.policy.AssertionInfoMap;
 import org.apache.cxf.ws.security.SecurityConstants;
 import org.apache.cxf.ws.security.policy.PolicyUtils;
 import org.apache.cxf.ws.security.tokenstore.SecurityToken;
+import org.apache.cxf.ws.security.tokenstore.TokenStoreException;
 import org.apache.cxf.ws.security.tokenstore.TokenStoreUtils;
 import org.apache.cxf.ws.security.wss4j.TokenStoreCallbackHandler;
 import org.apache.wss4j.policy.SP11Constants;
@@ -94,22 +95,27 @@ public class StaxTransportBindingHandler extends AbstractStaxBindingHandler {
                 String asymSignatureAlgorithm =
                     (String)getMessage().getContextualProperty(SecurityConstants.ASYMMETRIC_SIGNATURE_ALGORITHM);
                 if (asymSignatureAlgorithm != null && tbinding.getAlgorithmSuite() != null) {
-                    tbinding.getAlgorithmSuite().setAsymmetricSignature(asymSignatureAlgorithm);
+                    tbinding.getAlgorithmSuite().getAlgorithmSuiteType().setAsymmetricSignature(asymSignatureAlgorithm);
                 }
                 String symSignatureAlgorithm =
                     (String)getMessage().getContextualProperty(SecurityConstants.SYMMETRIC_SIGNATURE_ALGORITHM);
                 if (symSignatureAlgorithm != null && tbinding.getAlgorithmSuite() != null) {
-                    tbinding.getAlgorithmSuite().setSymmetricSignature(symSignatureAlgorithm);
+                    tbinding.getAlgorithmSuite().getAlgorithmSuiteType().setSymmetricSignature(symSignatureAlgorithm);
                 }
 
                 TransportToken token = tbinding.getTransportToken();
                 if (token.getToken() instanceof IssuedToken) {
-                    SecurityToken secToken = getSecurityToken();
-                    if (secToken == null) {
-                        unassertPolicy(token.getToken(), "No transport token id");
-                        return;
+                    try {
+                        SecurityToken secToken = getSecurityToken();
+                        if (secToken == null) {
+                            unassertPolicy(token.getToken(), "No transport token id");
+                            return;
+                        }
+                        addIssuedToken(token.getToken(), secToken, false, false);
+                    } catch (TokenStoreException e) {
+                        LOG.log(Level.FINE, e.getMessage(), e);
+                        throw new Fault(e);
                     }
-                    addIssuedToken(token.getToken(), secToken, false, false);
                 }
                 assertToken(token.getToken());
                 assertTokenWrapper(token);
@@ -315,9 +321,11 @@ public class StaxTransportBindingHandler extends AbstractStaxBindingHandler {
 
             WSSSecurityProperties properties = getProperties();
             if (securityToken != null && securityToken.getSecret() != null) {
-                properties.setSignatureAlgorithm(tbinding.getAlgorithmSuite().getSymmetricSignature());
+                properties.setSignatureAlgorithm(
+                    tbinding.getAlgorithmSuite().getAlgorithmSuiteType().getSymmetricSignature());
             } else {
-                properties.setSignatureAlgorithm(tbinding.getAlgorithmSuite().getAsymmetricSignature());
+                properties.setSignatureAlgorithm(
+                    tbinding.getAlgorithmSuite().getAlgorithmSuiteType().getAsymmetricSignature());
             }
             properties.setSignatureCanonicalizationAlgorithm(tbinding.getAlgorithmSuite().getC14n().getValue());
             AlgorithmSuiteType algType = tbinding.getAlgorithmSuite().getAlgorithmSuiteType();
@@ -344,7 +352,7 @@ public class StaxTransportBindingHandler extends AbstractStaxBindingHandler {
 
             properties.setIncludeSignatureToken(true);
             properties.setSignatureAlgorithm(
-                tbinding.getAlgorithmSuite().getSymmetricSignature());
+                tbinding.getAlgorithmSuite().getAlgorithmSuiteType().getSymmetricSignature());
             properties.setSignatureCanonicalizationAlgorithm(
                 tbinding.getAlgorithmSuite().getC14n().getValue());
             AlgorithmSuiteType algType = tbinding.getAlgorithmSuite().getAlgorithmSuiteType();
@@ -357,7 +365,7 @@ public class StaxTransportBindingHandler extends AbstractStaxBindingHandler {
 
             WSSSecurityProperties properties = getProperties();
             properties.setSignatureAlgorithm(
-                       tbinding.getAlgorithmSuite().getAsymmetricSignature());
+                       tbinding.getAlgorithmSuite().getAlgorithmSuiteType().getAsymmetricSignature());
             properties.setSignatureCanonicalizationAlgorithm(
                        tbinding.getAlgorithmSuite().getC14n().getValue());
             AlgorithmSuiteType algType = tbinding.getAlgorithmSuite().getAlgorithmSuiteType();
@@ -373,7 +381,7 @@ public class StaxTransportBindingHandler extends AbstractStaxBindingHandler {
             signPartsAndElements(wrapper.getSignedParts(), wrapper.getSignedElements());
 
             properties.setSignatureAlgorithm(
-                       tbinding.getAlgorithmSuite().getSymmetricSignature());
+                       tbinding.getAlgorithmSuite().getAlgorithmSuiteType().getSymmetricSignature());
             properties.setSignatureCanonicalizationAlgorithm(
                        tbinding.getAlgorithmSuite().getC14n().getValue());
             AlgorithmSuiteType algType = tbinding.getAlgorithmSuite().getAlgorithmSuiteType();
@@ -397,7 +405,7 @@ public class StaxTransportBindingHandler extends AbstractStaxBindingHandler {
         configureSignature(token, false);
         if (token.getDerivedKeys() == DerivedKeys.RequireDerivedKeys) {
             properties.setSignatureAlgorithm(
-                   tbinding.getAlgorithmSuite().getSymmetricSignature());
+                   tbinding.getAlgorithmSuite().getAlgorithmSuiteType().getSymmetricSignature());
         }
     }
 

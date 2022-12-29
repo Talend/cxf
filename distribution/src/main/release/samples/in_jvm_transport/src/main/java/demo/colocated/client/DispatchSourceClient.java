@@ -21,17 +21,19 @@ package demo.colocated.client;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
+
 import javax.xml.namespace.QName;
 import javax.xml.transform.Source;
 import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.sax.SAXResult;
 import javax.xml.transform.stream.StreamSource;
-import javax.xml.ws.Dispatch;
-import javax.xml.ws.Service;
-import javax.xml.ws.handler.MessageContext;
-import javax.xml.ws.soap.SOAPBinding;
-import javax.xml.ws.soap.SOAPFaultException;
+
+import jakarta.xml.ws.Dispatch;
+import jakarta.xml.ws.Service;
+import jakarta.xml.ws.handler.MessageContext;
+import jakarta.xml.ws.soap.SOAPBinding;
+import jakarta.xml.ws.soap.SOAPFaultException;
 
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
@@ -64,7 +66,7 @@ public final class DispatchSourceClient {
     private DispatchSourceClient() {
     }
 
-    public static void main(String args[]) throws Exception {
+    public static void main(String[] args) throws Exception {
 
         Server.main(new String[]{"inProcess"});
 
@@ -106,8 +108,7 @@ public final class DispatchSourceClient {
 
     private static Source encodeSource(String template, String value) throws IOException {
         String payload = value == null ? template : String.format(template, value);
-        Source source = new StreamSource(new ByteArrayInputStream(payload.getBytes("utf-8")));
-        return source;
+        return new StreamSource(new ByteArrayInputStream(payload.getBytes("utf-8")));
     }
 
     private static String decodeSource(Source source, String uri, String name) throws Exception {

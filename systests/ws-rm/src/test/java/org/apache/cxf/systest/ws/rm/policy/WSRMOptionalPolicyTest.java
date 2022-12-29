@@ -22,13 +22,16 @@ import java.net.URL;
 import java.util.Map;
 
 import javax.xml.namespace.QName;
-import javax.xml.ws.BindingProvider;
-import javax.xml.ws.Service;
 
+import jakarta.xml.ws.BindingProvider;
+import jakarta.xml.ws.Service;
 import org.apache.cxf.testutil.common.AbstractBusClientServerTestBase;
 
 import org.junit.BeforeClass;
 import org.junit.Test;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 public class WSRMOptionalPolicyTest extends AbstractBusClientServerTestBase {
     public static final String PORT = Server.PORT;
@@ -44,8 +47,8 @@ public class WSRMOptionalPolicyTest extends AbstractBusClientServerTestBase {
     @Test
     public void testBasicConnection() throws Exception {
         Greeting service = createService();
-        assertTrue("Hello, cxf!".equals(service.hello("cxf")));
-        assertTrue("Goodbye, cxf!".equals(service.goodbye("cxf")));
+        assertEquals("Hello, cxf!", service.hello("cxf"));
+        assertEquals("Goodbye, cxf!", service.goodbye("cxf"));
     }
 
     private static Greeting createService() {

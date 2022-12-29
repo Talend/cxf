@@ -96,11 +96,11 @@ public class JavaType {
     }
 
     private void resolvePackage(String clzName) {
-        if (clzName == null || clzName.lastIndexOf(".") == -1) {
+        if (clzName == null || clzName.lastIndexOf('.') == -1) {
             this.packageName = "";
             this.simpleName = clzName;
         } else {
-            int index = clzName.lastIndexOf(".");
+            int index = clzName.lastIndexOf('.');
             this.packageName = clzName.substring(0, index);
             this.simpleName = clzName.substring(index + 1);
         }
@@ -216,7 +216,7 @@ public class JavaType {
     }
 
     public String toString() {
-        final StringBuilder sb = new StringBuilder();
+        final StringBuilder sb = new StringBuilder(128);
         sb.append("\nName: ");
         sb.append(this.name);
         sb.append("\nType: ");

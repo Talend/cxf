@@ -23,9 +23,8 @@ import java.security.Principal;
 import java.util.List;
 import java.util.Map;
 
-import javax.ws.rs.core.HttpHeaders;
-import javax.ws.rs.core.SecurityContext;
-
+import jakarta.ws.rs.core.HttpHeaders;
+import jakarta.ws.rs.core.SecurityContext;
 import org.apache.cxf.configuration.security.AuthorizationPolicy;
 import org.apache.cxf.jaxrs.utils.HttpUtils;
 import org.apache.cxf.message.Message;
@@ -50,7 +49,7 @@ public class SecurityContextImpl implements SecurityContext {
             if (values != null && values.size() == 1) {
                 String value = values.get(0);
                 if (value != null) {
-                    int index = value.trim().indexOf(" ");
+                    int index = value.trim().indexOf(' ');
                     if (index != -1) {
                         return value.substring(0, index);
                     }
@@ -73,7 +72,7 @@ public class SecurityContextImpl implements SecurityContext {
 
     public boolean isUserInRole(String role) {
         org.apache.cxf.security.SecurityContext sc = getInternalSecurityContext();
-        return sc == null ? false : sc.isUserInRole(role);
+        return sc != null && sc.isUserInRole(role);
     }
 
     private org.apache.cxf.security.SecurityContext getInternalSecurityContext() {

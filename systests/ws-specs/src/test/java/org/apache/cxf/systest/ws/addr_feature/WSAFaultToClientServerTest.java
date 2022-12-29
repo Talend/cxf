@@ -24,9 +24,9 @@ import java.net.URL;
 import java.util.Map;
 
 import javax.xml.namespace.QName;
-import javax.xml.ws.BindingProvider;
-import javax.xml.ws.soap.AddressingFeature;
 
+import jakarta.xml.ws.BindingProvider;
+import jakarta.xml.ws.soap.AddressingFeature;
 import org.apache.cxf.frontend.ClientProxy;
 import org.apache.cxf.systest.ws.AbstractWSATestBase;
 import org.apache.cxf.systest.ws.addr_feature.FaultToEndpointServer.HelloHandler;
@@ -41,6 +41,10 @@ import org.apache.hello_world_soap_http.SOAPService;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
+
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 public class WSAFaultToClientServerTest  extends AbstractWSATestBase {
 

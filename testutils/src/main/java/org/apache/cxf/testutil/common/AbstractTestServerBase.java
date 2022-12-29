@@ -23,10 +23,7 @@ import java.util.logging.Logger;
 
 import org.apache.cxf.common.logging.LogUtils;
 
-import org.junit.Assert;
-
-
-public abstract class AbstractTestServerBase extends Assert {
+public abstract class AbstractTestServerBase {
     boolean inProcess;
 
     /**
@@ -34,7 +31,7 @@ public abstract class AbstractTestServerBase extends Assert {
      * servants and publish endpoints etc.
      *
      */
-    protected abstract void run();
+    protected abstract void run() throws Exception;
 
     protected Logger getLog() {
         return LogUtils.getLogger(this.getClass());
@@ -62,7 +59,7 @@ public abstract class AbstractTestServerBase extends Assert {
         return ret;
     }
 
-    public void start() {
+    public void start() throws Exception {
         try {
             System.out.println("running server");
             run();
@@ -76,8 +73,8 @@ public abstract class AbstractTestServerBase extends Assert {
             System.out.println("stopping bus");
             tearDown();
         } catch (Throwable ex) {
-            ex.printStackTrace();
             startFailed();
+            throw ex;
         } finally {
             if (verify(getLog())) {
                 System.out.println("server passed");
@@ -85,7 +82,6 @@ public abstract class AbstractTestServerBase extends Assert {
                 System.out.println(ServerLauncher.SERVER_FAILED);
             }
             System.out.println("server stopped");
-            System.exit(0);
         }
     }
 
@@ -105,7 +101,6 @@ public abstract class AbstractTestServerBase extends Assert {
 
     protected void startFailed() {
         System.out.println(ServerLauncher.SERVER_FAILED);
-        System.exit(-1);
     }
 
     /**

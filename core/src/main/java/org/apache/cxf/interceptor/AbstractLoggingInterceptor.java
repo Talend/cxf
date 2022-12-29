@@ -26,7 +26,7 @@ import java.io.PrintWriter;
 import java.io.StringReader;
 import java.io.StringWriter;
 import java.net.URI;
-import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.LogRecord;
@@ -51,6 +51,7 @@ import org.apache.cxf.staxutils.StaxUtils;
 /**
  * A simple logging handler which outputs the bytes of the message to the
  * Logger.
+ * @deprecated
  */
 @Deprecated
 public abstract class AbstractLoggingInterceptor extends AbstractPhaseInterceptor<Message> {
@@ -59,15 +60,8 @@ public abstract class AbstractLoggingInterceptor extends AbstractPhaseIntercepto
     protected static final String MULTIPART_CONTENT_MESSAGE = "--- Multipart Content ---";
     private static final String MULTIPART_CONTENT_MEDIA_TYPE = "multipart";
     private static final String  LIVE_LOGGING_PROP = "org.apache.cxf.logging.enable";
-    private static final List<String> BINARY_CONTENT_MEDIA_TYPES;
-    static {
-        BINARY_CONTENT_MEDIA_TYPES = new ArrayList<>();
-        BINARY_CONTENT_MEDIA_TYPES.add("application/octet-stream");
-        BINARY_CONTENT_MEDIA_TYPES.add("application/pdf");
-        BINARY_CONTENT_MEDIA_TYPES.add("image/png");
-        BINARY_CONTENT_MEDIA_TYPES.add("image/jpeg");
-        BINARY_CONTENT_MEDIA_TYPES.add("image/gif");
-    }
+    private static final List<String> BINARY_CONTENT_MEDIA_TYPES = Arrays.asList(
+            "application/octet-stream", "application/pdf", "image/png", "image/jpeg", "image/gif");
 
     protected int limit = DEFAULT_LIMIT;
     protected long threshold = -1;
@@ -84,7 +78,7 @@ public abstract class AbstractLoggingInterceptor extends AbstractPhaseIntercepto
         super(id, phase);
     }
 
-    protected static boolean isLoggingDisabledNow(Message message) throws Fault {
+    protected static boolean isLoggingDisabledNow(Message message) {
         Object liveLoggingProp = message.getContextualProperty(LIVE_LOGGING_PROP);
         return liveLoggingProp != null && PropertyUtils.isFalse(liveLoggingProp);
     }
@@ -177,9 +171,10 @@ public abstract class AbstractLoggingInterceptor extends AbstractPhaseIntercepto
             StringWriter swriter = new StringWriter();
             XMLStreamWriter xwriter = StaxUtils.createXMLStreamWriter(swriter);
             xwriter = new PrettyPrintXMLStreamWriter(xwriter, 2);
-            InputStream in = cos.getInputStream();
-            try {
-                StaxUtils.copy(new StreamSource(new InputStreamReader(in, encoding)), xwriter);
+            try (InputStream in = cos.getInputStream()) {
+                InputStreamReader inputStreamReader = StringUtils.isEmpty(encoding)
+                    ? new InputStreamReader(in) : new InputStreamReader(in, encoding);
+                StaxUtils.copy(new StreamSource(inputStreamReader), xwriter);
             } catch (XMLStreamException xse) {
                 //ignore
             } finally {
@@ -189,7 +184,6 @@ public abstract class AbstractLoggingInterceptor extends AbstractPhaseIntercepto
                 } catch (XMLStreamException xse2) {
                     //ignore
                 }
-                in.close();
             }
 
             String result = swriter.toString();

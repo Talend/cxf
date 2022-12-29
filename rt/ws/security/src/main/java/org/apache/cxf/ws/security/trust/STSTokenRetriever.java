@@ -32,6 +32,7 @@ import org.apache.cxf.rt.security.utils.SecurityUtils;
 import org.apache.cxf.ws.addressing.AddressingProperties;
 import org.apache.cxf.ws.security.SecurityConstants;
 import org.apache.cxf.ws.security.tokenstore.SecurityToken;
+import org.apache.cxf.ws.security.tokenstore.TokenStoreException;
 import org.apache.wss4j.policy.model.Trust10;
 import org.apache.wss4j.policy.model.Trust13;
 
@@ -87,7 +88,7 @@ public final class STSTokenRetriever {
                 Element actAsToken = client.getActAsToken();
 
                 String key = appliesTo;
-                if (!enableAppliesTo || key == null || "".equals(key)) {
+                if (!enableAppliesTo || key == null || key.isEmpty()) {
                     key = ASSOCIATED_TOKEN;
                 }
                 
@@ -158,7 +159,11 @@ public final class STSTokenRetriever {
         }
 
         // Remove token from cache
-        tokenCacher.removeToken(message, tok);
+        try {
+            tokenCacher.removeToken(message, tok);
+        } catch (TokenStoreException ex) {
+            throw new Fault(ex);
+        }
 
         // If the user has explicitly disabled Renewing then we can't renew a token,
         // so just get a new one
@@ -216,10 +221,10 @@ public final class STSTokenRetriever {
     private static String getAddressingNamespaceURI(Message message) {
         AddressingProperties maps =
             (AddressingProperties)message
-                .get("javax.xml.ws.addressing.context.outbound");
+                .get("jakarta.xml.ws.addressing.context.outbound");
         if (maps == null) {
             maps = (AddressingProperties)message
-                .get("javax.xml.ws.addressing.context");
+                .get("jakarta.xml.ws.addressing.context");
         }
         if (maps != null) {
             return maps.getNamespaceURI();

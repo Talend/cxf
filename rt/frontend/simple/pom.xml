@@ -23,24 +23,15 @@
     <packaging>bundle</packaging>
     <name>Apache CXF Runtime Simple Frontend</name>
     <description>Apache CXF Runtime Simple Frontend</description>
-    <url>http://cxf.apache.org</url>
+    <url>https://cxf.apache.org</url>
     <parent>
         <groupId>org.apache.cxf</groupId>
         <artifactId>cxf-parent</artifactId>
-        <version>3.2.5-SNAPSHOT</version>
+        <version>4.0.1-SNAPSHOT</version>
         <relativePath>../../../parent/pom.xml</relativePath>
     </parent>
     <properties>
-        <cxf.osgi.import>
-            org.apache.aries*;version="${cxf.aries.version.range}";resolution:=optional,
-            com.sun.tools*;resolution:=optional,
-            org.springframework*;resolution:="optional";version="${cxf.osgi.spring.version}"
-        </cxf.osgi.import>
-        <!-- keep in sync with services exported in activator -->
-        <cxf.export.service>
-            org.apache.aries.blueprint.NamespaceHandler;osgi.service.blueprint.namespace="http://cxf.apache.org/blueprint/simple"
-        </cxf.export.service>
-        <cxf.bundle.activator>org.apache.cxf.frontend.blueprint.Activator</cxf.bundle.activator>
+        <cxf.module.name>org.apache.cxf.frontend.simple</cxf.module.name>
     </properties>
     <dependencies>
         <dependency>
@@ -57,21 +48,6 @@
             <groupId>org.springframework</groupId>
             <artifactId>spring-context</artifactId>
             <optional>true</optional>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.aries.blueprint</groupId>
-            <artifactId>org.apache.aries.blueprint.core</artifactId>
-            <optional>true</optional>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.aries.blueprint</groupId>
-            <artifactId>blueprint-parser</artifactId>
-            <scope>provided</scope>
-            <optional>true</optional>
-        </dependency>
-        <dependency>
-            <groupId>org.osgi</groupId>
-            <artifactId>org.osgi.core</artifactId>
         </dependency>
         <dependency>
             <groupId>junit</groupId>
@@ -139,10 +115,14 @@
             <optional>true</optional>
         </dependency>
         <dependency>
-            <groupId>com.sun.xml.bind</groupId>
+            <groupId>org.glassfish.jaxb</groupId>
             <artifactId>jaxb-xjc</artifactId>
             <optional>true</optional>
             <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.eclipse.angus</groupId>
+            <artifactId>angus-mail</artifactId>
         </dependency>
     </dependencies>
 </project>

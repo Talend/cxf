@@ -23,19 +23,16 @@ import java.security.MessageDigest;
 import java.security.Principal;
 import java.security.cert.Certificate;
 import java.security.cert.X509Certificate;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Properties;
-import java.util.Set;
 
 import javax.security.auth.x500.X500Principal;
-import javax.servlet.http.HttpSession;
-import javax.ws.rs.core.MultivaluedMap;
 
+import jakarta.servlet.http.HttpSession;
+import jakarta.ws.rs.core.MultivaluedMap;
 import org.apache.cxf.common.util.Base64UrlUtility;
 import org.apache.cxf.common.util.Base64Utility;
 import org.apache.cxf.common.util.StringUtils;
@@ -67,6 +64,8 @@ import org.apache.cxf.security.LoginSecurityContext;
 import org.apache.cxf.security.SecurityContext;
 import org.apache.cxf.security.transport.TLSSessionInfo;
 
+import static java.util.stream.Collectors.toList;
+
 /**
  * Various utility methods
  */
@@ -88,7 +87,7 @@ public final class OAuthUtils {
             throw new OAuthServiceException(ex);
         }
     }
-    
+
     public static boolean compareCertificateThumbprints(X509Certificate cert, String encodedThumbprint) {
         try {
             byte[] thumbprint = createCertificateThumbprint(cert);
@@ -98,7 +97,7 @@ public final class OAuthUtils {
             return false;
         }
     }
-    
+
 
     public static boolean compareTlsCertificates(TLSSessionInfo tlsInfo,
                                           List<String> base64EncodedCerts) {
@@ -120,24 +119,24 @@ public final class OAuthUtils {
         }
         return false;
     }
-    
-    public static boolean isMutualTls(javax.ws.rs.core.SecurityContext sc, TLSSessionInfo tlsSessionInfo) {
+
+    public static boolean isMutualTls(jakarta.ws.rs.core.SecurityContext sc, TLSSessionInfo tlsSessionInfo) {
         // Pure 2-way TLS authentication
-        return tlsSessionInfo != null 
+        return tlsSessionInfo != null
             && StringUtils.isEmpty(sc.getAuthenticationScheme())
             && getRootTLSCertificate(tlsSessionInfo) != null;
     }
-    
+
     public static String getSubjectDnFromTLSCertificates(X509Certificate cert) {
         X500Principal x509Principal = cert.getSubjectX500Principal();
         return x509Principal.getName();
     }
-    
+
     public static String getIssuerDnFromTLSCertificates(X509Certificate cert) {
         X500Principal x509Principal = cert.getIssuerX500Principal();
         return x509Principal.getName();
     }
-    
+
     public static X509Certificate getRootTLSCertificate(TLSSessionInfo tlsInfo) {
         Certificate[] clientCerts = tlsInfo.getPeerCertificates();
         if (clientCerts != null && clientCerts.length > 0) {
@@ -145,7 +144,7 @@ public final class OAuthUtils {
         }
         return null;
     }
-    
+
     public static void injectContextIntoOAuthProvider(MessageContext context, Object provider) {
         Method dataProviderContextMethod = null;
         try {
@@ -162,18 +161,18 @@ public final class OAuthUtils {
             }
         }
     }
-    
+
     public static String setSessionToken(MessageContext mc) {
         return setSessionToken(mc, 0);
     }
     public static String setSessionToken(MessageContext mc, int maxInactiveInterval) {
-        return setSessionToken(mc, generateRandomTokenKey());
+        return setSessionToken(mc, generateRandomTokenKey(), maxInactiveInterval);
     }
     public static String setSessionToken(MessageContext mc, String sessionToken) {
         return setSessionToken(mc, sessionToken, 0);
     }
     public static String setSessionToken(MessageContext mc, String sessionToken, int maxInactiveInterval) {
-        return setSessionToken(mc, sessionToken, null, 0);
+        return setSessionToken(mc, sessionToken, null, maxInactiveInterval);
     }
     public static String setSessionToken(MessageContext mc, String sessionToken,
                                                 String attribute, int maxInactiveInterval) {
@@ -211,11 +210,8 @@ public final class OAuthUtils {
     public static UserSubject createSubject(SecurityContext securityContext) {
         List<String> roleNames = Collections.emptyList();
         if (securityContext instanceof LoginSecurityContext) {
-            roleNames = new ArrayList<>();
-            Set<Principal> roles = ((LoginSecurityContext)securityContext).getUserRoles();
-            for (Principal p : roles) {
-                roleNames.add(p.getName());
-            }
+            roleNames = ((LoginSecurityContext) securityContext).getUserRoles().stream().map(Principal::getName)
+                .collect(toList());
         }
         UserSubject subject = new UserSubject(securityContext.getUserPrincipal().getName(), roleNames);
         Message m = JAXRSUtils.getCurrentMessage();
@@ -232,7 +228,7 @@ public final class OAuthUtils {
                 continue;
             }
             if (sb.length() > 0) {
-                sb.append(" ");
+                sb.append(' ');
             }
             sb.append(perm.getPermission());
         }
@@ -240,11 +236,7 @@ public final class OAuthUtils {
     }
 
     public static List<String> convertPermissionsToScopeList(List<OAuthPermission> perms) {
-        List<String> list = new LinkedList<String>();
-        for (OAuthPermission perm : perms) {
-            list.add(perm.getPermission());
-        }
-        return list;
+        return perms.stream().map(OAuthPermission::getPermission).collect(toList());
     }
 
     public static boolean isGrantSupportedForClient(Client client,
@@ -258,20 +250,15 @@ public final class OAuthUtils {
     }
 
     public static List<String> parseScope(String requestedScope) {
-        List<String> list = new LinkedList<String>();
         if (requestedScope != null) {
-            String[] scopeValues = requestedScope.split(" ");
-            for (String scope : scopeValues) {
-                if (!StringUtils.isEmpty(scope)) {
-                    list.add(scope);
-                }
-            }
+            return Arrays.stream(requestedScope.split(" ")).filter(StringUtils.notEmpty()).collect(toList());
+        } else {
+            return Collections.emptyList();
         }
-        return list;
     }
 
     public static String generateRandomTokenKey() throws OAuthServiceException {
-        return generateRandomTokenKey(16);
+        return generateRandomTokenKey(32);
     }
     public static String generateRandomTokenKey(int byteSize) {
         if (byteSize < 16) {
@@ -312,7 +299,7 @@ public final class OAuthUtils {
         String theURI = wildcard ? uri.substring(0, uri.length() - 1) : uri;
         try {
             URITemplate template = new URITemplate(theURI);
-            MultivaluedMap<String, String> map = new MetadataMap<String, String>();
+            MultivaluedMap<String, String> map = new MetadataMap<>();
             if (template.match(servletPath, map)) {
                 String finalGroup = map.getFirst(URITemplate.FINAL_MATCH_GROUP);
                 if (wildcard || StringUtils.isEmpty(finalGroup) || "/".equals(finalGroup)) {
@@ -329,10 +316,20 @@ public final class OAuthUtils {
                                                   String scopeParameter,
                                                   boolean useAllClientScopes,
                                                   boolean partialMatchScopeValidation) {
+        return getRequestedScopes(client, scopeParameter, useAllClientScopes, partialMatchScopeValidation, true);
+    }
+
+    public static List<String> getRequestedScopes(Client client,
+                                                  String scopeParameter,
+                                                  boolean useAllClientScopes,
+                                                  boolean partialMatchScopeValidation,
+                                                  boolean defaultToRegisteredScopes) {
         List<String> requestScopes = parseScope(scopeParameter);
         List<String> registeredScopes = client.getRegisteredScopes();
         if (requestScopes.isEmpty()) {
-            requestScopes.addAll(registeredScopes);
+            if (defaultToRegisteredScopes) {
+                return registeredScopes;
+            }
             return requestScopes;
         }
         if (!validateScopes(requestScopes, registeredScopes, partialMatchScopeValidation)) {
@@ -374,8 +371,10 @@ public final class OAuthUtils {
     }
 
     public static ClientAccessToken toClientAccessToken(ServerAccessToken serverToken, boolean supportOptionalParams) {
+        String tokenKey =
+            serverToken.getEncodedToken() != null ? serverToken.getEncodedToken() : serverToken.getTokenKey();
         ClientAccessToken clientToken = new ClientAccessToken(serverToken.getTokenType(),
-                                                              serverToken.getTokenKey());
+                                                              tokenKey);
         clientToken.setRefreshToken(serverToken.getRefreshToken());
         if (supportOptionalParams) {
             clientToken.setExpiresIn(serverToken.getExpiresIn());
@@ -441,13 +440,6 @@ public final class OAuthUtils {
     }
 
     public static String convertListOfScopesToString(List<String> registeredScopes) {
-        StringBuilder sb = new StringBuilder();
-        for (String s : registeredScopes) {
-            if (sb.length() > 0) {
-                sb.append(", ");
-            }
-            sb.append(s);
-        }
-        return sb.toString();
+        return String.join(" ", registeredScopes);
     }
 }

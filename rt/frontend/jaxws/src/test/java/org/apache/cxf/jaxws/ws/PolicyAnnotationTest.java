@@ -25,14 +25,14 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import javax.jws.WebMethod;
-import javax.jws.WebService;
 import javax.wsdl.Definition;
 import javax.wsdl.xml.WSDLWriter;
 import javax.xml.xpath.XPathConstants;
 
 import org.w3c.dom.Element;
 
+import jakarta.jws.WebMethod;
+import jakarta.jws.WebService;
 import org.apache.cxf.Bus;
 import org.apache.cxf.BusFactory;
 import org.apache.cxf.annotations.Policies;
@@ -48,13 +48,16 @@ import org.apache.cxf.wsdl.WSDLManager;
 import org.apache.cxf.wsdl11.ServiceWSDLBuilder;
 import org.apache.neethi.Constants;
 
-import org.junit.Assert;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 
 /**
  *
  */
-public class PolicyAnnotationTest extends Assert {
+public class PolicyAnnotationTest {
 
     @org.junit.Test
     public void testAnnotations() throws Exception {
@@ -339,8 +342,7 @@ public class PolicyAnnotationTest extends Assert {
     @WebService()
     @Policies({
         @Policy(placement = Policy.Placement.BINDING, uri = "annotationpolicies/TestImplPolicy.xml")
-     }
-    )
+    })
     public static class TestImplWithPoliciesNoInterface {
         @WebMethod
         public int echoInt(int i) {

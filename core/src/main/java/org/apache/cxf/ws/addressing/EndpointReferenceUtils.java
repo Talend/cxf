@@ -37,21 +37,14 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javax.xml.XMLConstants;
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.JAXBElement;
-import javax.xml.bind.JAXBException;
-import javax.xml.bind.Marshaller;
 import javax.xml.namespace.QName;
-import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamWriter;
 import javax.xml.transform.Source;
-import javax.xml.transform.dom.DOMResult;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamSource;
 import javax.xml.validation.Schema;
 import javax.xml.validation.SchemaFactory;
 
-import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.ls.LSInput;
@@ -59,9 +52,12 @@ import org.w3c.dom.ls.LSResourceResolver;
 
 import org.xml.sax.InputSource;
 
+import jakarta.xml.bind.JAXBContext;
+import jakarta.xml.bind.JAXBElement;
+import jakarta.xml.bind.JAXBException;
+import jakarta.xml.bind.Marshaller;
 import org.apache.cxf.Bus;
 import org.apache.cxf.BusFactory;
-import org.apache.cxf.common.i18n.Message;
 import org.apache.cxf.common.jaxb.JAXBContextCache;
 import org.apache.cxf.common.logging.LogUtils;
 import org.apache.cxf.common.xmlschema.LSInputImpl;
@@ -252,9 +248,9 @@ public final class EndpointReferenceUtils {
         new org.apache.cxf.ws.addressing.wsdl.ObjectFactory();
 
 
-    private static final Set<Class<?>> ADDRESSING_CLASSES = new HashSet<Class<?>>();
+    private static final Set<Class<?>> ADDRESSING_CLASSES = new HashSet<>();
     private static final AtomicReference<Reference<JAXBContext>> ADDRESSING_CONTEXT
-        = new AtomicReference<Reference<JAXBContext>>(new SoftReference<JAXBContext>(null));
+        = new AtomicReference<>(new SoftReference<JAXBContext>(null));
     static {
         ADDRESSING_CLASSES.add(WSA_WSDL_OBJECT_FACTORY.getClass());
         ADDRESSING_CLASSES.add(org.apache.cxf.ws.addressing.ObjectFactory.class);
@@ -318,7 +314,7 @@ public final class EndpointReferenceUtils {
                 if ((node.getNamespaceURI().equals(JAXWSAConstants.NS_WSAW)
                     || node.getNamespaceURI().equals(NS_WSAW_2005)
                     || node.getNamespaceURI().equals(JAXWSAConstants.NS_WSAM))
-                    && node.getLocalName().equals("ServiceName")) {
+                    && "ServiceName".equals(node.getLocalName())) {
                     String content = node.getTextContent();
                     String namespaceURI = node.getFirstChild().getNamespaceURI();
                     String service = content;
@@ -467,13 +463,7 @@ public final class EndpointReferenceUtils {
         MetadataType metadata = getSetMetadata(ref);
 
         //wsdlLocation attribute is a list of anyURI.
-        StringBuilder strBuf = new StringBuilder();
-        for (String str : wsdlLocation) {
-            strBuf.append(str);
-            strBuf.append(" ");
-        }
-
-        metadata.getOtherAttributes().put(WSDL_LOCATION, strBuf.toString().trim());
+        metadata.getOtherAttributes().put(WSDL_LOCATION, String.join(" ", wsdlLocation).trim());
     }
 
     public static String getWSDLLocation(EndpointReferenceType ref) {
@@ -493,81 +483,17 @@ public final class EndpointReferenceUtils {
         return wsdlLocation;
     }
 
-    /**
-     * Sets the metadata on the provided endpoint reference.
-     * @param ref the endpoint reference.
-     * @param metadata the list of metadata source.
-     */
-    public static void setMetadata(EndpointReferenceType ref, List<Source> metadata)
-        throws EndpointUtilsException {
-
-        if (null != ref) {
-            MetadataType mt = getSetMetadata(ref);
-            List<Object> anyList = mt.getAny();
-            try {
-                for (Source source : metadata) {
-                    Node node = null;
-                    boolean doTransform = true;
-                    if (source instanceof StreamSource) {
-                        StreamSource ss = (StreamSource)source;
-                        if (null == ss.getInputStream()
-                            && null == ss.getReader()) {
-                            setWSDLLocation(ref, ss.getSystemId());
-                            doTransform = false;
-                        }
-                    } else if (source instanceof DOMSource) {
-                        node = ((DOMSource)source).getNode();
-                        doTransform = false;
-                    }
-
-                    if (doTransform) {
-                        DOMResult domResult = new DOMResult();
-                        domResult.setSystemId(source.getSystemId());
-                        node = StaxUtils.read(source);
-
-                        node = domResult.getNode();
-                    }
-
-                    if (null != node) {
-                        if (node instanceof Document) {
-                            try {
-                                ((Document)node).setDocumentURI(source.getSystemId());
-                            } catch (Exception ex) {
-                                //ignore - not DOM level 3
-                            }
-                            node = node.getFirstChild();
-                        }
-
-                        while (node.getNodeType() != Node.ELEMENT_NODE) {
-                            node = node.getNextSibling();
-                        }
-
-                        anyList.add(node);
-                    }
-                }
-            } catch (XMLStreamException te) {
-                throw new EndpointUtilsException(new Message("COULD_NOT_POPULATE_EPR", LOG),
-                                                 te);
-            }
-        }
-    }
-
-
-    private static synchronized Schema createSchema(ServiceInfo serviceInfo, Bus b) {
-        if (b == null) {
-            b = BusFactory.getThreadDefaultBus(false);
-        }
+    private static Schema createSchema(ServiceInfo serviceInfo, Bus b) {
         Schema schema = serviceInfo.getProperty(Schema.class.getName(), Schema.class);
         if (schema == null) {
             SchemaFactory factory = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
-            Map<String, byte[]> schemaSourcesMap = new LinkedHashMap<String, byte[]>();
-            Map<String, Source> schemaSourcesMap2 = new LinkedHashMap<String, Source>();
+            Map<String, byte[]> schemaSourcesMap = new LinkedHashMap<>();
+            Map<String, Source> schemaSourcesMap2 = new LinkedHashMap<>();
 
             XMLStreamWriter writer = null;
             try {
                 for (SchemaInfo si : serviceInfo.getSchemas()) {
                     Element el = si.getElement();
-                    unsetReadonly(el);
                     String baseURI = null;
                     try {
                         baseURI = el.getBaseURI();
@@ -578,18 +504,18 @@ public final class EndpointReferenceUtils {
                         baseURI = si.getSystemId();
                     }
                     DOMSource ds = new DOMSource(el, baseURI);
-                    schemaSourcesMap2.put(si.getSystemId() + ":" + si.getNamespaceURI(), ds);
+                    schemaSourcesMap2.put(si.getSystemId() + ':' + si.getNamespaceURI(), ds);
                     LoadingByteArrayOutputStream out = new LoadingByteArrayOutputStream();
                     writer = StaxUtils.createXMLStreamWriter(out);
                     StaxUtils.copy(el, writer);
                     writer.flush();
-                    schemaSourcesMap.put(si.getSystemId() + ":" + si.getNamespaceURI(), out.toByteArray());
+                    schemaSourcesMap.put(si.getSystemId() + ':' + si.getNamespaceURI(), out.toByteArray());
                 }
 
 
                 for (XmlSchema sch : serviceInfo.getXmlSchemaCollection().getXmlSchemas()) {
                     if (sch.getSourceURI() != null
-                        && !schemaSourcesMap.containsKey(sch.getSourceURI() + ":"
+                        && !schemaSourcesMap.containsKey(sch.getSourceURI() + ':'
                                                          + sch.getTargetNamespace())) {
 
                         InputStream ins = null;
@@ -608,17 +534,17 @@ public final class EndpointReferenceUtils {
                             IOUtils.copyAndCloseInput(ins, out);
                         }
 
-                        schemaSourcesMap.put(sch.getSourceURI() + ":"
+                        schemaSourcesMap.put(sch.getSourceURI() + ':'
                                              + sch.getTargetNamespace(), out.toByteArray());
 
                         Source source = new StreamSource(out.createInputStream(), sch.getSourceURI());
-                        schemaSourcesMap2.put(sch.getSourceURI() + ":"
+                        schemaSourcesMap2.put(sch.getSourceURI() + ':'
                                               + sch.getTargetNamespace(), source);
                     }
                 }
 
-
-                factory.setResourceResolver(new SchemaLSResourceResolver(schemaSourcesMap, b));
+                factory.setResourceResolver(new SchemaLSResourceResolver(schemaSourcesMap,
+                        b != null ? b : BusFactory.getThreadDefaultBus(false)));
                 schema = factory.newSchema(schemaSourcesMap2.values()
                                            .toArray(new Source[schemaSourcesMap2.size()]));
 
@@ -631,27 +557,11 @@ public final class EndpointReferenceUtils {
                     LOG.log(Level.INFO, "Schema for: " + schemaInfo.getNamespaceURI() + "\n" + s);
                 }
             } finally {
-                for (Source src : schemaSourcesMap2.values()) {
-                    if (src instanceof DOMSource) {
-                        Node nd = ((DOMSource)src).getNode();
-                        unsetReadonly(nd);
-                    }
-                }
                 StaxUtils.close(writer);
             }
             serviceInfo.setProperty(Schema.class.getName(), schema);
         }
         return schema;
-    }
-
-    private static void unsetReadonly(Node nd) {
-        try {
-            //work around a bug in the version of Xerces that is in the JDK
-            //that only allows the Element to be used to create a schema once.
-            nd.getClass().getMethod("setReadOnly", Boolean.TYPE, Boolean.TYPE).invoke(nd, false, true);
-        } catch (Throwable ex) {
-            //ignore
-        }
     }
 
     public static Schema getSchema(ServiceInfo serviceInfo) {
@@ -752,7 +662,7 @@ public final class EndpointReferenceUtils {
      * @return EndpointReferenceType - the endpoint reference
      */
     public static EndpointReferenceType getAnonymousEndpointReference() {
-        EndpointReferenceType reference = new EndpointReferenceType();
+        final EndpointReferenceType reference = new EndpointReferenceType();
         setAddress(reference, ANONYMOUS_ADDRESS);
         return reference;
     }
@@ -836,13 +746,13 @@ public final class EndpointReferenceUtils {
     private static String getNameSpaceUri(Node node, String content, String namespaceURI) {
         if (namespaceURI == null) {
             namespaceURI = node.lookupNamespaceURI(content.substring(0,
-                                                                  content.indexOf(":")));
+                                                                  content.indexOf(':')));
         }
         return namespaceURI;
     }
 
     private static String getService(String content) {
-        return content.substring(content.indexOf(":") + 1, content.length());
+        return content.substring(content.indexOf(':') + 1, content.length());
     }
 
     /**
@@ -905,7 +815,7 @@ public final class EndpointReferenceUtils {
             jm.setProperty(Marshaller.JAXB_FRAGMENT, true);
             QName qname = new QName("http://www.w3.org/2005/08/addressing", "EndpointReference");
             JAXBElement<EndpointReferenceType> jaxEle
-                = new JAXBElement<EndpointReferenceType>(qname, EndpointReferenceType.class, epr);
+                = new JAXBElement<>(qname, EndpointReferenceType.class, epr);
 
 
             W3CDOMStreamWriter writer = new W3CDOMStreamWriter();
@@ -943,14 +853,8 @@ public final class EndpointReferenceUtils {
     }
 
     private static boolean portNameMatches(Server s, String portName) {
-        boolean ret = false;
-        if (null == portName
-            || portName.equals(s.getEndpoint().getEndpointInfo().getName().getLocalPart())) {
-            return true;
-        }
-        return ret;
+        return null == portName
+            || portName.equals(s.getEndpoint().getEndpointInfo().getName().getLocalPart());
     }
-
-
 
 }

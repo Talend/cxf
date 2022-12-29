@@ -33,27 +33,27 @@ import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-import javax.activation.DataHandler;
-import javax.json.Json;
-import javax.json.JsonArray;
-import javax.json.JsonArrayBuilder;
-import javax.ws.rs.Consumes;
-import javax.ws.rs.DELETE;
-import javax.ws.rs.GET;
-import javax.ws.rs.NotFoundException;
-import javax.ws.rs.POST;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
-import javax.ws.rs.WebApplicationException;
-import javax.ws.rs.container.AsyncResponse;
-import javax.ws.rs.container.Suspended;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
-import javax.ws.rs.core.StreamingOutput;
-import javax.ws.rs.core.UriInfo;
+import jakarta.activation.DataHandler;
+import jakarta.json.Json;
+import jakarta.json.JsonArray;
+import jakarta.json.JsonArrayBuilder;
+import jakarta.ws.rs.Consumes;
+import jakarta.ws.rs.DELETE;
+import jakarta.ws.rs.GET;
+import jakarta.ws.rs.NotFoundException;
+import jakarta.ws.rs.POST;
+import jakarta.ws.rs.Path;
+import jakarta.ws.rs.PathParam;
+import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.WebApplicationException;
+import jakarta.ws.rs.container.AsyncResponse;
+import jakarta.ws.rs.container.Suspended;
+import jakarta.ws.rs.core.Context;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.Response;
+import jakarta.ws.rs.core.Response.Status;
+import jakarta.ws.rs.core.StreamingOutput;
+import jakarta.ws.rs.core.UriInfo;
 
 import org.apache.cxf.common.util.StringUtils;
 import org.apache.cxf.helpers.IOUtils;
@@ -80,9 +80,8 @@ import org.apache.lucene.search.Query;
 import org.apache.lucene.search.ScoreDoc;
 import org.apache.lucene.search.TermQuery;
 import org.apache.lucene.search.TopDocs;
+import org.apache.lucene.store.ByteBuffersDirectory;
 import org.apache.lucene.store.Directory;
-import org.apache.lucene.store.RAMDirectory;
-import org.apache.lucene.util.Version;
 import org.apache.tika.parser.Parser;
 import org.apache.tika.parser.odf.OpenDocumentParser;
 import org.apache.tika.parser.pdf.PDFParser;
@@ -92,8 +91,8 @@ public class Catalog {
     private final TikaLuceneContentExtractor extractor = new TikaLuceneContentExtractor(
         Arrays.< Parser >asList(new PDFParser(), new OpenDocumentParser()),
         new LuceneDocumentMetadata());
-    private final Directory directory = new RAMDirectory();
-    private final Analyzer analyzer = new StandardAnalyzer(Version.LUCENE_4_9);
+    private final Directory directory = new ByteBuffersDirectory();
+    private final Analyzer analyzer = new StandardAnalyzer();
     private final Storage storage;
     private final LuceneQueryVisitor<SearchBean> visitor;
     private final ExecutorService executor = Executors.newFixedThreadPool(
@@ -261,7 +260,6 @@ public class Catalog {
 
     private void initIndex() throws IOException {
         final IndexWriter writer = getIndexWriter();
-
         try {
             writer.commit();
         } finally {
@@ -270,14 +268,14 @@ public class Catalog {
     }
 
     private IndexWriter getIndexWriter() throws IOException {
-        return new IndexWriter(directory, new IndexWriterConfig(Version.LUCENE_4_9, analyzer));
+        return new IndexWriter(directory, new IndexWriterConfig(analyzer));
     }
 
     private LuceneQueryVisitor< SearchBean > createVisitor() {
         final Map< String, Class< ? > > fieldTypes = new HashMap<>();
         fieldTypes.put("modified", Date.class);
 
-        LuceneQueryVisitor<SearchBean> newVisitor = new LuceneQueryVisitor<SearchBean>(
+        LuceneQueryVisitor<SearchBean> newVisitor = new LuceneQueryVisitor<>(
             "ct", "contents", analyzer);
         newVisitor.setPrimitiveFieldTypeMap(fieldTypes);
 
@@ -290,7 +288,7 @@ public class Catalog {
 
         try {
             return searcher.search(new TermQuery(
-                new Term(LuceneDocumentMetadata.SOURCE_FIELD, source)), 1).totalHits > 0;
+                new Term(LuceneDocumentMetadata.SOURCE_FIELD, source)), 1).totalHits.value > 0;
         } finally {
             reader.close();
         }

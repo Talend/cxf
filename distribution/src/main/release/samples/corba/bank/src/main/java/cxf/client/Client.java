@@ -19,6 +19,7 @@
 package cxf.client;
 
 import java.net.URL;
+
 import javax.xml.namespace.QName;
 
 import bank.common.Account;
@@ -35,7 +36,7 @@ public final class Client {
     private Client() {
     }
 
-    public static void main(String args[]) throws Exception {
+    public static void main(String[] args) throws Exception {
         URL wsdlUrl = Client.class.getResource("/wsdl/bank.wsdl");
 
         BankCORBAService ss = new BankCORBAService(wsdlUrl, SERVICE_NAME);
@@ -43,7 +44,7 @@ public final class Client {
 
 
         System.out.print("Invoking createAccount for Mr. John... ");
-        javax.xml.ws.Holder<Account> account = new javax.xml.ws.Holder<Account>(new Account());
+        jakarta.xml.ws.Holder<Account> account = new jakarta.xml.ws.Holder<>(new Account());
         try {
             if (port.createAccount("John", account)) {
                 System.out.println("success");

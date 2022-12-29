@@ -21,19 +21,20 @@ package org.apache.cxf.tools.wsdlto.frontend.jaxws.processor.internal.annotator;
 
 import java.util.List;
 
-import javax.jws.soap.SOAPBinding;
 import javax.xml.namespace.QName;
 
+import jakarta.jws.soap.SOAPBinding;
 import org.apache.cxf.tools.common.model.JAnnotation;
 import org.apache.cxf.tools.common.model.JAnnotationElement;
 import org.apache.cxf.tools.common.model.JavaMethod;
 import org.apache.cxf.tools.common.model.JavaParameter;
 
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
-public class WebParamAnnotatorTest extends Assert {
+import static org.junit.Assert.assertEquals;
+
+public class WebParamAnnotatorTest {
 
     JavaMethod method;
     JavaParameter parameter;

@@ -66,7 +66,7 @@ public class AbstractJwsJsonWriterProvider {
             }
             return Collections.emptyList();
         }
-        List<String> propLocs = null;
+        final List<String> propLocs;
         if (propLocsProp instanceof String) {
             String[] props = ((String)propLocsProp).split(",");
             propLocs = Arrays.asList(props);
@@ -82,7 +82,7 @@ public class AbstractJwsJsonWriterProvider {
             return sigProviders;
         }
         Message m = JAXRSUtils.getCurrentMessage();
-        List<JwsSignatureProvider> theSigProviders = new LinkedList<JwsSignatureProvider>();
+        List<JwsSignatureProvider> theSigProviders = new LinkedList<>();
         for (int i = 0; i < propLocs.size(); i++) {
             Properties props = JwsUtils.loadJwsProperties(m, propLocs.get(i));
             theSigProviders.add(JwsUtils.loadSignatureProvider(props, protectedHeaders.get(i)));

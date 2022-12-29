@@ -23,9 +23,8 @@ import java.net.URI;
 import java.security.Principal;
 import java.time.Instant;
 import java.time.ZoneOffset;
-import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
-import java.util.List;
 import java.util.Properties;
 import java.util.Set;
 
@@ -61,6 +60,7 @@ import org.apache.cxf.sts.token.provider.TokenProvider;
 import org.apache.cxf.sts.token.provider.TokenProviderParameters;
 import org.apache.cxf.sts.token.provider.TokenProviderResponse;
 import org.apache.cxf.ws.security.tokenstore.TokenStore;
+import org.apache.cxf.ws.security.tokenstore.TokenStoreException;
 import org.apache.wss4j.common.WSS4JConstants;
 import org.apache.wss4j.common.crypto.Crypto;
 import org.apache.wss4j.common.crypto.CryptoFactory;
@@ -71,16 +71,19 @@ import org.apache.wss4j.common.util.DateUtil;
 
 import org.junit.BeforeClass;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 /**
  * Some unit tests for validating a SAML token via the SAMLTokenValidator.
  */
-public class SAMLTokenValidatorTest extends org.junit.Assert {
+public class SAMLTokenValidatorTest {
 
     private static TokenStore tokenStore;
 
     @BeforeClass
-    public static void init() {
+    public static void init() throws TokenStoreException {
         tokenStore = new DefaultInMemoryTokenStore();
     }
 
@@ -109,8 +112,8 @@ public class SAMLTokenValidatorTest extends org.junit.Assert {
 
         TokenValidatorResponse validatorResponse =
             samlTokenValidator.validateToken(validatorParameters);
-        assertTrue(validatorResponse != null);
-        assertTrue(validatorResponse.getToken() != null);
+        assertNotNull(validatorResponse);
+        assertNotNull(validatorResponse.getToken());
         assertTrue(validatorResponse.getToken().getState() == STATE.VALID);
 
         Principal principal = validatorResponse.getPrincipal();
@@ -142,8 +145,8 @@ public class SAMLTokenValidatorTest extends org.junit.Assert {
 
         TokenValidatorResponse validatorResponse =
             samlTokenValidator.validateToken(validatorParameters);
-        assertTrue(validatorResponse != null);
-        assertTrue(validatorResponse.getToken() != null);
+        assertNotNull(validatorResponse);
+        assertNotNull(validatorResponse.getToken());
         assertTrue(validatorResponse.getToken().getState() == STATE.VALID);
 
         Principal principal = validatorResponse.getPrincipal();
@@ -180,8 +183,8 @@ public class SAMLTokenValidatorTest extends org.junit.Assert {
 
         TokenValidatorResponse validatorResponse =
             samlTokenValidator.validateToken(validatorParameters);
-        assertTrue(validatorResponse != null);
-        assertTrue(validatorResponse.getToken() != null);
+        assertNotNull(validatorResponse);
+        assertNotNull(validatorResponse.getToken());
         assertTrue(validatorResponse.getToken().getState() == STATE.VALID);
     }
 
@@ -213,8 +216,8 @@ public class SAMLTokenValidatorTest extends org.junit.Assert {
 
         TokenValidatorResponse validatorResponse =
             samlTokenValidator.validateToken(validatorParameters);
-        assertTrue(validatorResponse != null);
-        assertTrue(validatorResponse.getToken() != null);
+        assertNotNull(validatorResponse);
+        assertNotNull(validatorResponse.getToken());
         assertTrue(validatorResponse.getToken().getState() == STATE.INVALID);
     }
 
@@ -246,8 +249,8 @@ public class SAMLTokenValidatorTest extends org.junit.Assert {
 
         TokenValidatorResponse validatorResponse =
             samlTokenValidator.validateToken(validatorParameters);
-        assertTrue(validatorResponse != null);
-        assertTrue(validatorResponse.getToken() != null);
+        assertNotNull(validatorResponse);
+        assertNotNull(validatorResponse.getToken());
         assertTrue(validatorResponse.getToken().getState() == STATE.INVALID);
     }
 
@@ -277,8 +280,8 @@ public class SAMLTokenValidatorTest extends org.junit.Assert {
         Thread.sleep(100);
         TokenValidatorResponse validatorResponse =
             samlTokenValidator.validateToken(validatorParameters);
-        assertTrue(validatorResponse != null);
-        assertTrue(validatorResponse.getToken() != null);
+        assertNotNull(validatorResponse);
+        assertNotNull(validatorResponse.getToken());
         assertTrue(validatorResponse.getToken().getState() == STATE.EXPIRED);
     }
 
@@ -307,8 +310,8 @@ public class SAMLTokenValidatorTest extends org.junit.Assert {
         Thread.sleep(100);
         TokenValidatorResponse validatorResponse =
             samlTokenValidator.validateToken(validatorParameters);
-        assertTrue(validatorResponse != null);
-        assertTrue(validatorResponse.getToken() != null);
+        assertNotNull(validatorResponse);
+        assertNotNull(validatorResponse.getToken());
         assertTrue(validatorResponse.getToken().getState() == STATE.EXPIRED);
     }
 
@@ -336,23 +339,21 @@ public class SAMLTokenValidatorTest extends org.junit.Assert {
         validatorParameters.setToken(validateTarget);
 
         assertTrue(samlTokenValidator.canHandleToken(validateTarget));
-        List<String> certConstraints = new ArrayList<>();
-        certConstraints.add("XYZ");
-        certConstraints.add(".*CN=www.sts.com.*");
-        ((SAMLTokenValidator)samlTokenValidator).setSubjectConstraints(certConstraints);
+        ((SAMLTokenValidator)samlTokenValidator).setSubjectConstraints(Arrays.asList(
+            "XYZ",
+            ".*CN=www.sts.com.*"));
 
         TokenValidatorResponse validatorResponse =
             samlTokenValidator.validateToken(validatorParameters);
-        assertTrue(validatorResponse != null);
-        assertTrue(validatorResponse.getToken() != null);
+        assertNotNull(validatorResponse);
+        assertNotNull(validatorResponse.getToken());
         assertTrue(validatorResponse.getToken().getState() == STATE.VALID);
 
-        certConstraints.clear();
-        certConstraints.add("XYZ");
-        ((SAMLTokenValidator)samlTokenValidator).setSubjectConstraints(certConstraints);
+        ((SAMLTokenValidator)samlTokenValidator).setSubjectConstraints(Collections.singletonList(
+            "XYZ"));
         validatorResponse = samlTokenValidator.validateToken(validatorParameters);
-        assertTrue(validatorResponse != null);
-        assertTrue(validatorResponse.getToken() != null);
+        assertNotNull(validatorResponse);
+        assertNotNull(validatorResponse.getToken());
         assertTrue(validatorResponse.getToken().getState() == STATE.INVALID);
     }
 
@@ -382,15 +383,15 @@ public class SAMLTokenValidatorTest extends org.junit.Assert {
 
         TokenValidatorResponse validatorResponse =
             samlTokenValidator.validateToken(validatorParameters);
-        assertTrue(validatorResponse != null);
-        assertTrue(validatorResponse.getToken() != null);
+        assertNotNull(validatorResponse);
+        assertNotNull(validatorResponse.getToken());
         assertTrue(validatorResponse.getToken().getState() == STATE.VALID);
 
         Principal principal = validatorResponse.getPrincipal();
         assertTrue(principal != null && principal.getName() != null);
         Set<Principal> roles = validatorResponse.getRoles();
         assertTrue(roles != null && !roles.isEmpty());
-        assertTrue(roles.iterator().next().getName().equals("manager"));
+        assertEquals("manager", roles.iterator().next().getName());
     }
 
     @org.junit.Test
@@ -416,15 +417,15 @@ public class SAMLTokenValidatorTest extends org.junit.Assert {
 
         TokenValidatorResponse validatorResponse =
             samlTokenValidator.validateToken(validatorParameters);
-        assertTrue(validatorResponse != null);
-        assertTrue(validatorResponse.getToken() != null);
+        assertNotNull(validatorResponse);
+        assertNotNull(validatorResponse.getToken());
         assertTrue(validatorResponse.getToken().getState() == STATE.VALID);
 
         Principal principal = validatorResponse.getPrincipal();
         assertTrue(principal != null && principal.getName() != null);
         Set<Principal> roles = validatorResponse.getRoles();
         assertTrue(roles != null && !roles.isEmpty());
-        assertTrue(roles.iterator().next().getName().equals("employee"));
+        assertEquals("employee", roles.iterator().next().getName());
     }
 
     /**
@@ -452,8 +453,8 @@ public class SAMLTokenValidatorTest extends org.junit.Assert {
 
         TokenValidatorResponse validatorResponse =
             samlTokenValidator.validateToken(validatorParameters);
-        assertTrue(validatorResponse != null);
-        assertTrue(validatorResponse.getToken() != null);
+        assertNotNull(validatorResponse);
+        assertNotNull(validatorResponse.getToken());
         assertTrue(validatorResponse.getToken().getState() == STATE.VALID);
 
         // Replace "alice" with "bob".
@@ -469,8 +470,8 @@ public class SAMLTokenValidatorTest extends org.junit.Assert {
         assertTrue(samlTokenValidator.canHandleToken(validateTarget));
 
         validatorResponse = samlTokenValidator.validateToken(validatorParameters);
-        assertTrue(validatorResponse != null);
-        assertTrue(validatorResponse.getToken() != null);
+        assertNotNull(validatorResponse);
+        assertNotNull(validatorResponse.getToken());
         assertTrue(validatorResponse.getToken().getState() != STATE.VALID);
     }
 
@@ -498,8 +499,8 @@ public class SAMLTokenValidatorTest extends org.junit.Assert {
 
         TokenValidatorResponse validatorResponse =
             samlTokenValidator.validateToken(validatorParameters);
-        assertTrue(validatorResponse != null);
-        assertTrue(validatorResponse.getToken() != null);
+        assertNotNull(validatorResponse);
+        assertNotNull(validatorResponse.getToken());
         assertTrue(validatorResponse.getToken().getState() == STATE.VALID);
 
         Principal principal = validatorResponse.getPrincipal();
@@ -553,7 +554,7 @@ public class SAMLTokenValidatorTest extends org.junit.Assert {
                  subjectName, tokenType, STSConstants.BEARER_KEY_KEYTYPE, crypto, signatureUsername, callbackHandler
             );
         TokenProviderResponse providerResponse = samlTokenProvider.createToken(providerParameters);
-        assertTrue(providerResponse != null);
+        assertNotNull(providerResponse);
         assertTrue(providerResponse.getToken() != null && providerResponse.getTokenId() != null);
 
         return (Element)providerResponse.getToken();
@@ -583,7 +584,7 @@ public class SAMLTokenValidatorTest extends org.junit.Assert {
         providerParameters.setRequestedPrimaryClaims(claims);
 
         TokenProviderResponse providerResponse = samlTokenProvider.createToken(providerParameters);
-        assertTrue(providerResponse != null);
+        assertNotNull(providerResponse);
         assertTrue(providerResponse.getToken() != null && providerResponse.getTokenId() != null);
 
         return (Element)providerResponse.getToken();
@@ -600,7 +601,7 @@ public class SAMLTokenValidatorTest extends org.junit.Assert {
                 "alice", tokenType, STSConstants.BEARER_KEY_KEYTYPE, crypto, signatureUsername, callbackHandler
             );
         TokenProviderResponse providerResponse = samlTokenProvider.createToken(providerParameters);
-        assertTrue(providerResponse != null);
+        assertNotNull(providerResponse);
         assertTrue(providerResponse.getToken() != null && providerResponse.getTokenId() != null);
 
         return (Element)providerResponse.getToken();
@@ -631,7 +632,7 @@ public class SAMLTokenValidatorTest extends org.junit.Assert {
         }
 
         TokenProviderResponse providerResponse = samlTokenProvider.createToken(providerParameters);
-        assertTrue(providerResponse != null);
+        assertNotNull(providerResponse);
         assertTrue(providerResponse.getToken() != null && providerResponse.getTokenId() != null);
 
         return (Element)providerResponse.getToken();

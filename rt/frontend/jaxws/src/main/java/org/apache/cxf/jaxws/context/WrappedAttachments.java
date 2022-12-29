@@ -27,8 +27,7 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 
-import javax.activation.DataHandler;
-
+import jakarta.activation.DataHandler;
 import org.apache.cxf.attachment.AttachmentImpl;
 import org.apache.cxf.message.Attachment;
 
@@ -65,13 +64,13 @@ class WrappedAttachments implements Set<Attachment> {
     }
 
     public Object[] toArray() {
-        return toArray(new Object[attachments.size()]);
+        return toArray(new Object[0]);
     }
 
     @SuppressWarnings("unchecked")
     public <T> T[] toArray(T[] a) {
         T[] copy = a.length == attachments.size()
-            ? a : (T[])Array.newInstance(a.getClass(), attachments.size());
+            ? a : (T[])Array.newInstance(a.getClass().getComponentType(), attachments.size());
         int i = 0;
         for (Map.Entry<String, DataHandler> entry : attachments.entrySet()) {
             Attachment o = cache.get(entry.getKey());
@@ -105,7 +104,7 @@ class WrappedAttachments implements Set<Attachment> {
         boolean b = true;
         for (Iterator<?> it = c.iterator(); it.hasNext();) {
             Object o = it.next();
-            if (!(o instanceof Attachment) && attachments.containsKey(((Attachment) o).getId())) {
+            if (!(o instanceof Attachment && attachments.containsKey(((Attachment) o).getId()))) {
                 b = false;
                 break;
             }

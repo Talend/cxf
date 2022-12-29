@@ -23,7 +23,6 @@ import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Map;
 
-import javax.activation.DataHandler;
 import javax.xml.namespace.QName;
 
 import org.w3c.dom.Attr;
@@ -31,6 +30,7 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
+import jakarta.activation.DataHandler;
 import org.apache.cxf.Bus;
 import org.apache.cxf.aegis.databinding.AegisDatabinding;
 import org.apache.cxf.aegis.type.mtom.AbstractXOPType;
@@ -94,7 +94,7 @@ public class MtomTest extends AbstractJUnit4SpringContextTests {
         setupForTest(true);
         DataHandlerBean dhBean = client.produceDataHandlerBean();
         Assert.assertNotNull(dhBean);
-        String result = IOUtils.toString(dhBean.getDataHandler().getInputStream(), "utf-8");
+        String result = IOUtils.toString(dhBean.getDataHandler().getInputStream());
         Assert.assertEquals(MtomTestImpl.STRING_DATA, result);
     }
 
@@ -104,7 +104,7 @@ public class MtomTest extends AbstractJUnit4SpringContextTests {
         setupForTest(true);
         DataHandlerBean dhBean = jaxwsClient.produceDataHandlerBean();
         Assert.assertNotNull(dhBean);
-        String result = IOUtils.toString(dhBean.getDataHandler().getInputStream(), "utf-8");
+        String result = IOUtils.toString(dhBean.getDataHandler().getInputStream());
         Assert.assertEquals(MtomTestImpl.STRING_DATA, result);
     }
 
@@ -145,7 +145,7 @@ public class MtomTest extends AbstractJUnit4SpringContextTests {
         Assert.assertNotNull(accepted);
         InputStream data = accepted.getDataHandler().getInputStream();
         Assert.assertNotNull(data);
-        String dataString = org.apache.commons.io.IOUtils.toString(data, "utf-8");
+        String dataString = IOUtils.toString(data);
         Assert.assertEquals("This is the cereal shot from guns.", dataString);
     }
 

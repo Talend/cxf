@@ -22,7 +22,7 @@ package org.apache.cxf.ws.policy;
 import java.lang.reflect.Method;
 import java.net.URL;
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.logging.Level;
@@ -130,7 +130,7 @@ public class PolicyAnnotationListener implements FactoryBeanListener {
                 list.add(p);
             }
             if (ps != null) {
-                list.addAll(Arrays.asList(ps.value()));
+                Collections.addAll(list, ps.value());
             }
             ListIterator<Policy> it = list.listIterator();
             while (it.hasNext()) {
@@ -250,7 +250,7 @@ public class PolicyAnnotationListener implements FactoryBeanListener {
                 list.add(p);
             }
             if (ps != null) {
-                list.addAll(Arrays.asList(ps.value()));
+                Collections.addAll(list, ps.value());
             }
             addPolicies(factory, endpoint, cls, list, Policy.Placement.SERVICE);
         }
@@ -312,7 +312,7 @@ public class PolicyAnnotationListener implements FactoryBeanListener {
                 list.add(p);
             }
             if (ps != null) {
-                list.addAll(Arrays.asList(ps.value()));
+                Collections.addAll(list, ps.value());
             }
             ListIterator<Policy> it = list.listIterator();
             while (it.hasNext()) {
@@ -419,28 +419,34 @@ public class PolicyAnnotationListener implements FactoryBeanListener {
     private String getPolicyRefURI(Element element) {
         return element.getAttributeNS(null, "URI");
     }
-    private boolean isExistsPolicy(Object exts[], String uri) {
+    private boolean isExistsPolicy(Object[] exts, String uri) {
         exts = exts == null ? new Object[0] : exts;
         for (Object o : exts) {
             if (o instanceof UnknownExtensibilityElement) {
                 UnknownExtensibilityElement uee = (UnknownExtensibilityElement)o;
-                String uri2 = getPolicyId(uee.getElement());
-                if (uri.equals(uri2)) {
-                    return true;
+                final Element element = uee.getElement();
+                synchronized (element.getOwnerDocument()) {
+                    String uri2 = getPolicyId(element);
+                    if (uri.equals(uri2)) {
+                        return true;
+                    }
                 }
             }
         }
         return false;
     }
 
-    private boolean isExistsPolicyReference(Object exts[], String uri) {
+    private boolean isExistsPolicyReference(Object[] exts, String uri) {
         exts = exts == null ? new Object[0] : exts;
         for (Object o : exts) {
             if (o instanceof UnknownExtensibilityElement) {
                 UnknownExtensibilityElement uee = (UnknownExtensibilityElement)o;
-                String uri2 = getPolicyRefURI(uee.getElement());
-                if (uri.equals(uri2)) {
-                    return true;
+                final Element element = uee.getElement();
+                synchronized (element.getOwnerDocument()) {
+                    String uri2 = getPolicyRefURI(element);
+                    if (uri.equals(uri2)) {
+                        return true;
+                    }
                 }
             }
         }

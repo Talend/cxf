@@ -20,7 +20,7 @@
 package org.apache.cxf.tools.java2wsdl.processor.internal.jaxws;
 
 import java.io.File;
-import java.net.URI;
+import java.io.InputStream;
 import java.nio.file.Files;
 import java.util.Collection;
 
@@ -42,6 +42,10 @@ import org.apache.hello_world_rpclit.javato.GreeterRPCLit;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 public class JaxwsServiceBuilderTest extends ProcessorTestBase {
     JaxwsServiceBuilder builder;
@@ -82,9 +86,9 @@ public class JaxwsServiceBuilderTest extends ProcessorTestBase {
         generator.generate(output);
         assertTrue(output.exists());
 
-        URI expectedFile = this.getClass()
-            .getResource("expected/expected_doc_lit_wrapped_with_wrapperclass.wsdl").toURI();
-        assertWsdlEquals(new File(expectedFile), output);
+        InputStream expectedFile = getClass()
+            .getResourceAsStream("expected/expected_doc_lit_wrapped_with_wrapperclass.wsdl");
+        assertWsdlEquals(expectedFile, output);
     }
 
     @Test
@@ -98,9 +102,9 @@ public class JaxwsServiceBuilderTest extends ProcessorTestBase {
         generator.generate(output);
         assertTrue(output.exists());
 
-        URI expectedFile = this.getClass()
-            .getResource("expected/expected_doc_lit_wrapped_no_wrapperclass.wsdl").toURI();
-        assertWsdlEquals(new File(expectedFile), output);
+        InputStream expectedFile = getClass()
+            .getResourceAsStream("expected/expected_doc_lit_wrapped_no_wrapperclass.wsdl");
+        assertWsdlEquals(expectedFile, output);
     }
 
 
@@ -115,9 +119,8 @@ public class JaxwsServiceBuilderTest extends ProcessorTestBase {
         generator.generate(output);
         assertTrue(output.exists());
 
-        URI expectedFile = this.getClass().getResource("expected/expected_hello_world_doc_lit.wsdl")
-            .toURI();
-        assertWsdlEquals(new File(expectedFile), output);
+        InputStream expectedFile = getClass().getResourceAsStream("expected/expected_hello_world_doc_lit.wsdl");
+        assertWsdlEquals(expectedFile, output);
         //assertFileEquals(expectedFile, output.getAbsolutePath());
     }
 
@@ -132,9 +135,8 @@ public class JaxwsServiceBuilderTest extends ProcessorTestBase {
         generator.generate(output);
         assertTrue(output.exists());
 
-        URI expectedFile = this.getClass().getResource("expected/expected_doc_lit_wrapped_localName.wsdl")
-            .toURI();
-        assertWsdlEquals(new File(expectedFile), output);
+        InputStream expectedFile = getClass().getResourceAsStream("expected/expected_doc_lit_wrapped_localName.wsdl");
+        assertWsdlEquals(expectedFile, output);
     }
 
     @Test
@@ -148,9 +150,9 @@ public class JaxwsServiceBuilderTest extends ProcessorTestBase {
         generator.generate(output);
         assertTrue(output.exists());
 
-        URI expectedFile = this.getClass()
-            .getResource("expected/expected_doc_lit_wrapped_no_webparam.wsdl").toURI();
-        assertWsdlEquals(new File(expectedFile), output);
+        InputStream expectedFile = getClass()
+            .getResourceAsStream("expected/expected_doc_lit_wrapped_no_webparam.wsdl");
+        assertWsdlEquals(expectedFile, output);
     }
 
     @Test
@@ -164,8 +166,8 @@ public class JaxwsServiceBuilderTest extends ProcessorTestBase {
         generator.generate(output);
         assertTrue(output.exists());
 
-        URI expectedFile = this.getClass().getResource("expected/expected_holder.wsdl").toURI();
-        assertWsdlEquals(new File(expectedFile), output);
+        InputStream expectedFile = getClass().getResourceAsStream("expected/expected_holder.wsdl");
+        assertWsdlEquals(expectedFile, output);
     }
 
     @Test
@@ -178,10 +180,8 @@ public class JaxwsServiceBuilderTest extends ProcessorTestBase {
         generator.generate(output);
         assertTrue(output.exists());
 
-        URI expectedFile = this.getClass().getResource("expected/expected_hello_world_async.wsdl")
-            .toURI();
-
-        assertWsdlEquals(new File(expectedFile), output);
+        InputStream expectedFile = getClass().getResourceAsStream("expected/expected_hello_world_async.wsdl");
+        assertWsdlEquals(expectedFile, output);
     }
 
     @Test
@@ -196,8 +196,9 @@ public class JaxwsServiceBuilderTest extends ProcessorTestBase {
         generator.generate(file);
         assertTrue(output.exists());
 
-        URI expectedFile = this.getClass().getResource("expected/expected_rpc_lit.wsdl").toURI();
-        assertWsdlEquals(new File(expectedFile), file);
+
+        InputStream expectedFile = getClass().getResourceAsStream("expected/expected_rpc_lit.wsdl");
+        assertWsdlEquals(expectedFile, file);
     }
 
     @Test
@@ -212,8 +213,8 @@ public class JaxwsServiceBuilderTest extends ProcessorTestBase {
         generator.generate(file);
         assertTrue(output.exists());
 
-        URI expectedFile = this.getClass().getResource("expected/doc_wrapped_bare.wsdl").toURI();
-        assertWsdlEquals(new File(expectedFile), file);
+        InputStream expectedFile = getClass().getResourceAsStream("expected/doc_wrapped_bare.wsdl");
+        assertWsdlEquals(expectedFile, file);
     }
 
     @Test
@@ -227,8 +228,8 @@ public class JaxwsServiceBuilderTest extends ProcessorTestBase {
         generator.generate(file);
         assertTrue(output.exists());
         
-        URI expectedFile = this.getClass().getResource("expected/rpc_lit_service_no_anno.wsdl").toURI();
-        assertWsdlEquals(new File(expectedFile), file);
+        InputStream expectedFile = getClass().getResourceAsStream("expected/rpc_lit_service_no_anno.wsdl");
+        assertWsdlEquals(expectedFile, file);
     }
 
     @Test
@@ -242,8 +243,8 @@ public class JaxwsServiceBuilderTest extends ProcessorTestBase {
         generator.generate(file);
         assertTrue(output.exists());
         
-        URI expectedFile = this.getClass().getResource("expected/rpc_on_method.wsdl").toURI();
-        assertWsdlEquals(new File(expectedFile), file);
+        InputStream expectedFile = getClass().getResourceAsStream("expected/rpc_on_method.wsdl");
+        assertWsdlEquals(expectedFile, file);
     }
 
     @Test
@@ -258,8 +259,8 @@ public class JaxwsServiceBuilderTest extends ProcessorTestBase {
         generator.generate(file);
         assertTrue(file.exists());
 
-        URI expectedFile = this.getClass().getResource("expected/soap_header.wsdl").toURI();
-        assertWsdlEquals(new File(expectedFile), file);
+        InputStream expectedFile = getClass().getResourceAsStream("expected/soap_header.wsdl");
+        assertWsdlEquals(expectedFile, file);
     }
 
     @Test
@@ -273,8 +274,8 @@ public class JaxwsServiceBuilderTest extends ProcessorTestBase {
         generator.generate(output);
         assertTrue(output.exists());
 
-        URI expectedFile = this.getClass().getResource("expected/expected_someheaders.wsdl").toURI();
-        assertWsdlEquals(new File(expectedFile), output);
+        InputStream expectedFile = getClass().getResourceAsStream("expected/expected_someheaders.wsdl");
+        assertWsdlEquals(expectedFile, output);
     }
 
     @Test
@@ -290,8 +291,8 @@ public class JaxwsServiceBuilderTest extends ProcessorTestBase {
         generator.generate(output);
         assertTrue(output.exists()); 
 
-        URI expectedFile = this.getClass().getResource("expected/cxf188.wsdl").toURI();
-        assertWsdlEquals(new File(expectedFile), output);
+        InputStream expectedFile = getClass().getResourceAsStream("expected/cxf188.wsdl");
+        assertWsdlEquals(expectedFile, output);
     }
 
     @Test
@@ -314,9 +315,8 @@ public class JaxwsServiceBuilderTest extends ProcessorTestBase {
 
         String s = new String(Files.readAllBytes(output.toPath()));
         assertTrue(s.indexOf("EchoPort") != -1);
-        URI expectedFile = this.getClass()
-            .getResource("expected/expected_rpclist_no_sei.wsdl").toURI();
-        assertWsdlEquals(new File(expectedFile), output);
+        InputStream expectedFile = getClass().getResourceAsStream("expected/expected_rpclist_no_sei.wsdl");
+        assertWsdlEquals(expectedFile, output);
     }
 
     @Test

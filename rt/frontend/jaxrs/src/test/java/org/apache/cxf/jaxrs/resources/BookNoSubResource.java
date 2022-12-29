@@ -22,10 +22,10 @@ package org.apache.cxf.jaxrs.resources;
 import java.util.HashMap;
 import java.util.Map;
 
-import javax.ws.rs.GET;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.xml.bind.annotation.XmlRootElement;
+import jakarta.ws.rs.GET;
+import jakarta.ws.rs.Path;
+import jakarta.ws.rs.PathParam;
+import jakarta.xml.bind.annotation.XmlRootElement;
 
 
 @XmlRootElement(name = "Book")
@@ -55,7 +55,7 @@ public class BookNoSubResource {
     @Path("chapters/{chapterid}/")
     @GET
     public Chapter getChapter(@PathParam("id")int chapterid) {
-        return chapters.get(new Long(chapterid));
+        return chapters.get(Long.valueOf(chapterid));
     }
 
 }

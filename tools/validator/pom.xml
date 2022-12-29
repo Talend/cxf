@@ -23,18 +23,15 @@
     <packaging>bundle</packaging>
     <name>Apache CXF Command Line Tools Validator</name>
     <description>Apache CXF Command Line Tools Validator</description>
-    <url>http://cxf.apache.org</url>
+    <url>https://cxf.apache.org</url>
     <parent>
         <groupId>org.apache.cxf</groupId>
         <artifactId>cxf-parent</artifactId>
-        <version>3.2.5-SNAPSHOT</version>
+        <version>4.0.1-SNAPSHOT</version>
         <relativePath>../../parent/pom.xml</relativePath>
     </parent>
     <properties>
-        <cxf.osgi.export>
-            =org.apache.cxf.tools.validator.internal,
-            org.apache.cxf.tools.validator.*,
-        </cxf.osgi.export>
+        <cxf.module.name>org.apache.cxf.tools.validator</cxf.module.name>
     </properties>
     <dependencies>
         <dependency>
@@ -48,25 +45,16 @@
             <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>${cxf.asm.groupId}</groupId>
-            <artifactId>${cxf.asm.artifactId}</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
             <groupId>wsdl4j</groupId>
             <artifactId>wsdl4j</artifactId>
         </dependency>
         <dependency>
-            <groupId>com.sun.xml.bind</groupId>
+            <groupId>org.glassfish.jaxb</groupId>
             <artifactId>jaxb-xjc</artifactId>
         </dependency>
         <dependency>
-            <groupId>com.sun.xml.bind</groupId>
-            <artifactId>jaxb-core</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>com.sun.xml.bind</groupId>
-            <artifactId>jaxb-impl</artifactId>
+            <groupId>org.glassfish.jaxb</groupId>
+            <artifactId>jaxb-runtime</artifactId>
         </dependency>
         <dependency>
             <groupId>org.apache.ws.xmlschema</groupId>
@@ -82,19 +70,12 @@
             <artifactId>cxf-rt-bindings-soap</artifactId>
             <version>${project.version}</version>
         </dependency>
+        <dependency>
+            <groupId>org.apache.cxf</groupId>
+            <artifactId>cxf-tools-common</artifactId>
+            <version>${project.version}</version>
+            <type>test-jar</type>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
-    <build>
-        <plugins>
-            <plugin>
-                <groupId>org.apache.felix</groupId>
-                <artifactId>maven-bundle-plugin</artifactId>
-                <extensions>true</extensions>
-                <configuration>
-                    <instructions>
-                        <Export-Package>${cxf.osgi.export}</Export-Package>
-                    </instructions>
-                </configuration>
-            </plugin>
-        </plugins>
-    </build>
 </project>

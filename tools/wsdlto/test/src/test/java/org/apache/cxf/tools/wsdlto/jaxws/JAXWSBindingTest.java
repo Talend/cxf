@@ -20,8 +20,8 @@ package org.apache.cxf.tools.wsdlto.jaxws;
 
 import java.io.File;
 
-import org.apache.cxf.helpers.FileUtils;
 import org.apache.cxf.tools.common.ProcessorTestBase;
+import org.apache.cxf.tools.common.TestFileUtils;
 import org.apache.cxf.tools.common.ToolConstants;
 import org.apache.cxf.tools.wsdlto.core.DataBindingProfile;
 import org.apache.cxf.tools.wsdlto.core.FrontEndProfile;
@@ -31,6 +31,9 @@ import org.apache.cxf.tools.wsdlto.frontend.jaxws.JAXWSContainer;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 public class JAXWSBindingTest extends ProcessorTestBase {
     private JAXWSContainer processor;
@@ -62,7 +65,7 @@ public class JAXWSBindingTest extends ProcessorTestBase {
         String path = "/org/apache/cxf/tools/fortest/date";
         File sei = new File(output, path + "/EchoDate.java");
         assertTrue(sei.exists());
-        String seiContent = FileUtils.getStringFromFile(sei);
-        assertTrue(seiContent.indexOf("java.util.Date") != -1);
+        String seiContent = TestFileUtils.getStringFromFile(sei);
+        assertTrue(seiContent.contains("java.util.Date"));
     }
 }

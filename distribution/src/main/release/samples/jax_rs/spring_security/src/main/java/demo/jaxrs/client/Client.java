@@ -19,7 +19,7 @@
 
 package demo.jaxrs.client;
 
-import javax.ws.rs.core.Response;
+import jakarta.ws.rs.core.Response;
 
 import org.apache.cxf.common.util.Base64Utility;
 import org.apache.http.HttpEntity;
@@ -39,7 +39,7 @@ public final class Client {
     private Client() {
     }
 
-    public static void main(String args[]) throws Exception {
+    public static void main(String[] args) throws Exception {
 
         System.out.println("\n");
         Client c = new Client();

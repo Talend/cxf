@@ -39,7 +39,7 @@ import edu.indiana.extreme.wsdl.benchmark1.SimpleEvent;
 
 
 
-@javax.jws.WebService(name = "Benchmark", serviceName = "Benchmark",
+@jakarta.jws.WebService(name = "Benchmark", serviceName = "Benchmark",
                       portName = "Benchmark",
                       targetNamespace = "http://www.extreme.indiana.edu/wsdl/Benchmark1",
                       endpointInterface = "edu.indiana.extreme.wsdl.benchmark1.Benchmark")
@@ -238,7 +238,7 @@ public class BenchmarkImpl implements Benchmark {
     )
     {
         LOG.info("Executing operation sendInts");
-        List<Integer> ret = new LinkedList<Integer>();
+        List<Integer> ret = new LinkedList<>();
         for (int i = 0; i < size; i++) {
         	Integer temp = i;
         	ret.add(temp);
@@ -254,7 +254,7 @@ public class BenchmarkImpl implements Benchmark {
     )
     {
         LOG.info("Executing operation sendDoubles");
-        List<Double> ret = new LinkedList<Double>();
+        List<Double> ret = new LinkedList<>();
         for (int i = 0; i < size; i++) {
         	double temp = i ;
         	ret.add(temp);

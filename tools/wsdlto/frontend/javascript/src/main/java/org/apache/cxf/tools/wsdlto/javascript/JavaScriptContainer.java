@@ -132,7 +132,7 @@ public class JavaScriptContainer extends WSDLToJavaContainer {
         if (serviceList.isEmpty()) {
             throw new ToolException("Did not find any services in WSDL");
         }
-        Map<String, InterfaceInfo> interfaces = new LinkedHashMap<String, InterfaceInfo>();
+        Map<String, InterfaceInfo> interfaces = new LinkedHashMap<>();
 
         ServiceInfo service0 = serviceList.get(0);
         SchemaCollection schemaCollection = service0.getXmlSchemaCollection();
@@ -174,7 +174,7 @@ public class JavaScriptContainer extends WSDLToJavaContainer {
     public void setNamespaceJavascriptPrefixes(ToolContext env) {
         Map<String, String> nsPrefixMap = new HashMap<>();
         if (env.get(ToolConstants.CFG_JSPACKAGEPREFIX) != null) {
-            String[] pns = null;
+            final String[] pns;
             try {
                 pns = (String[])env.get(ToolConstants.CFG_JSPACKAGEPREFIX);
             } catch (ClassCastException e) {
@@ -183,7 +183,7 @@ public class JavaScriptContainer extends WSDLToJavaContainer {
                 throw new ToolException(msg);
             }
             for (String jsprefix : pns) {
-                int pos = jsprefix.indexOf("=");
+                int pos = jsprefix.indexOf('=');
                 if (pos != -1) {
                     String ns = jsprefix.substring(0, pos);
                     jsprefix = jsprefix.substring(pos + 1);
@@ -286,7 +286,7 @@ public class JavaScriptContainer extends WSDLToJavaContainer {
     public List<ServiceValidator> getServiceValidators() {
         List<ServiceValidator> validators = new ArrayList<>();
 
-        Properties initialExtensions = null;
+        final Properties initialExtensions;
         try {
             initialExtensions = PropertiesLoaderUtils.loadAllProperties(SERVICE_VALIDATOR, Thread
                 .currentThread().getContextClassLoader());
@@ -305,7 +305,7 @@ public class JavaScriptContainer extends WSDLToJavaContainer {
                                                                              true,
                                                                              Thread.currentThread()
                                                                                  .getContextClassLoader())
-                    .newInstance();
+                    .getDeclaredConstructor().newInstance();
                 validators.add(validator);
             } catch (Exception ex) {
                 LOG.log(Level.WARNING, "EXTENSION_ADD_FAILED_MSG", ex);

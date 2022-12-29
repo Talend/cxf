@@ -28,14 +28,14 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
 import javax.xml.namespace.QName;
-import javax.xml.ws.AsyncHandler;
-import javax.xml.ws.BindingProvider;
-import javax.xml.ws.Endpoint;
-import javax.xml.ws.Response;
-import javax.xml.ws.soap.AddressingFeature;
-import javax.xml.ws.soap.SOAPFaultException;
 
-import org.apache.activemq.ActiveMQConnectionFactory;
+import jakarta.xml.ws.AsyncHandler;
+import jakarta.xml.ws.BindingProvider;
+import jakarta.xml.ws.Endpoint;
+import jakarta.xml.ws.Response;
+import jakarta.xml.ws.soap.AddressingFeature;
+import jakarta.xml.ws.soap.SOAPFaultException;
+import org.apache.activemq.artemis.jms.client.ActiveMQConnectionFactory;
 import org.apache.cxf.Bus;
 import org.apache.cxf.BusFactory;
 import org.apache.cxf.binding.soap.interceptor.TibcoSoapActionInterceptor;
@@ -61,7 +61,6 @@ import org.apache.cxf.transport.jms.JMSConfigFeature;
 import org.apache.cxf.transport.jms.JMSConfiguration;
 import org.apache.cxf.transport.jms.JMSConstants;
 import org.apache.cxf.transport.jms.JMSMessageHeadersType;
-import org.apache.cxf.transport.jms.util.TestReceiver;
 import org.apache.hello_world_doc_lit.Greeter;
 import org.apache.hello_world_doc_lit.PingMeFault;
 import org.apache.hello_world_doc_lit.SOAPService2;
@@ -69,12 +68,17 @@ import org.apache.hello_world_doc_lit.SOAPService7;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 
 import org.junit.After;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Test;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNotSame;
+import static org.junit.Assert.assertSame;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 public class JMSClientServerTest extends AbstractBusClientServerTestBase {
     public static final String PORT = allocatePort(JMSClientServerTest.class);
@@ -204,9 +208,7 @@ public class JMSClientServerTest extends AbstractBusClientServerTestBase {
                     Thread thread2 = Thread.currentThread();
                     assertNotSame(thread, thread2);
                     assertEquals("Hello " + expected, response.get());
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                } catch (ExecutionException e) {
+                } catch (InterruptedException | ExecutionException e) {
                     e.printStackTrace();
                 }
             }
@@ -349,10 +351,9 @@ public class JMSClientServerTest extends AbstractBusClientServerTestBase {
         BusFactory.setDefaultBus(null);
         BusFactory.setThreadDefaultBus(null);
 
-        ClassPathXmlApplicationContext ctx =
+        try (ClassPathXmlApplicationContext ctx =
             new ClassPathXmlApplicationContext(
-                new String[] {"/org/apache/cxf/systest/jms/JMSClients.xml"});
-        try {
+                new String[] {"/org/apache/cxf/systest/jms/JMSClients.xml"})) {
             String wsdlString2 = "classpath:wsdl/jms_test.wsdl";
             wsdlStrings.add(wsdlString2);
             broker.updateWsdl((Bus)ctx.getBean("cxf"), wsdlString2);
@@ -397,7 +398,6 @@ public class JMSClientServerTest extends AbstractBusClientServerTestBase {
                 fail("There should not throw the exception" + ex);
             }
         } finally {
-            ctx.close();
             BusFactory.setDefaultBus(getBus());
             BusFactory.setThreadDefaultBus(getBus());
         }
@@ -583,7 +583,7 @@ public class JMSClientServerTest extends AbstractBusClientServerTestBase {
         assertTrue("response Headers must conain the app property set in request context.",
                    responseHdr.getPropertyKeys().size() > 0);
 
-        
+
         boolean found = responseHdr.getPropertyKeys().contains(testReturnPropertyName);
         assertTrue("response Headers must match the app property set in request context.", found);
         ((Closeable)greeter).close();
@@ -604,7 +604,7 @@ public class JMSClientServerTest extends AbstractBusClientServerTestBase {
 
         String name = "FooBar";
         String reply = greeter.greetMe(name);
-        Assert.assertEquals("Hello " + name, reply);
+        assertEquals("Hello " + name, reply);
         ((Closeable)greeter).close();
     }
 

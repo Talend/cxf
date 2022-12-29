@@ -27,8 +27,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import javax.xml.ws.Service;
-
+import jakarta.xml.ws.Service;
 import org.apache.cxf.common.logging.LogUtils;
 import org.mozilla.javascript.Context;
 import org.mozilla.javascript.ContextFactory;
@@ -45,7 +44,7 @@ public class ProviderFactory {
 
     private String epAddress;
     private boolean isBaseAddr;
-    private List<AbstractDOMProvider> providers = new CopyOnWriteArrayList<AbstractDOMProvider>();
+    private List<AbstractDOMProvider> providers = new CopyOnWriteArrayList<>();
 
     static {
         ContextFactory.initGlobal(new RhinoContextFactory());
@@ -75,13 +74,9 @@ public class ProviderFactory {
         boolean isE4X = f.getName().endsWith(".jsx");
         StringBuilder sb = new StringBuilder();
         try (BufferedReader bufrd = new BufferedReader(new FileReader(f))) {
-            String line = null;
-            for (;;) {
-                line = bufrd.readLine();
-                if (line == null) {
-                    break;
-                }
-                sb.append(line).append("\n");
+            String line;
+            while (null != (line = bufrd.readLine())) {
+                sb.append(line).append('\n');
             }
         }
 
@@ -160,7 +155,7 @@ public class ProviderFactory {
             String base = isBase ? "base " : "";
             StringBuilder msg = new StringBuilder("creating a ");
             msg.append(modestr)
-                .append(" ")
+                .append(' ')
                 .append(type)
                 .append(" provider for ")
                 .append(base)

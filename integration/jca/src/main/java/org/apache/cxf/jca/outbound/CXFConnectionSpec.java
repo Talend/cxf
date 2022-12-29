@@ -21,9 +21,9 @@ package org.apache.cxf.jca.outbound;
 import java.net.URL;
 import java.util.Objects;
 
-import javax.resource.spi.ConnectionRequestInfo;
 import javax.xml.namespace.QName;
 
+import jakarta.resource.spi.ConnectionRequestInfo;
 
 /**
  *
@@ -149,45 +149,18 @@ public class CXFConnectionSpec implements ConnectionRequestInfo {
 
     // Required by JCA Spec
     public int hashCode() {
-        int retval = 0;
-
-        if (wsdlURL != null) {
-            retval += wsdlURL.hashCode(); //NOSONAR
-        }
-
-        if (busConfigURL != null) {
-            retval += busConfigURL.hashCode();  //NOSONAR
-        }
-
-        if (serviceClass != null) {
-            retval += serviceClass.hashCode();
-        }
-
-        if (serviceName != null) {
-            retval += serviceName.hashCode();
-        }
-
-        if (endpointName != null) {
-            retval += endpointName.hashCode();
-        }
-
-        if (address != null) {
-            retval += address.hashCode();
-        }
-
-        return retval;
-
+        return Objects.hash(wsdlURL, busConfigURL, serviceClass, serviceName, endpointName, address);
     }
 
     public String toString() {
-        StringBuilder buf = new StringBuilder();
-        buf.append("serviceName=" + serviceName);
-        buf.append(",endpointName=" + endpointName);
-        buf.append(",wsdlURL=" + wsdlURL);
-        buf.append(",busConfigURL=" + busConfigURL);
-        buf.append(",serviceClass=" + serviceClass);
-        buf.append(",address=" + address);
-        return buf.toString();
+        return new StringBuilder(128)
+            .append("serviceName=").append(serviceName)
+            .append(",endpointName=").append(endpointName)
+            .append(",wsdlURL=").append(wsdlURL)
+            .append(",busConfigURL=").append(busConfigURL)
+            .append(",serviceClass=").append(serviceClass)
+            .append(",address=").append(address)
+            .toString();
     }
 
 }

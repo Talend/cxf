@@ -19,13 +19,12 @@
 
 package org.apache.cxf.systest.jaxb.model;
 
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlAttribute;
-import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlRootElement;
-import javax.xml.bind.annotation.XmlType;
-
+import jakarta.xml.bind.annotation.XmlAccessType;
+import jakarta.xml.bind.annotation.XmlAccessorType;
+import jakarta.xml.bind.annotation.XmlAttribute;
+import jakarta.xml.bind.annotation.XmlElement;
+import jakarta.xml.bind.annotation.XmlRootElement;
+import jakarta.xml.bind.annotation.XmlType;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 
@@ -142,8 +141,18 @@ public abstract class Widget {
 
     @Override
     public int hashCode() {
-        return super.hashCode();
+        int result = 17;
+        result *= Long.hashCode(id);
+        if (name != null) {
+            result = 31 * result + name.hashCode();
+        }
+        if (serialNumber != null) {
+            result = 31 * result + serialNumber.hashCode();
+        }
+        result *= Boolean.hashCode(broken);
+        return result;
     }
+
     /*
      * (non-Javadoc)
      *

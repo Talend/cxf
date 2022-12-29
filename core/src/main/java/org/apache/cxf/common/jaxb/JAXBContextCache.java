@@ -25,9 +25,6 @@ import java.io.InputStreamReader;
 import java.lang.ref.WeakReference;
 import java.lang.reflect.Method;
 import java.nio.charset.StandardCharsets;
-import java.security.AccessController;
-import java.security.PrivilegedActionException;
-import java.security.PrivilegedExceptionAction;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -36,11 +33,11 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.regex.Pattern;
 
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.JAXBException;
-import javax.xml.bind.annotation.XmlElementDecl;
 import javax.xml.transform.dom.DOMSource;
 
+import jakarta.xml.bind.JAXBContext;
+import jakarta.xml.bind.JAXBException;
+import jakarta.xml.bind.annotation.XmlElementDecl;
 import org.apache.cxf.common.classloader.ClassLoaderUtils;
 import org.apache.cxf.common.util.CacheMap;
 import org.apache.cxf.common.util.CachedClass;
@@ -67,7 +64,7 @@ public final class JAXBContextCache {
         private CachedContextAndSchemas(JAXBContext context, Set<Class<?>> classes, CachedContextAndSchemasInternal i) {
             this.context = context;
             this.classes = classes;
-            ccas = new WeakReference<CachedContextAndSchemasInternal>(i);
+            ccas = new WeakReference<>(i);
         }
         public JAXBContext getContext() {
             return context;
@@ -97,8 +94,8 @@ public final class JAXBContextCache {
         private Collection<DOMSource> schemas;
 
         CachedContextAndSchemasInternal(JAXBContext context, Set<Class<?>> classes) {
-            this.context = new WeakReference<JAXBContext>(context);
-            this.classes = new WeakReference<Set<Class<?>>>(classes);
+            this.context = new WeakReference<>(context);
+            this.classes = new WeakReference<>(classes);
         }
 
         public JAXBContext getContext() {
@@ -118,10 +115,10 @@ public final class JAXBContextCache {
     }
 
     private static final Map<Set<Class<?>>, Map<String, CachedContextAndSchemasInternal>> JAXBCONTEXT_CACHE
-        = new CacheMap<Set<Class<?>>, Map<String, CachedContextAndSchemasInternal>>();
+        = new CacheMap<>();
 
     private static final Map<Package, CachedClass> OBJECT_FACTORY_CACHE
-        = new CacheMap<Package, CachedClass>();
+        = new CacheMap<>();
 
     private static final boolean HAS_MOXY;
 
@@ -157,7 +154,7 @@ public final class JAXBContextCache {
     }
 
     public static CachedContextAndSchemas getCachedContextAndSchemas(Class<?> ... cls) throws JAXBException {
-        Set<Class<?>> classes = new HashSet<Class<?>>();
+        Set<Class<?>> classes = new HashSet<>();
         for (Class<?> c : cls) {
             classes.add(c);
         }
@@ -169,7 +166,7 @@ public final class JAXBContextCache {
                                                                      Map<String, Object> props,
                                                                      ClassLoader loader)
         throws JAXBException {
-        Set<Class<?>> classes = new HashSet<Class<?>>();
+        Set<Class<?>> classes = new HashSet<>();
         addPackage(classes, pkg, loader);
         return getCachedContextAndSchemas(classes, null, props, null, true);
     }
@@ -194,7 +191,7 @@ public final class JAXBContextCache {
             if (HAS_MOXY) {
                 map.put("eclipselink.default-target-namespace", defaultNs);
             }
-            map.put("com.sun.xml.bind.defaultNamespaceRemap", defaultNs);
+            map.put("org.glassfish.jaxb.defaultNamespaceRemap", defaultNs);
         }
         if (props != null) {
             map.putAll(props);
@@ -233,7 +230,6 @@ public final class JAXBContextCache {
                         if (cls != null) {
                             JAXBCONTEXT_CACHE.remove(cls);
                         }
-                        cachedContextAndSchemasInternal = null;
                     } else {
                         return new CachedContextAndSchemas(context, cachedContextAndSchemasInternal.getClasses(),
                             cachedContextAndSchemasInternal);
@@ -248,16 +244,7 @@ public final class JAXBContextCache {
             // load jaxb needed class and try to create jaxb context
             boolean added = addJaxbObjectFactory(ex, classes);
             if (added) {
-                try {
-                    context = AccessController.doPrivileged(new PrivilegedExceptionAction<JAXBContext>() {
-                        public JAXBContext run() throws Exception {
-                            return JAXBContext.newInstance(classes
-                                                          .toArray(new Class<?>[classes.size()]), null);
-                        }
-                    });
-                } catch (PrivilegedActionException e) {
-                    throw ex;
-                }
+                context = JAXBUtils.createContext(classes, null);
             }
             if (context == null) {
                 throw ex;
@@ -268,7 +255,7 @@ public final class JAXBContextCache {
             if (typeRefs == null || typeRefs.isEmpty()) {
                 if (cachedContextAndSchemasInternalMap == null) {
                     cachedContextAndSchemasInternalMap
-                        = new CacheMap<String, CachedContextAndSchemasInternal>();
+                        = new CacheMap<>();
                 }
                 cachedContextAndSchemasInternalMap.put((defaultNs != null) ? defaultNs : "",
                     cachedContextAndSchemasInternal);
@@ -300,18 +287,12 @@ public final class JAXBContextCache {
         JAXBContext ctx;
         if (typeRefs != null && !typeRefs.isEmpty()) {
             Class<?> fact = null;
-            String pfx = "com.sun.xml.bind.";
+            String pfx = "org.glassfish.jaxb.";
             try {
-                fact = ClassLoaderUtils.loadClass("com.sun.xml.bind.v2.ContextFactory",
-                                                  JAXBContextCache.class);
+                fact = ClassLoaderUtils.loadClass("org.glassfish.jaxb.runtime.v2.ContextFactory",
+                        JAXBContextCache.class);
             } catch (Throwable t) {
-                try {
-                    fact = ClassLoaderUtils.loadClass("com.sun.xml.internal.bind.v2.ContextFactory",
-                                                      JAXBContextCache.class);
-                    pfx = "com.sun.xml.internal.bind.";
-                } catch (Throwable t2) {
-                    //ignore
-                }
+               //ignore
             }
             if (fact != null) {
                 for (Method m : fact.getMethods()) {
@@ -319,7 +300,7 @@ public final class JAXBContextCache {
                         && m.getParameterTypes().length == 9) {
                         try {
                             return (JAXBContext)m.invoke(null,
-                                     classes.toArray(new Class<?>[classes.size()]),
+                                     classes.toArray(new Class<?>[0]),
                                      typeRefs,
                                      map.get(pfx + "subclassReplacements"),
                                      map.get(pfx + "defaultNamespaceRemap"),
@@ -341,31 +322,10 @@ public final class JAXBContextCache {
                 }
             }
         }
-        try {
-            ctx = AccessController.doPrivileged(new PrivilegedExceptionAction<JAXBContext>() {
-                public JAXBContext run() throws Exception {
-                    return JAXBContext.newInstance(classes.toArray(new Class<?>[classes.size()]), map);
-                }
-            });
-        } catch (PrivilegedActionException e2) {
-            if (e2.getException() instanceof JAXBException) {
-                JAXBException ex = (JAXBException)e2.getException();
-                if (map.containsKey("com.sun.xml.bind.defaultNamespaceRemap")
-                    && ex.getMessage() != null
-                    && ex.getMessage().contains("com.sun.xml.bind.defaultNamespaceRemap")) {
-                    map.put("com.sun.xml.internal.bind.defaultNamespaceRemap",
-                            map.remove("com.sun.xml.bind.defaultNamespaceRemap"));
-                    ctx = JAXBContext.newInstance(classes.toArray(new Class<?>[classes.size()]), map);
-                } else {
-                    throw ex;
-                }
-            } else {
-                throw new RuntimeException(e2.getException());
-            }
-        }
+        ctx = JAXBUtils.createContext(classes, map);
         return ctx;
     }
-    // Now we can not add all the classes that Jaxb needed into JaxbContext,
+    // Now we can not add all the classes that Jaxb needed into JaxbContext
     // especially when
     // an ObjectFactory is pointed to by an jaxb @XmlElementDecl annotation
     // added this workaround method to load the jaxb needed ObjectFactory class
@@ -402,17 +362,17 @@ public final class JAXBContextCache {
         } catch (Exception ex) {
             //ignore
         }
-        try (InputStream ins = loader.getResourceAsStream("/" + pkg.replace('.', '/') + "/jaxb.index");
+        try (InputStream ins = loader.getResourceAsStream('/' + pkg.replace('.', '/') + "/jaxb.index");
             BufferedReader reader = new BufferedReader(new InputStreamReader(ins, StandardCharsets.UTF_8))) {
             if (!StringUtils.isEmpty(pkg)) {
-                pkg += ".";
+                pkg += '.';
             }
 
             String line = reader.readLine();
             while (line != null) {
                 line = line.trim();
-                if (line.indexOf("#") != -1) {
-                    line = line.substring(0, line.indexOf("#"));
+                if (line.indexOf('#') != -1) {
+                    line = line.substring(0, line.indexOf('#'));
                 }
                 if (!StringUtils.isEmpty(line)) {
                     try {
@@ -429,5 +389,4 @@ public final class JAXBContextCache {
             //ignore
         }
     }
-
 }

@@ -26,8 +26,6 @@ import javax.wsdl.Definition;
 import javax.wsdl.WSDLException;
 import javax.wsdl.factory.WSDLFactory;
 
-//import org.w3c.dom.Document;
-
 import org.apache.cxf.aegis.AbstractAegisTest;
 import org.apache.cxf.aegis.type.map.fortest.MapTest;
 import org.apache.cxf.aegis.type.map.fortest.MapTestImpl;
@@ -39,6 +37,12 @@ import org.apache.cxf.jaxws.JaxWsServerFactoryBean;
 
 import org.junit.Before;
 import org.junit.Test;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
 /**
  *

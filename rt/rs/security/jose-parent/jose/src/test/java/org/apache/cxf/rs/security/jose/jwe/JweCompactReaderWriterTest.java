@@ -39,11 +39,13 @@ import org.apache.cxf.rt.security.crypto.CryptoUtils;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 
 import org.junit.AfterClass;
-import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-public class JweCompactReaderWriterTest extends Assert {
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
+
+public class JweCompactReaderWriterTest {
     // A1 example
     static final byte[] CONTENT_ENCRYPTION_KEY_A1 = {
         (byte)177, (byte)161, (byte)244, (byte)128, 84, (byte)143, (byte)225,
@@ -273,7 +275,7 @@ public class JweCompactReaderWriterTest extends Assert {
         RSAPublicKey publicKey = CryptoUtils.getRSAPublicKey(RSA_MODULUS_ENCODED_A1,
                                                              RSA_PUBLIC_EXPONENT_ENCODED_A1);
         SecretKey key = createSecretKey(createIfException);
-        String jwtKeyName = null;
+        final String jwtKeyName;
         if (key == null) {
             // the encryptor will generate it
             jwtKeyName = ContentAlgorithm.A128GCM.getJwaName();
@@ -319,4 +321,3 @@ public class JweCompactReaderWriterTest extends Assert {
         return key;
     }
 }
-

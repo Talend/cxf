@@ -40,18 +40,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-import javax.ws.rs.Consumes;
-import javax.ws.rs.Produces;
-import javax.ws.rs.WebApplicationException;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.MultivaluedMap;
-import javax.ws.rs.ext.Provider;
-import javax.xml.bind.JAXBElement;
-import javax.xml.bind.JAXBException;
-import javax.xml.bind.Marshaller;
-import javax.xml.bind.Unmarshaller;
-import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 import javax.xml.namespace.QName;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
@@ -59,6 +47,18 @@ import javax.xml.stream.XMLStreamWriter;
 
 import org.w3c.dom.Document;
 
+import jakarta.ws.rs.Consumes;
+import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.WebApplicationException;
+import jakarta.ws.rs.core.Context;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.MultivaluedMap;
+import jakarta.ws.rs.ext.Provider;
+import jakarta.xml.bind.JAXBElement;
+import jakarta.xml.bind.JAXBException;
+import jakarta.xml.bind.Marshaller;
+import jakarta.xml.bind.Unmarshaller;
+import jakarta.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 import org.apache.cxf.common.util.PropertyUtils;
 import org.apache.cxf.helpers.CastUtils;
 import org.apache.cxf.helpers.IOUtils;
@@ -98,7 +98,7 @@ public class JSONProvider<T> extends AbstractJAXBProvider<T>  {
     }
 
     private ConcurrentHashMap<String, String> namespaceMap =
-        new ConcurrentHashMap<String, String>();
+        new ConcurrentHashMap<>();
     private boolean serializeAsArray;
     private List<String> arrayKeys;
     private List<String> primitiveArrayKeys;
@@ -175,18 +175,6 @@ public class JSONProvider<T> extends AbstractJAXBProvider<T>  {
         wrapperMap = map;
     }
 
-    public void setEnableBuffering(boolean enableBuf) {
-        super.setEnableBuffering(enableBuf);
-    }
-
-    public void setConsumeMediaTypes(List<String> types) {
-        super.setConsumeMediaTypes(types);
-    }
-
-    public void setProduceMediaTypes(List<String> types) {
-        super.setProduceMediaTypes(types);
-    }
-
     public void setSerializeAsArray(boolean asArray) {
         this.serializeAsArray = asArray;
     }
@@ -233,7 +221,7 @@ public class JSONProvider<T> extends AbstractJAXBProvider<T>  {
             unmarshaller = createUnmarshaller(theType, genericType, isCollection);
             XMLStreamReader xsr = createReader(type, realStream, isCollection, enc);
 
-            Object response = null;
+            Object response;
             if (JAXBElement.class.isAssignableFrom(type)
                 || !isCollection && (unmarshalAsJaxbElement
                 || jaxbElementClassMap != null && jaxbElementClassMap.containsKey(theType.getName()))) {
@@ -284,7 +272,7 @@ public class JSONProvider<T> extends AbstractJAXBProvider<T>  {
 
     protected XMLStreamReader createReader(Class<?> type, InputStream is, String enc)
         throws Exception {
-        XMLStreamReader reader = null;
+        final XMLStreamReader reader;
         if (BADGER_FISH_CONVENTION.equals(convention)) {
             reader = JSONUtils.createBadgerFishReader(is, enc);
         } else {
@@ -296,9 +284,7 @@ public class JSONProvider<T> extends AbstractJAXBProvider<T>  {
                                                   getDepthProperties(),
                                                   enc);
         }
-        reader = createTransformReaderIfNeeded(reader, is);
-
-        return reader;
+        return createTransformReaderIfNeeded(reader, is);
     }
 
     protected InputStream getInputStream(Class<T> cls, Type type, InputStream is) throws Exception {
@@ -361,7 +347,7 @@ public class JSONProvider<T> extends AbstractJAXBProvider<T>  {
         MediaType m, MultivaluedMap<String, Object> headers, OutputStream os)
         throws IOException {
         if (os == null) {
-            StringBuilder sb = new StringBuilder();
+            StringBuilder sb = new StringBuilder(256);
             sb.append("Jettison needs initialized OutputStream");
             if (getContext() != null && getContext().getContent(XMLStreamWriter.class) == null) {
                 sb.append("; if you need to customize Jettison output with the custom XMLStreamWriter"
@@ -424,10 +410,10 @@ public class JSONProvider<T> extends AbstractJAXBProvider<T>  {
 
         Object firstObj = it.hasNext() ? it.next() : null;
 
-        String startTag = null;
-        String endTag = null;
+        final String startTag;
+        final String endTag;
         if (!dropCollectionWrapperElement) {
-            QName qname = null;
+            final QName qname;
             if (firstObj instanceof JAXBElement) {
                 JAXBElement<?> el = (JAXBElement<?>)firstObj;
                 qname = el.getName();
@@ -439,10 +425,10 @@ public class JSONProvider<T> extends AbstractJAXBProvider<T>  {
             if (!ignoreNamespaces) {
                 prefix = namespaceMap.get(qname.getNamespaceURI());
                 if (prefix != null) {
-                    if (prefix.length() > 0) {
+                    if (!prefix.isEmpty()) {
                         prefix += ".";
                     }
-                } else if (qname.getNamespaceURI().length() > 0) {
+                } else if (!qname.getNamespaceURI().isEmpty()) {
                     prefix = "ns1.";
                 }
             }
@@ -464,7 +450,7 @@ public class JSONProvider<T> extends AbstractJAXBProvider<T>  {
             marshalCollectionMember(JAXBUtils.useAdapter(firstObj, adapter, true),
                                     actualClass, genericType, encoding, os);
             while (it.hasNext()) {
-                os.write(",".getBytes());
+                os.write(',');
                 marshalCollectionMember(JAXBUtils.useAdapter(it.next(), adapter, true),
                                         actualClass, genericType, encoding, os);
             }
@@ -566,9 +552,9 @@ public class JSONProvider<T> extends AbstractJAXBProvider<T>  {
 
         if (ignoreNamespaces && rootIsArray && (theArrayKeys == null || dropRootInJsonStream)) {
             if (theArrayKeys == null) {
-                theArrayKeys = new LinkedList<String>();
+                theArrayKeys = new LinkedList<>();
             } else if (dropRootInJsonStream) {
-                theArrayKeys = new LinkedList<String>(theArrayKeys);
+                theArrayKeys = new LinkedList<>(theArrayKeys);
             }
             if (qname != null) {
                 theArrayKeys.add(qname.getLocalPart());
@@ -595,7 +581,7 @@ public class JSONProvider<T> extends AbstractJAXBProvider<T>  {
     }
 
     protected boolean isRootArray(List<String> theArrayKeys) {
-        return theArrayKeys != null ? true : getBooleanJsonProperty(ROOT_IS_ARRAY_PROPERTY, serializeAsArray);
+        return theArrayKeys != null || getBooleanJsonProperty(ROOT_IS_ARRAY_PROPERTY, serializeAsArray);
     }
 
 

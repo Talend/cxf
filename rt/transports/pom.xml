@@ -23,11 +23,11 @@
     <packaging>pom</packaging>
     <name>Apache CXF Transports Runtime</name>
     <description>Apache CXF Transports Runtime</description>
-    <url>http://cxf.apache.org</url>
+    <url>https://cxf.apache.org</url>
     <parent>
         <groupId>org.apache.cxf</groupId>
         <artifactId>cxf-rt</artifactId>
-        <version>3.2.5-SNAPSHOT</version>
+        <version>4.0.1-SNAPSHOT</version>
     </parent>
     <modules>
         <module>local</module>
@@ -35,10 +35,11 @@
         <module>http-jetty</module>
         <module>http-undertow</module>
         <module>http-hc</module>
+        <module>http-hc5</module>
         <module>http-netty/netty-server</module>
         <module>http-netty/netty-client</module>
-        <module>jms</module>
         <module>udp</module>
+        <module>jms</module>
         <module>websocket</module>
     </modules>
 </project>

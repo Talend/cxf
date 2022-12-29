@@ -24,18 +24,23 @@ import java.io.Serializable;
 import java.net.URL;
 
 import javax.naming.Reference;
-import javax.resource.Referenceable;
-import javax.resource.ResourceException;
-import javax.resource.spi.ConnectionManager;
-import javax.resource.spi.ManagedConnectionFactory;
 import javax.xml.namespace.QName;
 
+import jakarta.resource.Referenceable;
+import jakarta.resource.ResourceException;
+import jakarta.resource.spi.ConnectionManager;
+import jakarta.resource.spi.ManagedConnectionFactory;
+
 import org.easymock.EasyMock;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
-public class ConnectionFactoryImplTest extends Assert {
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+
+public class ConnectionFactoryImplTest {
 
     ManagedConnectionFactory mockConnectionFactory;
     ConnectionManager mockConnectionManager;
@@ -181,7 +186,7 @@ public class ConnectionFactoryImplTest extends Assert {
             cf.getConnection(param);
             fail("Expect exception on using of none interface class");
         } catch (ResourceException re) {
-            assertTrue(true);
+            // expected
         }
     }
 
@@ -192,7 +197,7 @@ public class ConnectionFactoryImplTest extends Assert {
             cf.getConnection(param);
             fail("Expect exception of no interface here");
         } catch (ResourceException re) {
-            assertTrue(true);
+            // expected
         }
     }
 

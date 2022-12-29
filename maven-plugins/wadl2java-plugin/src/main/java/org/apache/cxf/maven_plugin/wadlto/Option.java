@@ -36,12 +36,12 @@ public class Option {
      * A set of dependent files used to detect the generator must process WSDL, even
      * if generator marker files are up to date.
      */
-    File dependencies[];
+    File[] dependencies;
 
     /**
      * Redundant directories to be deleted after code generation
      */
-    File redundantDirs[];
+    File[] redundantDirs;
 
     /**
      * Extra arguments to pass to the command-line code generator. For compatibility as well as to
@@ -52,7 +52,7 @@ public class Option {
     /**
      * Specifies JAXB binding files. Use spaces to separate multiple entries.
      */
-    String bindingFiles[] = new String[0];
+    String[] bindingFiles = new String[0];
 
     /**
      * Specifies catalog file to map the imported wadl/schema
@@ -89,12 +89,18 @@ public class Option {
      *
      */
     private List<String> schemaPackagenames = new ArrayList<>();
+    
+    /**
+     * Specifies the library to use for JAX-RS 2.1 reactive extensions
+     */
+    private String rx;
+
 
     public Option() {
         super();
     }
 
-    public void setDependencies(File files[]) {
+    public void setDependencies(File[] files) {
         dependencies = files;
     }
 
@@ -102,7 +108,7 @@ public class Option {
         return dependencies;
     }
 
-    public void setDeleteDirs(File files[]) {
+    public void setDeleteDirs(File[] files) {
         redundantDirs = files;
     }
 
@@ -118,14 +124,14 @@ public class Option {
         outputDir = f;
     }
 
-    public void setBindingFiles(String files[]) {
+    public void setBindingFiles(String[] files) {
         bindingFiles = files;
     }
     public String[] getBindingFiles() {
         return bindingFiles;
     }
     public void addBindingFile(File file) {
-        String tmp[] = new String[bindingFiles.length + 1];
+        String[] tmp = new String[bindingFiles.length + 1];
         System.arraycopy(bindingFiles, 0, tmp, 0, bindingFiles.length);
         bindingFiles = tmp;
         bindingFiles[bindingFiles.length - 1] = file.getAbsolutePath();
@@ -164,7 +170,7 @@ public class Option {
     }
 
     public boolean isImpl() {
-        return generateImpl == null ? false : generateImpl;
+        return generateImpl != null && generateImpl;
     }
 
     public void setImpl(boolean impl) {
@@ -172,7 +178,7 @@ public class Option {
     }
 
     public boolean isInterface() {
-        return generateInterface == null ? false : generateInterface;
+        return generateInterface != null && generateInterface;
     }
 
     public void setInterface(boolean interf) {
@@ -188,6 +194,14 @@ public class Option {
         this.extraargs.addAll(ea);
     }
 
+    public String getRx() {
+        return rx;
+    }
+
+    public void setRx(String rx) {
+        this.rx = rx;
+    }
+    
     public void copyOptions(Option destination) {
         destination.setBindingFiles(getBindingFiles());
         destination.setCatalog(getCatalog());
@@ -197,9 +211,8 @@ public class Option {
         destination.setDependencies(getDependencies());
         destination.setOutputDir(getOutputDir());
         destination.setExtraargs(getExtraargs());
+        destination.setRx(getRx());
     }
-
-
 
     private <T> T setIfNull(T dest, T source) {
         if (dest == null) {
@@ -218,6 +231,7 @@ public class Option {
         dependencies = mergeList(dependencies, defaultOptions.dependencies, File.class);
         redundantDirs = mergeList(redundantDirs, defaultOptions.redundantDirs, File.class);
         schemaPackagenames.addAll(defaultOptions.schemaPackagenames);
+        rx = setIfNull(rx, defaultOptions.rx);
         extraargs.addAll(defaultOptions.extraargs);
     }
 
@@ -229,7 +243,7 @@ public class Option {
             return l1;
         }
         int len = l1.length + l2.length;
-        T ret[] = (T[])java.lang.reflect.Array.newInstance(cls, len);
+        T[] ret = (T[])java.lang.reflect.Array.newInstance(cls, len);
         System.arraycopy(l1, 0, ret, 0, l1.length);
         System.arraycopy(l2, 0, ret, l1.length, l2.length);
         return ret;

@@ -19,7 +19,6 @@
 
 package org.apache.cxf.systest.corba;
 
-
 import java.net.URL;
 import java.util.List;
 import java.util.Properties;
@@ -34,6 +33,8 @@ import org.apache.cxf.testutil.common.AbstractBusClientServerTestBase;
 
 import org.junit.Test;
 
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 public class CorbaBindingFactoryConfigurerTest extends AbstractBusClientServerTestBase {
 
@@ -57,9 +58,9 @@ public class CorbaBindingFactoryConfigurerTest extends AbstractBusClientServerTe
         CorbaBindingFactory factory =
             (CorbaBindingFactory)bfm.getBindingFactory("http://cxf.apache.org/bindings/corba");
         OrbConfig orbConfig = factory.getOrbConfig();
-        assertTrue("CorbaBindingFactoryConfigurer is null", orbConfig != null);
+        assertNotNull("CorbaBindingFactoryConfigurer is null", orbConfig);
         Properties props = orbConfig.getOrbProperties();
-        assertTrue("probs is null", props != null);
+        assertNotNull("probs is null", props);
         assertTrue("prob1 is not equal to value1",
                 "value1".equals(props.get("prop1")));
         assertTrue("prob2 is not equal to value2",
@@ -69,7 +70,7 @@ public class CorbaBindingFactoryConfigurerTest extends AbstractBusClientServerTe
         assertTrue("ORBSingletonClass is not equal to MyORBSingleton",
                 "com.orbimplco.MyORBSingleton".equals(props.get("org.omg.CORBA.ORBSingletonClass")));
         List <String> orbArgs = orbConfig.getOrbArgs();
-        assertTrue("orbArgs is null", orbArgs != null);
+        assertNotNull("orbArgs is null", orbArgs);
         String domainNameId = orbArgs.get(0);
         assertTrue("domainNameId is not equal to -ORBdomain_name",
                 "-ORBdomain_name".equals(domainNameId));

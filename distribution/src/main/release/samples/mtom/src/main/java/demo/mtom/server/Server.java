@@ -19,9 +19,9 @@
 
 package demo.mtom.server;
 
-import javax.xml.ws.Binding;
-import javax.xml.ws.Endpoint;
-import javax.xml.ws.soap.SOAPBinding;
+import jakarta.xml.ws.Binding;
+import jakarta.xml.ws.Endpoint;
+import jakarta.xml.ws.soap.SOAPBinding;
 
 public class Server {
 
@@ -34,7 +34,7 @@ public class Server {
         ((SOAPBinding)binding).setMTOMEnabled(true);
     }
 
-    public static void main(String args[]) throws Exception {
+    public static void main(String[] args) throws Exception {
         new Server();
         System.out.println("Server ready...");
 

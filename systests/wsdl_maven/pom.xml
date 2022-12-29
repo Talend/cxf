@@ -23,14 +23,14 @@
     <packaging>pom</packaging>
     <name>Apache CXF System Tests for Maven Plugins</name>
     <description>Apache CXF System Tests for Maven Plugins</description>
-    <url>http://cxf.apache.org</url>
+    <url>https://cxf.apache.org</url>
     <parent>
         <groupId>org.apache.cxf.systests</groupId>
         <artifactId>cxf-systests</artifactId>
-        <version>3.2.5-SNAPSHOT</version>
+        <version>4.0.1-SNAPSHOT</version>
     </parent>
     <modules>
-        <module>codegen</module>
         <module>java2ws</module>
+        <module>codegen</module>
     </modules>
 </project>

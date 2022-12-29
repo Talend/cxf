@@ -20,20 +20,22 @@ package org.apache.cxf.rs.security.oauth2.services;
 
 import java.util.logging.Logger;
 
-import javax.ws.rs.Consumes;
-import javax.ws.rs.Encoded;
-import javax.ws.rs.POST;
-import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.MultivaluedMap;
-import javax.ws.rs.core.SecurityContext;
-
+import jakarta.ws.rs.Consumes;
+import jakarta.ws.rs.Encoded;
+import jakarta.ws.rs.POST;
+import jakarta.ws.rs.Path;
+import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.core.Context;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.MultivaluedMap;
+import jakarta.ws.rs.core.SecurityContext;
 import org.apache.cxf.common.logging.LogUtils;
 import org.apache.cxf.common.util.StringUtils;
 import org.apache.cxf.jaxrs.ext.MessageContext;
 import org.apache.cxf.jaxrs.utils.ExceptionUtils;
+import org.apache.cxf.rs.security.jose.jwt.JoseJwtConsumer;
+import org.apache.cxf.rs.security.jose.jwt.JwtException;
+import org.apache.cxf.rs.security.jose.jwt.JwtToken;
 import org.apache.cxf.rs.security.oauth2.common.ServerAccessToken;
 import org.apache.cxf.rs.security.oauth2.common.TokenIntrospection;
 import org.apache.cxf.rs.security.oauth2.common.UserSubject;
@@ -49,12 +51,25 @@ public class TokenIntrospectionService {
     private boolean reportExtraTokenProperties = true;
     private MessageContext mc;
     private OAuthDataProvider dataProvider;
+    private JoseJwtConsumer jwtTokenConsumer;
+    private boolean persistJwtEncoding = true;
+
     @POST
     @Produces({MediaType.APPLICATION_JSON })
     @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
     public TokenIntrospection getTokenIntrospection(@Encoded MultivaluedMap<String, String> params) {
         checkSecurityContext();
         String tokenId = params.getFirst(OAuthConstants.TOKEN_ID);
+        if (!persistJwtEncoding) {
+            try {
+                JoseJwtConsumer theConsumer = jwtTokenConsumer == null ? new JoseJwtConsumer() : jwtTokenConsumer;
+                JwtToken token = theConsumer.getJwtToken(tokenId);
+                tokenId = token.getClaims().getTokenId();
+            } catch (JwtException ex) {
+                return new TokenIntrospection(false);
+            }
+        }
+
         ServerAccessToken at = dataProvider.getAccessToken(tokenId);
         if (at == null || OAuthUtils.isExpired(at.getIssuedAt(), at.getExpiresIn())) {
             return new TokenIntrospection(false);
@@ -82,7 +97,9 @@ public class TokenIntrospectionService {
         if (at.getExpiresIn() > 0) {
             response.setExp(at.getIssuedAt() + at.getExpiresIn());
         }
-
+        if (at.getNotBefore() > 0) {
+            response.setNbf(at.getNotBefore());
+        }
         response.setTokenType(at.getTokenType());
 
         if (reportExtraTokenProperties) {
@@ -125,4 +142,21 @@ public class TokenIntrospectionService {
     public void setReportExtraTokenProperties(boolean reportExtraTokenProperties) {
         this.reportExtraTokenProperties = reportExtraTokenProperties;
     }
+
+    public JoseJwtConsumer getJwtTokenConsumer() {
+        return jwtTokenConsumer;
+    }
+
+    public void setJwtTokenConsumer(JoseJwtConsumer jwtTokenConsumer) {
+        this.jwtTokenConsumer = jwtTokenConsumer;
+    }
+
+    public boolean isPersistJwtEncoding() {
+        return persistJwtEncoding;
+    }
+
+    public void setPersistJwtEncoding(boolean persistJwtEncoding) {
+        this.persistJwtEncoding = persistJwtEncoding;
+    }
+
 }

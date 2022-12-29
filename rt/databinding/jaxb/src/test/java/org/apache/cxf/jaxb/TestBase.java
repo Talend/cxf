@@ -24,12 +24,11 @@ import java.io.OutputStream;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 
-import javax.xml.bind.JAXBContext;
 import javax.xml.namespace.QName;
 import javax.xml.stream.XMLStreamReader;
 import javax.xml.stream.XMLStreamWriter;
 
-
+import jakarta.xml.bind.JAXBContext;
 import org.apache.cxf.Bus;
 import org.apache.cxf.BusFactory;
 import org.apache.cxf.binding.Binding;
@@ -55,13 +54,12 @@ import org.apache.hello_world_soap_http.types.GreetMeResponse;
 
 import org.easymock.IMocksControl;
 import org.junit.After;
-import org.junit.Assert;
 import org.junit.Before;
 
 import static org.easymock.EasyMock.createNiceControl;
 import static org.easymock.EasyMock.expect;
 
-public class TestBase extends Assert {
+public class TestBase {
 
     PhaseInterceptorChain chain;
     MessageImpl message;

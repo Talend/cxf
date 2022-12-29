@@ -34,6 +34,8 @@ import org.apache.wss4j.common.ConfigurationConstants;
 import org.junit.Before;
 import org.junit.Test;
 
+import static org.junit.Assert.assertEquals;
+
 public class RoundTripTest extends AbstractSecurityTest {
     private WSS4JInInterceptor wsIn;
     private WSS4JOutInterceptor wsOut;
@@ -96,16 +98,16 @@ public class RoundTripTest extends AbstractSecurityTest {
 
     @Test
     public void testEncryptionPlusSig() throws Exception {
-        wsIn.setProperty(ConfigurationConstants.ACTION, ConfigurationConstants.ENCRYPT + " "
+        wsIn.setProperty(ConfigurationConstants.ACTION, ConfigurationConstants.ENCRYPTION + " "
                                                     + ConfigurationConstants.SIGNATURE);
-        wsOut.setProperty(ConfigurationConstants.ACTION, ConfigurationConstants.ENCRYPT + " "
+        wsOut.setProperty(ConfigurationConstants.ACTION, ConfigurationConstants.ENCRYPTION + " "
                                                      + ConfigurationConstants.SIGNATURE);
 
         assertEquals("test", echo.echo("test"));
     }
     @Test
     public void testUsernameToken() throws Exception {
-        String actions = ConfigurationConstants.ENCRYPT + " " + ConfigurationConstants.SIGNATURE + " "
+        String actions = ConfigurationConstants.ENCRYPTION + " " + ConfigurationConstants.SIGNATURE + " "
                          + ConfigurationConstants.TIMESTAMP + " " + ConfigurationConstants.USERNAME_TOKEN;
 
         wsIn.setProperty(ConfigurationConstants.ACTION, actions);

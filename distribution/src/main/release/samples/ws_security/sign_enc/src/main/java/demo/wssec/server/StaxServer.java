@@ -23,8 +23,8 @@ import java.net.URL;
 import java.util.Properties;
 
 import javax.xml.namespace.QName;
-import javax.xml.ws.Endpoint;
 
+import jakarta.xml.ws.Endpoint;
 import org.apache.cxf.Bus;
 import org.apache.cxf.BusFactory;
 import org.apache.cxf.bus.spring.SpringBusFactory;
@@ -50,7 +50,7 @@ public class StaxServer {
         Endpoint.publish(address, implementor);
     }
 
-    public static void main(String args[]) throws Exception {
+    public static void main(String[] args) throws Exception {
 
         SpringBusFactory bf = new SpringBusFactory();
         URL busFile = Server.class.getResource("wssec.xml");
@@ -65,12 +65,12 @@ public class StaxServer {
         properties.addAction(WSSConstants.USERNAMETOKEN);
         properties.addAction(WSSConstants.TIMESTAMP);
         properties.addAction(WSSConstants.SIGNATURE);
-        properties.addAction(WSSConstants.ENCRYPT);
+        properties.addAction(WSSConstants.ENCRYPTION);
 
         properties.setUsernameTokenPasswordType(WSSConstants.UsernameTokenPasswordType.PASSWORD_TEXT);
         properties.setTokenUser("Alice");
-        properties.setSignatureUser("serverx509v1");
-        properties.setEncryptionUser("clientx509v1");
+        properties.setSignatureUser("morpit");
+        properties.setEncryptionUser("bethal");
 
         properties.setEncryptionCryptoProperties(sigVerCryptoProperties);
         properties.setEncryptionKeyIdentifier(
@@ -106,7 +106,7 @@ public class StaxServer {
         inProperties.addAction(WSSConstants.USERNAMETOKEN);
         inProperties.addAction(WSSConstants.TIMESTAMP);
         inProperties.addAction(WSSConstants.SIGNATURE);
-        inProperties.addAction(WSSConstants.ENCRYPT);
+        inProperties.addAction(WSSConstants.ENCRYPTION);
 
         inProperties.setCallbackHandler(new UTPasswordCallback());
         inProperties.setDecryptionCryptoProperties(decCryptoProperties);

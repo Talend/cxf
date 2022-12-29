@@ -19,24 +19,29 @@
 
 package org.apache.cxf.jaxrs.impl;
 
-import javax.ws.rs.core.EntityTag;
+import jakarta.ws.rs.core.EntityTag;
 
-import org.junit.Assert;
 import org.junit.Test;
 
-public class EntityTagHeaderProviderTest extends Assert {
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+
+public class EntityTagHeaderProviderTest {
 
 
     @Test
     public void testFromString() {
         EntityTag tag = EntityTag.valueOf("\"\"");
-        assertTrue(!tag.isWeak() && "".equals(tag.getValue()));
+        assertFalse(tag.isWeak() && "".equals(tag.getValue()));
         tag = EntityTag.valueOf("W/");
         assertTrue(tag.isWeak() && "".equals(tag.getValue()));
         tag = EntityTag.valueOf("W/\"12345\"");
         assertTrue(tag.isWeak() && "12345".equals(tag.getValue()));
         tag = EntityTag.valueOf("\"12345\"");
         assertTrue(!tag.isWeak() && "12345".equals(tag.getValue()));
+        tag = EntityTag.valueOf("\"wyoBLW/ye71RgN/0LNyj4eA5rfE1ovtlM03aakuGr2Y=\"");
+        assertTrue(!tag.isWeak() && "wyoBLW/ye71RgN/0LNyj4eA5rfE1ovtlM03aakuGr2Y=".equals(tag.getValue()));
     }
 
     @Test

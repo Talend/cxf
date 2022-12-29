@@ -18,12 +18,14 @@
  */
 package org.apache.cxf.systest.jaxrs.sse;
 
+import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.Set;
 
-import javax.ws.rs.core.Application;
+import com.fasterxml.jackson.jakarta.rs.json.JacksonJsonProvider;
 
-import com.fasterxml.jackson.jaxrs.json.JacksonJsonProvider;
+import jakarta.ws.rs.core.Application;
 
 public class SseApplication extends Application {
     @Override
@@ -33,6 +35,8 @@ public class SseApplication extends Application {
 
     @Override
     public Set<Object> getSingletons() {
-        return Collections.singleton(new JacksonJsonProvider());
+        return new HashSet<>(Arrays.asList(
+            new JacksonJsonProvider(),
+            new BookStoreResponseFilter()));
     }
 }

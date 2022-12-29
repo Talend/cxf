@@ -34,6 +34,8 @@ import org.apache.wss4j.common.WSS4JConstants;
 import org.apache.wss4j.common.derivedKey.P_SHA1;
 import org.apache.wss4j.common.ext.WSSecurityException;
 import org.apache.wss4j.dom.util.WSSecurityUtil;
+import org.apache.xml.security.exceptions.XMLSecurityException;
+import org.apache.xml.security.stax.ext.XMLSecurityConstants;
 
 /**
  * Some common functionality relating to parsing and generating Symmetric Keys.
@@ -42,7 +44,7 @@ public class SymmetricKeyHandler {
 
     private static final Logger LOG = LogUtils.getL7dLogger(SymmetricKeyHandler.class);
 
-    private int keySize = 256;
+    private int keySize;
     private Entropy clientEntropy;
     private byte[] entropyBytes;
     private byte[] secret;
@@ -51,7 +53,7 @@ public class SymmetricKeyHandler {
     public SymmetricKeyHandler(TokenProviderParameters tokenParameters) {
         KeyRequirements keyRequirements = tokenParameters.getKeyRequirements();
 
-        keySize = Long.valueOf(keyRequirements.getKeySize()).intValue();
+        keySize = (int)keyRequirements.getKeySize();
         STSPropertiesMBean stsProperties = tokenParameters.getStsProperties();
         SignatureProperties signatureProperties = stsProperties.getSignatureProperties();
 
@@ -77,7 +79,7 @@ public class SymmetricKeyHandler {
         // Test KeySize
         if (keySize < signatureProperties.getMinimumKeySize()
             || keySize > signatureProperties.getMaximumKeySize()) {
-            keySize = Long.valueOf(signatureProperties.getKeySize()).intValue();
+            keySize = (int)signatureProperties.getKeySize();
             LOG.log(
                 Level.WARNING, "Received KeySize of " + keyRequirements.getKeySize()
                 + " not accepted so defaulting to " + signatureProperties.getKeySize()
@@ -167,9 +169,9 @@ public class SymmetricKeyHandler {
 
         if (generateEntropy) {
             try {
-                entropyBytes = WSSecurityUtil.generateNonce(keySize / 8);
+                entropyBytes = XMLSecurityConstants.generateBytes(keySize / 8);
                 secret = entropyBytes;
-            } catch (WSSecurityException ex) {
+            } catch (XMLSecurityException ex) {
                 LOG.log(Level.WARNING, "", ex);
                 throw new STSException("Error in creating symmetric key", ex, STSException.INVALID_REQUEST);
             }

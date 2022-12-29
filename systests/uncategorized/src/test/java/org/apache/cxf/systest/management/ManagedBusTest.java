@@ -38,10 +38,15 @@ import org.apache.cxf.workqueue.WorkQueueManager;
 import org.apache.hello_world_soap_http.Greeter;
 import org.apache.hello_world_soap_http.GreeterImpl;
 
-import org.junit.Assert;
 import org.junit.Test;
 
-public class ManagedBusTest extends Assert {
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+
+public class ManagedBusTest {
     public static final String JMX_PORT1 = TestUtil.getPortNumber(ManagedBusTest.class, 1);
     public static final String JMX_PORT2 = TestUtil.getPortNumber(ManagedBusTest.class, 3);
     public static final String SERVICE_PORT = TestUtil.getPortNumber(ManagedBusTest.class, 4);
@@ -93,9 +98,7 @@ public class ManagedBusTest extends Assert {
         assertNotNull(im);
 
         InstrumentationManagerImpl imi = (InstrumentationManagerImpl)im;
-        assertEquals("service:jmx:rmi:///jndi/rmi://localhost:9913/jmxrmi",
-                     imi.getJMXServiceURL());
-        assertTrue(!imi.isEnabled());
+        assertFalse(imi.isEnabled());
         assertNull(imi.getMBeanServer());
 
         //Test that registering without an MBeanServer is a no-op
@@ -122,8 +125,6 @@ public class ManagedBusTest extends Assert {
         InstrumentationManager im = bus.getExtension(InstrumentationManager.class);
         assertNotNull(im);
         InstrumentationManagerImpl imi = (InstrumentationManagerImpl)im;
-        assertEquals("service:jmx:rmi:///jndi/rmi://localhost:" + port + "/jmxrmi",
-                     imi.getJMXServiceURL());
         assertTrue(imi.isEnabled());
         assertNotNull(imi.getMBeanServer());
 
@@ -140,7 +141,7 @@ public class ManagedBusTest extends Assert {
                        o.toString().indexOf("bus.id=" + expect + ",") != -1);
             assertTrue("unexpected " + reject + " in object name: " + o,
                        o.toString().indexOf("bus.id=" + reject + ",") == -1);
-            b.append("\n");
+            b.append('\n');
         }
         assertEquals("Size is wrong: " + b.toString(), 1, s.size());
 
@@ -157,7 +158,7 @@ public class ManagedBusTest extends Assert {
                        o.toString().indexOf("bus.id=" + expect + ",") != -1);
             assertTrue("unexpected " + reject + " in object name: " + o,
                        o.toString().indexOf("bus.id=" + reject + ",") == -1);
-            b.append("\n");
+            b.append('\n');
         }
         assertEquals("Size is wrong: " + b.toString(), 2, s.size());
 

@@ -80,10 +80,11 @@ public final class AttributeInfo implements ItemInfo {
     /**
      * Fill in an AttributeInfo for an attribute or anyAttribute from a sequence.
      *
-     * @param sequenceElement
+     * @param sequenceObject
      * @param currentSchema
      * @param schemaCollection
      * @param prefixAccumulator
+     * @param contextName
      * @return
      */
     public static AttributeInfo forLocalItem(XmlSchemaObject sequenceObject,
@@ -169,7 +170,7 @@ public final class AttributeInfo implements ItemInfo {
                 if (attributeInfo.type == null
                     && !element.getSchemaTypeName()
                             .getNamespaceURI().equals(Constants.URI_2001_SCHEMA_XSD)) {
-                    JavascriptUtils.unsupportedConstruct("MISSING_TYPE", element.getSchemaTypeName()
+                    throw JavascriptUtils.unsupportedConstruct("MISSING_TYPE", element.getSchemaTypeName()
                             .toString(), element.getQName(), element);
                 }
             }

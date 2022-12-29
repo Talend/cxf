@@ -22,12 +22,13 @@ package org.apache.cxf.ws.security.policy.interceptors;
 import java.security.NoSuchAlgorithmException;
 import java.time.Instant;
 import java.time.ZoneOffset;
-import java.util.Base64;
 import java.util.logging.Logger;
 
 import javax.xml.stream.XMLStreamException;
 import javax.xml.transform.dom.DOMSource;
 
+import org.apache.xml.security.exceptions.XMLSecurityException;
+import org.apache.xml.security.stax.ext.XMLSecurityConstants;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -56,6 +57,7 @@ import org.apache.wss4j.common.token.SecurityTokenReference;
 import org.apache.wss4j.common.util.DateUtil;
 import org.apache.wss4j.dom.message.token.SecurityContextToken;
 import org.apache.wss4j.dom.util.WSSecurityUtil;
+import org.apache.xml.security.utils.XMLUtils;
 
 /**
  * An abstract Invoker used by the Spnego and SecureConversationInInterceptors.
@@ -78,7 +80,7 @@ abstract class STSInvoker implements Invoker {
         MessageContentsList lst = (MessageContentsList)o;
         DOMSource src = (DOMSource)lst.get(0);
         Node nd = src.getNode();
-        Element requestEl = null;
+        final Element requestEl;
         if (nd instanceof Document) {
             requestEl = ((Document)nd).getDocumentElement();
         } else {
@@ -184,7 +186,7 @@ abstract class STSInvoker implements Invoker {
 
     private SecurityToken findCancelOrRenewToken(Exchange exchange, Element el) throws WSSecurityException {
         Element childElement = DOMUtils.getFirstElement(el);
-        String uri = "";
+        final String uri;
         if ("SecurityContextToken".equals(childElement.getLocalName())) {
             SecurityContextToken sct = new SecurityContextToken(childElement);
             uri = sct.getIdentifier();
@@ -204,19 +206,25 @@ abstract class STSInvoker implements Invoker {
         byte[] clientEntropy,
         int keySize
     ) throws NoSuchAlgorithmException, WSSecurityException, XMLStreamException {
-        byte secret[] = null;
+        final byte[] secret;
         writer.writeStartElement(prefix, "RequestedProofToken", namespace);
+        byte[] randomBytes = null;
+        try {
+            randomBytes = XMLSecurityConstants.generateBytes(keySize / 8);
+        } catch (XMLSecurityException e) {
+            throw new WSSecurityException(WSSecurityException.ErrorCode.FAILURE, e);
+        }
+
         if (clientEntropy == null) {
-            secret = WSSecurityUtil.generateNonce(keySize / 8);
+            secret = randomBytes;
 
             writer.writeStartElement(prefix, "BinarySecret", namespace);
             writer.writeAttribute("Type", namespace + "/Nonce");
-            writer.writeCharacters(Base64.getMimeEncoder().encodeToString(secret));
+            writer.writeCharacters(XMLUtils.encodeToString(secret));
             writer.writeEndElement();
         } else {
-            byte entropy[] = WSSecurityUtil.generateNonce(keySize / 8);
             P_SHA1 psha1 = new P_SHA1();
-            secret = psha1.createKey(clientEntropy, entropy, 0, keySize / 8);
+            secret = psha1.createKey(clientEntropy, randomBytes, 0, keySize / 8);
 
             writer.writeStartElement(prefix, "ComputedKey", namespace);
             writer.writeCharacters(namespace + "/CK/PSHA1");
@@ -226,7 +234,7 @@ abstract class STSInvoker implements Invoker {
             writer.writeStartElement(prefix, "Entropy", namespace);
             writer.writeStartElement(prefix, "BinarySecret", namespace);
             writer.writeAttribute("Type", namespace + "/Nonce");
-            writer.writeCharacters(Base64.getMimeEncoder().encodeToString(entropy));
+            writer.writeCharacters(XMLUtils.encodeToString(randomBytes));
             writer.writeEndElement();
 
         }

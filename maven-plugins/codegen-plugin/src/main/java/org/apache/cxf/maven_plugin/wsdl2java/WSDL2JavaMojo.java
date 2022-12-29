@@ -38,7 +38,7 @@ import org.apache.cxf.Bus;
 import org.apache.cxf.BusFactory;
 import org.apache.cxf.common.classloader.ClassLoaderUtils;
 import org.apache.cxf.helpers.CastUtils;
-import org.apache.cxf.maven_plugin.AbstractCodegenMoho;
+import org.apache.cxf.maven_plugin.AbstractCodegenMojo;
 import org.apache.cxf.maven_plugin.GenericWsdlOption;
 import org.apache.cxf.tools.common.ToolContext;
 import org.apache.cxf.tools.common.ToolErrorListener;
@@ -54,7 +54,7 @@ import org.sonatype.plexus.build.incremental.BuildContext;
 
 @Mojo(name = "wsdl2java", defaultPhase = LifecyclePhase.GENERATE_SOURCES, threadSafe = true,
       requiresDependencyResolution = ResolutionScope.TEST)
-public class WSDL2JavaMojo extends AbstractCodegenMoho {
+public class WSDL2JavaMojo extends AbstractCodegenMojo {
 
     final class MavenToolErrorListener extends ToolErrorListener {
         private final List<File> errorfiles;
@@ -140,7 +140,7 @@ public class WSDL2JavaMojo extends AbstractCodegenMoho {
      * If you have not enabled wsdl scanning, these options call out the wsdls to process.
      */
     @Parameter
-    WsdlOption wsdlOptions[];
+    WsdlOption[] wsdlOptions;
 
     /**
      * Default options to be used when a wsdl has not had it's options explicitly specified.
@@ -223,7 +223,7 @@ public class WSDL2JavaMojo extends AbstractCodegenMoho {
         } else if (wsdlOption.isDefServiceName()) {
             doWork = true;
         } else {
-            URI dependencies[] = wsdlOption.getDependencyURIs(project
+            URI[] dependencies = wsdlOption.getDependencyURIs(project
                     .getBasedir().toURI());
             if (dependencies != null) {
                 for (int z = 0; z < dependencies.length; ++z) {
@@ -238,23 +238,13 @@ public class WSDL2JavaMojo extends AbstractCodegenMoho {
         if (!doWork) {
             URI basedir = project.getBasedir().toURI();
             String options = wsdlOption.generateCommandLine(null, basedir, wsdlURI, false).toString();
-            DataInputStream reader = null;
-            try {
-                reader = new DataInputStream(Files.newInputStream(doneFile.toPath()));
+            try (DataInputStream reader = new DataInputStream(Files.newInputStream(doneFile.toPath()))) {
                 String s = reader.readUTF();
                 if (!options.equals(s)) {
                     doWork = true;
                 }
             } catch (Exception ex) {
                 //ignore
-            } finally {
-                if (reader != null) {
-                    try {
-                        reader.close();
-                    } catch (IOException e) {
-                        //ignore
-                    }
-                }
             }
         }
         return doWork;
@@ -376,11 +366,11 @@ public class WSDL2JavaMojo extends AbstractCodegenMoho {
             list.add(0, "-encoding");
             list.add(1, encoding);
         }
-        String[] args = list.toArray(new String[list.size()]);
+        String[] args = list.toArray(new String[0]);
         getLog().debug("Calling wsdl2java with args: " + Arrays.toString(args));
 
         if (!"false".equals(fork)) {
-            Set<URI> artifactsPath = new LinkedHashSet<URI>();
+            Set<URI> artifactsPath = new LinkedHashSet<>();
             for (Artifact a : pluginArtifacts) {
                 File file = a.getFile();
                 if (file == null) {

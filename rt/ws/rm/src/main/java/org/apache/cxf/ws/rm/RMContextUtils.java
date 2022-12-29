@@ -73,7 +73,7 @@ public final class RMContextUtils {
         if (outbound) {
             return (RMProperties)message.get(getRMPropertiesKey(true));
         }
-        Message m = null;
+        Message m;
         if (MessageUtils.isOutbound(message)) {
             // the in properties are only available on the in message
             m = message.getExchange().getInMessage();
@@ -126,7 +126,6 @@ public final class RMContextUtils {
      * @param isOutbound true if the message is outbound
      * @param isRequestor true if the current messaging role is that of
      *            requestor
-     * @param handler true if HANDLER scope, APPLICATION scope otherwise
      */
     public static void storeMAPs(AddressingProperties maps, Message message, boolean isOutbound,
                                  boolean isRequestor) {

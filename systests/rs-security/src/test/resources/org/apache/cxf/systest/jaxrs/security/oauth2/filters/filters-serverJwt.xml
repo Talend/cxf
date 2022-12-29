@@ -27,12 +27,12 @@ under the License.
     xmlns:util="http://www.springframework.org/schema/util"
     xsi:schemaLocation="http://cxf.apache.org/jaxrs http://cxf.apache.org/schemas/jaxrs.xsd
              http://cxf.apache.org/core http://cxf.apache.org/schemas/core.xsd
-             http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-4.2.xsd
+             http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
              http://www.springframework.org/schema/util  http://www.springframework.org/schema/util/spring-util-4.2.xsd
              http://cxf.apache.org/transports/http/configuration http://cxf.apache.org/schemas/configuration/http-conf.xsd
              http://cxf.apache.org/transports/http-jetty/configuration http://cxf.apache.org/schemas/configuration/http-jetty.xsd 
              http://cxf.apache.org/configuration/security http://cxf.apache.org/schemas/configuration/security.xsd">
-    <bean class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer"/>
+    <bean class="org.springframework.context.support.PropertySourcesPlaceholderConfigurer"/>
     <cxf:bus>
         <cxf:features>
             <cxf:logging/>
@@ -64,7 +64,7 @@ under the License.
    
    <bean id="serviceBean" class="org.apache.cxf.systest.jaxrs.security.jose.BookStore"/>
    
-   <bean id="jackson" class="com.fasterxml.jackson.jaxrs.json.JacksonJsonProvider"/>
+   <bean id="jackson" class="com.fasterxml.jackson.jakarta.rs.json.JacksonJsonProvider"/>
     
    <bean id="tvServiceClientFactory" class="org.apache.cxf.jaxrs.client.JAXRSClientFactoryBean">
          <property name="address" value="https://localhost:${testutil.ports.jaxrs-oauth2-serviceJwt}/services/validate"/>
@@ -161,7 +161,26 @@ under the License.
             <entry key="rs.security.signature.in.properties" value="org/apache/cxf/systest/jaxrs/security/alice.rs.properties"/>
        </jaxrs:properties>
    </jaxrs:server>
-   
+
+   <bean id="jwsJwksJwtAccessTokenValidator" class="org.apache.cxf.rs.security.oauth2.filters.JwsJwksJwtAccessTokenValidator">
+       <property name="jwksURL" value="https://localhost:${testutil.ports.jaxrs-oauth2-serviceJwt}/services/keys"/>
+   </bean>
+
+   <bean id="oAuthFilterJwsJwksValidation" class="org.apache.cxf.rs.security.oauth2.filters.OAuthRequestFilter">
+       <property name="tokenValidator" ref="jwsJwksJwtAccessTokenValidator"/>
+   </bean>
+
+   <jaxrs:server 
+       depends-on="tls-config" 
+       address="https://localhost:${testutil.ports.jaxrs-oauth2-filtersJwt}/securedJwsJwksValidation">
+       <jaxrs:serviceBeans>
+           <ref bean="serviceBean"/>
+       </jaxrs:serviceBeans>
+       <jaxrs:providers>
+           <ref bean="oAuthFilterJwsJwksValidation"/>
+       </jaxrs:providers>
+   </jaxrs:server>
+
    <http:conduit name="https://localhost.*">
         <http:client ConnectionTimeout="3000000" ReceiveTimeout="3000000"/>
         <http:tlsClientParameters disableCNCheck="true">

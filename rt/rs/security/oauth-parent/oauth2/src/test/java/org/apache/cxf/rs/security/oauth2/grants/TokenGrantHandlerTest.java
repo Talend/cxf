@@ -21,9 +21,8 @@ package org.apache.cxf.rs.security.oauth2.grants;
 import java.util.Arrays;
 import java.util.List;
 
-import javax.ws.rs.WebApplicationException;
-import javax.ws.rs.core.MultivaluedMap;
-
+import jakarta.ws.rs.WebApplicationException;
+import jakarta.ws.rs.core.MultivaluedMap;
 import org.apache.cxf.jaxrs.impl.MetadataMap;
 import org.apache.cxf.rs.security.oauth2.common.Client;
 import org.apache.cxf.rs.security.oauth2.common.ServerAccessToken;
@@ -31,10 +30,13 @@ import org.apache.cxf.rs.security.oauth2.provider.OAuthServiceException;
 import org.apache.cxf.rs.security.oauth2.tokens.bearer.BearerAccessToken;
 import org.apache.cxf.rs.security.oauth2.utils.OAuthConstants;
 
-import org.junit.Assert;
 import org.junit.Test;
 
-public class TokenGrantHandlerTest extends Assert {
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+
+public class TokenGrantHandlerTest {
 
 
 
@@ -74,7 +76,7 @@ public class TokenGrantHandlerTest extends Assert {
     }
 
     private MultivaluedMap<String, String> createMap(String grant) {
-        MultivaluedMap<String, String> map = new MetadataMap<String, String>();
+        MultivaluedMap<String, String> map = new MetadataMap<>();
         map.putSingle(OAuthConstants.GRANT_TYPE, grant);
         return map;
     }

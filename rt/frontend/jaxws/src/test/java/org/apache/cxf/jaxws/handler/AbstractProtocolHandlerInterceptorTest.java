@@ -22,17 +22,15 @@ package org.apache.cxf.jaxws.handler;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.xml.ws.Binding;
-import javax.xml.ws.handler.Handler;
-import javax.xml.ws.handler.MessageContext;
-
+import jakarta.xml.ws.Binding;
+import jakarta.xml.ws.handler.Handler;
+import jakarta.xml.ws.handler.MessageContext;
 import org.apache.cxf.message.AbstractWrappedMessage;
 import org.apache.cxf.message.Exchange;
 import org.apache.cxf.message.Message;
 
 import org.easymock.IMocksControl;
 import org.junit.After;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -40,8 +38,9 @@ import static org.easymock.EasyMock.createNiceControl;
 import static org.easymock.EasyMock.eq;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.isA;
+import static org.junit.Assert.assertEquals;
 
-public class AbstractProtocolHandlerInterceptorTest extends Assert {
+public class AbstractProtocolHandlerInterceptorTest {
 
     private IMocksControl control;
     private Binding binding;

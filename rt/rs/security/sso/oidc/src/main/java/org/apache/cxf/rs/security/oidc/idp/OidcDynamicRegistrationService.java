@@ -18,12 +18,11 @@
  */
 package org.apache.cxf.rs.security.oidc.idp;
 
-import java.util.LinkedList;
+import java.util.Arrays;
 import java.util.List;
 
 import org.apache.cxf.rs.security.oauth2.common.Client;
 import org.apache.cxf.rs.security.oauth2.services.ClientRegistration;
-import org.apache.cxf.rs.security.oauth2.services.ClientRegistrationResponse;
 import org.apache.cxf.rs.security.oauth2.services.DynamicRegistrationService;
 
 public class OidcDynamicRegistrationService extends DynamicRegistrationService {
@@ -36,14 +35,8 @@ public class OidcDynamicRegistrationService extends DynamicRegistrationService {
         Client client = super.createNewClient(request);
         List<String> postLogoutUris = request.getListStringProperty(POST_LOGOUT_LOGOUT_URIS);
         if (postLogoutUris != null) {
-            StringBuilder sb = new StringBuilder();
-            for (String uri : postLogoutUris) {
-                if (sb.length() > 0) {
-                    sb.append(" ");
-                }
-                sb.append(uri);
-            }
-            client.getProperties().put(POST_LOGOUT_LOGOUT_URIS, sb.toString());
+            client.getProperties().put(POST_LOGOUT_LOGOUT_URIS,
+                                       String.join(" ", postLogoutUris));
         }
         String backChannelLogoutUri = request.getStringProperty(BACK_CHANNEL_LOGOUT_URI);
         if (backChannelLogoutUri != null) {
@@ -53,20 +46,11 @@ public class OidcDynamicRegistrationService extends DynamicRegistrationService {
     }
 
     @Override
-    protected ClientRegistrationResponse fromClientToRegistrationResponse(Client client) {
-        return super.fromClientToRegistrationResponse(client);
-    }
-
-    @Override
     protected ClientRegistration fromClientToClientRegistration(Client client) {
         ClientRegistration resp = super.fromClientToClientRegistration(client);
         String logoutUris = client.getProperties().get(POST_LOGOUT_LOGOUT_URIS);
         if (logoutUris != null) {
-            List<String> list = new LinkedList<String>();
-            for (String s : logoutUris.split(" ")) { 
-                list.add(s);
-            }
-            resp.setProperty(POST_LOGOUT_LOGOUT_URIS, list);
+            resp.setProperty(POST_LOGOUT_LOGOUT_URIS, Arrays.asList(logoutUris.split(" ")));
         }
         return resp;
     }

@@ -21,32 +21,32 @@ package org.apache.cxf.transport.servlet;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Enumeration;
 import java.util.HashMap;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Properties;
 import java.util.ResourceBundle;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
+import java.util.stream.Stream;
 
-import javax.servlet.Filter;
-import javax.servlet.FilterConfig;
-import javax.servlet.RequestDispatcher;
-import javax.servlet.ServletConfig;
-import javax.servlet.ServletContext;
-import javax.servlet.ServletException;
-import javax.servlet.ServletOutputStream;
-import javax.servlet.ServletRequest;
-import javax.servlet.ServletResponse;
-import javax.servlet.http.HttpServlet;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletRequestWrapper;
-import javax.servlet.http.HttpServletResponse;
-
+import jakarta.servlet.Filter;
+import jakarta.servlet.FilterConfig;
+import jakarta.servlet.RequestDispatcher;
+import jakarta.servlet.ServletConfig;
+import jakarta.servlet.ServletContext;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.ServletRequest;
+import jakarta.servlet.ServletResponse;
+import jakarta.servlet.http.HttpServlet;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequestWrapper;
+import jakarta.servlet.http.HttpServletResponse;
 import org.apache.cxf.Bus;
 import org.apache.cxf.common.classloader.ClassLoaderUtils;
 import org.apache.cxf.common.i18n.BundleUtils;
@@ -107,7 +107,7 @@ public abstract class AbstractHTTPServlet extends HttpServlet implements Filter 
     private String dispatcherServletName;
     private Map<String, String> redirectAttributes;
     private Map<String, String> staticContentTypes =
-        new HashMap<String, String>(DEFAULT_STATIC_CONTENT_TYPES);
+        new HashMap<>(DEFAULT_STATIC_CONTENT_TYPES);
     private boolean redirectQueryCheck;
     private boolean useXForwardedHeaders;
 
@@ -180,14 +180,13 @@ public abstract class AbstractHTTPServlet extends HttpServlet implements Filter 
 
     protected static List<Pattern> parseListSequence(String values) {
         if (values != null) {
-            List<Pattern> list = new LinkedList<Pattern>();
-            String[] pathValues = StringUtils.split(values, " ");
-            for (String value : pathValues) {
-                String theValue = value.trim();
-                if (theValue.length() > 0) {
-                    list.add(Pattern.compile(theValue));
+            List<Pattern> list = new ArrayList<>();
+            for (String value : values.split("\\s")) {
+                if (!value.isEmpty()) {
+                    list.add(Pattern.compile(value));
                 }
             }
+            ((ArrayList<?>)list).trimToSize();
             return list;
         }
         return null;
@@ -197,17 +196,14 @@ public abstract class AbstractHTTPServlet extends HttpServlet implements Filter 
         if (sequence != null) {
             sequence = sequence.trim();
             Map<String, String> map = new HashMap<>();
-            String[] pairs = StringUtils.split(sequence, " ");
-            for (String pair : pairs) {
-                String thePair = pair.trim();
-                if (thePair.length() == 0) {
-                    continue;
-                }
-                String[] value = StringUtils.split(thePair, "=");
-                if (value.length == 2) {
-                    map.put(value[0].trim(), value[1].trim());
-                } else {
-                    map.put(thePair, "");
+            for (String pair : sequence.split("\\s")) {
+                if (!pair.isEmpty()) {
+                    String[] value = pair.split("=");
+                    if (value.length == 2) {
+                        map.put(value[0], value[1]);
+                    } else {
+                        map.put(pair, "");
+                    }
                 }
             }
             return map;
@@ -248,11 +244,17 @@ public abstract class AbstractHTTPServlet extends HttpServlet implements Filter 
         throws ServletException, IOException {
         handleRequest(request, response);
     }
+    
+    @Override
+    protected void doTrace(HttpServletRequest request, HttpServletResponse response)
+        throws ServletException, IOException {
+        handleRequest(request, response);
+    }
 
     /**
      * {@inheritDoc}
      *
-     * javax.http.servlet.HttpServlet does not let to override the code which deals with
+     * jakarta.http.servlet.HttpServlet does not let to override the code which deals with
      * unrecognized HTTP verbs such as PATCH (being standardized), WebDav ones, etc.
      * Thus we let CXF servlets process unrecognized HTTP verbs directly, otherwise we delegate
      * to HttpService
@@ -282,16 +284,16 @@ public abstract class AbstractHTTPServlet extends HttpServlet implements Filter 
     protected void handleRequest(HttpServletRequest request, HttpServletResponse response)
         throws ServletException {
         if ((dispatcherServletPath != null || dispatcherServletName != null)
-            && (redirectList != null && matchPath(redirectList, request)
+            && (redirectList != null && matchPath(redirectQueryCheck, redirectList, request)
                 || redirectList == null)) {
             // if no redirectList is provided then this servlet is redirecting only
             redirect(request, response, request.getPathInfo());
             return;
         }
         boolean staticResourcesMatch = staticResourcesList != null
-            && matchPath(staticResourcesList, request);
+            && matchPath(false, staticResourcesList, request);
         boolean staticWelcomeFileMatch = staticWelcomeFile != null
-            && (StringUtils.isEmpty(request.getPathInfo()) || request.getPathInfo().equals("/"));
+            && (StringUtils.isEmpty(request.getPathInfo()) || "/".equals(request.getPathInfo()));
         if (staticResourcesMatch || staticWelcomeFileMatch) {
             serveStaticContent(request, response,
                                staticWelcomeFileMatch ? staticWelcomeFile : request.getPathInfo());
@@ -308,7 +310,10 @@ public abstract class AbstractHTTPServlet extends HttpServlet implements Filter 
             String originalPrefix = request.getHeader(X_FORWARDED_PREFIX_HEADER);
             String originalHost = request.getHeader(X_FORWARDED_HOST_HEADER);
             String originalPort = request.getHeader(X_FORWARDED_PORT_HEADER);
-            if (originalProtocol != null || originalRemoteAddr != null) {
+            
+            // If at least one of the X-Forwarded-Xxx headers is set, try to use them
+            if (Stream.of(originalProtocol, originalRemoteAddr, originalPrefix, 
+                    originalHost, originalPort).anyMatch(Objects::nonNull)) {
                 return new HttpServletRequestXForwardedFilter(request, 
                                                               originalProtocol, 
                                                               originalRemoteAddr,
@@ -323,14 +328,14 @@ public abstract class AbstractHTTPServlet extends HttpServlet implements Filter 
     }
 
 
-    private boolean matchPath(List<Pattern> values, HttpServletRequest request) {
+    private static boolean matchPath(boolean checkRedirect, List<Pattern> values, HttpServletRequest request) {
         String path = request.getPathInfo();
         if (path == null) {
             path = "/";
         }
-        if (redirectQueryCheck) {
+        if (checkRedirect) {
             String queryString = request.getQueryString();
-            if (queryString != null && queryString.length() > 0) {
+            if (queryString != null && !queryString.isEmpty()) {
                 path += "?" + queryString;
             }
         }
@@ -347,13 +352,12 @@ public abstract class AbstractHTTPServlet extends HttpServlet implements Filter 
     protected void serveStaticContent(HttpServletRequest request,
                                       HttpServletResponse response,
                                       String pathInfo) throws ServletException {
-        InputStream is = getResourceAsStream(pathInfo);
-        if (is == null) {
-            throw new ServletException("Static resource " + pathInfo + " is not available");
-        }
-        try {
-            int ind = pathInfo.lastIndexOf(".");
-            if (ind != -1 && ind < pathInfo.length()) {
+        try (InputStream is = getResourceAsStream(pathInfo)) {
+            if (is == null) {
+                throw new ServletException("Static resource " + pathInfo + " is not available");
+            }
+            int ind = pathInfo.lastIndexOf('.');
+            if (ind > 0) {
                 String type = getStaticResourceContentType(pathInfo.substring(ind + 1));
                 if (type != null) {
                     response.setContentType(type);
@@ -363,9 +367,7 @@ public abstract class AbstractHTTPServlet extends HttpServlet implements Filter 
             if (cacheControl != null) {
                 response.setHeader("Cache-Control", cacheControl.trim());
             }
-            ServletOutputStream os = response.getOutputStream();
-            IOUtils.copyAndCloseInput(is, os);
-            os.flush();
+            IOUtils.copy(is, response.getOutputStream());
         } catch (IOException ex) {
             throw new ServletException("Static resource " + pathInfo
                                        + " can not be written to the output stream");
@@ -480,14 +482,20 @@ public abstract class AbstractHTTPServlet extends HttpServlet implements Filter 
                                            String originalPort) {
             super(request);
             this.newProtocol = originalProto;
-            if (newRemoteAddr != null) {
+            if (originalRemoteAddr != null) {
                 newRemoteAddr = (originalRemoteAddr.split(",")[0]).trim();
             }
             newRequestUri = calculateNewRequestUri(request, originalPrefix);
+            // Although per Mozilla documentation 
+            // (https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-Forwarded-Host) 
+            // it should contain one value, Apache's mod_proxy says the comma separated list could 
+            // be returned (http://httpd.apache.org/docs/2.2/mod/mod_proxy.html). We don't need
+            // more than 2 components.
+            String outermostHost = originalHost != null ? (originalHost.split(",", 2)[0]).trim() : originalHost;
             newRequestUrl = calculateNewRequestUrl(request, 
                                                    originalProto, 
                                                    originalPrefix,
-                                                   originalHost,
+                                                   outermostHost,
                                                    originalPort);
             newContextPath = calculateNewContextPath(request, originalPrefix);
             newServletPath = calculateNewServletPath(request, originalPrefix);

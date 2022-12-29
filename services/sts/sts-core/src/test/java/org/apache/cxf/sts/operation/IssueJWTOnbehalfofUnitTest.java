@@ -19,7 +19,6 @@
 package org.apache.cxf.sts.operation;
 
 import java.security.cert.X509Certificate;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -27,12 +26,12 @@ import java.util.Map;
 import java.util.Properties;
 
 import javax.security.auth.callback.CallbackHandler;
-import javax.xml.bind.JAXBElement;
 import javax.xml.namespace.QName;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
+import jakarta.xml.bind.JAXBElement;
 import org.apache.cxf.jaxws.context.WrappedMessageContext;
 import org.apache.cxf.message.MessageImpl;
 import org.apache.cxf.rs.security.jose.jws.JwsJwtCompactConsumer;
@@ -44,7 +43,7 @@ import org.apache.cxf.sts.STSPropertiesMBean;
 import org.apache.cxf.sts.StaticSTSProperties;
 import org.apache.cxf.sts.common.PasswordCallbackHandler;
 import org.apache.cxf.sts.request.KeyRequirements;
-import org.apache.cxf.sts.request.ReceivedKey;
+import org.apache.cxf.sts.request.ReceivedCredential;
 import org.apache.cxf.sts.request.TokenRequirements;
 import org.apache.cxf.sts.service.EncryptionProperties;
 import org.apache.cxf.sts.service.ServiceMBean;
@@ -53,14 +52,12 @@ import org.apache.cxf.sts.token.delegation.SAMLDelegationHandler;
 import org.apache.cxf.sts.token.delegation.TokenDelegationHandler;
 import org.apache.cxf.sts.token.delegation.UsernameTokenDelegationHandler;
 import org.apache.cxf.sts.token.provider.SAMLTokenProvider;
-import org.apache.cxf.sts.token.provider.TokenProvider;
 import org.apache.cxf.sts.token.provider.TokenProviderParameters;
 import org.apache.cxf.sts.token.provider.TokenProviderResponse;
 import org.apache.cxf.sts.token.provider.jwt.JWTTokenProvider;
 import org.apache.cxf.sts.token.realm.RealmProperties;
 import org.apache.cxf.sts.token.validator.IssuerSAMLRealmCodec;
 import org.apache.cxf.sts.token.validator.SAMLTokenValidator;
-import org.apache.cxf.sts.token.validator.TokenValidator;
 import org.apache.cxf.sts.token.validator.UsernameTokenValidator;
 import org.apache.cxf.ws.security.sts.provider.STSException;
 import org.apache.cxf.ws.security.sts.provider.model.OnBehalfOfType;
@@ -80,10 +77,15 @@ import org.apache.wss4j.common.principal.CustomTokenPrincipal;
 
 import org.junit.Assert;
 
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+
 /**
  * Issue JWT tokens on behalf of other tokens.
  */
-public class IssueJWTOnbehalfofUnitTest extends org.junit.Assert {
+public class IssueJWTOnbehalfofUnitTest {
 
     public static final QName REQUESTED_SECURITY_TOKEN =
         QNameConstants.WS_TRUST_FACTORY.createRequestedSecurityToken(null).getName();
@@ -96,14 +98,12 @@ public class IssueJWTOnbehalfofUnitTest extends org.junit.Assert {
         TokenIssueOperation issueOperation = new TokenIssueOperation();
 
         // Add Token Provider
-        List<TokenProvider> providerList = new ArrayList<>();
-        providerList.add(new JWTTokenProvider());
-        issueOperation.setTokenProviders(providerList);
+        issueOperation.setTokenProviders(Collections.singletonList(
+            new JWTTokenProvider()));
 
         // Add Token Validator
-        List<TokenValidator> validatorList = new ArrayList<>();
-        validatorList.add(new SAMLTokenValidator());
-        issueOperation.setTokenValidators(validatorList);
+        issueOperation.setTokenValidators(Collections.singletonList(
+            new SAMLTokenValidator()));
 
         // Add Service
         ServiceMBean service = new StaticService();
@@ -156,7 +156,7 @@ public class IssueJWTOnbehalfofUnitTest extends org.junit.Assert {
             issueOperation.issue(request, null, msgCtx);
         List<RequestSecurityTokenResponseType> securityTokenResponse =
             response.getRequestSecurityTokenResponse();
-        assertTrue(!securityTokenResponse.isEmpty());
+        assertFalse(securityTokenResponse.isEmpty());
 
         // Test the generated token.
         Element token = null;
@@ -186,14 +186,12 @@ public class IssueJWTOnbehalfofUnitTest extends org.junit.Assert {
         TokenIssueOperation issueOperation = new TokenIssueOperation();
 
         // Add Token Provider
-        List<TokenProvider> providerList = new ArrayList<>();
-        providerList.add(new JWTTokenProvider());
-        issueOperation.setTokenProviders(providerList);
+        issueOperation.setTokenProviders(Collections.singletonList(
+            new JWTTokenProvider()));
 
         // Add Token Validator
-        List<TokenValidator> validatorList = new ArrayList<>();
-        validatorList.add(new UsernameTokenValidator());
-        issueOperation.setTokenValidators(validatorList);
+        issueOperation.setTokenValidators(Collections.singletonList(
+            new UsernameTokenValidator()));
 
         // Add Service
         ServiceMBean service = new StaticService();
@@ -253,7 +251,7 @@ public class IssueJWTOnbehalfofUnitTest extends org.junit.Assert {
             issueOperation.issue(request, null, msgCtx);
         List<RequestSecurityTokenResponseType> securityTokenResponse =
             response.getRequestSecurityTokenResponse();
-        assertTrue(!securityTokenResponse.isEmpty());
+        assertFalse(securityTokenResponse.isEmpty());
 
         // Test the generated token.
         Element token = null;
@@ -284,20 +282,16 @@ public class IssueJWTOnbehalfofUnitTest extends org.junit.Assert {
         TokenIssueOperation issueOperation = new TokenIssueOperation();
 
         // Add Token Provider
-        List<TokenProvider> providerList = new ArrayList<>();
         JWTTokenProvider tokenProvider = new JWTTokenProvider();
-        providerList.add(tokenProvider);
-        issueOperation.setTokenProviders(providerList);
+        issueOperation.setTokenProviders(Collections.singletonList(tokenProvider));
 
         TokenDelegationHandler delegationHandler = new SAMLDelegationHandler();
         issueOperation.setDelegationHandlers(Collections.singletonList(delegationHandler));
 
         // Add Token Validator
-        List<TokenValidator> validatorList = new ArrayList<>();
         SAMLTokenValidator samlTokenValidator = new SAMLTokenValidator();
         samlTokenValidator.setSamlRealmCodec(new IssuerSAMLRealmCodec());
-        validatorList.add(samlTokenValidator);
-        issueOperation.setTokenValidators(validatorList);
+        issueOperation.setTokenValidators(Collections.singletonList(samlTokenValidator));
 
         // Add Service
         ServiceMBean service = new StaticService();
@@ -354,7 +348,7 @@ public class IssueJWTOnbehalfofUnitTest extends org.junit.Assert {
             issueOperation.issue(request, null, msgCtx);
         List<RequestSecurityTokenResponseType> securityTokenResponse =
             response.getRequestSecurityTokenResponse();
-        assertTrue(!securityTokenResponse.isEmpty());
+        assertFalse(securityTokenResponse.isEmpty());
 
         // Test the generated token.
         Element token = null;
@@ -404,7 +398,7 @@ public class IssueJWTOnbehalfofUnitTest extends org.junit.Assert {
             providerParameters.setRealm("A");
         }
         TokenProviderResponse providerResponse = samlTokenProvider.createToken(providerParameters);
-        assertTrue(providerResponse != null);
+        assertNotNull(providerResponse);
         assertTrue(providerResponse.getToken() != null && providerResponse.getTokenId() != null);
 
         return (Element)providerResponse.getToken();
@@ -426,9 +420,9 @@ public class IssueJWTOnbehalfofUnitTest extends org.junit.Assert {
         CryptoType cryptoType = new CryptoType(CryptoType.TYPE.ALIAS);
         cryptoType.setAlias("myclientkey");
         X509Certificate[] certs = crypto.getX509Certificates(cryptoType);
-        ReceivedKey receivedKey = new ReceivedKey();
-        receivedKey.setX509Cert(certs[0]);
-        keyRequirements.setReceivedKey(receivedKey);
+        ReceivedCredential receivedCredential = new ReceivedCredential();
+        receivedCredential.setX509Cert(certs[0]);
+        keyRequirements.setReceivedCredential(receivedCredential);
 
         parameters.setKeyRequirements(keyRequirements);
 

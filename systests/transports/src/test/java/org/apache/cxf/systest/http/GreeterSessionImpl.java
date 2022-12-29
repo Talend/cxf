@@ -22,18 +22,16 @@ package org.apache.cxf.systest.http;
 import java.util.concurrent.Future;
 import java.util.logging.Logger;
 
-import javax.annotation.Resource;
-import javax.jws.WebService;
-import javax.servlet.http.Cookie;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpSession;
-import javax.xml.ws.AsyncHandler;
-import javax.xml.ws.Response;
-import javax.xml.ws.WebServiceContext;
-import javax.xml.ws.WebServiceException;
-import javax.xml.ws.handler.MessageContext;
-
-
+import jakarta.annotation.Resource;
+import jakarta.jws.WebService;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpSession;
+import jakarta.xml.ws.AsyncHandler;
+import jakarta.xml.ws.Response;
+import jakarta.xml.ws.WebServiceContext;
+import jakarta.xml.ws.WebServiceException;
+import jakarta.xml.ws.handler.MessageContext;
 import org.apache.cxf.common.logging.LogUtils;
 import org.apache.cxf.greeter_control.Greeter;
 import org.apache.cxf.greeter_control.types.GreetMeResponse;
@@ -59,7 +57,7 @@ public class GreeterSessionImpl implements Greeter {
         LOG.info("Message received: " + me);
         MessageContext mc = context.getMessageContext();
         HttpServletRequest req = (HttpServletRequest)mc.get(MessageContext.SERVLET_REQUEST);
-        Cookie cookies[] = req.getCookies();
+        Cookie[] cookies = req.getCookies();
         String val = "";
         if (cookies != null) {
             for (Cookie cookie : cookies) {

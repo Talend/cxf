@@ -18,7 +18,7 @@
  */
 package org.apache.cxf.performance.basic_type.server;
 
-import javax.xml.ws.Endpoint;
+import jakarta.xml.ws.Endpoint;
 
 
 public class Server implements Runnable {
@@ -35,7 +35,7 @@ public class Server implements Runnable {
         this("http://localhost:20000/performance/basic_type/SoapPort");
     }
 
-    public static void main(String args[]) throws Exception {
+    public static void main(String[] args) throws Exception {
         Server server = new Server(args);
         server.run();
     }

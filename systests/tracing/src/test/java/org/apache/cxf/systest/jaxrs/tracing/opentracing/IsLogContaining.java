@@ -18,13 +18,13 @@
  */
 package org.apache.cxf.systest.jaxrs.tracing.opentracing;
 
-import com.uber.jaeger.LogData;
-
 import org.hamcrest.Description;
 import org.hamcrest.TypeSafeMatcher;
-import org.hamcrest.core.IsCollectionContaining;
+import org.hamcrest.core.IsIterableContaining;
 
-public class IsLogContaining extends IsCollectionContaining<LogData> {
+import io.jaegertracing.internal.LogData;
+
+public class IsLogContaining extends IsIterableContaining<LogData> {
     public IsLogContaining(final String value) {
         super(new TypeSafeMatcher<LogData>() {
             @Override

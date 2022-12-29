@@ -22,8 +22,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.logging.Logger;
 
-import javax.resource.ResourceException;
-
+import jakarta.resource.ResourceException;
 import org.apache.cxf.common.logging.LogUtils;
 import org.apache.cxf.jca.cxf.CXFInvocationHandlerData;
 
@@ -60,16 +59,12 @@ public class InvokingInvocationHandler extends CXFInvocationHandlerBase {
         getData().getManagedConnection().close(handle);
     }
 
-    private Object invokeTargetMethod(Object proxy, Method method, Object args[]) throws Throwable {
-
-        Object ret = null;
-
+    private Object invokeTargetMethod(Object proxy, Method method, Object[] args) throws Throwable {
         try {
-            ret = method.invoke(getData().getTarget(), args);
+            return method.invoke(getData().getTarget(), args);
         } catch (InvocationTargetException ite) {
             throw ite.getTargetException();
         }
-        return ret;
     }
 
 }

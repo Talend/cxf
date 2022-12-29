@@ -119,7 +119,7 @@ public class CorbaStreamOutEndingInterceptor extends AbstractPhaseInterceptor<Me
             QName idlType = param.getIdltype();
 
             QName paramName;
-            CorbaObjectHandler obj = null;
+            final CorbaObjectHandler obj;
             if (param.getMode().equals(ModeType.OUT)) {
                 if (wrap) {
                     paramName = new QName(wrapNSUri, param.getName());
@@ -138,9 +138,9 @@ public class CorbaStreamOutEndingInterceptor extends AbstractPhaseInterceptor<Me
             }
             CorbaStreamable streamable = message.createStreamableObject(obj, paramName);
             ModeType paramMode = param.getMode();
-            if (paramMode.value().equals("in")) {
+            if ("in".equals(paramMode.value())) {
                 streamable.setMode(org.omg.CORBA.ARG_IN.value);
-            } else if (paramMode.value().equals("inout")) {
+            } else if ("inout".equals(paramMode.value())) {
                 streamable.setMode(org.omg.CORBA.ARG_INOUT.value);
             } // default mode is out
             message.addStreamableArgument(streamable);
@@ -179,7 +179,7 @@ public class CorbaStreamOutEndingInterceptor extends AbstractPhaseInterceptor<Me
             ParamType param = iter.next();
             QName idlType = param.getIdltype();
             QName paramName;
-            CorbaObjectHandler obj = null;
+            final CorbaObjectHandler obj;
             if (param.getMode().equals(ModeType.IN)) {
                 if (wrap) {
                     paramName = new QName(wrapNSUri, param.getName());
@@ -198,11 +198,11 @@ public class CorbaStreamOutEndingInterceptor extends AbstractPhaseInterceptor<Me
             }
             CorbaStreamable streamable = message.createStreamableObject(obj, paramName);
             ModeType paramMode = param.getMode();
-            if (paramMode.value().equals("in")) {
+            if ("in".equals(paramMode.value())) {
                 streamable.setMode(org.omg.CORBA.ARG_IN.value);
-            } else if (paramMode.value().equals("inout")) {
+            } else if ("inout".equals(paramMode.value())) {
                 streamable.setMode(org.omg.CORBA.ARG_INOUT.value);
-            } else if (paramMode.value().equals("out")) {
+            } else if ("out".equals(paramMode.value())) {
                 streamable.setMode(org.omg.CORBA.ARG_OUT.value);
             }
             message.addStreamableArgument(streamable);

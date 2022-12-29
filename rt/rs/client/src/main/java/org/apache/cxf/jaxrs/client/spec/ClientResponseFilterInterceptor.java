@@ -23,13 +23,12 @@ import java.io.InputStream;
 import java.util.List;
 import java.util.Map;
 
-import javax.ws.rs.ProcessingException;
-import javax.ws.rs.client.ClientRequestContext;
-import javax.ws.rs.client.ClientResponseContext;
-import javax.ws.rs.client.ClientResponseFilter;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.ResponseBuilder;
-
+import jakarta.ws.rs.client.ClientRequestContext;
+import jakarta.ws.rs.client.ClientResponseContext;
+import jakarta.ws.rs.client.ClientResponseFilter;
+import jakarta.ws.rs.client.ResponseProcessingException;
+import jakarta.ws.rs.core.Response;
+import jakarta.ws.rs.core.Response.ResponseBuilder;
 import org.apache.cxf.interceptor.AbstractInDatabindingInterceptor;
 import org.apache.cxf.interceptor.Fault;
 import org.apache.cxf.jaxrs.client.ClientProviderFactory;
@@ -54,18 +53,27 @@ public class ClientResponseFilterInterceptor extends AbstractInDatabindingInterc
 
         List<ProviderInfo<ClientResponseFilter>> filters = pf.getClientResponseFilters();
         if (!filters.isEmpty()) {
-            ClientRequestContext reqContext = new ClientRequestContextImpl(inMessage.getExchange().getOutMessage(),
-                                                                        true);
-
-            ClientResponseContext respContext =
-                new ClientResponseContextImpl((ResponseImpl)getResponse(inMessage),
-                                              inMessage);
+            final ClientRequestContext reqContext = new ClientRequestContextImpl(
+                inMessage.getExchange().getOutMessage(), true);
+            final ResponseImpl response = (ResponseImpl)getResponse(inMessage);
+            final ClientResponseContext respContext = new ClientResponseContextImpl(response, inMessage);
             for (ProviderInfo<ClientResponseFilter> filter : filters) {
                 InjectionUtils.injectContexts(filter.getProvider(), filter, inMessage);
                 try {
                     filter.getProvider().filter(reqContext, respContext);
-                } catch (IOException ex) {
-                    throw new ProcessingException(ex);
+                } catch (RuntimeException | IOException ex) {
+                    // Complete the IN chain, if we won't set it, the AbstractClient::preProcessResult
+                    // would be stuck waiting for the IN chain completion.
+                    if (!inMessage.getExchange().isOneWay()) {
+                        synchronized (inMessage.getExchange()) {
+                            inMessage.getExchange().put("IN_CHAIN_COMPLETE", Boolean.TRUE);
+                        }
+                    }
+                    
+                    // When a provider method throws an exception, the JAX-RS client runtime will map 
+                    // it to an instance of ResponseProcessingException if thrown while processing 
+                    // a response (4.5.2 Client Runtime).
+                    throw new ResponseProcessingException(response, ex);
                 }
             }
         }

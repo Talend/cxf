@@ -22,15 +22,16 @@ package org.apache.cxf.jaxrs.ext.multipart;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.activation.DataHandler;
-import javax.mail.util.ByteArrayDataSource;
-
+import jakarta.activation.DataHandler;
+import jakarta.mail.util.ByteArrayDataSource;
 import org.apache.cxf.jaxrs.impl.MetadataMap;
 
-import org.junit.Assert;
 import org.junit.Test;
 
-public class MultipartBodyTest extends Assert {
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
+
+public class MultipartBodyTest {
 
     @Test
     public void testGetAttachments() {

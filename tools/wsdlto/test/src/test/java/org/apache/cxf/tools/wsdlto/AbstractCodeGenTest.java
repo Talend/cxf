@@ -41,7 +41,7 @@ public abstract class AbstractCodeGenTest extends ProcessorTestBase {
     public ExternalResource envRule = new ExternalResource() {
         protected void before() throws Throwable {
             File classFile = tmpDir.newFolder("classes");
-            classFile.mkdir();
+
             classLoader = new URLClassLoader(new URL[] {classFile.toURI().toURL()},
                                              Thread.currentThread().getContextClassLoader());
             env.put(ToolConstants.CFG_COMPILE, ToolConstants.CFG_COMPILE);
@@ -63,9 +63,6 @@ public abstract class AbstractCodeGenTest extends ProcessorTestBase {
     @Before
     public void setUp() throws Exception {
         processor = new JAXWSContainer(null);
-        if (System.getProperty("java.version").startsWith("9")) {
-            System.setProperty("org.apache.cxf.common.util.Compiler-fork", "true");
-        }
     }
 
     @After

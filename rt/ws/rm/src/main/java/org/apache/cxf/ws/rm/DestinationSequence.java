@@ -60,7 +60,7 @@ public class DestinationSequence extends AbstractSequence {
     private EndpointReferenceType acksTo;
     private long lastMessageNumber;
     private SequenceMonitor monitor;
-    private boolean acknowledgeOnNextOccasion;
+    private volatile boolean acknowledgeOnNextOccasion;
     private boolean terminated;
     private List<DeferredAcknowledgment> deferredAcknowledgments;
     private SequenceTermination scheduledTermination;
@@ -69,7 +69,7 @@ public class DestinationSequence extends AbstractSequence {
     private volatile long highNumberCompleted;
     private long nextInOrder;
     //be careful, must be used in sync block
-    private Map<Long, Continuation> continuations = new TreeMap<Long, Continuation>();
+    private Map<Long, Continuation> continuations = new TreeMap<>();
     // this map is used for robust and redelivery tracking. for redelivery it holds the beingDeliverd messages
     private Set<Long> deliveringMessageNumbers = new HashSet<>();
 
@@ -128,9 +128,9 @@ public class DestinationSequence extends AbstractSequence {
     public void acknowledge(Message message) throws SequenceFault {
         RMProperties rmps = RMContextUtils.retrieveRMProperties(message, false);
         SequenceType st = rmps.getSequence();
-        long messageNumber = st.getMessageNumber().longValue();
+        long messageNumber = st.getMessageNumber();
         LOG.fine("Acknowledging message: " + messageNumber);
-        if (0 != lastMessageNumber && messageNumber > lastMessageNumber) {
+        if (0L != lastMessageNumber && messageNumber > lastMessageNumber) {
             RMConstants consts = getProtocol().getConstants();
             SequenceFaultFactory sff = new SequenceFaultFactory(consts);
             throw sff.createSequenceTerminatedFault(st.getIdentifier(), false);
@@ -150,13 +150,13 @@ public class DestinationSequence extends AbstractSequence {
                     break;
                 }
                 long diff = r.getLower() - messageNumber;
-                if (diff == 1) {
+                if (diff == 1L) {
                     r.setLower(messageNumber);
                     updated = true;
                     done = true;
-                } else if (diff > 0) {
+                } else if (diff > 0L) {
                     break;
-                } else if (messageNumber - r.getUpper().longValue() == 1) {
+                } else if (messageNumber - r.getUpper() == 1L) {
                     r.setUpper(messageNumber);
                     updated = true;
                     done = true;

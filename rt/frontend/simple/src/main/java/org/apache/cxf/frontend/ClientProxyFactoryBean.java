@@ -124,10 +124,9 @@ public class ClientProxyFactoryBean extends AbstractBasicInterceptorProvider {
      */
     public synchronized Object create() {
         ClassLoaderHolder orig = null;
-        ClassLoader loader = null;
         try {
             if (getBus() != null) {
-                loader = getBus().getExtension(ClassLoader.class);
+                ClassLoader loader = getBus().getExtension(ClassLoader.class);
                 if (loader != null) {
                     orig = ClassLoaderUtils.setThreadContextClassloader(loader);
                 }
@@ -172,7 +171,7 @@ public class ClientProxyFactoryBean extends AbstractBasicInterceptorProvider {
 
             ClientProxy handler = clientClientProxy(c);
 
-            Class<?> classes[] = getImplementingClasses();
+            Class<?>[] classes = getImplementingClasses();
             Object obj = ProxyHelper.getProxy(getClassLoader(clientFactoryBean.getServiceClass()),
                                               classes,
                                               handler);
@@ -201,7 +200,7 @@ public class ClientProxyFactoryBean extends AbstractBasicInterceptorProvider {
 
     protected Class<?>[] getImplementingClasses() {
         Class<?> cls = clientFactoryBean.getServiceClass();
-        return new Class[] {cls, Closeable.class, Client.class};
+        return new Class[] {Closeable.class, Client.class, cls};
     }
 
     protected ClientProxy clientClientProxy(Client c) {

@@ -45,6 +45,8 @@ import org.apache.wss4j.stax.ext.WSSSecurityProperties;
 
 import org.junit.Test;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
 
 /**
  * In these test-cases, the client is using DOM and the service is using StaX.
@@ -219,7 +221,7 @@ public class DOMToStaxSamlTest extends AbstractSecurityTest {
         try {
             echo.echo("test");
             fail("Failure expected on receiving sender vouches instead of HOK");
-        } catch (javax.xml.ws.soap.SOAPFaultException ex) {
+        } catch (jakarta.xml.ws.soap.SOAPFaultException ex) {
             // expected
         }
 
@@ -269,7 +271,7 @@ public class DOMToStaxSamlTest extends AbstractSecurityTest {
         try {
             echo.echo("test");
             fail("Failure expected on receiving sender vouches instead of HOK");
-        } catch (javax.xml.ws.soap.SOAPFaultException ex) {
+        } catch (jakarta.xml.ws.soap.SOAPFaultException ex) {
             // expected
         }
         validator.setRequireSenderVouches(false);
@@ -277,7 +279,7 @@ public class DOMToStaxSamlTest extends AbstractSecurityTest {
         try {
             echo.echo("test");
             fail("Failure expected on receiving a SAML 1.1 Token instead of SAML 2.0");
-        } catch (javax.xml.ws.soap.SOAPFaultException ex) {
+        } catch (jakarta.xml.ws.soap.SOAPFaultException ex) {
             // expected
         }
         validator.setRequireSAML1Assertion(false);

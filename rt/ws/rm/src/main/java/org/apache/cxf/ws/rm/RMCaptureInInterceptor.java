@@ -28,13 +28,13 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Logger;
 
-import javax.xml.soap.SOAPException;
-import javax.xml.soap.SOAPMessage;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
 import javax.xml.stream.XMLStreamWriter;
 import javax.xml.transform.stream.StreamSource;
 
+import jakarta.xml.soap.SOAPException;
+import jakarta.xml.soap.SOAPMessage;
 import org.apache.cxf.common.logging.LogUtils;
 import org.apache.cxf.interceptor.Fault;
 import org.apache.cxf.interceptor.StaxInInterceptor;
@@ -216,9 +216,7 @@ public class RMCaptureInInterceptor extends AbstractRMInterceptor<Message> {
         private CachedOutputStream removeUnnecessarySoapHeaders(CachedOutputStream saved) {
             CachedOutputStream newSaved = new CachedOutputStream();
 
-            InputStream is = null;
-            try {
-                is = saved.getInputStream();
+            try (InputStream is = saved.getInputStream()) {
                 XMLStreamWriter capture = StaxUtils.createXMLStreamWriter(newSaved,
                                                                           StandardCharsets.UTF_8.name());
                 Map<String, String> map = new HashMap<>();
@@ -242,17 +240,8 @@ public class RMCaptureInInterceptor extends AbstractRMInterceptor<Message> {
                 // hold temp file, otherwise it will be deleted in case msg was written to RMTxStore
                 // or resend was executed
                 newSaved.holdTempFile();
-                is.close();
             } catch (IOException | XMLStreamException e) {
                 throw new Fault(e);
-            } finally {
-                if (null != is) {
-                    try {
-                        is.close();
-                    } catch (IOException e) {
-                        // Ignore
-                    }
-                }
             }
             return newSaved;
         }

@@ -31,7 +31,7 @@ public final class TokenStoreUtils {
         // complete
     }
 
-    public static TokenStore getTokenStore(Message message) {
+    public static TokenStore getTokenStore(Message message) throws TokenStoreException {
         EndpointInfo info = message.getExchange().getEndpoint().getEndpointInfo();
         synchronized (info) {
             TokenStore tokenStore =
@@ -41,20 +41,21 @@ public final class TokenStoreUtils {
             }
             if (tokenStore == null) {
                 TokenStoreFactory tokenStoreFactory = TokenStoreFactory.newInstance();
-                String cacheKey = SecurityConstants.TOKEN_STORE_CACHE_INSTANCE;
+                StringBuilder cacheKey = new StringBuilder(SecurityConstants.TOKEN_STORE_CACHE_INSTANCE);
                 String cacheIdentifier =
                     (String)message.getContextualProperty(SecurityConstants.CACHE_IDENTIFIER);
                 if (cacheIdentifier != null) {
-                    cacheKey += "-" + cacheIdentifier;
-                } else if (info.getName() != null) {
-                    int hashcode = info.getName().toString().hashCode();
-                    if (hashcode < 0) {
-                        cacheKey += hashcode;
-                    } else {
-                        cacheKey += "-" + hashcode;
-                    }
+                    cacheKey.append('-').append(cacheIdentifier);
                 }
-                tokenStore = tokenStoreFactory.newTokenStore(cacheKey, message);
+                if (info.getName() != null) {
+                    int hashcode = info.getName().toString().hashCode();
+                    if (hashcode >= 0) {
+                        cacheKey.append('-');
+                    }
+                    cacheKey.append(hashcode);
+                }
+
+                tokenStore = tokenStoreFactory.newTokenStore(cacheKey.toString(), message);
                 info.setProperty(SecurityConstants.TOKEN_STORE_CACHE_INSTANCE, tokenStore);
             }
             return tokenStore;

@@ -25,12 +25,12 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import javax.jws.WebMethod;
-import javax.jws.WebParam;
-import javax.jws.WebResult;
-import javax.jws.WebService;
 import javax.management.ObjectName;
 
+import jakarta.jws.WebMethod;
+import jakarta.jws.WebParam;
+import jakarta.jws.WebResult;
+import jakarta.jws.WebService;
 import org.apache.cxf.common.logging.LogUtils;
 import org.apache.cxf.wsn.util.IdGenerator;
 import org.oasis_open.docs.wsn.b_2.CreatePullPointResponse;
@@ -52,7 +52,7 @@ public abstract class AbstractCreatePullPoint extends AbstractEndpoint
     public AbstractCreatePullPoint(String name) {
         super(name);
         idGenerator = new IdGenerator();
-        pullPoints = new ConcurrentHashMap<String, AbstractPullPoint>();
+        pullPoints = new ConcurrentHashMap<>();
     }
     @Override
     public ObjectName getMBeanName() {

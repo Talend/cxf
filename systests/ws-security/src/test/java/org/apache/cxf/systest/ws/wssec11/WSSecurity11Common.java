@@ -25,8 +25,8 @@ import java.net.MalformedURLException;
 import java.net.URL;
 
 import javax.xml.namespace.QName;
-import javax.xml.ws.BindingProvider;
 
+import jakarta.xml.ws.BindingProvider;
 import org.apache.cxf.Bus;
 import org.apache.cxf.BusFactory;
 import org.apache.cxf.bus.spring.SpringBusFactory;
@@ -35,6 +35,7 @@ import org.apache.cxf.ws.security.SecurityConstants;
 import wssec.wssec11.IPingService;
 import wssec.wssec11.PingService11;
 
+import static org.junit.Assert.assertEquals;
 
 /**
  *
@@ -93,25 +94,4 @@ public class WSSecurity11Common extends AbstractBusClientServerTestBase {
         }
     }
 
-
-    public static boolean isIBMJDK16() {
-        String fullVersion = System.getProperty("java.fullversion");
-        if (fullVersion == null) {
-            //Maybe one of the non IBM JDKs dont set this property, but
-            //the IBM one definitely does
-            return false;
-        }
-        if (fullVersion.indexOf("IBM") == -1) {
-            return false;
-        }
-
-        String javaVersion = System.getProperty("java.version");
-        double javaVersionNum = 0.0;
-        if (javaVersion.length() > 3) {
-            javaVersionNum = new Double(javaVersion.substring(0, 3)).doubleValue();
-        } else {
-            javaVersionNum = new Double(javaVersion).doubleValue();
-        }
-        return !(javaVersionNum < 1.6);
-    }
 }

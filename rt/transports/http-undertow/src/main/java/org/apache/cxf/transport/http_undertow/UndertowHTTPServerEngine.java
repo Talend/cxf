@@ -21,7 +21,6 @@ package org.apache.cxf.transport.http_undertow;
 
 import java.io.IOException;
 import java.net.URL;
-import java.security.GeneralSecurityException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedList;
@@ -33,9 +32,9 @@ import java.util.logging.Logger;
 import javax.net.ssl.KeyManager;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.X509KeyManager;
-import javax.servlet.ServletContext;
-import javax.servlet.ServletException;
 
+import jakarta.servlet.ServletContext;
+import jakarta.servlet.ServletException;
 import org.apache.cxf.Bus;
 import org.apache.cxf.common.i18n.Message;
 import org.apache.cxf.common.logging.LogUtils;
@@ -44,6 +43,7 @@ import org.apache.cxf.common.util.SystemPropertyAction;
 import org.apache.cxf.configuration.jsse.TLSServerParameters;
 import org.apache.cxf.interceptor.Fault;
 import org.apache.cxf.transport.HttpUriMapper;
+import org.apache.cxf.transport.http.HttpServerEngineSupport;
 import org.apache.cxf.transport.https.AliasedX509ExtendedKeyManager;
 import org.xnio.Options;
 import org.xnio.Sequence;
@@ -54,6 +54,7 @@ import io.undertow.Undertow;
 import io.undertow.Undertow.Builder;
 import io.undertow.UndertowOptions;
 import io.undertow.server.HttpHandler;
+import io.undertow.server.handlers.HttpContinueReadHandler;
 import io.undertow.server.handlers.PathHandler;
 import io.undertow.servlet.api.DeploymentInfo;
 import io.undertow.servlet.api.DeploymentManager;
@@ -64,9 +65,18 @@ import io.undertow.servlet.handlers.ServletPathMatches;
 import io.undertow.util.CopyOnWriteMap;
 
 
-public class UndertowHTTPServerEngine implements ServerEngine {
+public class UndertowHTTPServerEngine implements ServerEngine, HttpServerEngineSupport {
 
     public static final String DO_NOT_CHECK_URL_PROP = "org.apache.cxf.transports.http_undertow.DontCheckUrl";
+    
+    /**
+     * Please use {@link HttpServerEngineSupport#ENABLE_HTTP2} instead.
+     */
+    @Deprecated
+    public static final String ENABLE_HTTP2_PROP = "org.apache.cxf.transports.http_undertow.EnableHttp2";
+    
+    public static final String ENABLE_RECORD_REQUEST_START_TIME_PROP = 
+        "org.apache.cxf.transports.http_undertow.EnableRecordRequestStartTime";
 
     private static final Logger LOG = LogUtils.getL7dLogger(UndertowHTTPServerEngine.class);
 
@@ -106,7 +116,7 @@ public class UndertowHTTPServerEngine implements ServerEngine {
     private boolean configFinalized;
 
     private ConcurrentMap<String, UndertowHTTPHandler> registedPaths =
-        new CopyOnWriteMap<String, UndertowHTTPHandler>();
+        new CopyOnWriteMap<>();
 
     private boolean continuationsEnabled = true;
 
@@ -178,6 +188,17 @@ public class UndertowHTTPServerEngine implements ServerEngine {
         servantCount = servantCount + 1;
     }
 
+    @Override
+    public boolean isHttp2Enabled(Bus bus) {
+        Object prop = null;
+        if (bus != null) {
+            prop = bus.getProperty(ENABLE_HTTP2_PROP);
+        }
+        if (prop == null) {
+            prop = SystemPropertyAction.getPropertyOrNull(ENABLE_HTTP2_PROP);
+        }
+        return PropertyUtils.isTrue(prop) || HttpServerEngineSupport.super.isHttp2Enabled(bus);
+    }
 
     private ServletContext buildServletContext(String contextName)
         throws ServletException {
@@ -198,6 +219,12 @@ public class UndertowHTTPServerEngine implements ServerEngine {
     private Undertow createServer(URL url, UndertowHTTPHandler undertowHTTPHandler) throws Exception {
         Undertow.Builder result = Undertow.builder();
         result.setServerOption(UndertowOptions.IDLE_TIMEOUT, getMaxIdleTime());
+        if (this.isHttp2Enabled(undertowHTTPHandler.getBus())) {
+            result.setServerOption(UndertowOptions.ENABLE_HTTP2, Boolean.TRUE);
+        }
+        if (this.shouldEnableRecordRequestStartTime(undertowHTTPHandler.getBus())) {
+            result.setServerOption(UndertowOptions.RECORD_REQUEST_START_TIME, Boolean.TRUE);
+        }
         if (tlsServerParameters != null) {
             if (this.sslContext == null) {
                 this.sslContext = createSSLContext();
@@ -217,7 +244,7 @@ public class UndertowHTTPServerEngine implements ServerEngine {
                 path.addPrefixPath(url.getPath(), undertowHTTPHandler);
             }
 
-            result = result.setHandler(wrapHandler(path));
+            result = result.setHandler(wrapHandler(new HttpContinueReadHandler(path)));
         }
 
         result = decorateUndertowSocketConnection(result);
@@ -240,7 +267,12 @@ public class UndertowHTTPServerEngine implements ServerEngine {
                 builder = builder.setWorkerOption(Options.WORKER_TASK_MAX_THREADS,
                               this.threadingParameters.getMaxThreads());
             }
+            if (this.threadingParameters.isWorkerIONameSet()) {
+                builder = builder.setWorkerOption(Options.WORKER_NAME,
+                              this.threadingParameters.getWorkerIOName());
+            }
         }
+        
         return builder;
     }
 
@@ -258,7 +290,7 @@ public class UndertowHTTPServerEngine implements ServerEngine {
         if (tlsServerParameters != null
             && ("SSLv3".equals(tlsServerParameters.getSecureSocketProtocol())
                 || !tlsServerParameters.getIncludeProtocols().isEmpty())) {
-            List<String> protocols = new LinkedList<String>(Arrays.asList("TLSv1", "TLSv1.1", "TLSv1.2", "SSLv3"));
+            List<String> protocols = new LinkedList<>(Arrays.asList("TLSv1", "TLSv1.1", "TLSv1.2", "SSLv3"));
             for (String excludedProtocol : tlsServerParameters.getExcludeProtocols()) {
                 if (protocols.contains(excludedProtocol)) {
                     protocols.remove(excludedProtocol);
@@ -278,7 +310,8 @@ public class UndertowHTTPServerEngine implements ServerEngine {
             builder = builder.setSocketOption(Options.SSL_CLIENT_AUTH_MODE, SslClientAuthMode.REQUIRED);
         }
         if (this.tlsServerParameters != null && this.tlsServerParameters.getClientAuthentication() != null
-            && this.tlsServerParameters.getClientAuthentication().isWant()) {
+            && this.tlsServerParameters.getClientAuthentication().isWant()
+            && !this.tlsServerParameters.getClientAuthentication().isRequired()) {
             builder = builder.setSocketOption(Options.SSL_CLIENT_AUTH_MODE, SslClientAuthMode.REQUESTED);
         }
         return builder;
@@ -294,6 +327,18 @@ public class UndertowHTTPServerEngine implements ServerEngine {
             prop = SystemPropertyAction.getPropertyOrNull(DO_NOT_CHECK_URL_PROP);
         }
         return !PropertyUtils.isTrue(prop);
+    }
+    
+    private boolean shouldEnableRecordRequestStartTime(Bus bus) {
+
+        Object prop = null;
+        if (bus != null) {
+            prop = bus.getProperty(ENABLE_RECORD_REQUEST_START_TIME_PROP);
+        }
+        if (prop == null) {
+            prop = SystemPropertyAction.getPropertyOrNull(ENABLE_RECORD_REQUEST_START_TIME_PROP);
+        }
+        return PropertyUtils.isTrue(prop);
     }
 
     protected void checkRegistedContext(URL url) {
@@ -369,8 +414,7 @@ public class UndertowHTTPServerEngine implements ServerEngine {
         this.host = host;
     }
 
-    public void finalizeConfig() throws GeneralSecurityException,
-        IOException {
+    public void finalizeConfig() {
         retrieveListenerFactory();
         this.configFinalized = true;
     }
@@ -421,10 +465,10 @@ public class UndertowHTTPServerEngine implements ServerEngine {
      * remove it from the factory's cache.
      */
     public void shutdown() {
-        registedPaths.clear();
         if (shouldDestroyPort()) {
             if (servantCount == 0) {
                 UndertowHTTPServerEngineFactory.destroyForPort(port);
+                registedPaths.clear();
             } else {
                 LOG.log(Level.WARNING, "FAILED_TO_SHUTDOWN_ENGINE_MSG", port);
             }
@@ -471,7 +515,7 @@ public class UndertowHTTPServerEngine implements ServerEngine {
         return context;
     }
 
-    protected KeyManager[] getKeyManagersWithCertAlias(KeyManager keyManagers[]) throws Exception {
+    protected KeyManager[] getKeyManagersWithCertAlias(KeyManager[] keyManagers) throws Exception {
         if (tlsServerParameters.getCertAlias() != null) {
             for (int idx = 0; idx < keyManagers.length; idx++) {
                 if (keyManagers[idx] instanceof X509KeyManager) {

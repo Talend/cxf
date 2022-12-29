@@ -30,7 +30,8 @@ import javax.xml.namespace.QName;
 
 import org.xml.sax.InputSource;
 
-import org.apache.cxf.common.util.URIParserUtil;
+
+import org.apache.cxf.common.util.PackageUtils;
 import org.apache.cxf.tools.common.model.JavaModel;
 import org.apache.cxf.tools.util.PropertyUtil;
 
@@ -92,7 +93,7 @@ public class ToolContext {
     }
 
     public boolean containsKey(String key) {
-        return (paramMap == null) ? false : paramMap.containsKey(key);
+        return (paramMap != null) && paramMap.containsKey(key);
     }
 
     public Object get(String key) {
@@ -137,7 +138,7 @@ public class ToolContext {
     }
 
     public boolean getBooleanValue(String key, String defaultValue) {
-        return Boolean.valueOf((String)get(key, defaultValue)).booleanValue();
+        return Boolean.parseBoolean((String)get(key, defaultValue));
     }
 
     public void put(String key, Object value) {
@@ -155,7 +156,7 @@ public class ToolContext {
     }
 
     public boolean optionSet(String key) {
-        return (get(key) == null) ? false : true;
+        return get(key) != null;
     }
 
     public boolean isVerbose() {
@@ -226,11 +227,11 @@ public class ToolContext {
         if (getPackageName() != null) {
             return getPackageName();
         }
-        return URIParserUtil.parsePackageName(ns, null);
+        return PackageUtils.parsePackageName(ns, null);
     }
 
     public String getCustomizedNS(String ns) {
-        return URIParserUtil.getNamespace(mapPackageName(ns));
+        return PackageUtils.getNamespace(mapPackageName(ns));
     }
 
     public void setJaxbBindingFiles(List<InputSource> bindings) {
@@ -260,7 +261,7 @@ public class ToolContext {
     public QName getQName(String key, String defaultNamespace) {
         if (optionSet(key)) {
             String pns = (String)get(key);
-            int pos = pns.indexOf("=");
+            int pos = pns.indexOf('=');
             String localname = pns;
             if (pos != -1) {
                 String ns = pns.substring(0, pos);

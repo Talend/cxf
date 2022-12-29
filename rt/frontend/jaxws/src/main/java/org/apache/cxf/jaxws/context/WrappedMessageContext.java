@@ -29,10 +29,9 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-import javax.activation.DataHandler;
-import javax.xml.ws.BindingProvider;
-import javax.xml.ws.handler.MessageContext;
-
+import jakarta.activation.DataHandler;
+import jakarta.xml.ws.BindingProvider;
+import jakarta.xml.ws.handler.MessageContext;
 import org.apache.cxf.attachment.AttachmentUtil;
 import org.apache.cxf.binding.soap.SoapBindingConstants;
 import org.apache.cxf.configuration.security.AuthorizationPolicy;
@@ -193,7 +192,8 @@ public class WrappedMessageContext implements MessageContext {
     }
 
     public final boolean containsKey(Object key) {
-        return message.containsKey(mapKey((String)key));
+        return message.containsKey(mapKey((String)key))
+            || get(key) != null;
     }
 
     public final boolean containsValue(Object value) {
@@ -249,7 +249,7 @@ public class WrappedMessageContext implements MessageContext {
                     //may have to create the out message and add the headers
                     Message tmp = createResponseMessage();
                     if (tmp != null) {
-                        ret = tmp.get(Message.PROTOCOL_HEADERS);
+                        mp = (Map<?, ?>)tmp.get(Message.PROTOCOL_HEADERS);
                     }
                 }
                 ret = mp;
@@ -334,7 +334,7 @@ public class WrappedMessageContext implements MessageContext {
         if (isResponse()) {
             return getWrappedMessage();
         }
-        Message m = null;
+        Message m;
         if (isRequestor()) {
             m = exchange.getInFaultMessage();
             if (m == null) {
@@ -397,7 +397,7 @@ public class WrappedMessageContext implements MessageContext {
         return Collections.unmodifiableSet(set);
     }
     public final Set<Entry<String, Object>> entrySet() {
-        Set<Entry<String, Object>> set = new HashSet<Entry<String, Object>>();
+        Set<Entry<String, Object>> set = new HashSet<>();
         for (Map.Entry<String, Object> s : message.entrySet()) {
             set.add(s);
 

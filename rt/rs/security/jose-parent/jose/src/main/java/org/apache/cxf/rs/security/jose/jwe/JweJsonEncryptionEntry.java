@@ -26,8 +26,9 @@ import org.apache.cxf.jaxrs.json.basic.JsonObject;
 import org.apache.cxf.rs.security.jose.common.JoseUtils;
 
 public class JweJsonEncryptionEntry implements JsonObject {
-    private JweHeaders unprotectedHeader;
-    private String encodedEncryptedKey;
+    private final JweHeaders unprotectedHeader;
+    private final String encodedEncryptedKey;
+
     public JweJsonEncryptionEntry(String encodedEncryptedKey) {
         this(null, encodedEncryptedKey);
     }
@@ -46,7 +47,7 @@ public class JweJsonEncryptionEntry implements JsonObject {
     }
     public String toJson() {
         JsonMapObjectReaderWriter jsonWriter = new JsonMapObjectReaderWriter();
-        Map<String, Object> recipientsEntry = new LinkedHashMap<String, Object>();
+        Map<String, Object> recipientsEntry = new LinkedHashMap<>();
         if (unprotectedHeader != null && !unprotectedHeader.asMap().isEmpty()) {
             recipientsEntry.put("header", this.unprotectedHeader);
         }

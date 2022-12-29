@@ -47,11 +47,14 @@ public class FaultThrowingInterceptor extends AbstractPhaseInterceptor<Message> 
         super(phase);
     }
 
-    public synchronized void handleMessage(Message message) throws Fault {
+    public void handleMessage(Message message) throws Fault {
         if (MessageUtils.isRequestor(message)) {
             return;
         }
-        String msg = MESSAGE_FORMAT.format(new Object[] {getPhase()});
+        final String msg;
+        synchronized (MESSAGE_FORMAT) {
+            msg = MESSAGE_FORMAT.format(new Object[] {getPhase()});
+        }
         LOG.fine(msg);
         throw new Fault(new RuntimeException(msg));
     }

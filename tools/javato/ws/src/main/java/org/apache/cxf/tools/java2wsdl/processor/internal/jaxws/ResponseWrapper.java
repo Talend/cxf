@@ -26,10 +26,9 @@ import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.jws.WebParam;
-import javax.jws.WebResult;
-import javax.xml.ws.Holder;
-
+import jakarta.jws.WebParam;
+import jakarta.jws.WebResult;
+import jakarta.xml.ws.Holder;
 import org.apache.cxf.common.util.CollectionUtils;
 import org.apache.cxf.common.util.StringUtils;
 import org.apache.cxf.service.model.MessageInfo;
@@ -50,12 +49,12 @@ public final class ResponseWrapper extends Wrapper {
 
     @Override
     public boolean isWrapperAbsent(final Method method) {
-        javax.xml.ws.ResponseWrapper resWrapper = method.getAnnotation(javax.xml.ws.ResponseWrapper.class);
+        jakarta.xml.ws.ResponseWrapper resWrapper = method.getAnnotation(jakarta.xml.ws.ResponseWrapper.class);
         return getClassName() == null && (resWrapper == null || StringUtils.isEmpty(resWrapper.className()));
     }
 
     public String getWrapperTns(Method method) {
-        javax.xml.ws.RequestWrapper reqWrapper = method.getAnnotation(javax.xml.ws.RequestWrapper.class);
+        jakarta.xml.ws.RequestWrapper reqWrapper = method.getAnnotation(jakarta.xml.ws.RequestWrapper.class);
         if (reqWrapper != null) {
             return reqWrapper.targetNamespace();
         }
@@ -81,9 +80,9 @@ public final class ResponseWrapper extends Wrapper {
         field.setTargetNamespace(part.getName().getNamespaceURI());
 
         if (method.getAnnotation(WebResult.class) == null
-            && method.getAnnotation(javax.xml.ws.ResponseWrapper.class) == null
+            && method.getAnnotation(jakarta.xml.ws.ResponseWrapper.class) == null
             || method.getAnnotation(WebResult.class) != null
-            && method.getAnnotation(WebResult.class).targetNamespace().equals("")) {
+            && method.getAnnotation(WebResult.class).targetNamespace().isEmpty()) {
             field.setTargetNamespace("");
         }
 
@@ -94,7 +93,7 @@ public final class ResponseWrapper extends Wrapper {
             String type = getTypeString(method.getGenericReturnType());
             List<Annotation> jaxbAnns = WrapperUtil.getJaxbAnnotations(method);
             field.setType(type);
-            field.setJaxbAnnotations(jaxbAnns.toArray(new Annotation[jaxbAnns.size()]));
+            field.setJaxbAnnotations(jaxbAnns.toArray(new Annotation[0]));
         }
         fields.add(field);
 
@@ -107,7 +106,7 @@ public final class ResponseWrapper extends Wrapper {
                 String type = getTypeString(t);
                 JavaField jf = new JavaField(name, type, "");
                 List<Annotation> jaxbAnns = WrapperUtil.getJaxbAnnotations(method, idx - 1);
-                jf.setJaxbAnnotations(jaxbAnns.toArray(new Annotation[jaxbAnns.size()]));
+                jf.setJaxbAnnotations(jaxbAnns.toArray(new Annotation[0]));
                 if (t instanceof ParameterizedType) {
                     ParameterizedType pt = (ParameterizedType)t;
                     Class<?> c = (Class<?>)pt.getRawType();
@@ -128,8 +127,8 @@ public final class ResponseWrapper extends Wrapper {
 
     @Override
     public WrapperBeanClass getWrapperBeanClass(final Method method) {
-        javax.xml.ws.ResponseWrapper resWrapper = method.getAnnotation(javax.xml.ws.ResponseWrapper.class);
-        javax.jws.WebMethod webMethod = method.getAnnotation(javax.jws.WebMethod.class);
+        jakarta.xml.ws.ResponseWrapper resWrapper = method.getAnnotation(jakarta.xml.ws.ResponseWrapper.class);
+        jakarta.jws.WebMethod webMethod = method.getAnnotation(jakarta.jws.WebMethod.class);
         String methName = webMethod == null ? null : webMethod.operationName();
         if (StringUtils.isEmpty(methName)) {
             methName = method.getName();

@@ -27,7 +27,7 @@ import java.security.cert.X509Certificate;
 import java.time.Instant;
 import java.time.ZoneOffset;
 import java.util.ArrayList;
-import java.util.Base64;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -50,6 +50,8 @@ import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamWriter;
 import javax.xml.transform.dom.DOMSource;
 
+import org.apache.xml.security.exceptions.XMLSecurityException;
+import org.apache.xml.security.stax.ext.XMLSecurityConstants;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -76,6 +78,7 @@ import org.apache.cxf.interceptor.Fault;
 import org.apache.cxf.interceptor.Interceptor;
 import org.apache.cxf.interceptor.InterceptorProvider;
 import org.apache.cxf.jaxws.JaxWsProxyFactoryBean;
+import org.apache.cxf.message.Attachment;
 import org.apache.cxf.message.Message;
 import org.apache.cxf.phase.PhaseInterceptorChain;
 import org.apache.cxf.rt.security.claims.ClaimCollection;
@@ -130,7 +133,6 @@ import org.apache.wss4j.dom.engine.WSSConfig;
 import org.apache.wss4j.dom.engine.WSSecurityEngineResult;
 import org.apache.wss4j.dom.handler.RequestData;
 import org.apache.wss4j.dom.processor.EncryptedKeyProcessor;
-import org.apache.wss4j.dom.util.WSSecurityUtil;
 import org.apache.wss4j.dom.util.X509Util;
 import org.apache.wss4j.policy.SPConstants;
 import org.apache.wss4j.policy.SPConstants.SPVersion;
@@ -433,11 +435,6 @@ public abstract class AbstractSTSClient implements Configurable, InterceptorProv
         this.keyType = keyType;
     }
 
-    @Deprecated
-    public void setOnBehalfOfElement(Element onBehalfOfElement) {
-        this.onBehalfOf = onBehalfOfElement;
-    }
-
     public void setOnBehalfOf(Object onBehalfOf) {
         this.onBehalfOf = onBehalfOf;
     }
@@ -644,7 +641,7 @@ public abstract class AbstractSTSClient implements Configurable, InterceptorProv
     protected String findMEXLocation(Element ref) {
         Element el = DOMUtils.getFirstElement(ref);
         while (el != null) {
-            if (el.getLocalName().equals("Address")
+            if ("Address".equals(el.getLocalName())
                 && VersionTransformer.isSupported(el.getNamespaceURI())
                 && "MetadataReference".equals(ref.getLocalName())) {
                 return DOMUtils.getContent(el);
@@ -806,6 +803,10 @@ public abstract class AbstractSTSClient implements Configurable, InterceptorProv
             sendKeyType = false;
         }
 
+        if (sptt == null) {
+            addTokenType(writer);
+        }
+
         addRequestType(requestType, writer);
         if (enableAppliesTo) {
             addAppliesTo(writer, appliesTo);
@@ -813,18 +814,20 @@ public abstract class AbstractSTSClient implements Configurable, InterceptorProv
 
         addClaims(writer);
 
+        if (isSecureConv || enableLifetime) {
+            addLifetime(writer);
+        }
+
+        // Write out renewal semantics
+        writeRenewalSemantics(writer);
+
         Element onBehalfOfToken = getOnBehalfOfToken();
         if (onBehalfOfToken != null) {
             writer.writeStartElement("wst", "OnBehalfOf", namespace);
             StaxUtils.copy(onBehalfOfToken, writer);
             writer.writeEndElement();
         }
-        if (sptt == null) {
-            addTokenType(writer);
-        }
-        if (isSecureConv || enableLifetime) {
-            addLifetime(writer);
-        }
+
         if (keyTypeTemplate == null) {
             keyTypeTemplate = writeKeyType(writer, keyType);
         }
@@ -862,9 +865,6 @@ public abstract class AbstractSTSClient implements Configurable, InterceptorProv
             writer.writeEndElement();
         }
 
-        // Write out renewal semantics
-        writeRenewalSemantics(writer);
-
         Element customElement = getCustomContent();
         if (customElement != null) {
             StaxUtils.copy(customElement, writer);
@@ -872,9 +872,12 @@ public abstract class AbstractSTSClient implements Configurable, InterceptorProv
 
         writer.writeEndElement();
 
-        Object obj[] = client.invoke(boi, new DOMSource(writer.getDocument().getDocumentElement()));
+        Object[] obj = client.invoke(boi, new DOMSource(writer.getDocument().getDocumentElement()));
 
-        return new STSResponse((DOMSource)obj[0], requestorEntropy, cert, crypto);
+        @SuppressWarnings("unchecked")
+        Collection<Attachment> attachments =
+        (Collection<Attachment>)client.getResponseContext().get(Message.ATTACHMENTS);
+        return new STSResponse((DOMSource)obj[0], requestorEntropy, cert, crypto, attachments);
     }
 
     /**
@@ -896,7 +899,7 @@ public abstract class AbstractSTSClient implements Configurable, InterceptorProv
      */
     public Element getCustomContent() throws Exception {
         if (customContent != null) {
-            // We can also support a CallbackHandler her as per getDelegationSecurityToken if required
+            // We can also support a CallbackHandler here as per getDelegationSecurityToken if required
             final boolean isString = customContent instanceof String;
             final boolean isElement = customContent instanceof Element;
             if (isString) {
@@ -942,14 +945,19 @@ public abstract class AbstractSTSClient implements Configurable, InterceptorProv
             writer.writeStartElement("wst", "Entropy", namespace);
             writer.writeStartElement("wst", "BinarySecret", namespace);
             writer.writeAttribute("Type", namespace + "/Nonce");
-            if (algorithmSuite == null) {
-                requestorEntropy = WSSecurityUtil.generateNonce(keySize / 8);
-            } else {
-                AlgorithmSuiteType algType = algorithmSuite.getAlgorithmSuiteType();
-                requestorEntropy = WSSecurityUtil
-                    .generateNonce(algType.getMaximumSymmetricKeyLength() / 8);
+
+            try {
+                if (algorithmSuite == null) {
+                    requestorEntropy = XMLSecurityConstants.generateBytes(keySize / 8);
+                } else {
+                    AlgorithmSuiteType algType = algorithmSuite.getAlgorithmSuiteType();
+                    requestorEntropy = XMLSecurityConstants.generateBytes(algType.getMaximumSymmetricKeyLength() / 8);
+                }
+            } catch (XMLSecurityException e) {
+                throw new WSSecurityException(WSSecurityException.ErrorCode.FAILURE, e);
             }
-            writer.writeCharacters(Base64.getMimeEncoder().encodeToString(requestorEntropy));
+
+            writer.writeCharacters(org.apache.xml.security.utils.XMLUtils.encodeToString(requestorEntropy));
 
             writer.writeEndElement();
             writer.writeEndElement();
@@ -1071,14 +1079,15 @@ public abstract class AbstractSTSClient implements Configurable, InterceptorProv
             tokenType = STSUtils.getTokenTypeSCT(namespace);
         }
 
+        if (sptt == null) {
+            addTokenType(writer);
+        }
+
         addRequestType("/Renew", writer);
         if (enableAppliesTo) {
             addAppliesTo(writer, tok.getIssuerAddress());
         }
 
-        if (sptt == null) {
-            addTokenType(writer);
-        }
         if (isSecureConv || enableLifetime) {
             addLifetime(writer);
         }
@@ -1092,9 +1101,12 @@ public abstract class AbstractSTSClient implements Configurable, InterceptorProv
 
         writer.writeEndElement();
 
-        Object obj[] = client.invoke(boi, new DOMSource(writer.getDocument().getDocumentElement()));
+        Object[] obj = client.invoke(boi, new DOMSource(writer.getDocument().getDocumentElement()));
 
-        return new STSResponse((DOMSource)obj[0], null);
+        @SuppressWarnings("unchecked")
+        Collection<Attachment> attachments =
+            (Collection<Attachment>)client.getResponseContext().get(Message.ATTACHMENTS);
+        return new STSResponse((DOMSource)obj[0], null, null, null, attachments);
     }
 
     protected PrimitiveAssertion getAddressingAssertion() {
@@ -1144,12 +1156,13 @@ public abstract class AbstractSTSClient implements Configurable, InterceptorProv
         W3CDOMStreamWriter writer = new W3CDOMStreamWriter();
         writer.writeStartElement("wst", "RequestSecurityToken", namespace);
         writer.writeNamespace("wst", namespace);
-        writer.writeStartElement("wst", "RequestType", namespace);
-        writer.writeCharacters(namespace + "/Validate");
-        writer.writeEndElement();
 
         writer.writeStartElement("wst", "TokenType", namespace);
         writer.writeCharacters(tokentype);
+        writer.writeEndElement();
+
+        writer.writeStartElement("wst", "RequestType", namespace);
+        writer.writeCharacters(namespace + "/Validate");
         writer.writeEndElement();
 
         if (tokentype.endsWith("/RSTR/Status")) {
@@ -1165,9 +1178,12 @@ public abstract class AbstractSTSClient implements Configurable, InterceptorProv
             writer.writeEndElement();
             writer.writeEndElement();
 
-            Object o[] = client.invoke(boi, new DOMSource(writer.getDocument().getDocumentElement()));
+            Object[] o = client.invoke(boi, new DOMSource(writer.getDocument().getDocumentElement()));
 
-            return new STSResponse((DOMSource)o[0], null);
+            @SuppressWarnings("unchecked")
+            Collection<Attachment> attachments =
+                (Collection<Attachment>)client.getResponseContext().get(Message.ATTACHMENTS);
+            return new STSResponse((DOMSource)o[0], null, null, null, attachments);
         }
         if (enableLifetime) {
             addLifetime(writer);
@@ -1212,9 +1228,12 @@ public abstract class AbstractSTSClient implements Configurable, InterceptorProv
         writer.writeEndElement();
         writer.writeEndElement();
 
-        Object o[] = client.invoke(boi, new DOMSource(writer.getDocument().getDocumentElement()));
+        Object[] o = client.invoke(boi, new DOMSource(writer.getDocument().getDocumentElement()));
 
-        return new STSResponse((DOMSource)o[0], requestorEntropy, cert, crypto);
+        @SuppressWarnings("unchecked")
+        Collection<Attachment> attachments =
+            (Collection<Attachment>)client.getResponseContext().get(Message.ATTACHMENTS);
+        return new STSResponse((DOMSource)o[0], requestorEntropy, cert, crypto, attachments);
     }
 
     private void writeRenewalSemantics(XMLStreamWriter writer) throws XMLStreamException {
@@ -1320,7 +1339,7 @@ public abstract class AbstractSTSClient implements Configurable, InterceptorProv
         writer.writeEndElement();
 
         writer.writeStartElement("wst", "CancelTarget", namespace);
-        Element el = null;
+        Element el;
         if (attachTokenDirectly) {
             el = token.getToken();
         } else {
@@ -1380,7 +1399,7 @@ public abstract class AbstractSTSClient implements Configurable, InterceptorProv
         CryptoType cryptoType = new CryptoType(CryptoType.TYPE.ALIAS);
         cryptoType.setAlias(alias);
 
-        X509Certificate certs[] = crypto.getX509Certificates(cryptoType);
+        X509Certificate[] certs = crypto.getX509Certificates(cryptoType);
         if (certs == null || certs.length == 0) {
             throw new Fault("Could not get X509Certificate for alias " + alias, LOG);
         }
@@ -1440,7 +1459,7 @@ public abstract class AbstractSTSClient implements Configurable, InterceptorProv
         if (claimsToSerialize instanceof Element) {
             StaxUtils.copy((Element)claimsToSerialize, writer);
         } else if (claimsToSerialize instanceof ClaimCollection) {
-            ClaimCollection claimCollection = (ClaimCollection)claims;
+            ClaimCollection claimCollection = (ClaimCollection)claimsToSerialize;
             claimCollection.serialize(writer, "wst", namespace);
         }
     }
@@ -1463,7 +1482,6 @@ public abstract class AbstractSTSClient implements Configurable, InterceptorProv
         Element entropy = null;
         String tt = null;
         String retKeySize = null;
-        String tokenData = null;
 
         while (el != null) {
             String ln = el.getLocalName();
@@ -1472,9 +1490,6 @@ public abstract class AbstractSTSClient implements Configurable, InterceptorProv
                     lte = el;
                 } else if ("RequestedSecurityToken".equals(ln)) {
                     rst = DOMUtils.getFirstElement(el);
-                    if (rst == null) {
-                        tokenData = el.getTextContent();
-                    }
                 } else if ("RequestedAttachedReference".equals(ln)) {
                     rar = DOMUtils.getFirstElement(el);
                 } else if ("RequestedUnattachedReference".equals(ln)) {
@@ -1502,9 +1517,6 @@ public abstract class AbstractSTSClient implements Configurable, InterceptorProv
         token.setUnattachedReference(rur);
         token.setIssuerAddress(location);
         token.setTokenType(tt);
-        if (tokenData != null) {
-            token.setData(tokenData.getBytes());
-        }
 
         byte[] secret = null;
 
@@ -1514,7 +1526,7 @@ public abstract class AbstractSTSClient implements Configurable, InterceptorProv
             if (childQname.equals(new QName(namespace, "BinarySecret"))) {
                 // First check for the binary secret
                 String b64Secret = DOMUtils.getContent(child);
-                secret = Base64.getMimeDecoder().decode(b64Secret);
+                secret = org.apache.xml.security.utils.XMLUtils.decode(b64Secret);
             } else if (childQname.equals(new QName(WSS4JConstants.ENC_NS, WSS4JConstants.ENC_KEY_LN))) {
                 secret = decryptKey(child);
             } else if (childQname.equals(new QName(namespace, "ComputedKey"))) {
@@ -1528,7 +1540,7 @@ public abstract class AbstractSTSClient implements Configurable, InterceptorProv
                         serviceEntr = decryptKey(computedKeyChild);
                     } else if (computedKeyChildQName.equals(new QName(namespace, "BinarySecret"))) {
                         String content = DOMUtils.getContent(computedKeyChild);
-                        serviceEntr = Base64.getMimeDecoder().decode(content);
+                        serviceEntr = org.apache.xml.security.utils.XMLUtils.decode(content);
                     }
                 }
 
@@ -1581,7 +1593,7 @@ public abstract class AbstractSTSClient implements Configurable, InterceptorProv
                     XMLUtils.getDirectChildElement(tmpE, "CipherValue", WSS4JConstants.ENC_NS);
                 if (tmpE != null) {
                     String content = DOMUtils.getContent(tmpE);
-                    cipherValue = Base64.getMimeDecoder().decode(content);
+                    cipherValue = org.apache.xml.security.utils.XMLUtils.decode(content);
                 }
             }
             if (cipherValue == null) {
@@ -1799,17 +1811,25 @@ public abstract class AbstractSTSClient implements Configurable, InterceptorProv
         private final byte[] entropy;
         private final X509Certificate cert;
         private final Crypto crypto;
+        private final Collection<Attachment> attachments;
 
         public STSResponse(DOMSource response, byte[] entropy) {
             this(response, entropy, null, null);
         }
 
         public STSResponse(DOMSource response, byte[] entropy, X509Certificate cert, Crypto crypto) {
+            this(response, entropy, cert, crypto, null);
+        }
+
+        public STSResponse(DOMSource response, byte[] entropy, X509Certificate cert,
+                           Crypto crypto, Collection<Attachment> attachments) {
             this.response = response;
             this.entropy = entropy;
             this.cert = cert;
             this.crypto = crypto;
+            this.attachments = attachments;
         }
+
 
         public DOMSource getResponse() {
             return response;
@@ -1825,6 +1845,10 @@ public abstract class AbstractSTSClient implements Configurable, InterceptorProv
 
         public Crypto getCrypto() {
             return crypto;
+        }
+
+        public Collection<Attachment> getAttachments() {
+            return attachments;
         }
     }
 

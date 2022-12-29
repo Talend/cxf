@@ -24,9 +24,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import javax.xml.ws.spi.http.HttpContext;
-import javax.xml.ws.spi.http.HttpExchange;
-
+import jakarta.xml.ws.spi.http.HttpContext;
+import jakarta.xml.ws.spi.http.HttpExchange;
 import org.apache.cxf.Bus;
 import org.apache.cxf.message.Message;
 import org.apache.cxf.service.model.EndpointInfo;
@@ -36,14 +35,16 @@ import org.apache.cxf.transport.http.DestinationRegistryImpl;
 import org.easymock.EasyMock;
 import org.easymock.IMocksControl;
 import org.junit.After;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.isA;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 
-public class JAXWSHttpSpiDestinationTest extends Assert {
+public class JAXWSHttpSpiDestinationTest {
 
     private static final String ADDRESS = "http://localhost:80/foo/bar";
     private static final String CONTEXT_PATH = "/foo";

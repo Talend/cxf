@@ -22,6 +22,7 @@ package org.apache.cxf.jaxrs.impl;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.PushbackInputStream;
 import java.io.Reader;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
@@ -37,22 +38,24 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
+import java.util.regex.Pattern;
 
-import javax.ws.rs.ProcessingException;
-import javax.ws.rs.client.ResponseProcessingException;
-import javax.ws.rs.core.EntityTag;
-import javax.ws.rs.core.GenericType;
-import javax.ws.rs.core.HttpHeaders;
-import javax.ws.rs.core.Link;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.MultivaluedMap;
-import javax.ws.rs.core.NewCookie;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status.Family;
-import javax.ws.rs.ext.ReaderInterceptor;
-import javax.ws.rs.ext.RuntimeDelegate.HeaderDelegate;
 import javax.xml.stream.XMLStreamReader;
 
+import jakarta.ws.rs.ProcessingException;
+import jakarta.ws.rs.client.ResponseProcessingException;
+import jakarta.ws.rs.core.EntityTag;
+import jakarta.ws.rs.core.GenericType;
+import jakarta.ws.rs.core.HttpHeaders;
+import jakarta.ws.rs.core.Link;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.MultivaluedMap;
+import jakarta.ws.rs.core.NewCookie;
+import jakarta.ws.rs.core.NoContentException;
+import jakarta.ws.rs.core.Response;
+import jakarta.ws.rs.core.Response.Status.Family;
+import jakarta.ws.rs.ext.ReaderInterceptor;
+import jakarta.ws.rs.ext.RuntimeDelegate.HeaderDelegate;
 import org.apache.cxf.helpers.IOUtils;
 import org.apache.cxf.io.ReaderInputStream;
 import org.apache.cxf.jaxrs.provider.ProviderFactory;
@@ -63,6 +66,8 @@ import org.apache.cxf.message.Message;
 import org.apache.cxf.message.MessageUtils;
 
 public final class ResponseImpl extends Response {
+    public static final String RESPONSE_STREAM_AUTO_CLOSE = "response.stream.auto.close";
+    private static final Pattern LINK_DELIMITER = Pattern.compile(",\\s*(?=\\<|$)");
 
     private StatusType status;
     private Object entity;
@@ -121,10 +126,12 @@ public final class ResponseImpl extends Response {
         return this.outMessage;
     }
 
+    @Override
     public int getStatus() {
         return status.getStatusCode();
     }
 
+    @Override
     public StatusType getStatusInfo() {
         return status;
     }
@@ -134,38 +141,89 @@ public final class ResponseImpl extends Response {
         return lastEntity != null ? lastEntity : entity;
     }
 
+    @Override
     public Object getEntity() {
         return InjectionUtils.getEntity(getActualEntity());
     }
 
+    @Override
     public boolean hasEntity() {
-        return getActualEntity() != null;
+        // per spec, need to check if the stream exists and if it has data.
+        Object actualEntity = getActualEntity();
+        if (actualEntity == null) {
+            return false;
+        } else if (entityBufferred) {
+            // if actualEntity is not null and entity was buffered, the response definitely has entity
+            return true;
+        } else if (actualEntity instanceof InputStream) {
+            final InputStream is = (InputStream) actualEntity;
+            try {
+                if (is.markSupported()) {
+                    is.mark(1);
+                    int i = is.read();
+                    is.reset();
+                    return i != -1;
+                } else {
+                    try {
+                        if (is.available() > 0) {
+                            return true;
+                        }
+                    } catch (IOException ioe) {
+                        //Do nothing
+                    }
+                    int b = is.read();
+                    if (b == -1) {
+                        return false;
+                    }
+                    PushbackInputStream pbis;
+                    if (is instanceof PushbackInputStream) {
+                        pbis = (PushbackInputStream) is;
+                    } else {
+                        pbis = new PushbackInputStream(is, 1);
+                        if (lastEntity != null) {
+                            lastEntity = pbis;
+                        } else {
+                            entity = pbis;
+                        }
+                    }
+                    pbis.unread(b);
+                    return true;
+                }
+            } catch (IOException ex) {
+                throw new ProcessingException(ex);
+            }
+        }
+        return true;
     }
 
+    @Override
     public MultivaluedMap<String, Object> getMetadata() {
         return getHeaders();
     }
 
+    @Override
     public MultivaluedMap<String, Object> getHeaders() {
         return metadata;
     }
 
+    @Override
     public MultivaluedMap<String, String> getStringHeaders() {
-        MetadataMap<String, String> headers = new MetadataMap<String, String>(metadata.size());
+        MetadataMap<String, String> headers = new MetadataMap<>(metadata.size());
         for (Map.Entry<String, List<Object>> entry : metadata.entrySet()) {
             String headerName = entry.getKey();
-            headers.put(headerName, toListOfStrings(headerName, entry.getValue()));
+            headers.put(headerName, toListOfStrings(entry.getValue()));
         }
         return headers;
     }
 
+    @Override
     public String getHeaderString(String header) {
         List<Object> methodValues = metadata.get(header);
-        return HttpUtils.getHeaderString(toListOfStrings(header, methodValues));
+        return HttpUtils.getHeaderString(toListOfStrings(methodValues));
     }
 
     // This conversion is needed as some values may not be Strings
-    private List<String> toListOfStrings(String headerName, List<Object> values) {
+    private List<String> toListOfStrings(List<Object> values) {
         if (values == null) {
             return null;
         }
@@ -178,6 +236,7 @@ public final class ResponseImpl extends Response {
         return stringValues;
     }
 
+    @Override
     public Set<String> getAllowedMethods() {
         List<Object> methodValues = metadata.get(HttpHeaders.ALLOW);
         if (methodValues == null) {
@@ -190,8 +249,7 @@ public final class ResponseImpl extends Response {
         return methods;
     }
 
-
-
+    @Override
     public Map<String, NewCookie> getCookies() {
         List<Object> cookieValues = metadata.get(HttpHeaders.SET_COOKIE);
         if (cookieValues == null) {
@@ -205,6 +263,7 @@ public final class ResponseImpl extends Response {
         return cookies;
     }
 
+    @Override
     public Date getDate() {
         return doGetDate(HttpHeaders.DATE);
     }
@@ -215,52 +274,67 @@ public final class ResponseImpl extends Response {
             : HttpUtils.getHttpDate(value.toString());
     }
 
+    @Override
     public EntityTag getEntityTag() {
         Object header = metadata.getFirst(HttpHeaders.ETAG);
         return header == null || header instanceof EntityTag ? (EntityTag)header
             : EntityTag.valueOf(header.toString());
     }
 
+    @Override
     public Locale getLanguage() {
         Object header = metadata.getFirst(HttpHeaders.CONTENT_LANGUAGE);
         return header == null || header instanceof Locale ? (Locale)header
             : HttpUtils.getLocale(header.toString());
     }
 
+    @Override
     public Date getLastModified() {
         return doGetDate(HttpHeaders.LAST_MODIFIED);
     }
 
+    @Override
     public int getLength() {
         Object header = metadata.getFirst(HttpHeaders.CONTENT_LENGTH);
         return HttpUtils.getContentLength(header == null ? null : header.toString());
     }
 
+    @Override
     public URI getLocation() {
         Object header = metadata.getFirst(HttpHeaders.LOCATION);
         return header == null || header instanceof URI ? (URI)header
             : URI.create(header.toString());
     }
 
+    @Override
     public MediaType getMediaType() {
         Object header = metadata.getFirst(HttpHeaders.CONTENT_TYPE);
         return header == null || header instanceof MediaType ? (MediaType)header
             : (MediaType)JAXRSUtils.toMediaType(header.toString());
     }
 
+    @Override
     public boolean hasLink(String relation) {
         List<Object> linkValues = metadata.get(HttpHeaders.LINK);
         if (linkValues != null) {
             for (Object o : linkValues) {
-                Link link = o instanceof Link ? (Link)o : Link.valueOf(o.toString());
-                if (relation.equals(link.getRel())) {
+                if (o instanceof Link && relation.equals(((Link)o).getRel())) {
                     return true;
+                }
+
+                String[] links = LINK_DELIMITER.split(o.toString());
+                for (String splitLink : links) {
+                    Link link = Link.valueOf(splitLink);
+                    if (relation.equals(link.getRel())) {
+                        return true;
+                    }
                 }
             }
         }
         return false;
     }
 
+    @Override
     public Link getLink(String relation) {
         Set<Link> links = getAllLinks();
         for (Link link : links) {
@@ -271,11 +345,13 @@ public final class ResponseImpl extends Response {
         return null;
     }
 
+    @Override
     public Link.Builder getLinkBuilder(String relation) {
         Link link = getLink(relation);
         return link == null ? null : Link.fromLink(link);
     }
 
+    @Override
     public Set<Link> getLinks() {
         return new HashSet<>(getAllLinks());
     }
@@ -285,41 +361,65 @@ public final class ResponseImpl extends Response {
         if (linkValues == null) {
             return Collections.emptySet();
         }
-        Set<Link> links = new LinkedHashSet<Link>();
+        Set<Link> links = new LinkedHashSet<>();
         for (Object o : linkValues) {
-            Link link = o instanceof Link ? (Link)o : Link.valueOf(o.toString());
-            if (!link.getUri().isAbsolute()) {
-                URI requestURI = URI.create((String)outMessage.get(Message.REQUEST_URI));
-                link = Link.fromLink(link).baseUri(requestURI).build();
-            }
-            links.add(link);
+            List<Link> parsedLinks = parseLink(o);
+
+            links.addAll(parsedLinks);
         }
         return links;
     }
 
+    private Link makeAbsoluteLink(Link link) {
+        if (!link.getUri().isAbsolute()) {
+            URI requestURI = URI.create((String)outMessage.get(Message.REQUEST_URI));
+            link = Link.fromLink(link).baseUri(requestURI).build();
+        }
+
+        return link;
+    }
+
+    private List<Link> parseLink(Object o) {
+        if (o instanceof Link) {
+            return Collections.singletonList(makeAbsoluteLink((Link) o));
+        }
+
+        List<Link> links = new ArrayList<>();
+        String[] linkArray = LINK_DELIMITER.split(o.toString());
+
+        for (String textLink : linkArray) {
+            Link link = Link.valueOf(textLink);
+            links.add(makeAbsoluteLink(link));
+        }
+
+        return Collections.unmodifiableList(links);
+    }
+
+    @Override
     public <T> T readEntity(Class<T> cls) throws ProcessingException, IllegalStateException {
         return readEntity(cls, new Annotation[]{});
     }
 
+    @Override
     public <T> T readEntity(GenericType<T> genType) throws ProcessingException, IllegalStateException {
         return readEntity(genType, new Annotation[]{});
     }
 
-    public <T> T readEntity(Class<T> cls, Annotation[] anns) throws ProcessingException,
-        IllegalStateException {
-
+    @Override
+    public <T> T readEntity(Class<T> cls, Annotation[] anns) throws ProcessingException, IllegalStateException {
         return doReadEntity(cls, cls, anns);
     }
 
+    @Override
     @SuppressWarnings("unchecked")
-    public <T> T readEntity(GenericType<T> genType, Annotation[] anns) throws ProcessingException,
-        IllegalStateException {
-        return doReadEntity((Class<T>)genType.getRawType(),
+    public <T> T readEntity(GenericType<T> genType, Annotation[] anns)
+        throws ProcessingException, IllegalStateException {
+        return doReadEntity((Class<T>) genType.getRawType(),
                             genType.getType(), anns);
     }
 
-    public <T> T doReadEntity(Class<T> cls, Type t, Annotation[] anns) throws ProcessingException,
-        IllegalStateException {
+    public <T> T doReadEntity(Class<T> cls, Type t, Annotation[] anns)
+        throws ProcessingException, IllegalStateException {
 
         checkEntityIsClosed();
 
@@ -356,6 +456,13 @@ public final class ResponseImpl extends Response {
             .createMessageBodyReaderInterceptor(cls, t, anns, mediaType, outMessage, entityStreamAvailable, null);
 
         if (readers != null) {
+            // By default, the response entity was never closed automatically which is not compliant
+            // with JAX-RS specification and TCK. The auto-close behavior is controlled by 
+            // ResponseImpl#RESPONSE_STREAM_AUTO_CLOSE property which is set to "false" by default. 
+            // The autoCloseHint alters the default value of this property to be "true" for all 
+            // non-streaming and non-streaming like responses (to minimize the impact of the change
+            // as much as possible) in order to follow the specification.
+            final boolean autoCloseHint = !JAXRSUtils.isStreamingLikeOutType(cls, t);
             try {
                 if (entityBufferred) {
                     InputStream.class.cast(entity).reset();
@@ -365,12 +472,24 @@ public final class ResponseImpl extends Response {
                 responseMessage.put(Message.PROTOCOL_HEADERS, getHeaders());
 
                 lastEntity = JAXRSUtils.readFromMessageBodyReader(readers, cls, t,
-                                                                       anns,
-                                                                       entityStream,
-                                                                       mediaType,
-                                                                       responseMessage);
-                autoClose(cls, false);
-                return castLastEntity();
+                                                                  anns,
+                                                                  entityStream,
+                                                                  mediaType,
+                                                                  responseMessage);
+                // close the entity after readEntity is called.
+                T tCastLastEntity = castLastEntity();
+                autoCloseWithHint(cls, autoCloseHint, false);
+                return tCastLastEntity;
+            } catch (NoContentException ex) {
+                //when content is empty, return null instead of throw exception to pass TCK
+                //check if basic type. Basic type throw exception, else return null.
+                if (isBasicType(cls)) {
+                    autoClose(cls, true);
+                    reportMessageHandlerProblem("MSG_READER_PROBLEM", cls, mediaType, ex);
+                } else {
+                    autoCloseWithHint(cls, autoCloseHint, false);
+                    return null;
+                }
             } catch (Exception ex) {
                 autoClose(cls, true);
                 reportMessageHandlerProblem("MSG_READER_PROBLEM", cls, mediaType, ex);
@@ -435,12 +554,18 @@ public final class ResponseImpl extends Response {
     }
 
     protected void autoClose(Class<?> cls, boolean exception) {
+        autoCloseWithHint(cls, false, exception);
+    }
+    
+    protected void autoCloseWithHint(Class<?> cls, boolean autoCloseHint, boolean exception) {
         if (!entityBufferred && !JAXRSUtils.isStreamingOutType(cls)
-            && (exception || MessageUtils.getContextualBoolean(outMessage, "response.stream.auto.close"))) {
+            && (exception || MessageUtils.getContextualBoolean(outMessage, 
+                RESPONSE_STREAM_AUTO_CLOSE, autoCloseHint))) {
             close();
         }
     }
 
+    @Override
     public boolean bufferEntity() throws ProcessingException {
         checkEntityIsClosed();
         if (!entityBufferred && entity instanceof InputStream) {
@@ -456,6 +581,7 @@ public final class ResponseImpl extends Response {
         return entityBufferred;
     }
 
+    @Override
     public void close() throws ProcessingException {
         if (!entityClosed) {
             if (!entityBufferred && entity instanceof InputStream) {
@@ -480,10 +606,12 @@ public final class ResponseImpl extends Response {
     private Response.StatusType createStatusType(int statusCode, String reasonPhrase) {
         return new Response.StatusType() {
 
+            @Override
             public Family getFamily() {
                 return Response.Status.Family.familyOf(statusCode);
             }
 
+            @Override
             public String getReasonPhrase() {
                 if (reasonPhrase != null) {
                     return reasonPhrase;
@@ -492,10 +620,16 @@ public final class ResponseImpl extends Response {
                 return statusEnum != null ? statusEnum.getReasonPhrase() : "";
             }
 
+            @Override
             public int getStatusCode() {
                 return statusCode;
             }
 
         };
+    }
+
+    private static boolean isBasicType(Class<?> type) {
+        return type.isPrimitive() || Number.class.isAssignableFrom(type) || Boolean.class.isAssignableFrom(type)
+            || Character.class.isAssignableFrom(type);
     }
 }

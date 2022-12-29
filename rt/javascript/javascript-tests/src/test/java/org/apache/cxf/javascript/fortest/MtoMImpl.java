@@ -23,12 +23,10 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.StringWriter;
-import java.io.UnsupportedEncodingException;
 
-import javax.activation.DataHandler;
-import javax.jws.WebService;
-import javax.xml.ws.soap.MTOM;
-
+import jakarta.activation.DataHandler;
+import jakarta.jws.WebService;
+import jakarta.xml.ws.soap.MTOM;
 import org.apache.cxf.helpers.IOUtils;
 
 /**
@@ -50,8 +48,6 @@ public class MtoMImpl implements MtoM {
             InputStreamReader isr = new InputStreamReader(someData, "utf-8");
             IOUtils.copy(isr, sw, 4096);
             returnData = sw.toString();
-        } catch (UnsupportedEncodingException e) {
-            throw new RuntimeException(e);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }

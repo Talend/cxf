@@ -27,12 +27,12 @@ under the License.
     xmlns:util="http://www.springframework.org/schema/util"
     xsi:schemaLocation="http://cxf.apache.org/jaxrs http://cxf.apache.org/schemas/jaxrs.xsd
              http://cxf.apache.org/core http://cxf.apache.org/schemas/core.xsd
-             http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-4.2.xsd
+             http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
              http://www.springframework.org/schema/util  http://www.springframework.org/schema/util/spring-util-4.2.xsd
              http://cxf.apache.org/transports/http/configuration http://cxf.apache.org/schemas/configuration/http-conf.xsd
              http://cxf.apache.org/transports/http-jetty/configuration http://cxf.apache.org/schemas/configuration/http-jetty.xsd 
              http://cxf.apache.org/configuration/security http://cxf.apache.org/schemas/configuration/security.xsd">
-    <bean class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer"/>
+    <bean class="org.springframework.context.support.PropertySourcesPlaceholderConfigurer"/>
     <cxf:bus>
         <cxf:features>
             <cxf:logging/>
@@ -61,11 +61,12 @@ under the License.
             <httpj:sessionSupport>true</httpj:sessionSupport>
         </httpj:engine>
     </httpj:engine-factory>
-    
-   <bean id="oauthProvider" class="org.apache.cxf.systest.jaxrs.security.oauth2.common.OAuthDataProviderImpl">
-       <constructor-arg><value>${testutil.ports.jaxrs-oidc-filters}</value></constructor-arg>
-   </bean>
-   
+
+    <bean id="oauthProvider" class="org.apache.cxf.systest.jaxrs.security.oauth2.common.JCacheOAuthDataProviderImpl">
+        <constructor-arg><value>${testutil.ports.jaxrs-oidc-filters}</value></constructor-arg>
+        <property name="useJwtFormatForAccessTokens" value="true"/>
+    </bean>
+
    <bean id="authorizationService" class="org.apache.cxf.rs.security.oidc.idp.OidcAuthorizationCodeService">
       <property name="dataProvider" ref="oauthProvider"/>
    </bean>
@@ -107,9 +108,7 @@ under the License.
    <bean id="basicAuthFilter" class="org.apache.cxf.systest.jaxrs.security.oauth2.common.WSS4JBasicAuthFilter">
        <property name="callbackHandler" ref="callbackHandler"/>
    </bean>
-   
-   <bean id="oidcKeysService" class="org.apache.cxf.rs.security.oidc.idp.OidcKeysService"/>
-   
+
    <jaxrs:server 
        depends-on="tls-config" 
        address="https://localhost:${testutil.ports.jaxrs-filters-oidc-service}/services">
@@ -118,11 +117,9 @@ under the License.
            <ref bean="hybridService"/>
            <ref bean="implicitService"/>
            <ref bean="tokenService"/>
-           <ref bean="oidcKeysService"/>
        </jaxrs:serviceBeans>
        <jaxrs:providers>
            <ref bean="basicAuthFilter"/>
-           <bean class="org.apache.cxf.rs.security.jose.jaxrs.JsonWebKeysProvider"/>
        </jaxrs:providers>
        <jaxrs:properties>
            <entry key="rs.security.keystore.type" value="jks" />

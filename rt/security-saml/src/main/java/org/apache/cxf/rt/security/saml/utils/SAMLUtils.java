@@ -18,7 +18,6 @@
  */
 package org.apache.cxf.rt.security.saml.utils;
 
-import java.net.URI;
 import java.security.Principal;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -33,7 +32,7 @@ import org.apache.cxf.message.Message;
 import org.apache.cxf.rt.security.SecurityConstants;
 import org.apache.cxf.rt.security.claims.Claim;
 import org.apache.cxf.rt.security.claims.ClaimCollection;
-import org.apache.cxf.rt.security.saml.claims.SAMLClaim;
+import org.apache.cxf.rt.security.claims.SAMLClaim;
 import org.apache.cxf.rt.security.utils.SecurityUtils;
 import org.apache.wss4j.common.saml.SamlAssertionWrapper;
 import org.opensaml.core.xml.XMLObject;
@@ -58,7 +57,7 @@ public final class SAMLUtils {
             for (AttributeStatement as : statements) {
                 for (Attribute atr : as.getAttributes()) {
                     SAMLClaim claim = new SAMLClaim();
-                    claim.setClaimType(URI.create(atr.getName()));
+                    claim.setClaimType(atr.getName());
 
                     claim.setName(atr.getName());
                     claim.setNameFormat(atr.getNameFormat());
@@ -84,7 +83,7 @@ public final class SAMLUtils {
                     if (atr.getAttributeNamespace() != null) {
                         claimType = atr.getAttributeNamespace() + "/" + claimType;
                     }
-                    claim.setClaimType(URI.create(claimType));
+                    claim.setClaimType(claimType);
 
                     claim.setName(atr.getAttributeName());
                     claim.setNameFormat(atr.getAttributeNamespace());
@@ -110,11 +109,6 @@ public final class SAMLUtils {
         String name,
         String nameFormat
     ) {
-        String roleAttributeName = name;
-        if (roleAttributeName == null) {
-            roleAttributeName = SAMLClaim.SAML_ROLE_ATTRIBUTENAME_DEFAULT;
-        }
-
         Set<Principal> roles = new HashSet<>();
 
         for (Claim claim : claims) {
@@ -168,8 +162,8 @@ public final class SAMLUtils {
                     audiences.add((String)msg.get(org.apache.cxf.message.Message.REQUEST_URI));
                 }
 
-                if (msg.getContextualProperty("javax.xml.ws.wsdl.service") != null) {
-                    audiences.add(msg.getContextualProperty("javax.xml.ws.wsdl.service").toString());
+                if (msg.getContextualProperty(Message.WSDL_SERVICE) != null) {
+                    audiences.add(msg.getContextualProperty(Message.WSDL_SERVICE).toString());
                 }
             }
             return audiences;

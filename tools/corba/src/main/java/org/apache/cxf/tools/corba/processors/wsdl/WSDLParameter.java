@@ -305,7 +305,7 @@ public final class WSDLParameter {
         if (!outputs.isEmpty()) {
             ParamType d2 = outputs.get(0);
 
-            if (d2.getMode().value().equals("out")) {
+            if ("out".equals(d2.getMode().value())) {
                 ArgType argType = new ArgType();
                 argType.setName(d2.getName());
                 argType.setIdltype(d2.getIdltype());
@@ -320,13 +320,13 @@ public final class WSDLParameter {
 
         while (inputit.hasNext()) {
             ParamType d2 = inputit.next();
-            if (d2.getMode().value().equals("inout")) {
+            if ("inout".equals(d2.getMode().value())) {
                 ListIterator<ParamType> it = outputs.listIterator();
 
                 while (it.hasNext()) {
                     ParamType d3 = it.next();
-                    if (!d3.getName().equals(d2.getName()) && (!simpleOrdering)
-                        && (!d3.getMode().value().equals("inout"))) {
+                    if (!d3.getName().equals(d2.getName()) && !simpleOrdering
+                        && !"inout".equals(d3.getMode().value())) {
                         // the in/outs are in a different order in the
                         // output than the input
                         // we'll try and use the input oder for the INOUT's,
@@ -410,9 +410,7 @@ public final class WSDLParameter {
 
     // Will check if the schema includes other schemas.
     private static XmlSchemaElement findElement(XmlSchema xmlSchema, QName elName) {
-        XmlSchemaElement schemaElement = null;
-
-        schemaElement = xmlSchema.getElementByName(elName);
+        XmlSchemaElement schemaElement = xmlSchema.getElementByName(elName);
         if (schemaElement == null) {
             String prefix = definition.getPrefix(elName.getNamespaceURI());
             QName name = new QName(elName.getNamespaceURI(), prefix + ":" + elName.getLocalPart(), prefix);
@@ -434,10 +432,9 @@ public final class WSDLParameter {
 
     private static QName getIdlType(WSDLToCorbaBinding wsdlToCorbaBinding, XmlSchemaType schemaType,
                                     QName typeName, boolean nill) throws Exception {
-        QName idltype = null;
-        CorbaType corbaTypeImpl = null;
+        final QName idltype;
         if (schemaType == null) {
-            corbaTypeImpl = (CorbaType)WSDLToCorbaHelper.CORBAPRIMITIVEMAP.get(typeName);
+            CorbaType corbaTypeImpl = (CorbaType)WSDLToCorbaHelper.CORBAPRIMITIVEMAP.get(typeName);
             if (nill) {
                 QName qname = corbaTypeImpl.getQName();
                 idltype = wsdlToCorbaBinding.getHelper().createQNameCorbaNamespace(qname.getLocalPart()
@@ -485,10 +482,8 @@ public final class WSDLParameter {
     private static QName getSchemaTypeName(WSDLToCorbaBinding wsdlToCorbaBinding, XmlSchemaType schemaType,
                                            XmlSchemaAnnotation annotation, QName typeName, boolean nill)
         throws Exception {
-        QName idltype = null;
-        CorbaType corbaTypeImpl = null;
-
-        corbaTypeImpl = wsdlToCorbaBinding.getHelper().convertSchemaToCorbaType(schemaType, typeName, null,
+        final QName idltype;
+        CorbaType corbaTypeImpl = wsdlToCorbaBinding.getHelper().convertSchemaToCorbaType(schemaType, typeName, null,
                                                                                 annotation, false);
         if (corbaTypeImpl == null) {
             throw new Exception("Couldn't convert schema type to corba type : " + typeName);
@@ -559,9 +554,8 @@ public final class WSDLParameter {
 
         // RULE No.3:
         // The output message part refers to a global element declaration
-        Part outputPart = null;
         if (outputMessage != null && outputMessage.getParts().size() == 1) {
-            outputPart = (Part)outputMessage.getParts().values().iterator().next();
+            Part outputPart = (Part)outputMessage.getParts().values().iterator().next();
             if (outputPart != null) {
                 if ((outputPart.getElementName() == null) || getElement(outputPart, xmlSchemaList) == null) {
                     passedRule = false;
@@ -581,9 +575,8 @@ public final class WSDLParameter {
         // Now lets see if we have any attributes...
         // This should probably look at the restricted and substitute types too.
 
-        XmlSchemaComplexType xsct = null;
         if (inputEl.getSchemaType() instanceof XmlSchemaComplexType) {
-            xsct = (XmlSchemaComplexType)inputEl.getSchemaType();
+            XmlSchemaComplexType xsct = (XmlSchemaComplexType)inputEl.getSchemaType();
             if (hasAttributes(xsct) || !isWrappableSequence(xsct)) {
                 passedRule = false;
             }
@@ -597,7 +590,7 @@ public final class WSDLParameter {
 
         if (outputMessage != null) {
             if (outputEl != null && outputEl.getSchemaType() instanceof XmlSchemaComplexType) {
-                xsct = (XmlSchemaComplexType)outputEl.getSchemaType();
+                XmlSchemaComplexType xsct = (XmlSchemaComplexType)outputEl.getSchemaType();
                 if (hasAttributes(xsct) || !isWrappableSequence(xsct)) {
                     passedRule = false;
                 }

@@ -21,14 +21,13 @@ package org.apache.cxf.systest.jaxws.schemavalidation;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import javax.xml.ws.WebServiceException;
-import javax.xml.ws.soap.SOAPFaultException;
-
+import jakarta.xml.ws.WebServiceException;
+import jakarta.xml.ws.soap.SOAPFaultException;
 import org.apache.cxf.annotations.SchemaValidation.SchemaValidationType;
 import org.apache.cxf.endpoint.Client;
 import org.apache.cxf.endpoint.Server;
@@ -44,11 +43,13 @@ import org.apache.cxf.transport.http.HTTPConduit;
 import org.apache.cxf.transports.http.configuration.HTTPClientPolicy;
 
 import org.junit.AfterClass;
-import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-public class JavaFirstSchemaValidationTest extends Assert {
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+
+public class JavaFirstSchemaValidationTest {
     static final String PORT = TestUtil.getNewPortNumber(JavaFirstSchemaValidationTest.class);
     static final String PORT2 = TestUtil.getNewPortNumber(JavaFirstSchemaValidationTest.class);
     static final String PORT_UNUSED = TestUtil.getNewPortNumber(JavaFirstSchemaValidationTest.class);
@@ -374,7 +375,7 @@ public class JavaFirstSchemaValidationTest extends Assert {
         clientFactory.setAddress(getAddress(port, serviceClass));
 
         if (features != null) {
-            clientFactory.getFeatures().addAll(Arrays.asList(features));
+            Collections.addAll(clientFactory.getFeatures(), features);
         }
 
         @SuppressWarnings("unchecked")
@@ -403,7 +404,7 @@ public class JavaFirstSchemaValidationTest extends Assert {
         svrFactory.setServiceClass(serviceImpl.getClass());
 
         if (features != null) {
-            svrFactory.getFeatures().addAll(Arrays.asList(features));
+            Collections.addAll(svrFactory.getFeatures(), features);
         }
 
         if (type != null) {

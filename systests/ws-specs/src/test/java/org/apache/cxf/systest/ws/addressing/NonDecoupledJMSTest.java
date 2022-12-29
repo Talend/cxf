@@ -24,13 +24,12 @@ import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
 
-import javax.jws.WebService;
-
+import jakarta.jws.WebService;
 import org.apache.cxf.testutil.common.EmbeddedJMSBrokerLauncher;
 
 import org.junit.BeforeClass;
-import org.junit.Test;
 
+import static org.junit.Assert.assertTrue;
 
 /**
  * Tests the addition of WS-Addressing Message Addressing Properties
@@ -39,7 +38,7 @@ import org.junit.Test;
 public class NonDecoupledJMSTest extends MAPTestBase {
     static final String PORT = allocatePort(NonDecoupledJMSTest.class);
     private static final String ADDRESS = "jms:jndi:dynamicQueues/testqueue0002?"
-        + "jndiInitialContextFactory=org.apache.activemq.jndi.ActiveMQInitialContextFactory"
+        + "jndiInitialContextFactory=org.apache.activemq.artemis.jndi.ActiveMQInitialContextFactory"
         + "&jndiConnectionFactoryName=ConnectionFactory&jndiURL=tcp://localhost:"
         + EmbeddedJMSBrokerLauncher.PORT;
 
@@ -52,12 +51,6 @@ public class NonDecoupledJMSTest extends MAPTestBase {
     }
     public String getPort() {
         return PORT;
-    }
-
-    @Test
-    @Override
-    public void testImplicitMAPs() throws Exception {
-        super.testImplicitMAPs();
     }
 
     public String getAddress() {

@@ -23,50 +23,17 @@
     <packaging>bundle</packaging>
     <name>Apache CXF Runtime HTTP Undertow Transport</name>
     <description>Apache CXF Runtime HTTP Undertow Transport</description>
-    <url>http://cxf.apache.org</url>
+    <url>https://cxf.apache.org</url>
     <parent>
         <groupId>org.apache.cxf</groupId>
         <artifactId>cxf-parent</artifactId>
-        <version>3.2.5-SNAPSHOT</version>
+        <version>4.0.1-SNAPSHOT</version>
         <relativePath>../../../parent/pom.xml</relativePath>
     </parent>
     <properties>
-        <cxf.bundle.activator>org.apache.cxf.transport.http_undertow.osgi.HTTPUndertowTransportActivator</cxf.bundle.activator>
-        <cxf.osgi.import>
-            javax.servlet*;version="${cxf.osgi.javax.servlet.version}",
-            io.undertow*;version="${cxf.undertow.osgi.version}",
-            org.osgi.service.blueprint*;resolution:=optional,
-            org.apache.aries*;version="${cxf.aries.version.range}";resolution:=optional,
-            org.springframework*;resolution:="optional";version="${cxf.osgi.spring.version}"
-        </cxf.osgi.import>
-        <!-- keep in sync with services exported in activator -->
-        <cxf.export.service>
-            org.apache.aries.blueprint.NamespaceHandler;osgi.service.blueprint.namespace="http://cxf.apache.org/transports/http-undertow/configuration"
-        </cxf.export.service>
+        <cxf.module.name>org.apache.cxf.transport.http.undertow</cxf.module.name>
     </properties>
     <dependencies>
-        <dependency>
-            <groupId>org.apache.aries.blueprint</groupId>
-            <artifactId>org.apache.aries.blueprint.core</artifactId>
-            <scope>provided</scope>
-            <optional>true</optional>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.aries.blueprint</groupId>
-            <artifactId>blueprint-parser</artifactId>
-            <scope>provided</scope>
-            <optional>true</optional>
-        </dependency>
-        <dependency>
-            <groupId>org.osgi</groupId>
-            <artifactId>org.osgi.core</artifactId>
-            <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.osgi</groupId>
-            <artifactId>org.osgi.compendium</artifactId>
-            <scope>provided</scope>
-        </dependency>
         <dependency>
             <groupId>org.apache.cxf</groupId>
             <artifactId>cxf-core</artifactId>
@@ -83,7 +50,7 @@
         </dependency>
         <dependency>
             <groupId>io.undertow</groupId>
-            <artifactId>undertow-servlet</artifactId>
+            <artifactId>undertow-servlet-jakarta</artifactId>
         </dependency>
         <dependency>
             <groupId>${cxf.servlet-api.group}</groupId>

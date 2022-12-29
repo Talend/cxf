@@ -24,15 +24,14 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.logging.Level;
 
-import javax.ws.rs.Consumes;
-import javax.ws.rs.POST;
-import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
-import javax.ws.rs.WebApplicationException;
-import javax.ws.rs.core.HttpHeaders;
-import javax.ws.rs.core.MultivaluedMap;
-import javax.ws.rs.core.Response;
-
+import jakarta.ws.rs.Consumes;
+import jakarta.ws.rs.POST;
+import jakarta.ws.rs.Path;
+import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.WebApplicationException;
+import jakarta.ws.rs.core.HttpHeaders;
+import jakarta.ws.rs.core.MultivaluedMap;
+import jakarta.ws.rs.core.Response;
 import org.apache.cxf.rs.security.oauth2.common.Client;
 import org.apache.cxf.rs.security.oauth2.common.ClientAccessToken;
 import org.apache.cxf.rs.security.oauth2.common.OAuthError;
@@ -50,8 +49,8 @@ import org.apache.cxf.rs.security.oauth2.utils.OAuthUtils;
  */
 @Path("/token")
 public class AccessTokenService extends AbstractTokenService {
-    private List<AccessTokenGrantHandler> grantHandlers = new LinkedList<AccessTokenGrantHandler>();
-    private List<AccessTokenResponseFilter> responseHandlers = new LinkedList<AccessTokenResponseFilter>();
+    private List<AccessTokenGrantHandler> grantHandlers = new LinkedList<>();
+    private List<AccessTokenResponseFilter> responseHandlers = new LinkedList<>();
 
     /**
      * Sets the list of optional grant handlers
@@ -65,10 +64,10 @@ public class AccessTokenService extends AbstractTokenService {
     protected void injectContextIntoOAuthProviders() {
         super.injectContextIntoOAuthProviders();
         for (AccessTokenGrantHandler grantHandler : grantHandlers) {
-            OAuthUtils.injectContextIntoOAuthProvider(getMessageContext(), grantHandler);    
+            OAuthUtils.injectContextIntoOAuthProvider(getMessageContext(), grantHandler);
         }
     }
-    
+
     /**
      * Sets a grant handler
      * @param handler the grant handler
@@ -119,12 +118,13 @@ public class AccessTokenService extends AbstractTokenService {
         }
 
         // Create the access token
-        ServerAccessToken serverToken = null;
+        final ServerAccessToken serverToken;
         try {
             serverToken = handler.createAccessToken(client, params);
         } catch (WebApplicationException ex) {
             throw ex;
         } catch (RuntimeException ex) {
+            LOG.log(Level.FINE, "Error creating the access token", ex);
             // This is done to bypass a Check-Style
             // restriction on a number of return statements
             OAuthServiceException oauthEx = ex instanceof OAuthServiceException
@@ -153,7 +153,9 @@ public class AccessTokenService extends AbstractTokenService {
     protected void checkAudience(Client c, MultivaluedMap<String, String> params) {
         String audienceParam = params.getFirst(OAuthConstants.CLIENT_AUDIENCE);
         if (!OAuthUtils.validateAudience(audienceParam, c.getRegisteredAudiences())) {
-            LOG.fine("Error validating the audience parameter");
+            LOG.log(Level.FINE, "Error validating the audience parameter. Supplied audience {0} "
+                    + "does not match with the registered audiences {1}",
+                    new Object[] {audienceParam, c.getRegisteredAudiences() });
             throw new OAuthServiceException(new OAuthError(OAuthConstants.ACCESS_DENIED));
         }
 

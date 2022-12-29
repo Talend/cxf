@@ -22,8 +22,7 @@ package org.apache.cxf.systest.ws.policy;
 import java.io.Closeable;
 import java.util.logging.Logger;
 
-import javax.xml.ws.Endpoint;
-
+import jakarta.xml.ws.Endpoint;
 import org.apache.cxf.Bus;
 import org.apache.cxf.BusFactory;
 import org.apache.cxf.bus.spring.SpringBusFactory;
@@ -41,6 +40,8 @@ import org.apache.cxf.testutil.common.TestUtil;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 /**
  * Tests the use of the WS-Policy Framework to automatically engage WS-Addressing and

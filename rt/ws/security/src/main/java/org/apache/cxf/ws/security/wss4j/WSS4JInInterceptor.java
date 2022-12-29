@@ -18,21 +18,20 @@
  */
 package org.apache.cxf.ws.security.wss4j;
 
-import java.lang.reflect.Method;
+import java.io.IOException;
 import java.security.Provider;
 import java.security.cert.Certificate;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import javax.security.auth.callback.Callback;
 import javax.security.auth.callback.CallbackHandler;
+import javax.security.auth.callback.UnsupportedCallbackException;
 import javax.xml.namespace.QName;
-import javax.xml.soap.SOAPException;
-import javax.xml.soap.SOAPMessage;
 import javax.xml.stream.XMLStreamConstants;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
@@ -42,6 +41,8 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
+import jakarta.xml.soap.SOAPException;
+import jakarta.xml.soap.SOAPMessage;
 import org.apache.cxf.attachment.AttachmentUtil;
 import org.apache.cxf.binding.soap.SoapFault;
 import org.apache.cxf.binding.soap.SoapMessage;
@@ -50,6 +51,8 @@ import org.apache.cxf.binding.soap.saaj.SAAJInInterceptor;
 import org.apache.cxf.binding.soap.saaj.SAAJUtils;
 import org.apache.cxf.common.i18n.Message;
 import org.apache.cxf.common.logging.LogUtils;
+import org.apache.cxf.common.util.PropertyUtils;
+import org.apache.cxf.common.util.StringUtils;
 import org.apache.cxf.endpoint.Endpoint;
 import org.apache.cxf.helpers.CastUtils;
 import org.apache.cxf.helpers.DOMUtils;
@@ -62,11 +65,13 @@ import org.apache.cxf.security.transport.TLSSessionInfo;
 import org.apache.cxf.staxutils.StaxUtils;
 import org.apache.cxf.ws.security.SecurityConstants;
 import org.apache.cxf.ws.security.tokenstore.TokenStore;
+import org.apache.cxf.ws.security.tokenstore.TokenStoreException;
 import org.apache.cxf.ws.security.tokenstore.TokenStoreUtils;
 import org.apache.wss4j.common.ConfigurationConstants;
 import org.apache.wss4j.common.cache.ReplayCache;
 import org.apache.wss4j.common.crypto.Crypto;
 import org.apache.wss4j.common.crypto.ThreadLocalSecurityProvider;
+import org.apache.wss4j.common.ext.WSPasswordCallback;
 import org.apache.wss4j.common.ext.WSSecurityException;
 import org.apache.wss4j.dom.WSConstants;
 import org.apache.wss4j.dom.WSDataRef;
@@ -80,6 +85,7 @@ import org.apache.wss4j.dom.processor.Processor;
 import org.apache.wss4j.dom.util.WSSecurityUtil;
 import org.apache.wss4j.dom.validate.NoOpValidator;
 import org.apache.wss4j.dom.validate.Validator;
+import org.apache.xml.security.c14n.InvalidCanonicalizerException;
 
 /**
  * Performs WS-Security inbound actions.
@@ -104,7 +110,8 @@ public class WSS4JInInterceptor extends AbstractWSS4JInterceptor {
     /**
      *
      */
-    private WSSecurityEngine secEngineOverride;
+    private WSSConfig defaultConfig;
+
 
     public WSS4JInInterceptor() {
         super();
@@ -121,24 +128,54 @@ public class WSS4JInInterceptor extends AbstractWSS4JInterceptor {
     public WSS4JInInterceptor(Map<String, Object> properties) {
         this();
         setProperties(properties);
+        WSSConfig config = WSSConfig.getNewInstance();
+
+        // Set any custom WSS4J Processor instances that are configured
         final Map<QName, Object> processorMap = CastUtils.cast(
             (Map<?, ?>)properties.get(PROCESSOR_MAP));
-        final Map<QName, Object> validatorMap = CastUtils.cast(
-            (Map<?, ?>)properties.get(VALIDATOR_MAP));
-
         if (processorMap != null) {
-            if (validatorMap != null) {
-                processorMap.putAll(validatorMap);
+            for (Map.Entry<QName, Object> entry : processorMap.entrySet()) {
+                Object val = entry.getValue();
+                if (val instanceof Class<?>) {
+                    config.setProcessor(entry.getKey(), (Class<?>)val);
+                } else if (val instanceof Processor) {
+                    config.setProcessor(entry.getKey(), (Processor)val);
+                } else if (val == null) {
+                    config.setProcessor(entry.getKey(), (Class<?>)null);
+                }
             }
-            secEngineOverride = createSecurityEngine(processorMap);
-        } else if (validatorMap != null) {
-            secEngineOverride = createSecurityEngine(validatorMap);
         }
+
+        // Set any custom WSS4J Validator instances that are configured
+        Map<QName, Object> validatorMap = CastUtils.cast(
+            (Map<?, ?>)properties.get(VALIDATOR_MAP));
+        if (validatorMap == null) {
+            validatorMap = CastUtils.cast((Map<?, ?>)properties.get(ConfigurationConstants.VALIDATOR_MAP));
+        }
+        if (validatorMap != null) {
+            for (Map.Entry<QName, Object> entry : validatorMap.entrySet()) {
+                Object val = entry.getValue();
+                if (val instanceof Class<?>) {
+                    config.setValidator(entry.getKey(), (Class<?>)val);
+                } else if (val instanceof Validator) {
+                    config.setValidator(entry.getKey(), (Validator)val);
+                }
+            }
+        }
+
+        defaultConfig = config;
     }
 
+    /**
+     * Setting this value to true means that WSS4J does not compare the "actions" that were processed against
+     * the list of actions that were configured. It also means that CXF/WSS4J does not throw an error if no actions
+     * were specified. Setting this to true could be a potential security risk, as there is then no guarantee that
+     * the message contains the desired security token.
+     */
     public void setIgnoreActions(boolean i) {
         ignoreActions = i;
     }
+
     private SOAPMessage getSOAPMessage(SoapMessage msg) {
         SAAJInInterceptor.INSTANCE.handleMessage(msg);
         return msg.getContent(SOAPMessage.class);
@@ -202,7 +239,6 @@ public class WSS4JInInterceptor extends AbstractWSS4JInterceptor {
             config = engine.getWssConfig();
         }
         reqData.setWssConfig(config);
-        reqData.setEncryptionSerializer(new StaxSerializer());
 
         // Add Audience Restrictions for SAML
         reqData.setAudienceRestrictions(SAMLUtils.getAudienceRestrictions(msg, true));
@@ -212,6 +248,12 @@ public class WSS4JInInterceptor extends AbstractWSS4JInterceptor {
         boolean doDebug = LOG.isLoggable(Level.FINE);
 
         SoapVersion version = msg.getVersion();
+        try {
+            reqData.setEncryptionSerializer(new StaxSerializer());
+        } catch (InvalidCanonicalizerException e) {
+            throw new SoapFault(new Message("SECURITY_FAILED", LOG), e, version.getReceiver());
+        }
+
         if (doDebug) {
             LOG.fine("WSS4JInInterceptor: enter handleMessage()");
         }
@@ -230,7 +272,6 @@ public class WSS4JInInterceptor extends AbstractWSS4JInterceptor {
 
             computeAction(msg, reqData);
             String action = getAction(msg, version);
-
             List<Integer> actions = WSSecurityUtil.decodeAction(action);
 
             String actor = (String)getOption(ConfigurationConstants.ACTOR);
@@ -266,7 +307,7 @@ public class WSS4JInInterceptor extends AbstractWSS4JInterceptor {
              *isn't available
              */
             boolean enableRevocation = reqData.isRevocationEnabled()
-                || MessageUtils.isTrue(SecurityUtils.getSecurityPropertyValue(SecurityConstants.ENABLE_REVOCATION,
+                || PropertyUtils.isTrue(SecurityUtils.getSecurityPropertyValue(SecurityConstants.ENABLE_REVOCATION,
                                        msg));
             reqData.setEnableRevocation(enableRevocation);
 
@@ -294,7 +335,7 @@ public class WSS4JInInterceptor extends AbstractWSS4JInterceptor {
                     checkSignatureConfirmation(reqData, wsResult);
                 }
 
-                checkActions(msg, reqData, wsResult.getResults(), actions, SAAJUtils.getBody(doc));
+                checkActions(msg, wsResult.getResults(), actions);
 
                 doResults(
                     msg, actor,
@@ -320,7 +361,7 @@ public class WSS4JInInterceptor extends AbstractWSS4JInterceptor {
                               body,
                               wsResult, utWithCallbacks);
                 } else {
-                    checkActions(msg, reqData, wsResult.getResults(), actions, SAAJUtils.getBody(doc));
+                    checkActions(msg, wsResult.getResults(), actions);
                     doResults(msg, actor,
                               header,
                               body,
@@ -343,8 +384,6 @@ public class WSS4JInInterceptor extends AbstractWSS4JInterceptor {
             throw new SoapFault(new Message("STAX_EX", LOG), e, version.getSender());
         } catch (SOAPException e) {
             throw new SoapFault(new Message("SAAJ_EX", LOG), e, version.getSender());
-        } finally {
-            reqData = null;
         }
     }
     private void importNewDomToSAAJ(SOAPMessage doc, Element elem,
@@ -364,17 +403,8 @@ public class WSS4JInInterceptor extends AbstractWSS4JInterceptor {
                     getDocumentElement().getFirstChild().getNextSibling().getFirstChild();
             }
             if (document != null && node != null) {
-                Node newNode = null;
                 try {
-                    newNode = document.importNode(node, true);
-                    if (newNode != null) {
-                        try {
-                            Method method = newNode.getClass().getMethod("getDomElement");
-                            newNode = (Element)method.invoke(newNode);
-                        } catch (java.lang.NoSuchMethodException ex) {
-                            // do nothing;
-                        }
-                    }
+                    Node newNode = DOMUtils.getDomElement(document.importNode(node, true));
                     elem.getOwnerDocument().getDocumentElement().getFirstChild().
                         getNextSibling().replaceChild(newNode, node);
                     List<WSSecurityEngineResult> encryptResults = wsResult.getActionResults().get(WSConstants.ENCR);
@@ -419,12 +449,10 @@ public class WSS4JInInterceptor extends AbstractWSS4JInterceptor {
         }
     }
 
-    private void checkActions(
+    protected void checkActions(
         SoapMessage msg,
-        RequestData reqData,
         List<WSSecurityEngineResult> wsResult,
-        List<Integer> actions,
-        Element body
+        List<Integer> actions
     ) throws WSSecurityException {
         if (ignoreActions) {
             // Not applicable for the WS-SecurityPolicy case
@@ -474,7 +502,7 @@ public class WSS4JInInterceptor extends AbstractWSS4JInterceptor {
     }
 
     protected void configureReplayCaches(RequestData reqData, List<Integer> actions, SoapMessage msg)
-        throws WSSecurityException {
+            throws WSSecurityException {
         if (isNonceCacheRequired(actions, msg)) {
             ReplayCache nonceCache =
                 getReplayCache(
@@ -578,7 +606,7 @@ public class WSS4JInInterceptor extends AbstractWSS4JInterceptor {
         if (action == null) {
             action = (String)msg.get(ConfigurationConstants.ACTION);
         }
-        if (action == null) {
+        if (action == null && !ignoreActions) {
             LOG.warning("No security action was defined!");
             throw new SoapFault("No security action was defined!", version.getReceiver());
         }
@@ -596,14 +624,18 @@ public class WSS4JInInterceptor extends AbstractWSS4JInterceptor {
             }
             return new DelegatingCallbackHandler(pwdCallback);
         }
-        return getCallback(reqData);
+        try {
+            return getCallback(reqData);
+        } catch (TokenStoreException ex) {
+            throw new WSSecurityException(WSSecurityException.ErrorCode.FAILURE, ex);
+        }
     }
 
-    protected CallbackHandler getCallback(RequestData reqData) throws WSSecurityException {
+    protected CallbackHandler getCallback(RequestData reqData) throws WSSecurityException, TokenStoreException {
         Object o =
             SecurityUtils.getSecurityPropertyValue(SecurityConstants.CALLBACK_HANDLER,
                                                    (SoapMessage)reqData.getMsgContext());
-        CallbackHandler cbHandler = null;
+        CallbackHandler cbHandler;
         try {
             cbHandler = SecurityUtils.getCallbackHandler(o);
         } catch (Exception ex) {
@@ -624,6 +656,33 @@ public class WSS4JInInterceptor extends AbstractWSS4JInterceptor {
             }
         }
 
+        // Defer to SecurityConstants.SIGNATURE_PASSWORD for decryption if no callback handler is defined
+        if (cbHandler == null) {
+            String signatureUser =
+                (String)SecurityUtils.getSecurityPropertyValue(SecurityConstants.SIGNATURE_USERNAME,
+                                                               (SoapMessage)reqData.getMsgContext());
+            String password =
+                (String)SecurityUtils.getSecurityPropertyValue(SecurityConstants.SIGNATURE_PASSWORD,
+                                                       (SoapMessage)reqData.getMsgContext());
+            if (!(StringUtils.isEmpty(signatureUser) || StringUtils.isEmpty(password))) {
+                cbHandler = new CallbackHandler() {
+
+                    @Override
+                    public void handle(Callback[] callbacks)
+                        throws IOException, UnsupportedCallbackException {
+                        for (Callback c : callbacks) {
+                            WSPasswordCallback pwCallback = (WSPasswordCallback)c;
+                            if (WSPasswordCallback.DECRYPT == pwCallback.getUsage()
+                                && signatureUser.equals(pwCallback.getIdentifier())) {
+                                pwCallback.setPassword(password);
+                            }
+                        }
+                    }
+                };
+            }
+
+        }
+
         Endpoint ep = ((SoapMessage)reqData.getMsgContext()).getExchange().getEndpoint();
         if (ep != null && ep.getEndpointInfo() != null) {
             TokenStore store = TokenStoreUtils.getTokenStore((SoapMessage)reqData.getMsgContext());
@@ -636,51 +695,21 @@ public class WSS4JInInterceptor extends AbstractWSS4JInterceptor {
 
     /**
      * @return      the WSSecurityEngine in use by this interceptor.
-     *              This engine is defined to be the secEngineOverride
-     *              instance, if defined in this class (and supplied through
-     *              construction); otherwise, it is taken to be the default
-     *              WSSecEngine instance (currently defined in the WSHandler
-     *              base class).
      */
     protected WSSecurityEngine getSecurityEngine(boolean utWithCallbacks) {
-        if (secEngineOverride != null) {
-            return secEngineOverride;
-        }
-
         if (!utWithCallbacks) {
-            Map<QName, Object> profiles = new HashMap<>(1);
-            Validator validator = new NoOpValidator();
-            profiles.put(WSConstants.USERNAME_TOKEN, validator);
-            return createSecurityEngine(profiles);
+            WSSConfig config = WSSConfig.getNewInstance();
+            config.setValidator(WSConstants.USERNAME_TOKEN, new NoOpValidator());
+            WSSecurityEngine ret = new WSSecurityEngine();
+            ret.setWssConfig(config);
+            return ret;
+        } else if (defaultConfig != null) {
+            WSSecurityEngine engine = new WSSecurityEngine();
+            engine.setWssConfig(defaultConfig);
+            return engine;
         }
 
         return null;
-    }
-
-    /**
-     * @return      a freshly minted WSSecurityEngine instance, using the
-     *              (non-null) processor map, to be used to initialize the
-     *              WSSecurityEngine instance.
-     */
-    protected static WSSecurityEngine createSecurityEngine(final Map<QName, Object> map) {
-        assert map != null;
-        final WSSConfig config = WSSConfig.getNewInstance();
-        for (Map.Entry<QName, Object> entry : map.entrySet()) {
-            final QName key = entry.getKey();
-            Object val = entry.getValue();
-            if (val instanceof Class<?>) {
-                config.setProcessor(key, (Class<?>)val);
-            } else if (val instanceof Processor) {
-                config.setProcessor(key, (Processor)val);
-            } else if (val instanceof Validator) {
-                config.setValidator(key, (Validator)val);
-            } else if (val == null) {
-                config.setProcessor(key, (Class<?>)null);
-            }
-        }
-        final WSSecurityEngine ret = new WSSecurityEngine();
-        ret.setWssConfig(config);
-        return ret;
     }
 
     /**
@@ -696,7 +725,7 @@ public class WSS4JInInterceptor extends AbstractWSS4JInterceptor {
      */
     protected ReplayCache getReplayCache(
         SoapMessage message, String booleanKey, String instanceKey
-    ) {
+    ) throws WSSecurityException {
         return WSS4JUtils.getReplayCache(message, booleanKey, instanceKey);
     }
 

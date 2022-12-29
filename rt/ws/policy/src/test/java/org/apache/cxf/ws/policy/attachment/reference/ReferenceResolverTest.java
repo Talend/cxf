@@ -26,6 +26,7 @@ import java.util.List;
 import javax.wsdl.extensions.UnknownExtensibilityElement;
 import javax.xml.namespace.QName;
 
+import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
 import org.apache.cxf.service.model.DescriptionInfo;
@@ -36,14 +37,16 @@ import org.apache.neethi.Policy;
 
 import org.easymock.EasyMock;
 import org.easymock.IMocksControl;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertSame;
 
 /**
  *
  */
-public class ReferenceResolverTest extends Assert {
+public class ReferenceResolverTest {
 
     private IMocksControl control;
 
@@ -71,10 +74,12 @@ public class ReferenceResolverTest extends Assert {
         extensions.add(extension);
         EasyMock.expect(di.getExtensors(UnknownExtensibilityElement.class)).andReturn(extensions);
         Element e = control.createMock(Element.class);
-        EasyMock.expect(extension.getElement()).andReturn(e).times(2);
         QName qn = new QName(Constants.URI_POLICY_NS,
                              Constants.ELEM_POLICY);
         EasyMock.expect(extension.getElementType()).andReturn(qn).anyTimes();
+        EasyMock.expect(extension.getElement()).andReturn(e).times(1);
+        Document ownerDocument = control.createMock(Document.class);
+        EasyMock.expect(e.getOwnerDocument()).andReturn(ownerDocument);
         EasyMock.expect(e.getAttributeNS(PolicyConstants.WSU_NAMESPACE_URI,
                                          PolicyConstants.WSU_ID_ATTR_NAME))
                         .andReturn("A");

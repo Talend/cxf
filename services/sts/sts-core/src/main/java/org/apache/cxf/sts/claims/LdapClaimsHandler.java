@@ -18,8 +18,6 @@
  */
 package org.apache.cxf.sts.claims;
 
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.security.Principal;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -124,22 +122,13 @@ public class LdapClaimsHandler implements ClaimsHandler, RealmSupport {
     }
 
 
-    public List<URI> getSupportedClaimTypes() {
-        List<URI> uriList = new ArrayList<>();
-        for (String uri : getClaimsLdapAttributeMapping().keySet()) {
-            try {
-                uriList.add(new URI(uri));
-            } catch (URISyntaxException e) {
-                e.printStackTrace();
-            }
-        }
-
-        return uriList;
+    public List<String> getSupportedClaimTypes() {
+        return new ArrayList<>(getClaimsLdapAttributeMapping().keySet());
     }
 
     public ProcessedClaimCollection retrieveClaimValues(
             ClaimCollection claims, ClaimsParameters parameters) {
-        String user = null;
+        final String user;
         boolean useLdapLookup = false;
 
         Principal principal = parameters.getPrincipal();
@@ -199,7 +188,7 @@ public class LdapClaimsHandler implements ClaimsHandler, RealmSupport {
                 }
             }
 
-            String[] searchAttributes = searchAttributeList.toArray(new String[searchAttributeList.size()]);
+            String[] searchAttributes = searchAttributeList.toArray(new String[0]);
 
             if (this.userBaseDn != null) {
                 ldapAttributes = LdapUtils.getAttributesOfEntry(ldap, this.userBaseDn, this.getObjectClass(), this
@@ -239,8 +228,8 @@ public class LdapClaimsHandler implements ClaimsHandler, RealmSupport {
     }
 
     protected ProcessedClaim processClaim(Claim claim, Map<String, Attribute> ldapAttributes, Principal principal) {
-        URI claimType = claim.getClaimType();
-        String ldapAttribute = getClaimsLdapAttributeMapping().get(claimType.toString());
+        String claimType = claim.getClaimType();
+        String ldapAttribute = getClaimsLdapAttributeMapping().get(claimType);
         Attribute attr = ldapAttributes.get(ldapAttribute);
         if (attr == null) {
             if (LOG.isLoggable(Level.FINEST)) {

@@ -19,9 +19,8 @@
 
 package org.apache.cxf.systest.jaxrs.security;
 
-import javax.ws.rs.core.MediaType;
-import javax.xml.bind.annotation.XmlRootElement;
-
+import jakarta.ws.rs.core.MediaType;
+import jakarta.xml.bind.annotation.XmlRootElement;
 import org.apache.cxf.Bus;
 import org.apache.cxf.endpoint.Client;
 import org.apache.cxf.endpoint.ClientLifeCycleListener;
@@ -39,6 +38,9 @@ import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Test;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 public class JAXRSHttpsBookTest extends AbstractBusClientServerTestBase {
     public static final String PORT = BookHttpsServer.PORT;
@@ -112,10 +114,6 @@ public class JAXRSHttpsBookTest extends AbstractBusClientServerTestBase {
 
     @Test
     public void testCustomVerbProxyFromSpringWildcard() throws Exception {
-        if (System.getProperty("java.version").startsWith("9")) {
-            //CXF-7270
-            return;
-        }
         ClassPathXmlApplicationContext ctx =
             new ClassPathXmlApplicationContext(new String[] {CLIENT_CONFIG_FILE3});
         Object bean = ctx.getBean("bookService.proxyFactory");

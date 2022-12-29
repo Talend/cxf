@@ -19,10 +19,9 @@
 
 package org.apache.cxf.systest.mtom;
 
-import javax.activation.DataHandler;
-import javax.jws.WebService;
-import javax.xml.ws.Holder;
-
+import jakarta.activation.DataHandler;
+import jakarta.jws.WebService;
+import jakarta.xml.ws.Holder;
 import org.apache.cxf.mime.TestMtom;
 import org.apache.cxf.mime.types.XopStringType;
 
@@ -31,7 +30,7 @@ import org.apache.cxf.mime.types.XopStringType;
         portName = "TestMtomJMSPort",
         targetNamespace = "http://cxf.apache.org/mime",
         endpointInterface = "org.apache.cxf.mime.TestMtom",
-        wsdlLocation = "testutils/mtom_xop.wsdl")
+        wsdlLocation = "wsdl/mtom_xop.wsdl")
 
 public class TestMtomJMSImpl implements TestMtom {
 

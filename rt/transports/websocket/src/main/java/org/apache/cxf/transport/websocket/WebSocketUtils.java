@@ -25,6 +25,7 @@ import java.io.InputStream;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.TreeMap;
+import java.util.regex.Pattern;
 
 /**
  *
@@ -37,6 +38,7 @@ public final class WebSocketUtils {
 
     private static final byte[] CRLF = "\r\n".getBytes();
     private static final byte[] COLSP = ": ".getBytes();
+    private static final Pattern CR_OR_LF = Pattern.compile("\\r|\\n");
 
     private WebSocketUtils() {
     }
@@ -55,7 +57,7 @@ public final class WebSocketUtils {
      * @throws IOException
      */
     public static Map<String, String> readHeaders(InputStream in, boolean req) throws IOException {
-        Map<String, String> headers = new TreeMap<String, String>(String.CASE_INSENSITIVE_ORDER);
+        Map<String, String> headers = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
         String line;
         int del;
         if (req) {
@@ -167,7 +169,7 @@ public final class WebSocketUtils {
      */
     public static byte[] buildResponse(byte[] headers, byte[] data, int offset, int length) {
         final int hlen = headers != null ? headers.length : 0;
-        byte[] longdata = new byte[length + 2 + hlen];
+        byte[] longdata = new byte[Math.addExact(length, hlen) + 2];
 
         if (hlen > 0) {
             System.arraycopy(headers, 0, longdata, 0, hlen);
@@ -182,7 +184,6 @@ public final class WebSocketUtils {
     /**
      * Build response bytes without status and type information.
      *
-     * @param headers
      * @param data
      * @param offset
      * @param length
@@ -221,6 +222,10 @@ public final class WebSocketUtils {
             sb.append(CRLF).append(data, offset, length);
         }
         return sb.toByteArray();
+    }
+
+    public static boolean isContainingCRLF(String value) {
+        return CR_OR_LF.matcher(value).find();
     }
 
     private static class ByteArrayBuilder {

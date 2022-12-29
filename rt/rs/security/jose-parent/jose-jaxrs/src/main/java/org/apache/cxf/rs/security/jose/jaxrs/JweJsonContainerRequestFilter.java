@@ -21,12 +21,12 @@ package org.apache.cxf.rs.security.jose.jaxrs;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 
-import javax.annotation.Priority;
-import javax.ws.rs.HttpMethod;
-import javax.ws.rs.container.ContainerRequestContext;
-import javax.ws.rs.container.ContainerRequestFilter;
-import javax.ws.rs.container.PreMatching;
-
+import jakarta.annotation.Priority;
+import jakarta.ws.rs.HttpMethod;
+import jakarta.ws.rs.container.ContainerRequestContext;
+import jakarta.ws.rs.container.ContainerRequestFilter;
+import jakarta.ws.rs.container.PreMatching;
+import org.apache.cxf.helpers.IOUtils;
 import org.apache.cxf.jaxrs.utils.HttpUtils;
 import org.apache.cxf.jaxrs.utils.JAXRSUtils;
 import org.apache.cxf.rs.security.jose.common.JoseUtils;
@@ -42,8 +42,12 @@ public class JweJsonContainerRequestFilter extends AbstractJweJsonDecryptingFilt
             || isCheckEmptyStream() && !context.hasEntity()) {
             return;
         }
+        final byte[] encryptedContent = IOUtils.readBytesFromStream(context.getEntityStream());
+        if (encryptedContent.length == 0) {
+            return;
+        }
         try {
-            JweDecryptionOutput out = decrypt(context.getEntityStream());
+            JweDecryptionOutput out = decrypt(encryptedContent);
             byte[] bytes = out.getContent();
             context.setEntityStream(new ByteArrayInputStream(bytes));
             context.getHeaders().putSingle("Content-Length", Integer.toString(bytes.length));

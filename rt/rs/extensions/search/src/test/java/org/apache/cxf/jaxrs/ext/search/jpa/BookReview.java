@@ -21,16 +21,16 @@ package org.apache.cxf.jaxrs.ext.search.jpa;
 import java.util.LinkedList;
 import java.util.List;
 
-import javax.persistence.ElementCollection;
-import javax.persistence.Entity;
-import javax.persistence.Id;
-import javax.persistence.OneToOne;
+import jakarta.persistence.ElementCollection;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import jakarta.persistence.OneToOne;
 
 @Entity
 public class BookReview {
     private int id;
     private Review review;
-    private List<String> authors = new LinkedList<String>();
+    private List<String> authors = new LinkedList<>();
     private Book book;
 
     public Review getReview() {

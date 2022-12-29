@@ -18,13 +18,11 @@
  */
 package org.apache.cxf.systest.kerberos.common;
 
-import java.io.File;
-
 import javax.crypto.Cipher;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
-import javax.xml.ws.BindingProvider;
 
+import jakarta.xml.ws.BindingProvider;
 import org.apache.cxf.ws.security.SecurityConstants;
 import org.apache.cxf.ws.security.trust.STSClient;
 import org.example.contract.doubleit.DoubleItPortType;
@@ -41,7 +39,7 @@ public final class SecurityTestUtil {
             byte[] data = {0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07};
 
             SecretKey key192 = new SecretKeySpec(
-                new byte[] {0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07,
+                new byte[] {0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, //NOPMD
                             0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f,
                             0x10, 0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17},
                             "AES");
@@ -57,23 +55,6 @@ public final class SecurityTestUtil {
 
     private SecurityTestUtil() {
         // complete
-    }
-
-    public static void cleanup() {
-        String tmpDir = System.getProperty("java.io.tmpdir");
-        if (tmpDir != null) {
-            File[] tmpFiles = new File(tmpDir).listFiles();
-            if (tmpFiles != null) {
-                for (File tmpFile : tmpFiles) {
-                    if (tmpFile.exists() && (tmpFile.getName().startsWith("ws-security.nonce.cache")
-                            || tmpFile.getName().startsWith("wss4j-nonce-cache")
-                            || tmpFile.getName().startsWith("ws-security.timestamp.cache")
-                            || tmpFile.getName().startsWith("wss4j-timestamp-cache"))) {
-                        tmpFile.delete();
-                    }
-                }
-            }
-        }
     }
 
     public static boolean checkUnrestrictedPoliciesInstalled() {

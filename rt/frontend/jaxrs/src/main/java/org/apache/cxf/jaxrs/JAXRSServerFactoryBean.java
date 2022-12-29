@@ -18,7 +18,6 @@
  */
 package org.apache.cxf.jaxrs;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -28,14 +27,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import javax.ws.rs.core.Application;
-
+import jakarta.ws.rs.core.Application;
 import org.apache.cxf.Bus;
-import org.apache.cxf.BusException;
 import org.apache.cxf.common.classloader.ClassLoaderUtils;
 import org.apache.cxf.common.classloader.ClassLoaderUtils.ClassLoaderHolder;
 import org.apache.cxf.endpoint.Endpoint;
-import org.apache.cxf.endpoint.EndpointException;
 import org.apache.cxf.endpoint.Server;
 import org.apache.cxf.endpoint.ServerImpl;
 import org.apache.cxf.feature.Feature;
@@ -103,11 +99,10 @@ public class JAXRSServerFactoryBean extends AbstractJAXRSFactoryBean {
 
     public void setApplicationInfo(ApplicationInfo provider) {
         appProvider = provider;
-        Set<String> appNameBindings = AnnotationUtils.getNameBindings(provider.getProvider()
-                                                                      .getClass().getAnnotations());
+        Set<String> appNameBindings = AnnotationUtils.getNameBindings(bus, provider.getProvider().getClass());
         for (ClassResourceInfo cri : getServiceFactory().getClassResourceInfo()) {
-            Set<String> clsNameBindings = new LinkedHashSet<String>(appNameBindings);
-            clsNameBindings.addAll(AnnotationUtils.getNameBindings(cri.getServiceClass().getAnnotations()));
+            Set<String> clsNameBindings = new LinkedHashSet<>(appNameBindings);
+            clsNameBindings.addAll(AnnotationUtils.getNameBindings(bus, cri.getServiceClass()));
             cri.setNameBindings(clsNameBindings);
         }
     }
@@ -197,7 +192,7 @@ public class JAXRSServerFactoryBean extends AbstractJAXRSFactoryBean {
             applyFeatures();
 
             updateClassResourceProviders(ep);
-            injectContexts(factory);
+            injectContexts(factory, (ApplicationInfo)ep.get(Application.class.getName()));
             factory.applyDynamicFeatures(getServiceFactory().getClassResourceInfo());
             
             
@@ -211,16 +206,15 @@ public class JAXRSServerFactoryBean extends AbstractJAXRSFactoryBean {
                 try {
                     server.start();
                 } catch (RuntimeException re) {
-                    server.destroy(); // prevent resource leak
+                    if (!(re instanceof ServiceConstructionException 
+                        && re.getMessage().startsWith("There is an endpoint already running on"))) {
+                        //avoid destroying another server on the same endpoint url
+                        server.destroy(); // prevent resource leak if server really started by itself
+                        
+                    }
                     throw re;
                 }
             }
-        } catch (EndpointException e) {
-            throw new ServiceConstructionException(e);
-        } catch (BusException e) {
-            throw new ServiceConstructionException(e);
-        } catch (IOException e) {
-            throw new ServiceConstructionException(e);
         } catch (Exception e) {
             throw new ServiceConstructionException(e);
         } finally {
@@ -412,8 +406,14 @@ public class JAXRSServerFactoryBean extends AbstractJAXRSFactoryBean {
         this.start = start;
     }
 
-    protected void injectContexts(ServerProviderFactory factory) {
-        Application application = appProvider == null ? null : appProvider.getProvider();
+    protected void injectContexts(ServerProviderFactory factory, ApplicationInfo fallback) {
+        // Sometimes the application provider (ApplicationInfo) is injected through
+        // the endpoint, not JAXRSServerFactoryBean (like for example OpenApiFeature
+        // or Swagger2Feature do). As such, without consulting the endpoint, the injection
+        // may not work properly.
+        final ApplicationInfo appInfoProvider = (appProvider == null) ? fallback : appProvider;
+        final Application application = appInfoProvider == null ? null : appInfoProvider.getProvider();
+
         for (ClassResourceInfo cri : serviceFactory.getClassResourceInfo()) {
             if (cri.isSingleton()) {
                 InjectionUtils.injectContextProxiesAndApplication(cri,
@@ -423,7 +423,7 @@ public class JAXRSServerFactoryBean extends AbstractJAXRSFactoryBean {
             }
         }
         if (application != null) {
-            InjectionUtils.injectContextProxiesAndApplication(appProvider,
+            InjectionUtils.injectContextProxiesAndApplication(appInfoProvider,
                                                               application, null, null);
         }
     }

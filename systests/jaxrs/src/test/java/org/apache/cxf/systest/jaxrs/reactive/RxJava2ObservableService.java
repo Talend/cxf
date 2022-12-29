@@ -19,17 +19,25 @@
 
 package org.apache.cxf.systest.jaxrs.reactive;
 
+import java.util.Arrays;
+import java.util.List;
 
-import javax.ws.rs.GET;
-import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
+import jakarta.ws.rs.GET;
+import jakarta.ws.rs.Path;
+import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.core.MediaType;
 
 import io.reactivex.Observable;
-
 
 @Path("/rx2/observable")
 public class RxJava2ObservableService {
 
+    @GET
+    @Produces("text/plain")
+    @Path("text")
+    public Observable<String> getText() {
+        return Observable.just("Hello, world!");
+    }
     
     @GET
     @Produces("application/json")
@@ -37,6 +45,39 @@ public class RxJava2ObservableService {
     public Observable<HelloWorldBean> getJson() {
         return Observable.just(new HelloWorldBean());
     }
+    
+    @GET
+    @Produces("application/json")
+    @Path("textJsonList")
+    public Observable<List<HelloWorldBean>> getJsonList() {
+        HelloWorldBean bean1 = new HelloWorldBean();
+        HelloWorldBean bean2 = new HelloWorldBean();
+        bean2.setGreeting("Ciao");
+        return Observable.just(Arrays.asList(bean1, bean2));
+    }
+    
+    @GET
+    @Produces(MediaType.APPLICATION_JSON)
+    @Path("/empty")
+    public Observable<HelloWorldBean> empty() { 
+        return Observable.empty(); 
+    }
+
+    @GET
+    @Produces(MediaType.APPLICATION_JSON)
+    @Path("/immediate/errors")
+    public Observable<HelloWorldBean> immediateErrors() { 
+        return Observable 
+            .range(1, 2) 
+            .flatMap(item -> Observable.error(new RuntimeException("Oops"))); 
+    }
+
+    @GET
+    @Produces(MediaType.APPLICATION_JSON)
+    @Path("/immediate/mapper/errors")
+    public Observable<HelloWorldBean> immediateMapperErrors() { 
+        return Observable 
+            .range(1, 2) 
+            .flatMap(item -> Observable.error(new IllegalStateException("Oops"))); 
+    }
 }
-
-

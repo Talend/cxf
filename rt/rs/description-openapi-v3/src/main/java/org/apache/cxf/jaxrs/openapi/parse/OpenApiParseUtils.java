@@ -110,7 +110,7 @@ public final class OpenApiParseUtils {
             }
         }
 
-        Map<String, List<UserOperation>> userOpsMap = new LinkedHashMap<String, List<UserOperation>>();
+        Map<String, List<UserOperation>> userOpsMap = new LinkedHashMap<>();
         Set<String> tags = new HashSet<>();
         List<Map<String, Object>> tagsProp = CastUtils.cast((List<?>)map.get("tags"));
         if (tagsProp != null) {
@@ -169,14 +169,14 @@ public final class OpenApiParseUtils {
                     ));
                 }
 
-                List<Parameter> userOpParams = new LinkedList<Parameter>();
+                List<Parameter> userOpParams = new LinkedList<>();
                 List<Map<String, Object>> params = CastUtils.cast((List<?>)oper.get("parameters"));
                 if (params != null) {
                     for (Map<String, Object> param : params) {
                         String name = (String)param.get("name");
                         //"query", "header", "path" or "cookie".
                         String paramType = (String)param.get("in");
-                        ParameterType pType = null;
+                        final ParameterType pType;
                         
                         if ("query".equals(paramType)) {
                             pType = ParameterType.QUERY;
@@ -203,20 +203,23 @@ public final class OpenApiParseUtils {
                     opTags = Collections.singletonList("");
                 }
                 for (String opTag : opTags) {
+                    userOpsMap.putIfAbsent(opTag, new LinkedList<UserOperation>());
                     userOpsMap.get(opTag).add(userOp);
                 }
 
             }
         }
 
-        List<UserResource> resources = new LinkedList<UserResource>();
+        List<UserResource> resources = new LinkedList<>();
 
         for (Map.Entry<String, List<UserOperation>> entry : userOpsMap.entrySet()) {
-            UserResource ur = new UserResource();
-            ur.setPath("/");
-            ur.setOperations(entry.getValue());
-            ur.setName(entry.getKey());
-            resources.add(ur);
+            if (!entry.getValue().isEmpty()) {
+                UserResource ur = new UserResource();
+                ur.setPath("/");
+                ur.setOperations(entry.getValue());
+                ur.setName(entry.getKey());
+                resources.add(ur);
+            }
         }
 
         app.setResources(resources);
@@ -240,14 +243,7 @@ public final class OpenApiParseUtils {
     
     private static String listToString(List<String> list) {
         if (list != null) {
-            StringBuilder sb = new StringBuilder();
-            for (String s : list) {
-                if (sb.length() > 0) {
-                    sb.append(',');
-                }
-                sb.append(s);
-            }
-            return sb.toString();
+            return String.join(",", list);
         }
         return null;
     }

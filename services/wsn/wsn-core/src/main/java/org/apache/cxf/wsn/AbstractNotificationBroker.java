@@ -23,19 +23,18 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import javax.jws.Oneway;
-import javax.jws.WebMethod;
-import javax.jws.WebParam;
-import javax.jws.WebResult;
-import javax.jws.WebService;
 import javax.management.ObjectName;
 import javax.xml.namespace.QName;
-import javax.xml.ws.wsaddressing.W3CEndpointReference;
 
+import jakarta.jws.Oneway;
+import jakarta.jws.WebMethod;
+import jakarta.jws.WebParam;
+import jakarta.jws.WebResult;
+import jakarta.jws.WebService;
+import jakarta.xml.ws.wsaddressing.W3CEndpointReference;
 import org.apache.cxf.common.logging.LogUtils;
 import org.apache.cxf.wsn.util.IdGenerator;
 import org.apache.cxf.wsn.util.WSNHelper;
@@ -94,16 +93,13 @@ public abstract class AbstractNotificationBroker extends AbstractEndpoint
 
     private Map<String, AbstractPublisher> publishers;
 
-    private List<AbstractPublisher> nonContactPublishers;
-
     private Map<String, AbstractSubscription> subscriptions;
 
     public AbstractNotificationBroker(String name) {
         super(name);
         idGenerator = new IdGenerator();
-        subscriptions = new ConcurrentHashMap<String, AbstractSubscription>();
-        publishers = new ConcurrentHashMap<String, AbstractPublisher>();
-        nonContactPublishers = new CopyOnWriteArrayList<AbstractPublisher>();
+        subscriptions = new ConcurrentHashMap<>();
+        publishers = new ConcurrentHashMap<>();
     }
 
     @Override
@@ -342,8 +338,6 @@ public abstract class AbstractNotificationBroker extends AbstractEndpoint
                 publishers.put(WSNHelper.getInstance()
                                    .getWSAAddress(publisher.getPublisherReference()),
                                publisher);
-            } else {
-                nonContactPublishers.add(publisher);
             }
             success = true;
             return response;

@@ -31,11 +31,10 @@ import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.List;
 
-import javax.jws.WebMethod;
-import javax.jws.WebService;
-import javax.xml.ws.Endpoint;
-import javax.xml.ws.wsaddressing.W3CEndpointReference;
-
+import jakarta.jws.WebMethod;
+import jakarta.jws.WebService;
+import jakarta.xml.ws.Endpoint;
+import jakarta.xml.ws.wsaddressing.W3CEndpointReference;
 import org.apache.cxf.Bus;
 import org.apache.cxf.BusFactory;
 import org.apache.cxf.helpers.IOUtils;
@@ -61,15 +60,15 @@ public final class WSDiscoveryClientTest {
     static NetworkInterface findIpv4Interface() throws Exception {
         Enumeration<NetworkInterface> ifcs = NetworkInterface.getNetworkInterfaces();
         List<NetworkInterface> possibles = new ArrayList<>();
-        while (ifcs.hasMoreElements()) {
-            NetworkInterface ni = ifcs.nextElement();
-            if (ni.supportsMulticast()
-                && ni.isUp()) {
-                for (InterfaceAddress ia : ni.getInterfaceAddresses()) {
-                    if (ia.getAddress() instanceof java.net.Inet4Address
-                        && !ia.getAddress().isLoopbackAddress()
-                        && !ni.getDisplayName().startsWith("vnic")) {
-                        possibles.add(ni);
+        if (ifcs != null) {
+            while (ifcs.hasMoreElements()) {
+                NetworkInterface ni = ifcs.nextElement();
+                if (ni.supportsMulticast() && ni.isUp()) {
+                    for (InterfaceAddress ia : ni.getInterfaceAddresses()) {
+                        if (ia.getAddress() instanceof java.net.Inet4Address && !ia.getAddress().isLoopbackAddress()
+                                && !ni.getDisplayName().startsWith("vnic")) {
+                            possibles.add(ni);
+                        }
                     }
                 }
             }
@@ -80,7 +79,7 @@ public final class WSDiscoveryClientTest {
     @Test
     public void testMultiResponses() throws Exception {
         // Disable the test on Redhat Enterprise Linux which doesn't enable the UDP broadcast by default
-        if (System.getProperties().getProperty("os.name").equals("Linux")
+        if ("Linux".equals(System.getProperties().getProperty("os.name"))
             && System.getProperties().getProperty("os.version").indexOf("el") > 0) {
             System.out.println("Skipping MultiResponse test for REL");
             return;
@@ -88,12 +87,14 @@ public final class WSDiscoveryClientTest {
 
         Enumeration<NetworkInterface> interfaces = NetworkInterface.getNetworkInterfaces();
         int count = 0;
-        while (interfaces.hasMoreElements()) {
-            NetworkInterface networkInterface = interfaces.nextElement();
-            if (!networkInterface.isUp() || networkInterface.isLoopback()) {
-                continue;
+        if (interfaces != null) {
+            while (interfaces.hasMoreElements()) {
+                NetworkInterface networkInterface = interfaces.nextElement();
+                if (!networkInterface.isUp() || networkInterface.isLoopback()) {
+                    continue;
+                }
+                count++;
             }
-            count++;
         }
         if (count == 0) {
             //no non-loopbacks, cannot do broadcasts
@@ -129,7 +130,7 @@ public final class WSDiscoveryClientTest {
                         String msg = IOUtils.readStringFromStream(ins);
                         msg = msg.replace("urn:uuid:883d0d53-92aa-4066-9b6f-9eadb1832366",
                                           incoming);
-                        byte out[] = msg.getBytes(StandardCharsets.UTF_8);
+                        byte[] out = msg.getBytes(StandardCharsets.UTF_8);
                         DatagramPacket outp = new DatagramPacket(out, 0, out.length, sa);
                         s.send(outp);
                     }

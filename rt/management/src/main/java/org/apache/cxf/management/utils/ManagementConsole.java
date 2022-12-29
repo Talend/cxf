@@ -42,7 +42,7 @@ import org.apache.cxf.management.ManagementConstants;
 public final class ManagementConsole {
     private static MBeanServerConnection mbsc;
     private static final String DEFAULT_JMXSERVICE_URL =
-        "service:jmx:rmi:///jndi/rmi://localhost:1099/jmxrmi";
+        "service:jmx:rmi:///jndi/rmi://localhost:9913/jmxrmi";
     private static final Logger LOG = LogUtils.getL7dLogger(ManagementConsole.class);
 
     String jmxServerURL;
@@ -102,10 +102,10 @@ public final class ManagementConsole {
 
     ObjectName getEndpointObjectName()
         throws MalformedObjectNameException, NullPointerException {
-        StringBuilder buffer = new StringBuilder();
-        buffer.append(ManagementConstants.DEFAULT_DOMAIN_NAME + ":type=Bus.Service.Endpoint,");
-        buffer.append(ManagementConstants.SERVICE_NAME_PROP + "=\"" + serviceName + "\",");
-        buffer.append(ManagementConstants.PORT_NAME_PROP + "=\"" + portName + "\",*");
+        StringBuilder buffer = new StringBuilder(128)
+            .append(ManagementConstants.DEFAULT_DOMAIN_NAME).append(":type=Bus.Service.Endpoint,")
+            .append(ManagementConstants.SERVICE_NAME_PROP).append("=\"").append(serviceName).append("\",")
+            .append(ManagementConstants.PORT_NAME_PROP).append("=\"").append(portName).append("\",*");
         return new ObjectName(buffer.toString());
     }
 
@@ -157,32 +157,23 @@ public final class ManagementConsole {
         operationName = "";
         boolean result = false;
 
-        int i;
-        String arg;
         try {
-            for (i = 0; i < args.length; i++) {
-                arg = args[i];
+            for (int i = 0; i < args.length; i++) {
+                String arg = args[i];
                 if ("--port".equals(arg) || "-p".equals(arg)) {
                     portName = args[++i];
-                    continue;
-                }
-                if ("--service".equals(arg) || "-s".equals(arg)) {
+                } else if ("--service".equals(arg) || "-s".equals(arg)) {
                     serviceName = args[++i];
-                    continue;
-                }
-                if ("--jmx".equals(arg) || "-j".equals(arg)) {
+                } else if ("--jmx".equals(arg) || "-j".equals(arg)) {
                     jmxServerURL = args[++i];
-                    continue;
-                }
-                if ("--operation".equals(arg) || "-o".equals(arg)) {
+                } else if ("--operation".equals(arg) || "-o".equals(arg)) {
                     operationName = args[++i];
                     // it is the key option
                     result = true;
-                    continue;
                 }
             }
         } catch (Exception ex) {
-            // can't paraser the argument rightly
+            // can't parse the argument rightly
             return false;
         }
         return result;

@@ -27,15 +27,11 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 import javax.xml.XMLConstants;
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.Unmarshaller;
-import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.namespace.NamespaceContext;
 import javax.xml.namespace.QName;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.transform.Source;
 import javax.xml.transform.dom.DOMSource;
-import javax.xml.transform.stream.StreamSource;
 import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpressionException;
@@ -47,6 +43,9 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
+import jakarta.xml.bind.JAXBContext;
+import jakarta.xml.bind.Unmarshaller;
+import jakarta.xml.bind.annotation.XmlRootElement;
 import org.apache.cxf.common.jaxb.JAXBUtils;
 import org.apache.cxf.helpers.CastUtils;
 import org.apache.cxf.interceptor.Fault;
@@ -74,7 +73,7 @@ public class XMLSource {
      */
     public void setBuffering() {
         try {
-            doc = StaxUtils.read(new StreamSource(stream));
+            doc = StaxUtils.read(stream);
             stream = null;
         } catch (XMLStreamException e) {
             throw new Fault(e); 
@@ -217,7 +216,7 @@ public class XMLSource {
      * @return the xml:base value
      */
     public URI getBaseURI() {
-        Map<String, String> map = new LinkedHashMap<String, String>();
+        Map<String, String> map = new LinkedHashMap<>();
         map.put("xml", XML_NAMESPACE);
         return getLink("/*/@xml:base", map);
     }
@@ -334,7 +333,7 @@ public class XMLSource {
             return null;
         }
 
-        public Iterator<?> getPrefixes(String namespace) {
+        public Iterator<String> getPrefixes(String namespace) {
             String prefix = namespaces.get(namespace);
             if (prefix == null) {
                 return null;
@@ -368,7 +367,7 @@ public class XMLSource {
 
         try {
 
-            JAXBElementProvider<?> provider = new JAXBElementProvider<Object>();
+            JAXBElementProvider<?> provider = new JAXBElementProvider<>();
             JAXBContext c = provider.getPackageContext(cls);
             if (c == null) {
                 c = provider.getClassContext(cls);

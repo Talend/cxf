@@ -28,10 +28,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import javax.ws.rs.core.Response;
+import com.fasterxml.jackson.jakarta.rs.json.JacksonJsonProvider;
 
-import com.fasterxml.jackson.jaxrs.json.JacksonJsonProvider;
-
+import jakarta.ws.rs.core.Response;
 import org.apache.cxf.jaxrs.client.WebClient;
 import org.apache.cxf.rs.security.jose.jaxrs.JwtAuthenticationClientFilter;
 import org.apache.cxf.rs.security.jose.jwt.JwtClaims;
@@ -45,6 +44,9 @@ import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotEquals;
+import static org.junit.Assert.assertTrue;
 /**
  * Some tests for JWT tokens.
  */
@@ -662,6 +664,45 @@ public class JWTAlgorithmTest extends AbstractBusClientServerTestBase {
         Book returnedBook = response.readEntity(Book.class);
         assertEquals(returnedBook.getName(), "book");
         assertEquals(returnedBook.getId(), 123L);
+    }
+
+    // Include the cert in the "x5c" header
+    @org.junit.Test
+    public void testBadSignatureCertificateTest() throws Exception {
+
+        URL busFile = JWTAlgorithmTest.class.getResource("client.xml");
+
+        List<Object> providers = new ArrayList<>();
+        providers.add(new JacksonJsonProvider());
+        providers.add(new JwtAuthenticationClientFilter());
+
+        String address = "https://localhost:" + PORT + "/signedjwtincludecert/bookstore/books";
+        WebClient client =
+            WebClient.create(address, providers, busFile.toString());
+        client.type("application/json").accept("application/json");
+
+        // Create the JWT Token
+        JwtClaims claims = new JwtClaims();
+        claims.setSubject("alice");
+        claims.setIssuer("DoubleItSTSIssuer");
+        claims.setIssuedAt(Instant.now().getEpochSecond());
+        claims.setAudiences(toList(address));
+
+        JwtToken token = new JwtToken(claims);
+
+        Map<String, Object> properties = new HashMap<>();
+        properties.put("rs.security.keystore.type", "jks");
+        properties.put("rs.security.keystore.password", "password");
+        properties.put("rs.security.key.password", "password");
+        properties.put("rs.security.keystore.alias", "bethal");
+        properties.put("rs.security.keystore.file", "keys/Bethal.jks");
+        properties.put("rs.security.signature.algorithm", "RS256");
+        properties.put("rs.security.signature.include.cert", "true");
+        properties.put(JwtConstants.JWT_TOKEN, token);
+        WebClient.getConfig(client).getRequestContext().putAll(properties);
+
+        Response response = client.post(new Book("book", 123L));
+        assertNotEquals(response.getStatus(), 200);
     }
 
     @org.junit.Test

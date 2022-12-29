@@ -21,13 +21,13 @@ package org.apache.cxf.systest.jca;
 
 import java.net.URL;
 
-import javax.resource.spi.ManagedConnection;
-import javax.resource.spi.ManagedConnectionFactory;
 import javax.security.auth.Subject;
 import javax.xml.namespace.QName;
-import javax.xml.ws.Endpoint;
-import javax.xml.ws.WebServiceException;
 
+import jakarta.resource.spi.ManagedConnection;
+import jakarta.resource.spi.ManagedConnectionFactory;
+import jakarta.xml.ws.Endpoint;
+import jakarta.xml.ws.WebServiceException;
 import org.apache.cxf.BusFactory;
 import org.apache.cxf.connector.Connection;
 import org.apache.cxf.jca.cxf.CXFConnectionRequestInfo;
@@ -40,6 +40,11 @@ import org.apache.hello_world_soap_http.SOAPService;
 
 import org.junit.BeforeClass;
 import org.junit.Test;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 public class OutBoundConnectionTest extends AbstractBusClientServerTestBase {
     public static final String PORT = Server.PORT;

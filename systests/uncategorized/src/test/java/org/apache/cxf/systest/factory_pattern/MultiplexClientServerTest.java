@@ -25,9 +25,8 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
-import javax.xml.ws.Endpoint;
-import javax.xml.ws.wsaddressing.W3CEndpointReference;
-
+import jakarta.xml.ws.Endpoint;
+import jakarta.xml.ws.wsaddressing.W3CEndpointReference;
 import org.apache.cxf.BusFactory;
 import org.apache.cxf.factory_pattern.Number;
 import org.apache.cxf.factory_pattern.NumberFactory;
@@ -44,7 +43,10 @@ import org.apache.cxf.testutil.common.TestUtil;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 public class MultiplexClientServerTest extends AbstractBusClientServerTestBase {
     public static final String PORT = TestUtil.getPortNumber(MultiplexClientServerTest.class);
@@ -129,7 +131,7 @@ public class MultiplexClientServerTest extends AbstractBusClientServerTestBase {
 
         W3CEndpointReference numberTwentyThreeRef = factory.create("23");
         num = serviceImpl.getPort(numberTwentyThreeRef, Number.class);
-        assertTrue("23 is not even", !num.isEven().isEven());
+        assertFalse("23 is not even", num.isEven().isEven());
 
         close(num);
         close(factory);
@@ -166,7 +168,7 @@ public class MultiplexClientServerTest extends AbstractBusClientServerTestBase {
         ref = factory.create("37");
         assertNotNull("reference", ref);
         num = serviceImpl.getPort(ref, Number.class);
-        assertTrue("37 is not even", !num.isEven().isEven());
+        assertFalse("37 is not even", num.isEven().isEven());
 
         ClientProxy.getClient(num).getConduit().close();
         ClientProxy.getClient(factory).getConduit().close();

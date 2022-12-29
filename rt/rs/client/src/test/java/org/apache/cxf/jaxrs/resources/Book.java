@@ -22,10 +22,10 @@ package org.apache.cxf.jaxrs.resources;
 import java.util.HashMap;
 import java.util.Map;
 
-import javax.ws.rs.GET;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.xml.bind.annotation.XmlRootElement;
+import jakarta.ws.rs.GET;
+import jakarta.ws.rs.Path;
+import jakarta.ws.rs.PathParam;
+import jakarta.xml.bind.annotation.XmlRootElement;
 
 
 @XmlRootElement(name = "Book")
@@ -60,7 +60,7 @@ public class Book implements Comparable<Book> {
     @Path("chapters/{chapterid}/")
     @GET
     public Chapter getChapter(@PathParam("chapterid") int chapterid) {
-        return chapters.get(new Long(chapterid));
+        return chapters.get(Long.valueOf(chapterid));
     }
 
     @GET
@@ -73,7 +73,7 @@ public class Book implements Comparable<Book> {
     }
 
     public int hashCode() {
-        return name.hashCode() * 37 + new Long(id).hashCode();
+        return name.hashCode() * 37 + Long.valueOf(id).hashCode();
     }
 
     public boolean equals(Object o) {
@@ -87,8 +87,8 @@ public class Book implements Comparable<Book> {
     }
 
     public int compareTo(Book b) {
-        Long i1 = new Long(getId());
-        Long i2 = new Long(b.getId());
+        Long i1 = Long.valueOf(getId());
+        Long i2 = Long.valueOf(b.getId());
         return i1.compareTo(i2);
     }
 }

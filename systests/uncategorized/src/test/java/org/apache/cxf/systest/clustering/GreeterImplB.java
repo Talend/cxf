@@ -19,15 +19,14 @@
 
 package org.apache.cxf.systest.clustering;
 
-import javax.jws.WebService;
-
+import jakarta.jws.WebService;
 import org.apache.cxf.greeter_control.AbstractGreeterImpl;
 
 @WebService(serviceName = "GreeterService",
             portName = "ReplicatedPortB",
             endpointInterface = "org.apache.cxf.greeter_control.Greeter",
             targetNamespace = "http://cxf.apache.org/greeter_control",
-            wsdlLocation = "testutils/greeter_control.wsdl")
+            wsdlLocation = "wsdl/greeter_control.wsdl")
 public class GreeterImplB extends AbstractGreeterImpl {
 
     private String address;

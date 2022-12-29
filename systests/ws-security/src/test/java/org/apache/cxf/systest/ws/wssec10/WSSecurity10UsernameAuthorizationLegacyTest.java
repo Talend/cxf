@@ -28,7 +28,6 @@ import javax.xml.namespace.QName;
 import org.apache.cxf.Bus;
 import org.apache.cxf.BusFactory;
 import org.apache.cxf.bus.spring.SpringBusFactory;
-import org.apache.cxf.systest.ws.common.SecurityTestUtil;
 import org.apache.cxf.systest.ws.wssec10.server.AuthorizedServer2;
 import org.apache.cxf.testutil.common.AbstractBusClientServerTestBase;
 import wssec.wssec10.IPingService;
@@ -37,7 +36,9 @@ import wssec.wssec10.PingService;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 /**
  *
@@ -61,14 +62,13 @@ public class WSSecurity10UsernameAuthorizationLegacyTest extends AbstractBusClie
 
     @org.junit.AfterClass
     public static void cleanup() throws Exception {
-        SecurityTestUtil.cleanup();
         stopAllServers();
     }
 
     @Test
     public void testClientServerComplexPolicyAuthorized() {
 
-        String configName = "org/apache/cxf/systest/ws/wssec10/client_restricted.xml";
+        String configName = "org/apache/cxf/systest/ws/wssec10/client.xml";
         Bus bus = new SpringBusFactory().createBus(configName);
         IPingService port = getComplexPolicyPort(bus);
 
@@ -81,7 +81,7 @@ public class WSSecurity10UsernameAuthorizationLegacyTest extends AbstractBusClie
     @Test
     public void testClientServerComplexPolicyUnauthorized() {
 
-        String configName = "org/apache/cxf/systest/ws/wssec10/client_restricted_unauthorized.xml";
+        String configName = "org/apache/cxf/systest/ws/wssec10/client_unauthorized.xml";
         Bus bus = new SpringBusFactory().createBus(configName);
         IPingService port = getComplexPolicyPort(bus);
 

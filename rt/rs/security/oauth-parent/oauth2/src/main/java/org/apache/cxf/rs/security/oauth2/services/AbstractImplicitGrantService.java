@@ -26,8 +26,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import javax.ws.rs.core.Response;
-
+import jakarta.ws.rs.core.Response;
 import org.apache.cxf.common.util.StringUtils;
 import org.apache.cxf.jaxrs.utils.HttpUtils;
 import org.apache.cxf.jaxrs.utils.JAXRSUtils;
@@ -47,7 +46,7 @@ import org.apache.cxf.rs.security.oauth2.utils.OAuthUtils;
 public abstract class AbstractImplicitGrantService extends RedirectionBasedGrantService {
     // For a client to validate that this client is a targeted recipient.
     private boolean reportClientId;
-    private List<AccessTokenResponseFilter> responseHandlers = new LinkedList<AccessTokenResponseFilter>();
+    private List<AccessTokenResponseFilter> responseHandlers = new LinkedList<>();
 
     protected AbstractImplicitGrantService(String supportedResponseType,
                                            String supportedGrantType) {
@@ -86,19 +85,19 @@ public abstract class AbstractImplicitGrantService extends RedirectionBasedGrant
 
         StringBuilder sb = getUriWithFragment(state.getRedirectUri());
 
-        sb.append(OAuthConstants.ACCESS_TOKEN).append("=").append(clientToken.getTokenKey());
-        sb.append("&");
-        sb.append(OAuthConstants.ACCESS_TOKEN_TYPE).append("=").append(clientToken.getTokenType());
+        sb.append(OAuthConstants.ACCESS_TOKEN).append('=').append(clientToken.getTokenKey());
+        sb.append('&');
+        sb.append(OAuthConstants.ACCESS_TOKEN_TYPE).append('=').append(clientToken.getTokenType());
 
         if (isWriteOptionalParameters()) {
-            sb.append("&").append(OAuthConstants.ACCESS_TOKEN_EXPIRES_IN)
-                .append("=").append(clientToken.getExpiresIn());
+            sb.append('&').append(OAuthConstants.ACCESS_TOKEN_EXPIRES_IN)
+                .append('=').append(clientToken.getExpiresIn());
             if (!StringUtils.isEmpty(clientToken.getApprovedScope())) {
-                sb.append("&").append(OAuthConstants.SCOPE).append("=")
+                sb.append('&').append(OAuthConstants.SCOPE).append('=')
                     .append(HttpUtils.queryEncode(clientToken.getApprovedScope()));
             }
             for (Map.Entry<String, String> entry : clientToken.getParameters().entrySet()) {
-                sb.append("&").append(entry.getKey()).append("=").append(HttpUtils.queryEncode(entry.getValue()));
+                sb.append('&').append(entry.getKey()).append('=').append(HttpUtils.queryEncode(entry.getValue()));
             }
         }
         if (clientToken.getRefreshToken() != null) {
@@ -137,7 +136,7 @@ public abstract class AbstractImplicitGrantService extends RedirectionBasedGrant
                                                      UserSubject userSubject,
                                                      ServerAccessToken preAuthorizedToken) {
 
-        ServerAccessToken token = null;
+        final ServerAccessToken token;
         if (preAuthorizedToken == null) {
             AccessTokenRegistration reg = createTokenRegistration(state,
                                                                   client,
@@ -176,12 +175,12 @@ public abstract class AbstractImplicitGrantService extends RedirectionBasedGrant
     }
     protected void finalizeResponse(StringBuilder sb, OAuthRedirectionState state) {
         if (state.getState() != null) {
-            sb.append("&");
+            sb.append('&');
             String stateParam = state.getState();
-            sb.append(OAuthConstants.STATE).append("=").append(HttpUtils.urlEncode(stateParam));
+            sb.append(OAuthConstants.STATE).append('=').append(HttpUtils.urlEncode(stateParam));
         }
         if (reportClientId) {
-            sb.append("&").append(OAuthConstants.CLIENT_ID).append("=").append(state.getClientId());
+            sb.append('&').append(OAuthConstants.CLIENT_ID).append('=').append(state.getClientId());
         }
     }
 
@@ -198,10 +197,10 @@ public abstract class AbstractImplicitGrantService extends RedirectionBasedGrant
                                            String redirectUri,
                                            String error) {
         StringBuilder sb = getUriWithFragment(redirectUri);
-        sb.append(OAuthConstants.ERROR_KEY).append("=").append(error);
+        sb.append(OAuthConstants.ERROR_KEY).append('=').append(error);
         if (state != null) {
-            sb.append("&");
-            sb.append(OAuthConstants.STATE).append("=").append(state);
+            sb.append('&');
+            sb.append(OAuthConstants.STATE).append('=').append(state);
         }
 
         return Response.seeOther(URI.create(sb.toString())).build();
@@ -210,7 +209,7 @@ public abstract class AbstractImplicitGrantService extends RedirectionBasedGrant
     protected StringBuilder getUriWithFragment(String redirectUri) {
         StringBuilder sb = new StringBuilder();
         sb.append(redirectUri);
-        sb.append("#");
+        sb.append('#');
         return sb;
     }
 

@@ -27,11 +27,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
 
-import javax.ws.rs.core.MultivaluedMap;
-import javax.ws.rs.core.PathSegment;
-import javax.ws.rs.core.UriBuilder;
-import javax.ws.rs.core.UriInfo;
-
+import jakarta.ws.rs.core.MultivaluedMap;
+import jakarta.ws.rs.core.PathSegment;
+import jakarta.ws.rs.core.UriBuilder;
+import jakarta.ws.rs.core.UriInfo;
 import org.apache.cxf.common.logging.LogUtils;
 import org.apache.cxf.jaxrs.model.MethodInvocationInfo;
 import org.apache.cxf.jaxrs.model.OperationResourceInfo;
@@ -139,7 +138,7 @@ public class UriInfoImpl implements UriInfo {
     }
 
     public MultivaluedMap<String, String> getPathParameters(boolean decode) {
-        MetadataMap<String, String> values = new MetadataMap<String, String>();
+        MetadataMap<String, String> values = new MetadataMap<>();
         if (templateParams == null) {
             return values;
         }
@@ -155,7 +154,7 @@ public class UriInfoImpl implements UriInfo {
 
     public List<Object> getMatchedResources() {
         if (stack != null) {
-            List<Object> resources = new LinkedList<Object>();
+            List<Object> resources = new ArrayList<>(stack.size());
             for (MethodInvocationInfo invocation : stack) {
                 resources.add(0, invocation.getRealClass());
             }
@@ -172,7 +171,7 @@ public class UriInfoImpl implements UriInfo {
     public List<String> getMatchedURIs(boolean decode) {
         if (stack != null) {
             List<String> objects = new ArrayList<>();
-            List<String> uris = new LinkedList<String>();
+            List<String> uris = new LinkedList<>();
             StringBuilder sumPath = new StringBuilder("");
             for (MethodInvocationInfo invocation : stack) {
                 List<String> templateObjects = invocation.getTemplateValues();
@@ -192,7 +191,7 @@ public class UriInfoImpl implements UriInfo {
                 if (paths[1] != null && paths[1].getValue().length() > 1) {
                     for (URITemplate t : paths) {
                         if (t != null) {
-                            sumPath.append("/").append(t.getValue());
+                            sumPath.append('/').append(t.getValue());
                         }
                     }
                     objects.addAll(templateObjects);
@@ -219,7 +218,7 @@ public class UriInfoImpl implements UriInfo {
     }
 
     private String getAbsolutePathAsString() {
-        String address = getBaseUri().toString();
+        String address = URI.create(HttpUtils.getEndpointUri(message)).toString();
         if (MessageUtils.isRequestor(message)) {
             return address;
         }

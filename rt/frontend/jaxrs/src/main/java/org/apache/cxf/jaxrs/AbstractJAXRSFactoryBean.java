@@ -70,7 +70,7 @@ public class AbstractJAXRSFactoryBean extends AbstractEndpointFactory {
 
     protected List<String> schemaLocations;
     protected JAXRSServiceFactoryBean serviceFactory;
-    protected List<Object> entityProviders = new LinkedList<Object>();
+    protected List<Object> entityProviders = new LinkedList<>();
     private Comparator<?> providerComparator;
 
     protected AbstractJAXRSFactoryBean(JAXRSServiceFactoryBean serviceFactory) {
@@ -144,6 +144,7 @@ public class AbstractJAXRSFactoryBean extends AbstractEndpointFactory {
 
         setTransportId(transportId);
 
+        //EndpointInfo ei = new EndpointInfo(service.getServiceInfos().get(0), transportId);
         EndpointInfo ei = new EndpointInfo();
         ei.setTransportId(transportId);
         ei.setName(serviceFactory.getService().getName());
@@ -350,7 +351,7 @@ public class AbstractJAXRSFactoryBean extends AbstractEndpointFactory {
                 cris.get(0).getServiceClass().getAnnotation(org.apache.cxf.annotations.DataBinding.class);
             if (ann != null) {
                 try {
-                    setDataBinding(ann.value().newInstance());
+                    setDataBinding(ann.value().getDeclaredConstructor().newInstance());
                 } catch (Exception ex) {
                     LOG.warning("DataBinding " + ann.value() + " can not be loaded");
                 }

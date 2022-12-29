@@ -27,7 +27,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
-import javax.annotation.Resource;
 import javax.wsdl.BindingInput;
 import javax.wsdl.Definition;
 import javax.wsdl.Types;
@@ -47,6 +46,7 @@ import org.w3c.dom.Element;
 
 import org.xml.sax.InputSource;
 
+import jakarta.annotation.Resource;
 import org.apache.cxf.Bus;
 import org.apache.cxf.BusException;
 import org.apache.cxf.common.injection.NoJSR250Annotations;
@@ -120,8 +120,8 @@ public class WSDLManagerImpl implements WSDLManager {
         } catch (WSDLException e) {
             throw new BusException(e);
         }
-        definitionsMap = new CacheMap<Object, Definition>();
-        schemaCacheMap = new CacheMap<Object, ServiceSchemaInfo>();
+        definitionsMap = new CacheMap<>();
+        schemaCacheMap = new CacheMap<>();
 
         setBus(b);
     }
@@ -223,7 +223,7 @@ public class WSDLManagerImpl implements WSDLManager {
                                                                                 catLocator,
                                                                                 bus);
         InputSource src = wsdlLocator.getBaseInputSource();
-        Definition def = null;
+        final Definition def;
         if (src.getByteStream() != null || src.getCharacterStream() != null) {
             final Document doc;
             XMLStreamReader xmlReader = null;
@@ -338,6 +338,7 @@ public class WSDLManagerImpl implements WSDLManager {
         this.disableSchemaCache = disableSchemaCache;
     }
 
+    @Override
     public void removeDefinition(Definition wsdl) {
         synchronized (definitionsMap) {
             List<Object> keys = new ArrayList<>();
@@ -353,5 +354,23 @@ public class WSDLManagerImpl implements WSDLManager {
         }
     }
 
+    @Override
+    public void removeDefinition(String url) {
+        synchronized (definitionsMap) {
+            Definition wsdl = definitionsMap.get(url);
+            if (wsdl != null) {
+                List<Object> keys = new ArrayList<>();
+                for (Map.Entry<Object, Definition> e : definitionsMap.entrySet()) {
+                    if (e.getValue() == wsdl) {
+                        keys.add(e.getKey());
+                    }
+                }
+                for (Object o : keys) {
+                    definitionsMap.remove(o);
+                    schemaCacheMap.remove(o);
+                }
+            }
+        }
+    }
 
 }

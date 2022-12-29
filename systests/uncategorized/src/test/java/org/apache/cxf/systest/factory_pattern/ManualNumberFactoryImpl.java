@@ -19,11 +19,11 @@
 
 package org.apache.cxf.systest.factory_pattern;
 
-import javax.jws.WebService;
 import javax.xml.namespace.QName;
 import javax.xml.transform.Source;
-import javax.xml.ws.wsaddressing.W3CEndpointReference;
 
+import jakarta.jws.WebService;
+import jakarta.xml.ws.wsaddressing.W3CEndpointReference;
 import org.apache.cxf.Bus;
 import org.apache.cxf.jaxws.EndpointImpl;
 import org.apache.cxf.ws.addressing.EndpointReferenceType;
@@ -52,7 +52,7 @@ public class ManualNumberFactoryImpl extends NumberFactoryImpl {
     protected void initDefaultServant() {
         servant = new ManualNumberImpl();
 
-        String wsdlLocation = "testutils/factory_pattern.wsdl";
+        String wsdlLocation = "wsdl/factory_pattern.wsdl";
         String bindingId = null;
         EndpointImpl ep =
             new EndpointImpl(bus, servant, bindingId, wsdlLocation);

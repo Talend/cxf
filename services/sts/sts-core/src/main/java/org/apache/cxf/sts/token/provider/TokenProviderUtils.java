@@ -25,13 +25,15 @@ import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import javax.xml.bind.JAXBElement;
+import javax.crypto.KeyGenerator;
+import javax.crypto.SecretKey;
 import javax.xml.namespace.QName;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.DocumentFragment;
 import org.w3c.dom.Element;
 
+import jakarta.xml.bind.JAXBElement;
 import org.apache.cxf.common.logging.LogUtils;
 import org.apache.cxf.helpers.DOMUtils;
 import org.apache.cxf.sts.STSConstants;
@@ -43,6 +45,7 @@ import org.apache.cxf.ws.security.wss4j.WSS4JUtils;
 import org.apache.wss4j.common.ConfigurationConstants;
 import org.apache.wss4j.common.WSEncryptionPart;
 import org.apache.wss4j.common.ext.WSSecurityException;
+import org.apache.wss4j.common.util.KeyUtils;
 import org.apache.wss4j.dom.handler.WSHandlerConstants;
 import org.apache.wss4j.dom.handler.WSHandlerResult;
 import org.apache.wss4j.dom.message.WSSecEncrypt;
@@ -171,8 +174,11 @@ public final class TokenProviderUtils {
         WSEncryptionPart encryptionPart = new WSEncryptionPart(id, "Element");
         encryptionPart.setElement(element);
 
-        builder.prepare(stsProperties.getEncryptionCrypto());
-        builder.encryptForRef(null, Collections.singletonList(encryptionPart));
+        KeyGenerator keyGen = KeyUtils.getKeyGenerator(encryptionAlgorithm);
+        SecretKey symmetricKey = keyGen.generateKey();
+
+        builder.prepare(stsProperties.getEncryptionCrypto(), symmetricKey);
+        builder.encryptForRef(null, Collections.singletonList(encryptionPart), symmetricKey);
 
         return (Element)frag.getFirstChild();
     }

@@ -22,6 +22,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.nio.file.Files;
+import java.nio.file.NoSuchFileException;
 import java.nio.file.Paths;
 import java.security.GeneralSecurityException;
 import java.security.KeyStore;
@@ -114,7 +115,7 @@ public final class TLSParameterJaxBUtils {
         if (kst == null) {
             return null;
         }
-        String type = null;
+        final String type;
         if (trustStore) {
             type = SSLUtils.getTrustStoreType(kst.isSetType()
                                      ? kst.getType() : null, LOG, KeyStore.getDefaultType());
@@ -127,7 +128,7 @@ public final class TLSParameterJaxBUtils {
                     ? deobfuscate(kst.getPassword())
                     : null;
         if (password == null) {
-            String tmp = null;
+            final String tmp;
             if (trustStore) {
                 tmp = SSLUtils.getTruststorePassword(null, LOG);
             } else {
@@ -137,7 +138,7 @@ public final class TLSParameterJaxBUtils {
                 password = tmp.toCharArray();
             }
         }
-        String provider = null;
+        final String provider;
         if (trustStore) {
             provider = SSLUtils.getTruststoreProvider(kst.isSetProvider() ? kst.getProvider() : null, LOG);
         } else {
@@ -163,10 +164,20 @@ public final class TLSParameterJaxBUtils {
         } else if (kst.isSetUrl()) {
             keyStore.load(new URL(kst.getUrl()).openStream(), password);
         } else {
-            String loc = SSLUtils.getKeystore(null, LOG);
+            final String loc;
+            if (trustStore) {
+                loc = SSLUtils.getTruststore(null, LOG);
+            } else {
+                loc = SSLUtils.getKeystore(null, LOG);
+            }
             if (loc != null) {
                 try (InputStream ins = Files.newInputStream(Paths.get(loc))) {
                     keyStore.load(ins, password);
+                } catch (NoSuchFileException ex) {
+                    // Fall back to load the location as a stream
+                    try (InputStream ins = getResourceAsStream(loc)) {
+                        keyStore.load(ins, password);
+                    }
                 }
             }
         }
@@ -296,7 +307,7 @@ public final class TLSParameterJaxBUtils {
 
         return fac.getKeyManagers();
     }
-    
+
     /**
      * This method converts the JAXB KeyManagersType into a list of
      * JSSE KeyManagers.
@@ -317,8 +328,8 @@ public final class TLSParameterJaxBUtils {
                      kmc.isSetProvider()
                      ? KeyManagerFactory.getInstance(alg, kmc.getProvider())
                      : KeyManagerFactory.getInstance(alg);
-                     
-        try {             
+
+        try {
             fac.init(keyStore, keyPass);
 
             return fac.getKeyManagers();
@@ -346,10 +357,9 @@ public final class TLSParameterJaxBUtils {
         if (callbackHandlerClass == null) {
             return null;
         }
-        CallbackHandler ch = null;
         try {
-            ch = (CallbackHandler)ClassLoaderUtils.loadClass(callbackHandlerClass, TLSParameterJaxBUtils.class)
-                .newInstance();
+            final CallbackHandler ch = (CallbackHandler) ClassLoaderUtils
+                .loadClass(callbackHandlerClass, TLSParameterJaxBUtils.class).getDeclaredConstructor().newInstance();
             String prompt = kmc.getKeyStore().getFile();
             if (prompt == null) {
                 prompt = kmc.getKeyStore().getResource();
@@ -385,7 +395,7 @@ public final class TLSParameterJaxBUtils {
                 ? getKeyStore(tmc.getKeyStore(), true)
                 : (tmc.isSetCertStore()
                     ? getKeyStore(tmc.getCertStore())
-                    : (KeyStore) null);
+                    : null);
 
         String alg = tmc.isSetFactoryAlgorithm()
                      ? tmc.getFactoryAlgorithm()

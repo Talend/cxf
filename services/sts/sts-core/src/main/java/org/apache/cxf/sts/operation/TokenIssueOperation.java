@@ -27,8 +27,7 @@ import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import javax.xml.bind.JAXBElement;
-
+import jakarta.xml.bind.JAXBElement;
 import org.apache.cxf.common.logging.LogUtils;
 import org.apache.cxf.helpers.CastUtils;
 import org.apache.cxf.sts.QNameConstants;
@@ -75,7 +74,7 @@ import org.apache.xml.security.exceptions.XMLSecurityException;
 public class TokenIssueOperation extends AbstractOperation implements IssueOperation, IssueSingleOperation {
 
     static final Logger LOG = LogUtils.getL7dLogger(TokenIssueOperation.class);
-    
+
 
     public RequestSecurityTokenResponseCollectionType issue(
             RequestSecurityTokenType request,
@@ -89,7 +88,7 @@ public class TokenIssueOperation extends AbstractOperation implements IssueOpera
         return responseCollection;
     }
 
-    
+
     public RequestSecurityTokenResponseCollectionType issue(
             RequestSecurityTokenCollectionType requestCollection,
             Principal principal,
@@ -161,7 +160,7 @@ public class TokenIssueOperation extends AbstractOperation implements IssueOpera
             // create token
             TokenProviderResponse tokenResponse = null;
             for (TokenProvider tokenProvider : tokenProviders) {
-                boolean canHandle = false;
+                final boolean canHandle;
                 if (realm == null) {
                     canHandle = tokenProvider.canHandleToken(tokenType);
                 } else {
@@ -198,6 +197,8 @@ public class TokenIssueOperation extends AbstractOperation implements IssueOpera
                 STSIssueSuccessEvent event = new STSIssueSuccessEvent(providerParameters,
                         System.currentTimeMillis() - start);
                 publishEvent(event);
+
+                cleanRequest(requestRequirements);
                 return response;
             } catch (Throwable ex) {
                 LOG.log(Level.WARNING, "", ex);
@@ -284,7 +285,7 @@ public class TokenIssueOperation extends AbstractOperation implements IssueOpera
         if (returnReferences) {
             // RequestedAttachedReference
             TokenReference attachedReference = tokenResponse.getAttachedReference();
-            RequestedReferenceType requestedAttachedReferenceType = null;
+            final RequestedReferenceType requestedAttachedReferenceType;
             if (attachedReference != null) {
                 requestedAttachedReferenceType = createRequestedReference(attachedReference, true);
             } else {
@@ -302,7 +303,7 @@ public class TokenIssueOperation extends AbstractOperation implements IssueOpera
 
             // RequestedUnattachedReference
             TokenReference unAttachedReference = tokenResponse.getUnAttachedReference();
-            RequestedReferenceType requestedUnattachedReferenceType = null;
+            final RequestedReferenceType requestedUnattachedReferenceType;
             if (unAttachedReference != null) {
                 requestedUnattachedReferenceType = createRequestedReference(unAttachedReference, false);
             } else {

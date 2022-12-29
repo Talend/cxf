@@ -19,11 +19,10 @@
 
 package org.apache.cxf.systest.jaxrs.reactor;
 
-import com.fasterxml.jackson.jaxrs.json.JacksonJsonProvider;
+import com.fasterxml.jackson.jakarta.rs.json.JacksonJsonProvider;
 
 import org.apache.cxf.Bus;
 import org.apache.cxf.BusFactory;
-import org.apache.cxf.ext.logging.LoggingOutInterceptor;
 import org.apache.cxf.jaxrs.JAXRSServerFactoryBean;
 import org.apache.cxf.jaxrs.lifecycle.SingletonResourceProvider;
 import org.apache.cxf.jaxrs.reactor.server.ReactorCustomizer;
@@ -44,7 +43,6 @@ public class ReactorServer extends AbstractBusTestServerBase {
         sf.getProperties(true).put("useStreamingSubscriber", false);
         sf.setProvider(new JacksonJsonProvider());
         new ReactorCustomizer().customize(sf);
-        sf.getOutInterceptors().add(new LoggingOutInterceptor());
         sf.setResourceClasses(FluxService.class, MonoService.class);
         sf.setResourceProvider(FluxService.class,
                 new SingletonResourceProvider(new FluxService(), true));
@@ -55,8 +53,9 @@ public class ReactorServer extends AbstractBusTestServerBase {
         
         JAXRSServerFactoryBean sf2 = new JAXRSServerFactoryBean();
         sf2.setProvider(new JacksonJsonProvider());
+        sf2.setProvider(new IllegalArgumentExceptionMapper());
+        sf2.setProvider(new IllegalStateExceptionMapper());
         new ReactorCustomizer().customize(sf2);
-        sf2.getOutInterceptors().add(new LoggingOutInterceptor());
         sf2.setResourceClasses(FluxService.class);
         sf2.setResourceProvider(FluxService.class,
                 new SingletonResourceProvider(new FluxService(), true));
@@ -75,7 +74,7 @@ public class ReactorServer extends AbstractBusTestServerBase {
         server2 = null;
     }
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws Exception {
         ReactorServer server = new ReactorServer();
         System.out.println("Go to http://localhost:" + PORT + "/reactor/flux/textJsonImplicitListAsyncStream");
         server.start();

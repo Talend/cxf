@@ -21,17 +21,21 @@ package org.apache.cxf.ws.security.wss4j.policyhandlers;
 
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.logging.Level;
 
+import javax.crypto.KeyGenerator;
+import javax.crypto.SecretKey;
 import javax.xml.crypto.dsig.Reference;
-import javax.xml.soap.SOAPException;
-import javax.xml.soap.SOAPMessage;
 
 import org.w3c.dom.Element;
 
+import jakarta.xml.soap.SOAPException;
+import jakarta.xml.soap.SOAPMessage;
 import org.apache.cxf.binding.soap.SoapMessage;
+import org.apache.cxf.common.util.StringUtils;
 import org.apache.cxf.helpers.DOMUtils;
 import org.apache.cxf.interceptor.Fault;
 import org.apache.cxf.rt.security.utils.SecurityUtils;
@@ -50,6 +54,8 @@ import org.apache.wss4j.common.ext.WSPasswordCallback;
 import org.apache.wss4j.common.ext.WSSecurityException;
 import org.apache.wss4j.common.saml.SamlAssertionWrapper;
 import org.apache.wss4j.common.token.SecurityTokenReference;
+import org.apache.wss4j.common.util.KeyUtils;
+import org.apache.wss4j.common.util.UsernameTokenUtil;
 import org.apache.wss4j.dom.WSConstants;
 import org.apache.wss4j.dom.engine.WSSConfig;
 import org.apache.wss4j.dom.message.WSSecDKSign;
@@ -330,9 +336,11 @@ public class TransportBindingHandler extends AbstractBindingBuilder {
             addSig(doIssuedTokenSignature(token, wrapper));
         } else if (token instanceof UsernameToken) {
             // Create a UsernameToken object for derived keys and store the security token
-            WSSecUsernameToken usernameToken = addDKUsernameToken((UsernameToken)token, true);
+            byte[] salt = UsernameTokenUtil.generateSalt(true);
+            WSSecUsernameToken usernameToken = addDKUsernameToken((UsernameToken)token, salt);
             String id = usernameToken.getId();
-            byte[] secret = usernameToken.getDerivedKey();
+            byte[] secret = usernameToken.getDerivedKey(salt);
+            Arrays.fill(salt, (byte)0);
 
             Instant created = Instant.now();
             Instant expires = created.plusSeconds(WSS4JUtils.getSecurityTokenLifetime(message) / 1000L);
@@ -356,7 +364,11 @@ public class TransportBindingHandler extends AbstractBindingBuilder {
             signPartsAndElements(wrapper.getSignedParts(), wrapper.getSignedElements());
 
         if (token.getDerivedKeys() == DerivedKeys.RequireDerivedKeys) {
-            WSSecEncryptedKey encrKey = getEncryptedKeyBuilder(token);
+            AlgorithmSuiteType algType = binding.getAlgorithmSuite().getAlgorithmSuiteType();
+            KeyGenerator keyGen = KeyUtils.getKeyGenerator(algType.getEncryption());
+            SecretKey symmetricKey = keyGen.generateKey();
+
+            WSSecEncryptedKey encrKey = getEncryptedKeyBuilder(token, symmetricKey);
             assertPolicy(wrapper);
 
             Element bstElem = encrKey.getBinarySecurityTokenElement();
@@ -373,18 +385,17 @@ public class TransportBindingHandler extends AbstractBindingBuilder {
             }
 
             dkSig.setSigCanonicalization(binding.getAlgorithmSuite().getC14n().getValue());
-            dkSig.setSignatureAlgorithm(binding.getAlgorithmSuite().getSymmetricSignature());
+            dkSig.setSignatureAlgorithm(binding.getAlgorithmSuite().getAlgorithmSuiteType().getSymmetricSignature());
             dkSig.setAttachmentCallbackHandler(new AttachmentCallbackHandler(message));
             dkSig.setStoreBytesInAttachment(storeBytesInAttachment);
             dkSig.setExpandXopInclude(isExpandXopInclude());
             dkSig.setWsDocInfo(wsDocInfo);
-            
-            AlgorithmSuiteType algType = binding.getAlgorithmSuite().getAlgorithmSuiteType();
+
             dkSig.setDerivedKeyLength(algType.getSignatureDerivedKeyLength() / 8);
 
-            dkSig.setExternalKey(encrKey.getEphemeralKey(), encrKey.getId());
+            dkSig.setTokenIdentifier(encrKey.getId());
 
-            dkSig.prepare();
+            dkSig.prepare(symmetricKey.getEncoded());
 
             dkSig.getParts().addAll(sigParts);
             List<Reference> referenceList = dkSig.addReferencesToSign(sigParts);
@@ -393,6 +404,7 @@ public class TransportBindingHandler extends AbstractBindingBuilder {
             dkSig.appendDKElementToHeader();
             dkSig.computeSignature(referenceList, false, null);
 
+            dkSig.clean();
             return dkSig.getSignatureValue();
         }
         WSSecSignature sig = getSignatureBuilder(token, false, false);
@@ -448,7 +460,7 @@ public class TransportBindingHandler extends AbstractBindingBuilder {
         if (token.getDerivedKeys() == DerivedKeys.RequireDerivedKeys) {
             return doDerivedKeySignature(tokenIncluded, secTok, token, sigParts);
         }
-        return doSignature(tokenIncluded, secTok, token, wrapper, sigParts);
+        return doSignature(tokenIncluded, secTok, token, sigParts);
     }
 
     private byte[] doDerivedKeySignature(
@@ -465,7 +477,7 @@ public class TransportBindingHandler extends AbstractBindingBuilder {
         dkSign.setStoreBytesInAttachment(storeBytesInAttachment);
         dkSign.setExpandXopInclude(isExpandXopInclude());
         dkSign.setWsDocInfo(wsDocInfo);
-        
+
         AlgorithmSuite algorithmSuite = tbinding.getAlgorithmSuite();
 
         //Setting the AttachedReference or the UnattachedReference according to the flag
@@ -477,9 +489,9 @@ public class TransportBindingHandler extends AbstractBindingBuilder {
         }
 
         if (ref != null) {
-            dkSign.setExternalKey(secTok.getSecret(), cloneElement(ref));
+            dkSign.setStrElem(cloneElement(ref));
         } else {
-            dkSign.setExternalKey(secTok.getSecret(), secTok.getId());
+            dkSign.setTokenIdentifier(secTok.getId());
         }
 
         if (token instanceof UsernameToken) {
@@ -487,13 +499,13 @@ public class TransportBindingHandler extends AbstractBindingBuilder {
         }
 
         // Set the algo info
-        dkSign.setSignatureAlgorithm(algorithmSuite.getSymmetricSignature());
+        dkSign.setSignatureAlgorithm(algorithmSuite.getAlgorithmSuiteType().getSymmetricSignature());
         AlgorithmSuiteType algType = binding.getAlgorithmSuite().getAlgorithmSuiteType();
         dkSign.setDerivedKeyLength(algType.getSignatureDerivedKeyLength() / 8);
         if (token.getVersion() == SPConstants.SPVersion.SP11) {
             dkSign.setWscVersion(ConversationConstants.VERSION_05_02);
         }
-        dkSign.prepare();
+        dkSign.prepare(secTok.getSecret());
 
         addDerivedKeyElement(dkSign.getdktElement());
 
@@ -503,6 +515,7 @@ public class TransportBindingHandler extends AbstractBindingBuilder {
         //Do signature
         dkSign.computeSignature(referenceList, false, null);
 
+        dkSign.clean();
         return dkSign.getSignatureValue();
     }
 
@@ -510,7 +523,6 @@ public class TransportBindingHandler extends AbstractBindingBuilder {
         boolean tokenIncluded,
         SecurityToken secTok,
         AbstractToken token,
-        SupportingTokens wrapper,
         List<WSEncryptionPart> sigParts
     ) throws Exception {
         WSSecSignature sig = new WSSecSignature(secHeader);
@@ -565,7 +577,7 @@ public class TransportBindingHandler extends AbstractBindingBuilder {
                 sig.setCustomTokenValueType(tokenType);
             }
         }
-        Crypto crypto = null;
+        Crypto crypto;
         if (secTok.getSecret() == null) {
             sig.setX509Certificate(secTok.getX509Certificate());
 
@@ -586,13 +598,19 @@ public class TransportBindingHandler extends AbstractBindingBuilder {
                 String userNameKey = SecurityConstants.SIGNATURE_USERNAME;
                 uname = (String)SecurityUtils.getSecurityPropertyValue(userNameKey, message);
             }
-            String password = getPassword(uname, token, WSPasswordCallback.SIGNATURE);
+
+            String password =
+                (String)SecurityUtils.getSecurityPropertyValue(SecurityConstants.SIGNATURE_PASSWORD, message);
+            if (StringUtils.isEmpty(password)) {
+                password = getPassword(uname, token, WSPasswordCallback.SIGNATURE);
+            }
+
             sig.setUserInfo(uname, password);
-            sig.setSignatureAlgorithm(binding.getAlgorithmSuite().getAsymmetricSignature());
+            sig.setSignatureAlgorithm(binding.getAlgorithmSuite().getAlgorithmSuiteType().getAsymmetricSignature());
         } else {
             crypto = getSignatureCrypto();
             sig.setSecretKey(secTok.getSecret());
-            sig.setSignatureAlgorithm(binding.getAlgorithmSuite().getSymmetricSignature());
+            sig.setSignatureAlgorithm(binding.getAlgorithmSuite().getAlgorithmSuiteType().getSymmetricSignature());
         }
         sig.setSigCanonicalization(binding.getAlgorithmSuite().getC14n().getValue());
         AlgorithmSuiteType algType = binding.getAlgorithmSuite().getAlgorithmSuiteType();

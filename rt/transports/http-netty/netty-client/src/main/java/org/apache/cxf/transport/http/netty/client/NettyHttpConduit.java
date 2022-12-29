@@ -32,9 +32,12 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.security.Principal;
 import java.security.cert.Certificate;
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.logging.Level;
 
 import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.SSLSession;
@@ -74,6 +77,12 @@ import io.netty.handler.ssl.SslHandler;
 
 public class NettyHttpConduit extends URLConnectionHTTPConduit implements BusLifeCycleListener {
     public static final String USE_ASYNC = "use.async.http.conduit";
+    public static final String MAX_RESPONSE_CONTENT_LENGTH =
+        "org.apache.cxf.transport.http.netty.maxResponseContentLength";
+    static final Integer DEFAULT_MAX_RESPONSE_CONTENT_LENGTH = 1048576;
+    private static final Set<String> KNOWN_HTTP_VERBS_WITH_NO_CONTENT =
+            new HashSet<>(Arrays.asList(new String[]{"GET", "HEAD", "OPTIONS", "TRACE"}));
+    
     final NettyHttpConduitFactory factory;
     private Bootstrap bootstrap;
 
@@ -136,7 +145,7 @@ public class NettyHttpConduit extends URLConnectionHTTPConduit implements BusLif
         if (clientParameters == null) {
             clientParameters = tlsClientParameters;
         }
-        if (uri.getScheme().equals("https")
+        if ("https".equals(uri.getScheme())
             && clientParameters != null
             && clientParameters.getSSLSocketFactory() != null) {
             //if they configured in an SSLSocketFactory, we cannot do anything
@@ -167,8 +176,10 @@ public class NettyHttpConduit extends URLConnectionHTTPConduit implements BusLif
         final NettyHttpClientRequest request = new NettyHttpClientRequest(uri, httpRequestMethod);
         final int ctimeout = determineConnectionTimeout(message, csPolicy);
         final int rtimeout = determineReceiveTimeout(message, csPolicy);
+        final int maxResponseContentLength = determineMaxResponseContentLength(message);
         request.setConnectionTimeout(ctimeout);
         request.setReceiveTimeout(rtimeout);
+        request.setMaxResponseContentLength(maxResponseContentLength);
 
         message.put(NettyHttpClientRequest.class, request);
 
@@ -191,7 +202,10 @@ public class NettyHttpConduit extends URLConnectionHTTPConduit implements BusLif
             entity.createRequest(out.getOutBuffer());
             // TODO need to check how to set the Chunked feature
             //request.getRequest().setChunked(true);
-            entity.getRequest().headers().set(Message.CONTENT_TYPE, message.get(Message.CONTENT_TYPE));
+            Object contentType = message.get(Message.CONTENT_TYPE);
+            if (contentType != null) {
+                entity.getRequest().headers().set(Message.CONTENT_TYPE, contentType);
+            }
             return out;
         }
         return super.createOutputStream(message, needToCacheRequest, isChunking, chunkThreshold);
@@ -289,7 +303,7 @@ public class NettyHttpConduit extends URLConnectionHTTPConduit implements BusLif
         protected void setupWrappedStream() throws IOException {
             connect(true);
             wrappedStream = new OutputStream() {
-                public void write(byte b[], int off, int len) throws IOException {
+                public void write(byte[] b, int off, int len) throws IOException {
                     outputStream.write(b, off, len);
                 }
                 public void write(int b) throws IOException {
@@ -305,9 +319,13 @@ public class NettyHttpConduit extends URLConnectionHTTPConduit implements BusLif
                             }
                         }
                     };
-                    ChannelFuture channelFuture = getChannel().write(entity);
-                    channelFuture.addListener(listener);
-                    outputStream.close();
+                    
+                    synchronized (entity) {
+                        Channel syncChannel = getChannel();
+                        ChannelFuture channelFuture = syncChannel.writeAndFlush(entity);
+                        channelFuture.addListener(listener);
+                        outputStream.close();
+                    }
                 }
             };
 
@@ -317,6 +335,11 @@ public class NettyHttpConduit extends URLConnectionHTTPConduit implements BusLif
                 cachedStream = new CacheAndWriteOutputStream(wrappedStream);
                 wrappedStream = cachedStream;
             }
+        }
+        
+        @Override
+        protected void handleNoOutput() throws IOException {
+            connect(false);
         }
 
         protected TLSClientParameters findTLSClientParameters() {
@@ -331,12 +354,15 @@ public class NettyHttpConduit extends URLConnectionHTTPConduit implements BusLif
         }
 
         protected void connect(boolean output) {
-            if (url.getScheme().equals("https")) {
+            if ("https".equals(url.getScheme())) {
                 TLSClientParameters clientParameters = findTLSClientParameters();
-                bootstrap.handler(new NettyHttpClientPipelineFactory(clientParameters));
+                bootstrap.handler(new NettyHttpClientPipelineFactory(clientParameters, entity.getReceiveTimeout(),
+                    entity.getMaxResponseContentLength()));
             } else {
-                bootstrap.handler(new NettyHttpClientPipelineFactory(null));
+                bootstrap.handler(new NettyHttpClientPipelineFactory(null, entity.getReceiveTimeout(),
+                    entity.getMaxResponseContentLength()));
             }
+
             ChannelFuture connFuture =
                 bootstrap.connect(new InetSocketAddress(url.getHost(), url.getPort() != -1 ? url.getPort()
                                                             : "http".equals(url.getScheme()) ? 80 : 443));
@@ -348,23 +374,23 @@ public class NettyHttpConduit extends URLConnectionHTTPConduit implements BusLif
                 public void operationComplete(ChannelFuture future) throws Exception {
                     if (future.isSuccess()) {
                         setChannel(future.channel());
+                        
                         SslHandler sslHandler = channel.pipeline().get(SslHandler.class);
+                        
                         if (sslHandler != null) {
                             session = sslHandler.engine().getSession();
                         }
                     } else {
                         setException(future.cause());
                     }
+                    synchronized (entity) {
+                        //ensure entity is write in main thread
+                    }
                 }
             };
 
             connFuture.addListener(listener);
 
-            if (!output) {
-                entity.getRequest().headers().remove("Transfer-Encoding");
-                entity.getRequest().headers().remove("Content-Type");
-                entity.getRequest().headers().remove(null);
-            }
 
             // setup the CxfResponseCallBack
             CxfResponseCallBack callBack = new CxfResponseCallBack() {
@@ -372,9 +398,37 @@ public class NettyHttpConduit extends URLConnectionHTTPConduit implements BusLif
                 public void responseReceived(HttpResponse response) {
                     setHttpResponse(response);
                 }
+                
+                @Override
+                public void error(Throwable ex) {
+                    setException(ex);
+                }
             };
             entity.setCxfResponseCallback(callBack);
 
+            if (!output) {
+                entity.getRequest().headers().remove("Transfer-Encoding");
+                entity.getRequest().headers().remove("Content-Type");
+                
+                ChannelFutureListener writeFailureListener = new ChannelFutureListener() {
+                    @Override
+                    public void operationComplete(ChannelFuture future) throws Exception {
+                        if (!future.isSuccess()) {
+                            setException(future.cause());
+                        }
+                    }
+                };
+                
+                connFuture.addListener(new ChannelFutureListener() {
+                        @Override
+                        public void operationComplete(ChannelFuture future) throws Exception {
+                            if (future.isSuccess()) {
+                                ChannelFuture channelFuture = future.channel().writeAndFlush(entity);
+                                channelFuture.addListener(writeFailureListener);
+                            }
+                        }
+                    });
+            }
         }
 
         @Override
@@ -411,7 +465,7 @@ public class NettyHttpConduit extends URLConnectionHTTPConduit implements BusLif
         @Override
         protected void setProtocolHeaders() throws IOException {
             Headers h = new Headers(outMessage);
-            entity.getRequest().headers().set(Message.CONTENT_TYPE, h.determineContentType());
+            setContentTypeHeader(h);
             boolean addHeaders = MessageUtils.getContextualBoolean(outMessage, Headers.ADD_HEADERS_PROPERTY, false);
 
             for (Map.Entry<String, List<String>> header : h.headerMap().entrySet()) {
@@ -437,6 +491,21 @@ public class NettyHttpConduit extends URLConnectionHTTPConduit implements BusLif
                 }
             }
         }
+        
+        private void setContentTypeHeader(Headers headers) {
+            if (outMessage.get(Message.CONTENT_TYPE) == null) {
+                // if no content type is set then check for a request body
+                Object requestMethod = outMessage.get(Message.HTTP_REQUEST_METHOD);
+                boolean emptyRequest = KNOWN_HTTP_VERBS_WITH_NO_CONTENT.contains(requestMethod) 
+                        || PropertyUtils.isTrue(outMessage.get(Headers.EMPTY_REQUEST_PROPERTY));
+                // If it is not an empty request then add a content type
+                if (!emptyRequest) {
+                    entity.getRequest().headers().set(Message.CONTENT_TYPE, headers.determineContentType());
+                }
+            } else {
+                entity.getRequest().headers().set(Message.CONTENT_TYPE, headers.determineContentType());
+            }
+        }
 
         @Override
         protected void setFixedLengthStreamingMode(int i) {
@@ -448,12 +517,12 @@ public class NettyHttpConduit extends URLConnectionHTTPConduit implements BusLif
 
         @Override
         protected int getResponseCode() throws IOException {
-            return getHttpResponse().getStatus().code();
+            return getHttpResponse().status().code();
         }
 
         @Override
         protected String getResponseMessage() throws IOException {
-            return getHttpResponse().getStatus().reasonPhrase();
+            return getHttpResponse().status().reasonPhrase();
         }
 
         @Override
@@ -634,6 +703,24 @@ public class NettyHttpConduit extends URLConnectionHTTPConduit implements BusLif
 
     @Override
     public void preShutdown() {
+    }
+
+    protected static int determineMaxResponseContentLength(Message message) {
+        Integer maxResponseContentLength = null;
+        if (message.get(MAX_RESPONSE_CONTENT_LENGTH) != null) {
+            Object obj = message.get(MAX_RESPONSE_CONTENT_LENGTH);
+            try {
+                maxResponseContentLength = Integer.parseInt(obj.toString());
+            } catch (NumberFormatException e) {
+                LOG.log(Level.WARNING, "INVALID_TIMEOUT_FORMAT", new Object[] {
+                    MAX_RESPONSE_CONTENT_LENGTH, obj.toString()
+                });
+            }
+        }
+        if (maxResponseContentLength == null) {
+            maxResponseContentLength = DEFAULT_MAX_RESPONSE_CONTENT_LENGTH;
+        }
+        return maxResponseContentLength;
     }
 
 

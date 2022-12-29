@@ -24,10 +24,9 @@ import java.lang.reflect.Proxy;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.xml.ws.WebServiceException;
-import javax.xml.ws.handler.Handler;
-import javax.xml.ws.soap.SOAPBinding;
-
+import jakarta.xml.ws.WebServiceException;
+import jakarta.xml.ws.handler.Handler;
+import jakarta.xml.ws.soap.SOAPBinding;
 import org.apache.cxf.binding.soap.Soap12;
 import org.apache.cxf.common.classloader.ClassLoaderUtils;
 import org.apache.cxf.common.classloader.ClassLoaderUtils.ClassLoaderHolder;
@@ -111,7 +110,7 @@ public class JaxWsServerFactoryBean extends ServerFactoryBean {
                 }
             }
             if (!found) {
-                Class<?> cls2[] = new Class<?>[cls.length + 1];
+                Class<?>[] cls2 = new Class<?>[cls.length + 1];
                 System.arraycopy(cls, 0, cls2, 0, cls.length);
                 cls2[cls.length] = seiClass;
                 cls = cls2;
@@ -225,10 +224,9 @@ public class JaxWsServerFactoryBean extends ServerFactoryBean {
             try {
                 injectResources(getServiceBean());
                 buildHandlerChain(server);
+            } catch (WebServiceException ex) {
+                throw ex;
             } catch (Exception ex) {
-                if (ex instanceof WebServiceException) {
-                    throw (WebServiceException)ex;
-                }
                 throw new WebServiceException("Creation of Endpoint failed", ex);
             }
         }

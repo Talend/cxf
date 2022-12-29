@@ -189,11 +189,7 @@ public class ServerFactoryBean extends AbstractWSDLBasedEndpointFactory {
                     }
                 }
 
-            } catch (EndpointException e) {
-                throw new ServiceConstructionException(e);
-            } catch (BusException e) {
-                throw new ServiceConstructionException(e);
-            } catch (IOException e) {
+            } catch (EndpointException | BusException | IOException e) {
                 throw new ServiceConstructionException(e);
             }
 
@@ -321,7 +317,7 @@ public class ServerFactoryBean extends AbstractWSDLBasedEndpointFactory {
      * used by the factory to create services. Typically, the WSDL
      * location is specified as a URL.
      *
-     * @param locaiton the URL of the WSDL defining the service interface
+     * @param location the URL of the WSDL defining the service interface
      */
     public void setWsdlLocation(String location) {
         setWsdlURL(location);

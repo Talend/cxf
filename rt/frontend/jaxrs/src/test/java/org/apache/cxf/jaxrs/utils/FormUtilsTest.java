@@ -24,17 +24,17 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Enumeration;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.ws.rs.core.MultivaluedMap;
-
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.ws.rs.core.MultivaluedMap;
 import org.apache.cxf.jaxrs.impl.MetadataMap;
 import org.apache.cxf.message.Message;
 
 import org.easymock.EasyMock;
-import org.junit.Assert;
 import org.junit.Test;
 
-public class FormUtilsTest extends Assert {
+import static org.junit.Assert.assertEquals;
+
+public class FormUtilsTest {
 
     private static final String HTTP_PARAM1 = "httpParam1";
     private static final String HTTP_PARAM2 = "httpParam2";
@@ -54,7 +54,7 @@ public class FormUtilsTest extends Assert {
         mockObjects(null);
         EasyMock.replay(mockMessage, mockRequest);
 
-        MultivaluedMap<String, String> params = new MetadataMap<String, String>();
+        MultivaluedMap<String, String> params = new MetadataMap<>();
         FormUtils.populateMapFromString(params, mockMessage, null, StandardCharsets.UTF_8.name(),
                                         false, mockRequest);
 
@@ -63,11 +63,12 @@ public class FormUtilsTest extends Assert {
         assertEquals(HTTP_PARAM_VALUE2, params.get(HTTP_PARAM2).iterator().next());
     }
 
+    @Test
     public void populateMapFromStringFromHTTPWithProp() {
         mockObjects("false");
         EasyMock.replay(mockMessage, mockRequest);
 
-        MultivaluedMap<String, String> params = new MetadataMap<String, String>();
+        MultivaluedMap<String, String> params = new MetadataMap<>();
         FormUtils.populateMapFromString(params, mockMessage, null, StandardCharsets.UTF_8.name(),
                                         false, mockRequest);
 
@@ -79,7 +80,7 @@ public class FormUtilsTest extends Assert {
         mockObjects(null);
         EasyMock.replay(mockMessage, mockRequest);
 
-        MultivaluedMap<String, String> params = new MetadataMap<String, String>();
+        MultivaluedMap<String, String> params = new MetadataMap<>();
         String postBody = FORM_PARAM1 + "=" + FORM_PARAM_VALUE1 + "&" + FORM_PARAM2 + "=" + FORM_PARAM_VALUE2;
         FormUtils.populateMapFromString(params, mockMessage, postBody, StandardCharsets.UTF_8.name(),
                                         false, mockRequest);
@@ -95,7 +96,9 @@ public class FormUtilsTest extends Assert {
         EasyMock.expect(mockMessage.getContextualProperty(FormUtils.FORM_PARAMS_FROM_HTTP_PARAMS))
             .andReturn(formPropertyValue).anyTimes();
         EasyMock.expect(mockMessage.getExchange()).andReturn(null).anyTimes();
-
+        EasyMock.expect(mockMessage.put(FormUtils.FORM_PARAM_MAP_DECODED, true))
+            .andReturn(null).anyTimes();
+        
         mockRequest = EasyMock.createMock(HttpServletRequest.class);
         String[] httpParamNames = {HTTP_PARAM1, HTTP_PARAM2};
         Enumeration<String> httpParamsEnum = Collections.enumeration(Arrays.asList(httpParamNames));

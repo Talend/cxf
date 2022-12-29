@@ -28,10 +28,9 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
 
-import javax.servlet.ServletOutputStream;
-import javax.servlet.WriteListener;
-import javax.servlet.http.HttpServletResponse;
-
+import jakarta.servlet.ServletOutputStream;
+import jakarta.servlet.WriteListener;
+import jakarta.servlet.http.HttpServletResponse;
 import org.apache.cxf.common.logging.LogUtils;
 import org.apache.cxf.io.CachedOutputStream;
 import org.apache.cxf.transport.websocket.InvalidPathException;
@@ -269,6 +268,13 @@ public class DefaultProtocolInterceptor extends AtmosphereInterceptorAdapter {
             throw new InvalidPathException();
         }
 
+        String queryString = "";
+        int index = path.indexOf('?');
+        if (index != -1) {
+            queryString = path.substring(index + 1);
+            path = path.substring(0, index);
+        }
+
         String requestURI = path;
         String requestURL = r.getRequestURL() + requestURI.substring(r.getRequestURI().length());
         String contentType = hdrs.get("Content-Type");
@@ -280,6 +286,7 @@ public class DefaultProtocolInterceptor extends AtmosphereInterceptorAdapter {
                 .method(method)
                 .requestURI(requestURI)
                 .requestURL(requestURL)
+                .queryString(queryString)
                 .request(r);
         // add the body only if it is present
         byte[] body = WebSocketUtils.readBody(in);

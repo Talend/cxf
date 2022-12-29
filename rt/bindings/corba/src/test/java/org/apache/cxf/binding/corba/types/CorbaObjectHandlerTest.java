@@ -27,11 +27,15 @@ import org.omg.CORBA.TCKind;
 import org.omg.CORBA.TypeCode;
 
 import org.junit.After;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
-public class CorbaObjectHandlerTest extends Assert {
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+
+public class CorbaObjectHandlerTest {
 
     private ORB orb;
 
@@ -73,11 +77,11 @@ public class CorbaObjectHandlerTest extends Assert {
 
         QName name = obj.getName();
         assertNotNull(name);
-        assertTrue(name.equals(objName));
+        assertEquals(name, objName);
 
         QName idlType = obj.getIdlType();
         assertNotNull(idlType);
-        assertTrue(idlType.equals(objIdlType));
+        assertEquals(idlType, objIdlType);
 
         TypeCode tc = obj.getTypeCode();
         assertNotNull(tc);

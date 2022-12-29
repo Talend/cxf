@@ -18,6 +18,8 @@
  */
 package org.apache.cxf.transport.http.spring;
 
+import java.lang.reflect.InvocationTargetException;
+
 import javax.xml.namespace.QName;
 
 import org.w3c.dom.Attr;
@@ -200,28 +202,20 @@ public class HttpConduitBeanDefinitionParser
         String elementName = element.getLocalName();
 
         String classProperty = element.getAttribute("class");
-        if (classProperty != null && !classProperty.equals("")) {
+        if (classProperty != null && !classProperty.isEmpty()) {
             try {
                 Object obj =
                     ClassLoaderUtils.loadClass(
-                            classProperty, getClass()).newInstance();
+                            classProperty, getClass()).getDeclaredConstructor().newInstance();
                 if (!elementClass.isInstance(obj)) {
                     throw new IllegalArgumentException(
                         "Element '" + elementName + "' must be of type "
                         + elementClass.getName() + ".");
                 }
                 bean.addPropertyValue(elementName, obj);
-            } catch (IllegalAccessException ex) {
-                throw new IllegalArgumentException(
-                    "Element '" + elementName + "' could not load "
-                    + classProperty
-                    + " - " + ex);
-            } catch (ClassNotFoundException ex) {
-                throw new IllegalArgumentException(
-                    "Element '" + elementName + "' could not load "
-                    + classProperty
-                    + " - " + ex);
-            } catch (InstantiationException ex) {
+            } catch (IllegalAccessException | ClassNotFoundException | InstantiationException 
+                | IllegalArgumentException | InvocationTargetException | NoSuchMethodException 
+                | SecurityException ex) {
                 throw new IllegalArgumentException(
                     "Element '" + elementName + "' could not load "
                     + classProperty
@@ -229,15 +223,15 @@ public class HttpConduitBeanDefinitionParser
             }
         }
         String beanref = element.getAttribute("bean");
-        if (beanref != null && !beanref.equals("")) {
-            if (classProperty != null && !classProperty.equals("")) {
+        if (beanref != null && !beanref.isEmpty()) {
+            if (classProperty != null && !classProperty.isEmpty()) {
                 throw new IllegalArgumentException(
                         "Element '" + elementName + "' cannot have both "
                         + "\"bean\" and \"class\" attributes.");
 
             }
             bean.addPropertyReference(elementName, beanref);
-        } else if (classProperty == null || classProperty.equals("")) {
+        } else if (classProperty == null || classProperty.isEmpty()) {
             throw new IllegalArgumentException(
                     "Element '" + elementName
                     + "' requires at least one of the "

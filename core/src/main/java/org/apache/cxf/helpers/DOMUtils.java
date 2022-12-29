@@ -21,6 +21,8 @@ package org.apache.cxf.helpers;
 
 import java.io.IOException;
 import java.io.StringReader;
+import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
@@ -42,6 +44,7 @@ import javax.xml.parsers.ParserConfigurationException;
 import org.w3c.dom.Attr;
 import org.w3c.dom.Comment;
 import org.w3c.dom.Document;
+import org.w3c.dom.DocumentFragment;
 import org.w3c.dom.Element;
 import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
@@ -52,6 +55,7 @@ import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 
 import org.apache.cxf.common.logging.LogUtils;
+import org.apache.cxf.common.util.ReflectionUtil;
 import org.apache.cxf.common.util.StringUtils;
 
 /**
@@ -64,26 +68,57 @@ public final class DOMUtils {
     private static final String XMLNAMESPACE = "xmlns";
     private static volatile Document emptyDocument;
 
+    private static final ClassValue<Method> GET_DOM_ELEMENTS_METHODS = new ClassValue<Method>() {
+        @Override
+        protected Method computeValue(Class<?> type) {
+            try {
+                return ReflectionUtil.getMethod(type, "getDomElement");
+            } catch (NoSuchMethodException e) {
+                //best effort to try, do nothing if NoSuchMethodException
+                return null;
+            }
+        }
+    };
+    private static final ClassValue<Field> GET_DOCUMENT_FRAGMENT_FIELDS = new ClassValue<Field>() {
+        @Override
+        protected Field computeValue(Class<?> type) {
+            return ReflectionUtil.getDeclaredField(type, "documentFragment");
+        }
 
+    };
 
     static {
-        if (JavaUtils.isJava9Compatible()) {
+        try {
+            Method[] methods = DOMUtils.class.getClassLoader().
+                loadClass("com.sun.xml.messaging.saaj.soap.SOAPDocumentImpl").getMethods();
+            for (Method method : methods) {
+                if ("register".equals(method.getName())) {
+                    //this is the 1.4+ SAAJ impl
+                    setJava9SAAJ(true);
+                    break;
+                }
+            }
+        } catch (ClassNotFoundException cnfe) {
+            LogUtils.getL7dLogger(DOMUtils.class).finest(
+                "can't load class com.sun.xml.messaging.saaj.soap.SOAPDocumentImpl");
 
             try {
                 Method[] methods = DOMUtils.class.getClassLoader().
                     loadClass("com.sun.xml.internal.messaging.saaj.soap.SOAPDocumentImpl").getMethods();
                 for (Method method : methods) {
-                    if (method.getName().equals("register")) {
+                    if ("register".equals(method.getName())) {
                         //this is the SAAJ impl in JDK9
                         setJava9SAAJ(true);
                         break;
                     }
                 }
-            } catch (ClassNotFoundException cnfe) {
+            } catch (ClassNotFoundException cnfe1) {
                 LogUtils.getL7dLogger(DOMUtils.class).finest(
                     "can't load class com.sun.xml.internal.messaging.saaj.soap.SOAPDocumentImpl");
             }
-
+        } catch (Throwable throwable) {
+            LogUtils.getL7dLogger(DOMUtils.class).finest(
+                "Other JDK vendor");
         }
     }
 
@@ -96,22 +131,22 @@ public final class DOMUtils {
             loader = getClassLoader(DOMUtils.class);
         }
         if (loader == null) {
-            DocumentBuilderFactory f = DocumentBuilderFactory.newInstance();
-            f.setNamespaceAware(true);
-            f.setFeature(javax.xml.XMLConstants.FEATURE_SECURE_PROCESSING, true);
-            f.setFeature("http://apache.org/xml/features/disallow-doctype-decl", true);
-            return f.newDocumentBuilder();
+            return createDocumentBuilder();
         }
         DocumentBuilder factory = DOCUMENT_BUILDERS.get(loader);
         if (factory == null) {
-            DocumentBuilderFactory f2 = DocumentBuilderFactory.newInstance();
-            f2.setNamespaceAware(true);
-            f2.setFeature(javax.xml.XMLConstants.FEATURE_SECURE_PROCESSING, true);
-            f2.setFeature("http://apache.org/xml/features/disallow-doctype-decl", true);
-            factory = f2.newDocumentBuilder();
+            factory = createDocumentBuilder();
             DOCUMENT_BUILDERS.put(loader, factory);
         }
         return factory;
+    }
+
+    private static DocumentBuilder createDocumentBuilder() throws ParserConfigurationException {
+        DocumentBuilderFactory f = DocumentBuilderFactory.newInstance();
+        f.setNamespaceAware(true);
+        f.setFeature(javax.xml.XMLConstants.FEATURE_SECURE_PROCESSING, true);
+        f.setFeature("http://apache.org/xml/features/disallow-doctype-decl", true);
+        return f.newDocumentBuilder();
     }
 
     private static ClassLoader getContextClassLoader() {
@@ -152,17 +187,17 @@ public final class DOMUtils {
             throw new RuntimeException(e);
         }
     }
-    
+
     private static synchronized Document createEmptyDocument() {
         if (emptyDocument == null) {
             emptyDocument = createDocument();
-            
+
             // uncomment this to see if anything is actually setting anything into the empty doc
             /*
             final Document doc  = createDocument();
             emptyDocument = (Document)org.apache.cxf.common.util.ProxyHelper.getProxy(
-                DOMUtils.class.getClassLoader(), 
-                new Class<?>[] {Document.class}, 
+                DOMUtils.class.getClassLoader(),
+                new Class<?>[] {Document.class},
                 new java.lang.reflect.InvocationHandler() {
                     @Override
                     public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
@@ -177,10 +212,10 @@ public final class DOMUtils {
         return emptyDocument;
     }
     /**
-     * Returns a static Document that should always be "empty".  It's useful as a factory for 
-     * for creating Elements and other nodes that will be traversed later and don't need to 
-     * be attached into a document 
-     * @return
+     * Returns a static Document that should always be "empty".  It's useful as a factory for
+     * for creating Elements and other nodes that will be traversed later and don't need to
+     * be attached into a document
+     * @return an empty document
      */
     public static Document getEmptyDocument() {
         Document doc = emptyDocument;
@@ -281,8 +316,7 @@ public final class DOMUtils {
         }
 
         for (Node node = first; node != null; node = node.getNextSibling()) {
-            // System.out.println("getNode: " + name + " " +
-            // node.getNodeName());
+            
             if (node.getNodeType() != Node.ELEMENT_NODE) {
                 continue;
             }
@@ -389,8 +423,7 @@ public final class DOMUtils {
             return null;
         }
         for (Node node = first; node != null; node = node.getNextSibling()) {
-            // System.out.println("getNode: " + name + " " +
-            // node.getNodeName());
+          
             if (name.equals(node.getNodeName())) {
                 return getRawContent(node);
             }
@@ -414,7 +447,7 @@ public final class DOMUtils {
             return null;
         }
 
-        int index = qualifiedName.indexOf(":");
+        int index = qualifiedName.indexOf(':');
 
         if (index == -1) {
             return new QName(qualifiedName);
@@ -424,7 +457,7 @@ public final class DOMUtils {
         String localName = qualifiedName.substring(index + 1);
         String ns = node.lookupNamespaceURI(prefix);
 
-        if (ns == null || localName == null) {
+        if (ns == null) {
             throw new RuntimeException("Invalid QName in mapping: " + qualifiedName);
         }
 
@@ -452,7 +485,7 @@ public final class DOMUtils {
     public static Set<QName> convertStringsToQNames(List<String> expandedQNames) {
         Set<QName> dropElements = Collections.emptySet();
         if (expandedQNames != null) {
-            dropElements = new LinkedHashSet<QName>(expandedQNames.size());
+            dropElements = new LinkedHashSet<>(expandedQNames.size());
             for (String val : expandedQNames) {
                 dropElements.add(convertStringToQName(val));
             }
@@ -722,29 +755,45 @@ public final class DOMUtils {
 
     public static List<Element> findAllElementsByTagNameNS(Element elem, String nameSpaceURI,
                                                            String localName) {
-        List<Element> ret = new LinkedList<Element>();
+        List<Element> ret = new LinkedList<>();
         findAllElementsByTagNameNS(elem, nameSpaceURI, localName, ret);
         return ret;
     }
 
     /**
-     * Try to get the DOM Node from the SAAJ Node with JAVA9
+     * Try to get the DOM Node from the SAAJ Node with JAVA9 afterwards
      * @param node The original node we need check
      * @return The DOM node
      */
     public static Node getDomElement(Node node) {
         if (node != null && isJava9SAAJ()) {
-            //java9 hack since EA 159
-            try {
-                Method method = node.getClass().getMethod("getDomElement");
-                node = (Node)method.invoke(node);
-            } catch (NoSuchMethodException e) {
-                //best effort to try, do nothing if NoSuchMethodException
-            } catch (Exception e) {
-                throw new RuntimeException(e);
+            //java9plus hack
+            Method method = GET_DOM_ELEMENTS_METHODS.get(node.getClass());
+            if (method != null) {
+                try {
+                    return (Node)ReflectionUtil.setAccessible(method).invoke(node);
+                } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
+                    throw new RuntimeException(e);
+                }
             }
         }
         return node;
+    }
+
+    /**
+     * Try to get the DOM DocumentFragment from the SAAJ DocumentFragment with JAVA9 afterwards
+     * @param fragment The original documentFragment we need to check
+     * @return The DOM DocumentFragment
+     */
+    public static DocumentFragment getDomDocumentFragment(DocumentFragment fragment) {
+        if (fragment != null && isJava9SAAJ()) {
+            //java9 plus hack
+            Field f = GET_DOCUMENT_FRAGMENT_FIELDS.get(fragment.getClass());
+            if (f != null) {
+                return ReflectionUtil.accessDeclaredField(f, fragment, DocumentFragment.class);
+            }
+        }
+        return fragment;
     }
 
     private static void findAllElementsByTagNameNS(Element el, String nameSpaceURI, String localName,
@@ -762,7 +811,7 @@ public final class DOMUtils {
     }
 
     public static List<Element> findAllElementsByTagName(Element elem, String tagName) {
-        List<Element> ret = new LinkedList<Element>();
+        List<Element> ret = new LinkedList<>();
         findAllElementsByTagName(elem, tagName, ret);
         return ret;
     }

@@ -26,12 +26,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
 
-import javax.ws.rs.Path;
-import javax.ws.rs.ext.Provider;
 import javax.xml.namespace.QName;
 
 import org.w3c.dom.Element;
 
+import jakarta.ws.rs.Path;
+import jakarta.ws.rs.ext.Provider;
 import org.apache.cxf.bus.spring.BusWiringBeanFactoryPostProcessor;
 import org.apache.cxf.common.classloader.ClassLoaderUtils;
 import org.apache.cxf.common.logging.LogUtils;
@@ -68,7 +68,7 @@ public class JAXRSServerFactoryBeanDefinitionParser extends AbstractBeanDefiniti
     @Override
     protected void mapAttribute(BeanDefinitionBuilder bean, Element e, String name, String val) {
         if ("beanNames".equals(name)) {
-            String[] values = StringUtils.split(val, " ");
+            String[] values = val.split(" ");
             List<SpringResourceFactory> tempFactories = new ArrayList<>(values.length);
             for (String v : values) {
                 String theValue = v.trim();
@@ -237,7 +237,7 @@ public class JAXRSServerFactoryBeanDefinitionParser extends AbstractBeanDefiniti
                     throw new BeanCreationException("Failed to create bean from classfile", ex);
                 }
             } else if (serviceAnnotationClass != null
-                || !serviceBeansAvailable && !providerBeansAvailable && !resourceProvidersAvailable) {
+                && !serviceBeansAvailable && !providerBeansAvailable && !resourceProvidersAvailable) {
                 discoverContextResources(serviceAnnotationClass);
             }
             if (bus == null) {
@@ -266,12 +266,12 @@ public class JAXRSServerFactoryBeanDefinitionParser extends AbstractBeanDefiniti
                                                          Collection<Class<?>> classes,
                                                          Class<? extends Annotation> serviceClassAnnotation) {
         AutowireCapableBeanFactory beanFactory = context.getAutowireCapableBeanFactory();
-        final List< Object > providers = new ArrayList< Object >();
+        final List< Object > providers = new ArrayList<>();
         for (final Class< ? > clazz: classes) {
             if (serviceClassAnnotation != null && clazz.getAnnotation(serviceClassAnnotation) == null) {
                 continue;
             }
-            Object bean = null;
+            Object bean;
             try {
                 bean = beanFactory.createBean(clazz, AutowireCapableBeanFactory.AUTOWIRE_BY_TYPE, true);
             } catch (Exception ex) {

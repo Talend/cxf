@@ -21,6 +21,7 @@ package org.apache.cxf.common.util;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
+import java.nio.Buffer;
 import java.nio.BufferUnderflowException;
 import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
@@ -44,19 +45,15 @@ public final class UrlUtils {
     }
 
     public static String urlEncode(String value) {
-
         return urlEncode(value, StandardCharsets.UTF_8.name());
     }
 
     public static String urlEncode(String value, String enc) {
-
         try {
-            value = URLEncoder.encode(value, enc);
+            return URLEncoder.encode(value, enc);
         } catch (UnsupportedEncodingException ex) {
             throw new RuntimeException(ex);
         }
-
-        return value;
     }
 
     /**
@@ -105,7 +102,7 @@ public final class UrlUtils {
                     out.put((byte) b);
                 }
             }
-            out.flip();
+            ((Buffer)out).flip();
             return Charset.forName(enc).decode(out).toString();
         }
         return value;

@@ -31,6 +31,7 @@ import javax.xml.stream.XMLStreamWriter;
 
 import org.apache.cxf.binding.soap.SoapMessage;
 import org.apache.cxf.common.logging.LogUtils;
+import org.apache.cxf.helpers.DOMUtils;
 import org.apache.cxf.interceptor.AbstractOutDatabindingInterceptor;
 import org.apache.cxf.interceptor.AttachmentOutInterceptor;
 import org.apache.cxf.interceptor.Fault;
@@ -41,6 +42,7 @@ import org.apache.cxf.phase.AbstractPhaseInterceptor;
 import org.apache.cxf.phase.Phase;
 import org.apache.cxf.rt.security.utils.SecurityUtils;
 import org.apache.cxf.ws.security.SecurityConstants;
+import org.apache.cxf.ws.security.tokenstore.TokenStoreException;
 import org.apache.wss4j.common.ConfigurationConstants;
 import org.apache.wss4j.common.WSSPolicyException;
 import org.apache.wss4j.common.crypto.Crypto;
@@ -105,15 +107,10 @@ public class WSS4JStaxOutInterceptor extends AbstractWSS4JStaxInterceptor {
      * Enable or disable mtom with WS-Security. MTOM is disabled if we are signing or
      * encrypting the message Body, as otherwise attachments would not get encrypted
      * or be part of the signature.
-     * @param mtomEnabled
+     * @param allowMTOM
      */
     public void setAllowMTOM(boolean allowMTOM) {
         this.mtomEnabled = allowMTOM;
-    }
-
-    @Override
-    public Object getProperty(Object msgContext, String key) {
-        return super.getProperty(msgContext, key);
     }
 
     protected void handleSecureMTOM(SoapMessage mc, WSSSecurityProperties secProps) {
@@ -133,11 +130,22 @@ public class WSS4JStaxOutInterceptor extends AbstractWSS4JStaxInterceptor {
 
     public void handleMessage(SoapMessage mc) throws Fault {
         OutputStream os = mc.getContent(OutputStream.class);
+        if (os == null) {
+            String error =
+                "The message outputstream is null - Multiple WSS4JStaxOutInterceptor instances are not supported";
+            WSSecurityException exception = new WSSecurityException(WSSecurityException.ErrorCode.FAILURE,
+                                          "empty",
+                                          new Object[] {error});
+            LOG.warning(error);
+            throw new Fault(exception);
+        }
+
         String encoding = getEncoding(mc);
 
         XMLStreamWriter newXMLStreamWriter;
         try {
             WSSSecurityProperties secProps = createSecurityProperties();
+            secProps.setDocumentCreator(() -> DOMUtils.createDocument());
             translateProperties(mc, secProps);
             configureCallbackHandler(mc, secProps);
 
@@ -168,9 +176,7 @@ public class WSS4JStaxOutInterceptor extends AbstractWSS4JStaxInterceptor {
 
             newXMLStreamWriter = outboundWSSec.processOutMessage(os, encoding, outboundSecurityContext);
             mc.setContent(XMLStreamWriter.class, newXMLStreamWriter);
-        } catch (WSSecurityException e) {
-            throw new Fault(e);
-        } catch (WSSPolicyException e) {
+        } catch (WSSecurityException | WSSPolicyException e) {
             throw new Fault(e);
         }
 
@@ -196,21 +202,23 @@ public class WSS4JStaxOutInterceptor extends AbstractWSS4JStaxInterceptor {
         msg.getExchange().put(SecurityEvent.class.getName() + ".out", outgoingSecurityEventList);
         msg.put(SecurityEvent.class.getName() + ".out", outgoingSecurityEventList);
 
-        final SecurityEventListener securityEventListener = new SecurityEventListener() {
+        return new SecurityEventListener() {
             @Override
             public void registerSecurityEvent(SecurityEvent securityEvent) throws XMLSecurityException {
                 if (securityEvent.getSecurityEventType() == WSSecurityEventConstants.SAML_TOKEN) {
                     // Store SAML keys in case we need them on the inbound side
                     TokenSecurityEvent<?> tokenSecurityEvent = (TokenSecurityEvent<?>)securityEvent;
-                    WSS4JUtils.parseAndStoreStreamingSecurityToken(tokenSecurityEvent.getSecurityToken(), msg);
+                    try {
+                        WSS4JUtils.parseAndStoreStreamingSecurityToken(tokenSecurityEvent.getSecurityToken(), msg);
+                    } catch (TokenStoreException e) {
+                        throw new XMLSecurityException(e);
+                    }
                 } else if (securityEvent.getSecurityEventType() == WSSecurityEventConstants.SignatureValue) {
                     // Required for Signature Confirmation
                     outgoingSecurityEventList.add(securityEvent);
                 }
             }
         };
-
-        return securityEventListener;
     }
 
     protected void configureProperties(

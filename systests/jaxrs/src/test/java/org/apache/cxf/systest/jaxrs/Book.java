@@ -22,17 +22,17 @@ package org.apache.cxf.systest.jaxrs;
 import java.util.HashMap;
 import java.util.Map;
 
-import javax.ws.rs.GET;
-import javax.ws.rs.PUT;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
-import javax.xml.bind.annotation.XmlRootElement;
-import javax.xml.bind.annotation.XmlSeeAlso;
-
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.annotation.JsonTypeInfo.As;
 import com.fasterxml.jackson.annotation.JsonTypeInfo.Id;
+
+import jakarta.ws.rs.GET;
+import jakarta.ws.rs.PUT;
+import jakarta.ws.rs.Path;
+import jakarta.ws.rs.PathParam;
+import jakarta.ws.rs.Produces;
+import jakarta.xml.bind.annotation.XmlRootElement;
+import jakarta.xml.bind.annotation.XmlSeeAlso;
 
 @JsonTypeInfo(use = Id.CLASS, include = As.PROPERTY, property = "class")
 @XmlRootElement(name = "Book")
@@ -43,8 +43,14 @@ public class Book {
     private Map<Long, Chapter> chapters = new HashMap<>();
 
     public Book() {
-        init();
-        //System.out.println("----chapters: " + chapters.size());
+        Chapter c1 = new Chapter();
+        c1.setId(1L);
+        c1.setTitle("chapter 1");
+        chapters.put(c1.getId(), c1);
+        Chapter c2 = new Chapter();
+        c2.setId(2L);
+        c2.setTitle("chapter 2");
+        chapters.put(c2.getId(), c2);
     }
 
     public Book(String name, long id) {
@@ -81,44 +87,32 @@ public class Book {
     @GET
     @Path("chapters/{chapterid}/")
     @Produces("application/xml;charset=ISO-8859-1")
-    public Chapter getChapter(@PathParam("chapterid")int chapterid) {
-        return chapters.get(new Long(chapterid));
+    public Chapter getChapter(@PathParam("chapterid") long chapterid) {
+        return chapters.get(chapterid);
     }
 
     @GET
     @Path("chapters/acceptencoding/{chapterid}/")
     @Produces("application/xml")
-    public Chapter getChapterAcceptEncoding(@PathParam("chapterid")int chapterid) {
-        return chapters.get(new Long(chapterid));
+    public Chapter getChapterAcceptEncoding(@PathParam("chapterid") long chapterid) {
+        return chapters.get(chapterid);
     }
 
     @GET
     @Path("chapters/badencoding/{chapterid}/")
     @Produces("application/xml;charset=UTF-48")
-    public Chapter getChapterBadEncoding(@PathParam("chapterid")int chapterid) {
-        return chapters.get(new Long(chapterid));
+    public Chapter getChapterBadEncoding(@PathParam("chapterid") long chapterid) {
+        return chapters.get(chapterid);
     }
 
     @Path("chapters/sub/{chapterid}/")
-    public Chapter getSubChapter(@PathParam("chapterid")int chapterid) {
-        return chapters.get(new Long(chapterid));
+    public Chapter getSubChapter(@PathParam("chapterid") long chapterid) {
+        return chapters.get(chapterid);
     }
 
     @Path("chaptersobject/sub/{chapterid}/")
-    public Object getSubChapterObject(@PathParam("chapterid")int chapterid) {
+    public Object getSubChapterObject(@PathParam("chapterid") long chapterid) {
         return getSubChapter(chapterid);
-    }
-
-
-    final void init() {
-        Chapter c1 = new Chapter();
-        c1.setId(1);
-        c1.setTitle("chapter 1");
-        chapters.put(c1.getId(), c1);
-        Chapter c2 = new Chapter();
-        c2.setId(2);
-        c2.setTitle("chapter 2");
-        chapters.put(c2.getId(), c2);
     }
 
 }

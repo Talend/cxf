@@ -47,10 +47,13 @@ import org.apache.hello_world_soap_http.GreeterImpl;
 import org.apache.hello_world_soap_http.SOAPService;
 
 import org.junit.After;
-import org.junit.Assert;
 import org.junit.Test;
 
-public class ConfiguredEndpointTest extends Assert {
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNull;
+
+public class ConfiguredEndpointTest {
     private static final QName SERVICE_NAME =
         new QName("http://apache.org/hello_world_soap_http", "SOAPService");
     private static final QName PORT_NAME =
@@ -88,15 +91,15 @@ public class ConfiguredEndpointTest extends Assert {
 
     private void doTestDefaultClientEndpoint() {
 
-        javax.xml.ws.Service service = new SOAPService();
+        jakarta.xml.ws.Service service = new SOAPService();
         Greeter greeter = service.getPort(PORT_NAME, Greeter.class);
 
         JaxWsClientProxy eih = (JaxWsClientProxy)Proxy.getInvocationHandler(greeter);
         Client client = eih.getClient();
         JaxWsEndpointImpl endpoint = (JaxWsEndpointImpl)client.getEndpoint();
         assertEquals("Unexpected bean name", PORT_NAME.toString() + ".endpoint", endpoint.getBeanName());
-        assertTrue("Unexpected value for property validating",
-                   !Boolean.TRUE.equals(endpoint.get(Message.SCHEMA_VALIDATION_ENABLED)));
+        assertFalse("Unexpected value for property validating",
+                   Boolean.TRUE.equals(endpoint.get(Message.SCHEMA_VALIDATION_ENABLED)));
 
         // System.out.println("endpoint interceptors");
         List<Interceptor<? extends Message>> interceptors = endpoint.getInInterceptors();
@@ -141,7 +144,7 @@ public class ConfiguredEndpointTest extends Assert {
 
     private void doTestConfiguredClientEndpoint() {
 
-        javax.xml.ws.Service service = new SOAPService();
+        jakarta.xml.ws.Service service = new SOAPService();
         Greeter greeter = service.getPort(PORT_NAME, Greeter.class);
 
         JaxWsClientProxy eih = (JaxWsClientProxy)Proxy.getInvocationHandler(greeter);
@@ -191,13 +194,13 @@ public class ConfiguredEndpointTest extends Assert {
     private void doTestDefaultServerEndpoint() {
 
         Object implementor = new GreeterImpl();
-        EndpointImpl ei = (EndpointImpl)(javax.xml.ws.Endpoint.create(implementor));
+        EndpointImpl ei = (EndpointImpl)(jakarta.xml.ws.Endpoint.create(implementor));
         ei.publish("http://localhost/greeter");
 
         JaxWsEndpointImpl endpoint = (JaxWsEndpointImpl)ei.getEndpoint();
         assertEquals("Unexpected bean name", PORT_NAME.toString() + ".endpoint", endpoint.getBeanName());
-        assertTrue("Unexpected value for property validating",
-                   !Boolean.TRUE.equals(endpoint.get(Message.SCHEMA_VALIDATION_ENABLED)));
+        assertFalse("Unexpected value for property validating",
+                   Boolean.TRUE.equals(endpoint.get(Message.SCHEMA_VALIDATION_ENABLED)));
 
         List<Interceptor<? extends Message>> interceptors = endpoint.getInInterceptors();
         assertNull("Unexpected test interceptor", findTestInterceptor(interceptors));
@@ -249,7 +252,7 @@ public class ConfiguredEndpointTest extends Assert {
         System.setProperty(BusFactory.BUS_FACTORY_PROPERTY_NAME, SpringBusFactory.class.getName());
 
         Object implementor = new GreeterImpl();
-        EndpointImpl ei = (EndpointImpl)(javax.xml.ws.Endpoint.create(implementor));
+        EndpointImpl ei = (EndpointImpl)(jakarta.xml.ws.Endpoint.create(implementor));
         ei.publish("http://localhost/greeter");
 
         JaxWsEndpointImpl endpoint = (JaxWsEndpointImpl)ei.getEndpoint();

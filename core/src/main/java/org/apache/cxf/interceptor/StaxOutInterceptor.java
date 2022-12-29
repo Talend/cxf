@@ -21,6 +21,7 @@ package org.apache.cxf.interceptor;
 
 import java.io.OutputStream;
 import java.io.Writer;
+import java.lang.reflect.InvocationTargetException;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
@@ -32,6 +33,7 @@ import javax.xml.stream.XMLStreamWriter;
 
 import org.apache.cxf.common.classloader.ClassLoaderUtils;
 import org.apache.cxf.common.i18n.BundleUtils;
+import org.apache.cxf.common.util.PropertyUtils;
 import org.apache.cxf.io.AbstractWrappedOutputStream;
 import org.apache.cxf.message.Exchange;
 import org.apache.cxf.message.Message;
@@ -84,12 +86,21 @@ public class StaxOutInterceptor extends AbstractPhaseInterceptor<Message> {
                     xwriter = StaxUtils.createXMLStreamWriter(writer);
                 }
             } else {
-                synchronized (factory) {
+                if (PropertyUtils.isTrue(message.getContextualProperty(Message.THREAD_SAFE_STAX_FACTORIES))) {
                     if (writer == null) {
                         os = setupOutputStream(os);
                         xwriter = factory.createXMLStreamWriter(os, encoding);
                     } else {
                         xwriter = factory.createXMLStreamWriter(writer);
+                    }
+                } else {
+                    synchronized (factory) {
+                        if (writer == null) {
+                            os = setupOutputStream(os);
+                            xwriter = factory.createXMLStreamWriter(os, encoding);
+                        } else {
+                            xwriter = factory.createXMLStreamWriter(writer);
+                        }
                     }
                 }
             }
@@ -145,7 +156,10 @@ public class StaxOutInterceptor extends AbstractPhaseInterceptor<Message> {
         return encoding;
     }
 
-    public static XMLOutputFactory getXMLOutputFactory(Message m) throws Fault {
+    /**
+     * @throws Fault
+     */
+    public static XMLOutputFactory getXMLOutputFactory(Message m) {
         Object o = m.getContextualProperty(XMLOutputFactory.class.getName());
         if (o instanceof XMLOutputFactory) {
             m.put(AbstractOutDatabindingInterceptor.DISABLE_OUTPUTSTREAM_OPTIMIZATION,
@@ -170,11 +184,10 @@ public class StaxOutInterceptor extends AbstractPhaseInterceptor<Message> {
                 }
 
                 try {
-                    xif = (XMLOutputFactory)(cls.newInstance());
+                    xif = (XMLOutputFactory)(cls.getDeclaredConstructor().newInstance());
                     factories.put(o, xif);
-                } catch (InstantiationException e) {
-                    throw new Fault(e);
-                } catch (IllegalAccessException e) {
+                } catch (InstantiationException | IllegalAccessException | IllegalArgumentException
+                         | InvocationTargetException | NoSuchMethodException | SecurityException e) {
                     throw new Fault(e);
                 }
             }

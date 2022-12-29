@@ -31,11 +31,6 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.JAXBElement;
-import javax.xml.bind.JAXBException;
-import javax.xml.bind.annotation.XmlSeeAlso;
-import javax.xml.bind.util.JAXBSource;
 import javax.xml.namespace.QName;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
@@ -43,22 +38,26 @@ import javax.xml.stream.XMLStreamWriter;
 import javax.xml.transform.Source;
 import javax.xml.transform.dom.DOMResult;
 import javax.xml.transform.dom.DOMSource;
-import javax.xml.ws.Endpoint;
-import javax.xml.ws.EndpointReference;
-import javax.xml.ws.Provider;
-import javax.xml.ws.WebServiceProvider;
-import javax.xml.ws.soap.Addressing;
-import javax.xml.ws.wsaddressing.W3CEndpointReference;
-import javax.xml.ws.wsaddressing.W3CEndpointReferenceBuilder;
 
 import org.w3c.dom.Document;
 
+import jakarta.xml.bind.JAXBContext;
+import jakarta.xml.bind.JAXBElement;
+import jakarta.xml.bind.JAXBException;
+import jakarta.xml.bind.annotation.XmlSeeAlso;
+import jakarta.xml.bind.util.JAXBSource;
+import jakarta.xml.ws.Endpoint;
+import jakarta.xml.ws.EndpointReference;
+import jakarta.xml.ws.Provider;
+import jakarta.xml.ws.WebServiceProvider;
+import jakarta.xml.ws.soap.Addressing;
+import jakarta.xml.ws.wsaddressing.W3CEndpointReference;
+import jakarta.xml.ws.wsaddressing.W3CEndpointReferenceBuilder;
 import org.apache.cxf.Bus;
 import org.apache.cxf.BusFactory;
 import org.apache.cxf.common.jaxb.JAXBContextCache;
 import org.apache.cxf.common.jaxb.JAXBUtils;
 import org.apache.cxf.common.logging.LogUtils;
-import org.apache.cxf.common.util.StringUtils;
 import org.apache.cxf.endpoint.Server;
 import org.apache.cxf.jaxws.EndpointImpl;
 import org.apache.cxf.jaxws.spi.ProviderImpl;
@@ -91,7 +90,7 @@ public class WSDiscoveryServiceImpl implements WSDiscoveryService {
     Bus bus;
     Endpoint udpEndpoint;
     WSDiscoveryClient client;
-    List<HelloType> registered = new CopyOnWriteArrayList<HelloType>();
+    List<HelloType> registered = new CopyOnWriteArrayList<>();
     ObjectFactory factory = new ObjectFactory();
     boolean started;
 
@@ -275,7 +274,7 @@ public class WSDiscoveryServiceImpl implements WSDiscoveryService {
 
 
     public ProbeMatchesType handleProbe(ProbeType pt) {
-        List<HelloType> consider = new LinkedList<HelloType>(registered);
+        List<HelloType> consider = new LinkedList<>(registered);
         //step one, consider the "types"
         //ALL types in the probe must be in the registered type
         if (pt.getTypes() != null && !pt.getTypes().isEmpty()) {
@@ -318,10 +317,10 @@ public class WSDiscoveryServiceImpl implements WSDiscoveryService {
         if (uri.getScheme() == null) {
             return UUID.fromString(scope);
         }
-        if (uri.getScheme().equals("urn")) {
+        if ("urn".equals(uri.getScheme())) {
             uri = URI.create(uri.getSchemeSpecificPart());
         }
-        if (uri.getScheme().equals("uuid")) {
+        if ("uuid".equals(uri.getScheme())) {
             return UUID.fromString(uri.getSchemeSpecificPart());
         }
         return null;
@@ -336,8 +335,8 @@ public class WSDiscoveryServiceImpl implements WSDiscoveryService {
     private boolean matchURIs(URI probe, URI target) {
         if (compare(target.getScheme(), probe.getScheme())
             && compare(target.getAuthority(), probe.getAuthority())) {
-            String[] ppath = StringUtils.split(probe.getPath(), "/");
-            String[] tpath = StringUtils.split(target.getPath(), "/");
+            String[] ppath = probe.getPath().split("/");
+            String[] tpath = target.getPath().split("/");
 
             if (ppath.length <= tpath.length) {
                 for (int i = 0; i < ppath.length; i++) {

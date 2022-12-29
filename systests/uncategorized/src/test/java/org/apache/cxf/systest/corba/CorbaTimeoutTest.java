@@ -24,8 +24,8 @@ import java.lang.reflect.Field;
 import java.net.URL;
 
 import javax.xml.namespace.QName;
-import javax.xml.ws.WebServiceException;
 
+import jakarta.xml.ws.WebServiceException;
 import org.apache.cxf.binding.corba.utils.CorbaBindingHelper;
 import org.apache.cxf.bus.spring.SpringBusFactory;
 import org.apache.cxf.hello_world_corba.Greeter;
@@ -36,6 +36,9 @@ import org.omg.CORBA.TIMEOUT;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
+
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 /**
  * This test uses Jacorb implementation, but cleans after itself.
@@ -71,6 +74,8 @@ public class CorbaTimeoutTest extends AbstractBusClientServerTestBase {
     public void testTimeout() throws Exception {
         System.getProperties().remove("com.sun.CORBA.POA.ORBServerId");
         System.getProperties().remove("com.sun.CORBA.POA.ORBPersistentServerPort");
+
+        String orbClass = System.getProperty("org.omg.CORBA.ORBClass");
         System.setProperty("org.omg.CORBA.ORBClass", "org.jacorb.orb.ORB");
         System.setProperty("org.omg.CORBA.ORBSingletonClass", "org.jacorb.orb.ORBSingleton");
         System.setProperty("jacorb.connection.client.pending_reply_timeout", "1000");
@@ -90,7 +95,9 @@ public class CorbaTimeoutTest extends AbstractBusClientServerTestBase {
         } finally {
             System.getProperties().remove("org.omg.CORBA.ORBClass");
             System.getProperties().remove("org.omg.CORBA.ORBSingletonClass");
-            System.setProperty("org.omg.CORBA.ORBClass", "com.sun.corba.se.impl.orb.ORBImpl");
+            if (orbClass != null) {
+                System.setProperty("org.omg.CORBA.ORBClass", orbClass);
+            }
         }
     }
 

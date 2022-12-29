@@ -29,18 +29,14 @@ import java.util.SortedSet;
 import java.util.TreeSet;
 
 import javax.xml.namespace.QName;
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.soap.SOAPMessage;
-import javax.xml.stream.XMLStreamReader;
 
 import org.w3c.dom.Document;
 
+import jakarta.xml.soap.SOAPMessage;
 import org.apache.cxf.binding.soap.SoapMessage;
 import org.apache.cxf.binding.soap.interceptor.MustUnderstandInterceptor;
 import org.apache.cxf.binding.soap.saaj.SAAJInInterceptor;
 import org.apache.cxf.helpers.CastUtils;
-import org.apache.cxf.helpers.DOMUtils.NullResolver;
 import org.apache.cxf.interceptor.Interceptor;
 import org.apache.cxf.message.Exchange;
 import org.apache.cxf.message.ExchangeImpl;
@@ -62,6 +58,11 @@ import org.apache.wss4j.dom.handler.WSHandlerResult;
 
 import org.junit.Test;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertSame;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 /**
  * Ensures that the signature round trip process works.
@@ -74,10 +75,10 @@ public class WSS4JInOutTest extends AbstractSecurityTest {
     @Test
     public void testOrder() throws Exception {
         //make sure the interceptors get ordered correctly
-        SortedSet<Phase> phases = new TreeSet<Phase>();
+        SortedSet<Phase> phases = new TreeSet<>();
         phases.add(new Phase(Phase.PRE_PROTOCOL, 1));
 
-        List<Interceptor<? extends Message>> lst = new ArrayList<Interceptor<? extends Message>>();
+        List<Interceptor<? extends Message>> lst = new ArrayList<>();
         lst.add(new MustUnderstandInterceptor());
         lst.add(new WSS4JInInterceptor());
         lst.add(new SAAJInInterceptor());
@@ -145,13 +146,13 @@ public class WSS4JInOutTest extends AbstractSecurityTest {
     @Test
     public void testEncryption() throws Exception {
         Map<String, Object> outProperties = new HashMap<>();
-        outProperties.put(ConfigurationConstants.ACTION, ConfigurationConstants.ENCRYPT);
+        outProperties.put(ConfigurationConstants.ACTION, ConfigurationConstants.ENCRYPTION);
         outProperties.put(ConfigurationConstants.ENC_PROP_FILE, "outsecurity.properties");
         outProperties.put(ConfigurationConstants.USER, "myalias");
         outProperties.put("password", "myAliasPassword");
 
         Map<String, Object> inProperties = new HashMap<>();
-        inProperties.put(ConfigurationConstants.ACTION, ConfigurationConstants.ENCRYPT);
+        inProperties.put(ConfigurationConstants.ACTION, ConfigurationConstants.ENCRYPTION);
         inProperties.put(ConfigurationConstants.DEC_PROP_FILE, "insecurity.properties");
         inProperties.put(ConfigurationConstants.PW_CALLBACK_REF, new TestPwdCallback());
 
@@ -195,7 +196,7 @@ public class WSS4JInOutTest extends AbstractSecurityTest {
         Map<String, Object> outProperties = new HashMap<>();
         outProperties.put(
             ConfigurationConstants.ACTION,
-            ConfigurationConstants.USERNAME_TOKEN + " " + ConfigurationConstants.ENCRYPT
+            ConfigurationConstants.USERNAME_TOKEN + " " + ConfigurationConstants.ENCRYPTION
         );
         outProperties.put(ConfigurationConstants.ENC_PROP_FILE, "outsecurity.properties");
         outProperties.put(ConfigurationConstants.USER, "alice");
@@ -209,7 +210,7 @@ public class WSS4JInOutTest extends AbstractSecurityTest {
         Map<String, Object> inProperties = new HashMap<>();
         inProperties.put(
             ConfigurationConstants.ACTION,
-            ConfigurationConstants.USERNAME_TOKEN + " " + ConfigurationConstants.ENCRYPT
+            ConfigurationConstants.USERNAME_TOKEN + " " + ConfigurationConstants.ENCRYPTION
         );
         inProperties.put(ConfigurationConstants.DEC_PROP_FILE, "insecurity.properties");
         inProperties.put(ConfigurationConstants.PW_CALLBACK_REF, new TestPwdCallback());
@@ -292,18 +293,7 @@ public class WSS4JInOutTest extends AbstractSecurityTest {
         assertValid("//wsse:Security/ds:Signature", doc);
 
         byte[] docbytes = getMessageBytes(doc);
-        XMLStreamReader reader = StaxUtils.createXMLStreamReader(new ByteArrayInputStream(docbytes));
-
-        DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
-
-        dbf.setValidating(false);
-        dbf.setIgnoringComments(false);
-        dbf.setIgnoringElementContentWhitespace(true);
-        dbf.setNamespaceAware(true);
-
-        DocumentBuilder db = dbf.newDocumentBuilder();
-        db.setEntityResolver(new NullResolver());
-        doc = StaxUtils.read(db, reader, false);
+        StaxUtils.read(new ByteArrayInputStream(docbytes));
 
         final Map<String, Object> properties = new HashMap<>();
         properties.put(
@@ -351,18 +341,7 @@ public class WSS4JInOutTest extends AbstractSecurityTest {
         assertValid("//wsse:Security/ds:Signature", doc);
 
         byte[] docbytes = getMessageBytes(doc);
-        XMLStreamReader reader = StaxUtils.createXMLStreamReader(new ByteArrayInputStream(docbytes));
-
-        DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
-
-        dbf.setValidating(false);
-        dbf.setIgnoringComments(false);
-        dbf.setIgnoringElementContentWhitespace(true);
-        dbf.setNamespaceAware(true);
-
-        DocumentBuilder db = dbf.newDocumentBuilder();
-        db.setEntityResolver(new NullResolver());
-        doc = StaxUtils.read(db, reader, false);
+        StaxUtils.read(new ByteArrayInputStream(docbytes));
 
         final Map<String, Object> properties = new HashMap<>();
         final Map<QName, Object> customMap = new HashMap<>();

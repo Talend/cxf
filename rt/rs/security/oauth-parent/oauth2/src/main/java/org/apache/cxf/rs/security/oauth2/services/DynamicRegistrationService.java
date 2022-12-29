@@ -21,25 +21,28 @@ package org.apache.cxf.rs.security.oauth2.services;
 import java.util.Collections;
 import java.util.List;
 
-import javax.ws.rs.Consumes;
-import javax.ws.rs.DELETE;
-import javax.ws.rs.GET;
-import javax.ws.rs.POST;
-import javax.ws.rs.PUT;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
-import javax.ws.rs.QueryParam;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.SecurityContext;
-import javax.ws.rs.core.UriBuilder;
-
+import jakarta.ws.rs.Consumes;
+import jakarta.ws.rs.DELETE;
+import jakarta.ws.rs.GET;
+import jakarta.ws.rs.POST;
+import jakarta.ws.rs.PUT;
+import jakarta.ws.rs.Path;
+import jakarta.ws.rs.PathParam;
+import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.QueryParam;
+import jakarta.ws.rs.core.Context;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.Response;
+import jakarta.ws.rs.core.Response.ResponseBuilder;
+import jakarta.ws.rs.core.SecurityContext;
+import jakarta.ws.rs.core.UriBuilder;
 import org.apache.cxf.common.util.Base64UrlUtility;
 import org.apache.cxf.common.util.StringUtils;
 import org.apache.cxf.jaxrs.ext.MessageContext;
 import org.apache.cxf.jaxrs.utils.ExceptionUtils;
+import org.apache.cxf.jaxrs.utils.JAXRSUtils;
 import org.apache.cxf.rs.security.oauth2.common.Client;
+import org.apache.cxf.rs.security.oauth2.common.OAuthError;
 import org.apache.cxf.rs.security.oauth2.common.UserSubject;
 import org.apache.cxf.rs.security.oauth2.provider.ClientRegistrationProvider;
 import org.apache.cxf.rs.security.oauth2.utils.AuthorizationUtils;
@@ -81,13 +84,13 @@ public class DynamicRegistrationService {
         }
 
     }
-    
+
 
     protected void checkSecurityContext() {
         SecurityContext sc = mc.getSecurityContext();
         if (sc.getUserPrincipal() == null) {
             throw ExceptionUtils.toNotAuthorizedException(null, null);
-        }  
+        }
         if (userRole != null && !sc.isUserInRole(userRole)) {
             throw ExceptionUtils.toForbiddenException(null, null);
         }
@@ -117,15 +120,19 @@ public class DynamicRegistrationService {
     @Path("{clientId}")
     @Produces("application/json")
     public ClientRegistration readClientRegistrationWithPath(@PathParam("clientId") String clientId) {
-
         return doReadClientRegistration(clientId);
     }
 
     @PUT
     @Path("{clientId}")
     @Consumes("application/json")
-    public Response updateClientRegistration(@PathParam("clientId") String clientId) {
-        return Response.ok().build();
+    @Produces("application/json")
+    public ClientRegistration updateClientRegistration(@PathParam("clientId") String clientId,
+        ClientRegistration request) {
+        Client client = readClient(clientId);
+        fromClientRegistrationToClient(request, client);
+        clientProvider.setClient(client);
+        return fromClientToClientRegistration(client);
     }
 
     @DELETE
@@ -147,6 +154,7 @@ public class DynamicRegistrationService {
             response.setClientSecretExpiresAt(Long.valueOf(0));
         }
         response.setClientIdIssuedAt(client.getRegisteredAt());
+        response.setGrantTypes(client.getAllowedGrantTypes());
         UriBuilder ub = getMessageContext().getUriInfo().getAbsolutePathBuilder();
 
         if (supportRegistrationAccessTokens) {
@@ -198,7 +206,7 @@ public class DynamicRegistrationService {
                 }
             }
         }
-        
+
         return reg;
     }
 
@@ -236,10 +244,10 @@ public class DynamicRegistrationService {
         if (grantTypes == null) {
             grantTypes = Collections.singletonList(OAuthConstants.AUTHORIZATION_CODE_GRANT);
         }
-        
+
         String tokenEndpointAuthMethod = request.getTokenEndpointAuthMethod();
         //TODO: default is expected to be set to OAuthConstants.TOKEN_ENDPOINT_AUTH_BASIC
-        
+
         boolean passwordRequired = isPasswordRequired(grantTypes, tokenEndpointAuthMethod);
 
         // Application Type
@@ -255,7 +263,7 @@ public class DynamicRegistrationService {
 
         // Client Secret
         String clientSecret = passwordRequired ? generateClientSecret(request) : null;
-            
+
         Client newClient = new Client(clientId, clientSecret, isConfidential, clientName);
 
         newClient.setAllowedGrantTypes(grantTypes);
@@ -272,52 +280,72 @@ public class DynamicRegistrationService {
             }
         }
         // Client Registration Time
-        newClient.setRegisteredAt(System.currentTimeMillis() / 1000);
+        newClient.setRegisteredAt(System.currentTimeMillis() / 1000L);
 
-        // Client Redirect URIs
-        List<String> redirectUris = request.getRedirectUris();
-        if (redirectUris != null) {
-            for (String uri : redirectUris) {
-                validateRequestUri(uri, appType, grantTypes);
-            }
-            newClient.setRedirectUris(redirectUris);
-        }
-
-        // Client Resource Audience URIs
-        List<String> resourceUris = request.getResourceUris();
-        if (resourceUris != null) {
-            newClient.setRegisteredAudiences(resourceUris);
-        }
-
-        // Client Scopes
-        String scope = request.getScope();
-        if (!StringUtils.isEmpty(scope)) {
-            newClient.setRegisteredScopes(OAuthUtils.parseScope(scope));
-        }
-        // Client Application URI
-        String clientUri = request.getClientUri();
-        if (clientUri != null) {
-            newClient.setApplicationWebUri(clientUri);
-        }
-        // Client Logo URI
-        String clientLogoUri = request.getLogoUri();
-        if (clientLogoUri != null) {
-            newClient.setApplicationLogoUri(clientLogoUri);
-        }
-
-        //TODO: check other properties
-        // Add more typed properties like tosUri, policyUri, etc to Client
-        // or set them as Client extra properties
+        fromClientRegistrationToClient(request, newClient);
 
         SecurityContext sc = mc.getSecurityContext();
         if (sc != null && sc.getUserPrincipal() != null && sc.getUserPrincipal().getName() != null) {
             UserSubject subject = new UserSubject(sc.getUserPrincipal().getName());
             newClient.setResourceOwnerSubject(subject);
         }
-        
+
         newClient.setRegisteredDynamically(true);
         return newClient;
     }
+
+    protected void fromClientRegistrationToClient(ClientRegistration request, Client client) {
+        final List<String> grantTypes = client.getAllowedGrantTypes();
+
+        // Client Redirect URIs
+        List<String> redirectUris = request.getRedirectUris();
+        if (redirectUris != null) {
+            String appType = request.getApplicationType();
+            if (appType == null) {
+                appType = DEFAULT_APPLICATION_TYPE;
+            }
+            for (String uri : redirectUris) {
+                validateRequestUri(uri, appType, grantTypes);
+            }
+            client.setRedirectUris(redirectUris);
+        }
+
+        if (client.getRedirectUris().isEmpty()
+            && (grantTypes.contains(OAuthConstants.AUTHORIZATION_CODE_GRANT)
+                || grantTypes.contains(OAuthConstants.IMPLICIT_GRANT))) {
+            // Throw an error as we need a redirect URI for these grants.
+            OAuthError error =
+                new OAuthError(OAuthConstants.INVALID_REQUEST, "A Redirection URI is required");
+            reportInvalidRequestError(error);
+        }
+
+        // Client Resource Audience URIs
+        List<String> resourceUris = request.getResourceUris();
+        if (resourceUris != null) {
+            client.setRegisteredAudiences(resourceUris);
+        }
+
+        // Client Scopes
+        String scope = request.getScope();
+        if (!StringUtils.isEmpty(scope)) {
+            client.setRegisteredScopes(OAuthUtils.parseScope(scope));
+        }
+        // Client Application URI
+        String clientUri = request.getClientUri();
+        if (clientUri != null) {
+            client.setApplicationWebUri(clientUri);
+        }
+        // Client Logo URI
+        String clientLogoUri = request.getLogoUri();
+        if (clientLogoUri != null) {
+            client.setApplicationLogoUri(clientLogoUri);
+        }
+
+        //TODO: check other properties
+        // Add more typed properties like tosUri, policyUri, etc to Client
+        // or set them as Client extra properties
+    }
+
 
     protected boolean isPasswordRequired(List<String> grantTypes, String tokenEndpointAuthMethod) {
         if (grantTypes.contains(OAuthConstants.IMPLICIT_GRANT)) {
@@ -326,7 +354,7 @@ public class DynamicRegistrationService {
         if (tokenEndpointAuthMethod == null) {
             return true;
         }
-        
+
         return !OAuthConstants.TOKEN_ENDPOINT_AUTH_NONE.equals(tokenEndpointAuthMethod)
             && (OAuthConstants.TOKEN_ENDPOINT_AUTH_BASIC.equals(tokenEndpointAuthMethod)
                 || OAuthConstants.TOKEN_ENDPOINT_AUTH_POST.equals(tokenEndpointAuthMethod));
@@ -369,7 +397,7 @@ public class DynamicRegistrationService {
                     Collections.singleton(OAuthConstants.BEARER_AUTHORIZATION_SCHEME))[1];
     }
     protected int getClientSecretSizeInBytes(ClientRegistration request) {
-        return 16;
+        return 32;
     }
 
     @Context
@@ -387,5 +415,17 @@ public class DynamicRegistrationService {
 
     public void setUserRole(String userRole) {
         this.userRole = userRole;
+    }
+
+    private void reportInvalidRequestError(OAuthError entity) {
+        reportInvalidRequestError(entity, MediaType.APPLICATION_JSON_TYPE);
+    }
+
+    private void reportInvalidRequestError(OAuthError entity, MediaType mt) {
+        ResponseBuilder rb = JAXRSUtils.toResponseBuilder(400);
+        if (mt != null) {
+            rb.type(mt);
+        }
+        throw ExceptionUtils.toBadRequestException(null, rb.entity(entity).build());
     }
 }

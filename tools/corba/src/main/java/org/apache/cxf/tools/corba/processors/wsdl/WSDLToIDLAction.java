@@ -59,6 +59,7 @@ import org.apache.cxf.binding.corba.wsdl.Union;
 import org.apache.cxf.binding.corba.wsdl.Unionbranch;
 import org.apache.cxf.common.logging.LogUtils;
 import org.apache.cxf.helpers.CastUtils;
+import org.apache.cxf.tools.common.ToolException;
 import org.apache.cxf.tools.corba.common.idltypes.CorbaUtils;
 import org.apache.cxf.tools.corba.common.idltypes.IdlAnonArray;
 import org.apache.cxf.tools.corba.common.idltypes.IdlAnonFixed;
@@ -117,40 +118,39 @@ public class WSDLToIDLAction {
         if (printWriter == null) {
             printWriter = createPrintWriter(outputFile);
         }
-
-        if (!isGenerateAllBindings()) {
-            Binding binding = findBinding(def);
-            if (binding == null) {
-                String msgStr = "Binding " + bindingName + " doesn't exists in WSDL.";
-                org.apache.cxf.common.i18n.Message msg = new org.apache.cxf.common.i18n.Message(msgStr, LOG);
-                throw new Exception(msg.toString());
-            }
-            generateIDL(def, binding);
-        } else {
-            // generate idl for all bindings in the file.
-            // each idl file will have the name of the binding.
-            Collection<Binding> bindings = CastUtils.cast(def.getAllBindings().values());
-            if (bindings.isEmpty()) {
-                String msgStr = "No bindings exists within this WSDL.";
-                org.apache.cxf.common.i18n.Message msg = new org.apache.cxf.common.i18n.Message(msgStr, LOG);
-                throw new Exception(msg.toString());
-            }
-            List<QName> portTypes = new ArrayList<>();
-            for (Binding binding : bindings) {
-                List<?> ext = binding.getExtensibilityElements();
-                if (!(ext.get(0) instanceof BindingType)) {
-                    continue;
+        try (PrintWriter pw = printWriter != null ? printWriter : createPrintWriter(outputFile)) {
+            if (!isGenerateAllBindings()) {
+                Binding binding = findBinding(def);
+                if (binding == null) {
+                    String msgStr = "Binding " + bindingName + " doesn't exists in WSDL.";
+                    org.apache.cxf.common.i18n.Message msg = new org.apache.cxf.common.i18n.Message(msgStr, LOG);
+                    throw new ToolException(msg.toString());
                 }
-                if (portTypes.contains(binding.getPortType().getQName())) {
-                    continue;
-                }
-                portTypes.add(binding.getPortType().getQName());
                 generateIDL(def, binding);
-                root = IdlRoot.create();
+            } else {
+                // generate idl for all bindings in the file.
+                // each idl file will have the name of the binding.
+                Collection<Binding> bindings = CastUtils.cast(def.getAllBindings().values());
+                if (bindings.isEmpty()) {
+                    String msgStr = "No bindings exists within this WSDL.";
+                    org.apache.cxf.common.i18n.Message msg = new org.apache.cxf.common.i18n.Message(msgStr, LOG);
+                    throw new ToolException(msg.toString());
+                }
+                List<QName> portTypes = new ArrayList<>();
+                for (Binding binding : bindings) {
+                    List<?> ext = binding.getExtensibilityElements();
+                    if (!(ext.get(0) instanceof BindingType)) {
+                        continue;
+                    }
+                    if (portTypes.contains(binding.getPortType().getQName())) {
+                        continue;
+                    }
+                    portTypes.add(binding.getPortType().getQName());
+                    generateIDL(def, binding);
+                    root = IdlRoot.create();
+                }
             }
         }
-        printWriter.close();
-
     }
 
     private void generateIDL(Definition definition, Binding binding) {
@@ -161,7 +161,7 @@ public class WSDLToIDLAction {
                                        + "please pass a corba binding/porttype to use");
         }
 
-        String nm[] = unscopeName(binding.getPortType().getQName().getLocalPart());
+        String[] nm = unscopeName(binding.getPortType().getQName().getLocalPart());
         int pos = nm[nm.length - 1].lastIndexOf("Binding");
 
         if (pos != -1) {
@@ -206,13 +206,12 @@ public class WSDLToIDLAction {
     private void addOperation(BindingOperation bindingOperation,
                               boolean isOneway) throws Exception {
 
-        String name = null;
         Iterator<?> i = bindingOperation.getExtensibilityElements().iterator();
         while (i.hasNext()) {
             org.apache.cxf.binding.corba.wsdl.OperationType opType =
                 (org.apache.cxf.binding.corba.wsdl.OperationType)i
                 .next();
-            name = opType.getName();
+            String name = opType.getName();
 
             if (name.startsWith("_get_") || name.startsWith("_set_")) {
                 createIdlAttribute(opType, name);
@@ -352,7 +351,7 @@ public class WSDLToIDLAction {
                 root.addInclude("<omg/TimeBase.idl>");
             }
 
-            String name[] = unscopeName(local);
+            String[] name = unscopeName(local);
             IdlDefn defn = root.lookup(name);
 
             if (defn != null) {
@@ -377,7 +376,7 @@ public class WSDLToIDLAction {
         IdlDefn result = root.lookup(name);
 
         if (result != null
-            &&  (!(result instanceof IdlType))) {
+            &&  !(result instanceof IdlType)) {
             String msgStr = idlType.getLocalPart() + " is an incorrect idltype.";
             org.apache.cxf.common.i18n.Message msg =
                 new org.apache.cxf.common.i18n.Message(msgStr, LOG);
@@ -394,8 +393,8 @@ public class WSDLToIDLAction {
         return (IdlType)result;
     }
 
-    protected IdlType createType(QName idlType, String name[], CorbaType corbaType) throws Exception {
-        if (idlType.getLocalPart().equals("CORBA.Object")) {
+    protected IdlType createType(QName idlType, String[] name, CorbaType corbaType) throws Exception {
+        if ("CORBA.Object".equals(idlType.getLocalPart())) {
             return IdlInterface.create(null, "Object");
         }
 
@@ -424,7 +423,7 @@ public class WSDLToIDLAction {
             // name array.
             if ("CORBA".equals(dotScopedName.toString())
                 && name.length == 2 && i == 0
-                && name[1].equals("Object")) {
+                && "Object".equals(name[1])) {
                 break;
             }
 
@@ -453,11 +452,11 @@ public class WSDLToIDLAction {
                 }
             }
 
-            dotScopedName.append(".");
+            dotScopedName.append('.');
             scope = (IdlScopeBase)idlDef;
         }
 
-        IdlType result = null;
+        IdlType result;
         String local = name[name.length - 1];
 
         if (corbaTypeImpl instanceof Enum) {
@@ -502,9 +501,8 @@ public class WSDLToIDLAction {
 
         if (corbaTypeImpl instanceof Anonstring) {
             Anonstring as = (Anonstring)corbaTypeImpl;
-            Long lbound = as.getBound();
-            int bound = lbound.intValue();
-            result = IdlString.create(bound);
+            long lbound = as.getBound();
+            result = IdlString.create((int)lbound);
         }
         return result;
     }
@@ -531,7 +529,7 @@ public class WSDLToIDLAction {
                     scope.promoteHeldToScope();
                     result = intf;
                     intf = storedIntf;
-                } catch (Exception ex) {
+                } catch (Exception ex) { //NOPMD
                     String msgStr = "Interface type " + intf.fullName() + " not found.";
                     org.apache.cxf.common.i18n.Message msg =
                         new org.apache.cxf.common.i18n.Message(msgStr, LOG);
@@ -544,11 +542,11 @@ public class WSDLToIDLAction {
 
     private IdlType createIdlException(org.apache.cxf.binding.corba.wsdl.Exception e, IdlScopeBase scope,
                                        String local) throws Exception {
-        IdlType result = null;
+        final IdlType result;
 
         Object obj = scope.lookup(local);
 
-        if (obj != null && (obj instanceof IdlException)) {
+        if (obj instanceof IdlException) {
             result = (IdlType)obj;
         } else {
             IdlException exc = IdlException.create(scope, local);
@@ -590,7 +588,7 @@ public class WSDLToIDLAction {
 
             if (!undefinedCircular && !(bt instanceof IdlSequence)) {
                 String mlocal = qname.getLocalPart();
-                String mname[] = unscopeName(mlocal);
+                String[] mname = unscopeName(mlocal);
                 undefinedCircular = null != root.lookup(mname, true);
             }
 
@@ -625,7 +623,7 @@ public class WSDLToIDLAction {
 
             if (!undefinedCircular && !(type instanceof IdlSequence)) {
                 String mlocal = qname.getLocalPart();
-                String mname[] = unscopeName(mlocal);
+                String[] mname = unscopeName(mlocal);
                 undefinedCircular = null != root.lookup(mname, true);
             }
 
@@ -647,78 +645,69 @@ public class WSDLToIDLAction {
 
     private IdlType createTypedef(Alias a, IdlScopeBase scope,
                                   String local) throws Exception {
-        IdlType idlType = null;
         IdlType base = findType(a.getBasetype());
-        idlType = IdlTypedef.create(scope, local, base);
+        IdlType idlType = IdlTypedef.create(scope, local, base);
         scope.addToScope(idlType);
         return idlType;
     }
 
     private IdlType createConst(Const c, IdlScopeBase scope,
                                 String local) throws Exception {
-        IdlType idlType = null;
         IdlType base = findType(c.getIdltype());
         String value = c.getValue();
-        idlType = IdlConst.create(scope, local, base, value);
+        IdlType idlType = IdlConst.create(scope, local, base, value);
         scope.addToScope(idlType);
         return idlType;
     }
 
     private IdlType createSequence(Sequence s, IdlScopeBase scope,
                                    String local) throws Exception {
-        IdlType idlType = null;
         IdlType base = findType(s.getElemtype());
         int bound = (int)s.getBound();
-        idlType = IdlSequence.create(scope, local, base, bound);
+        IdlType idlType = IdlSequence.create(scope, local, base, bound);
         scope.addToScope(idlType);
         return idlType;
     }
 
     private IdlType createAnonSequence(Anonsequence s, IdlScopeBase scope,
                                        String local)  throws Exception {
-        IdlType idlType = null;
         IdlType base = findType(s.getElemtype());
         int bound = (int)s.getBound();
-        idlType = IdlAnonSequence.create(scope, base, bound);
+        IdlType idlType = IdlAnonSequence.create(scope, base, bound);
         scope.addToScope(idlType);
         return idlType;
     }
 
     private IdlType createArray(Array s, IdlScopeBase scope, String local)
         throws Exception {
-        IdlType idlType = null;
         IdlType base = findType(s.getElemtype());
         int bound = (int)s.getBound();
-        idlType = IdlArray.create(scope, local, base, bound);
+        IdlType idlType = IdlArray.create(scope, local, base, bound);
         scope.addToScope(idlType);
         return idlType;
     }
 
     private IdlType createAnonArray(Anonarray s, IdlScopeBase scope, String local)
         throws Exception {
-        IdlType idlType = null;
         IdlType base = findType(s.getElemtype());
         int bound = (int)s.getBound();
-        idlType = IdlAnonArray.create(scope, base, bound);
+        IdlType idlType = IdlAnonArray.create(scope, base, bound);
         scope.addToScope(idlType);
         return idlType;
     }
 
     private IdlType createFixed(Fixed f, IdlScopeBase scope, String local) {
-        IdlType idlType = null;
-        Long digits = f.getDigits();
-        Long scale = f.getScale();
-        idlType = IdlFixed.create(scope, local, digits.intValue(),
-                                  scale.intValue());
+        long digits = f.getDigits();
+        long scale = f.getScale();
+        IdlType idlType = IdlFixed.create(scope, local, (int)digits, (int)scale);
         scope.addToScope(idlType);
         return idlType;
     }
 
     private IdlType createAnonFixed(Anonfixed f, IdlScopeBase scope, String local) {
-        IdlType idlType = null;
-        Long digits = f.getDigits();
-        Long scale = f.getScale();
-        idlType = IdlAnonFixed.create(scope, digits.intValue(), scale.intValue());
+        long digits = f.getDigits();
+        long scale = f.getScale();
+        IdlType idlType = IdlAnonFixed.create(scope, (int)digits, (int)scale);
         scope.addToScope(idlType);
         return idlType;
     }
@@ -769,7 +758,7 @@ public class WSDLToIDLAction {
                 }
             }
         } else {
-            if (bindings.size() >= 1) {
+            if (!bindings.isEmpty()) {
                 binding = bindings.iterator().next();
             }
         }
@@ -778,7 +767,7 @@ public class WSDLToIDLAction {
 
     private String[] unscopeName(String nm) {
         StringTokenizer strtok = new StringTokenizer(nm, ".");
-        String result[] = new String[strtok.countTokens()];
+        String[] result = new String[strtok.countTokens()];
 
         for (int i = 0; strtok.hasMoreTokens(); ++i) {
             result[i] = strtok.nextToken();

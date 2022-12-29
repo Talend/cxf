@@ -21,25 +21,27 @@ package org.apache.cxf.tools.common.model;
 
 import java.util.Arrays;
 
-import javax.jws.WebParam;
-import javax.jws.WebParam.Mode;
-import javax.jws.WebService;
-import javax.jws.soap.SOAPBinding;
-import javax.xml.bind.annotation.XmlSeeAlso;
-import javax.xml.ws.Action;
-import javax.xml.ws.FaultAction;
+import jakarta.jws.WebParam;
+import jakarta.jws.WebParam.Mode;
+import jakarta.jws.WebService;
+import jakarta.jws.soap.SOAPBinding;
+import jakarta.xml.bind.annotation.XmlSeeAlso;
+import jakarta.xml.ws.Action;
+import jakarta.xml.ws.FaultAction;
 
-import org.junit.Assert;
 import org.junit.Test;
 
-public class JAnnotationTest extends Assert {
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+
+public class JAnnotationTest {
     @Test
     public void testList() throws Exception {
         JAnnotation annotation = new JAnnotation(XmlSeeAlso.class);
         annotation.addElement(new JAnnotationElement(null,
                                                             Arrays.asList(new Class[]{XmlSeeAlso.class})));
         assertEquals("@XmlSeeAlso({XmlSeeAlso.class})", annotation.toString());
-        assertEquals("javax.xml.bind.annotation.XmlSeeAlso", annotation.getImports().iterator().next());
+        assertEquals("jakarta.xml.bind.annotation.XmlSeeAlso", annotation.getImports().iterator().next());
     }
 
     @Test
@@ -83,8 +85,8 @@ public class JAnnotationTest extends Assert {
             + "fault = {@FaultAction(className = A.class, value = \"3fault\")})";
         assertEquals(expected, annotation.toString());
 
-        assertTrue(annotation.getImports().contains("javax.xml.ws.FaultAction"));
-        assertTrue(annotation.getImports().contains("javax.xml.ws.Action"));
+        assertTrue(annotation.getImports().contains("jakarta.xml.ws.FaultAction"));
+        assertTrue(annotation.getImports().contains("jakarta.xml.ws.Action"));
         assertTrue(annotation.getImports().contains("org.apache.cxf.tools.common.model.A"));
     }
 

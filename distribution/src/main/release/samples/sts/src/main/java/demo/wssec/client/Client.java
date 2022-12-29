@@ -23,7 +23,8 @@ import java.io.File;
 import java.net.URL;
 
 import javax.xml.namespace.QName;
-import javax.xml.ws.Service;
+
+import jakarta.xml.ws.Service;
 
 import org.apache.cxf.Bus;
 import org.apache.cxf.bus.spring.SpringBusFactory;
@@ -41,7 +42,7 @@ public final class Client {
     private Client() {
     }
 
-    public static void main(String args[]) throws Exception {
+    public static void main(String[] args) throws Exception {
 
         if (args.length < 2) {
             System.out.println("please specify wsdl and configuration file");
@@ -65,7 +66,7 @@ public final class Client {
             busURL = new URL(args[1]);
         }
 
-        Bus bus = bf.createBus(busFile.toString());
+        Bus bus = bf.createBus(busURL);
         SpringBusFactory.setDefaultBus(bus);
         SpringBusFactory.setThreadDefaultBus(bus);
 

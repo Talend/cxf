@@ -19,7 +19,9 @@
 
 package org.apache.cxf.sts.token.provider;
 
+import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -36,6 +38,7 @@ import org.apache.cxf.sts.STSConstants;
 import org.apache.cxf.sts.STSPropertiesMBean;
 import org.apache.cxf.sts.cache.CacheUtils;
 import org.apache.cxf.sts.claims.ClaimsAttributeStatementProvider;
+import org.apache.cxf.sts.claims.CombinedClaimsAttributeStatementProvider;
 import org.apache.cxf.sts.request.KeyRequirements;
 import org.apache.cxf.sts.request.TokenRequirements;
 import org.apache.cxf.sts.token.realm.RealmProperties;
@@ -50,7 +53,6 @@ import org.apache.wss4j.common.saml.bean.AuthDecisionStatementBean;
 import org.apache.wss4j.common.saml.bean.AuthenticationStatementBean;
 import org.apache.wss4j.common.saml.bean.ConditionsBean;
 import org.apache.wss4j.common.saml.bean.SubjectBean;
-import org.joda.time.DateTime;
 import org.opensaml.saml.common.SAMLVersion;
 
 /**
@@ -68,6 +70,7 @@ public class SAMLTokenProvider extends AbstractSAMLTokenProvider implements Toke
     private boolean signToken = true;
     private Map<String, RealmProperties> realmMap = new HashMap<>();
     private SamlCustomHandler samlCustomHandler;
+    private boolean combineClaimAttributes = true;
 
     /**
      * Return true if this TokenProvider implementation is capable of providing a token
@@ -150,8 +153,8 @@ public class SAMLTokenProvider extends AbstractSAMLTokenProvider implements Toke
             }
             response.setToken(token);
 
-            DateTime validFrom = null;
-            DateTime validTill = null;
+            Instant validFrom = null;
+            Instant validTill = null;
             if (assertion.getSamlVersion().equals(SAMLVersion.VERSION_20)) {
                 validFrom = assertion.getSaml2().getConditions().getNotBefore();
                 validTill = assertion.getSaml2().getConditions().getNotOnOrAfter();
@@ -159,8 +162,8 @@ public class SAMLTokenProvider extends AbstractSAMLTokenProvider implements Toke
                 validFrom = assertion.getSaml1().getConditions().getNotBefore();
                 validTill = assertion.getSaml1().getConditions().getNotOnOrAfter();
             }
-            response.setCreated(validFrom.toDate().toInstant());
-            response.setExpires(validTill.toDate().toInstant());
+            response.setCreated(validFrom);
+            response.setExpires(validTill);
 
             response.setEntropy(entropyBytes);
             if (keySize > 0) {
@@ -169,6 +172,9 @@ public class SAMLTokenProvider extends AbstractSAMLTokenProvider implements Toke
             response.setComputedKey(computedKey);
 
             LOG.fine("SAML Token successfully created");
+            if (secret != null) {
+                Arrays.fill(secret, (byte) 0);
+            }
             return response;
         } catch (Exception e) {
             LOG.log(Level.WARNING, "", e);
@@ -388,7 +394,13 @@ public class SAMLTokenProvider extends AbstractSAMLTokenProvider implements Toke
         // Also handle "ActAs" via the ActAsAttributeStatementProvider
         if (!statementAdded) {
             attrBeanList = new ArrayList<>();
-            AttributeStatementProvider attributeProvider = new ClaimsAttributeStatementProvider();
+            AttributeStatementProvider attributeProvider;
+            if (combineClaimAttributes) {
+                attributeProvider = new CombinedClaimsAttributeStatementProvider();
+            } else {
+                attributeProvider = new ClaimsAttributeStatementProvider();
+            }
+
             AttributeStatementBean attributeBean = attributeProvider.getStatement(tokenParameters);
             if (attributeBean != null && attributeBean.getSamlAttributes() != null
                 && !attributeBean.getSamlAttributes().isEmpty()) {
@@ -443,9 +455,9 @@ public class SAMLTokenProvider extends AbstractSAMLTokenProvider implements Toke
 
         String keyType = keyRequirements.getKeyType();
         if (STSConstants.PUBLIC_KEY_KEYTYPE.equals(keyType)) {
-            if (keyRequirements.getReceivedKey() == null
-                || (keyRequirements.getReceivedKey().getX509Cert() == null
-                    && keyRequirements.getReceivedKey().getPublicKey() == null)) {
+            if (keyRequirements.getReceivedCredential() == null
+                || (keyRequirements.getReceivedCredential().getX509Cert() == null
+                    && keyRequirements.getReceivedCredential().getPublicKey() == null)) {
                 LOG.log(Level.WARNING, "A PublicKey Keytype is requested, but no certificate is provided");
                 throw new STSException(
                     "No client certificate for PublicKey KeyType", STSException.INVALID_REQUEST
@@ -457,6 +469,14 @@ public class SAMLTokenProvider extends AbstractSAMLTokenProvider implements Toke
             throw new STSException("Unknown KeyType", STSException.INVALID_REQUEST);
         }
 
+    }
+
+    public boolean isCombineClaimAttributes() {
+        return combineClaimAttributes;
+    }
+
+    public void setCombineClaimAttributes(boolean combineClaimAttributes) {
+        this.combineClaimAttributes = combineClaimAttributes;
     }
 
 

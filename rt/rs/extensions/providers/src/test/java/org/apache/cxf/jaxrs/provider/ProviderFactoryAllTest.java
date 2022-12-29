@@ -19,21 +19,20 @@
 
 package org.apache.cxf.jaxrs.provider;
 
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.ext.MessageBodyReader;
-import javax.ws.rs.ext.MessageBodyWriter;
-
-import org.apache.cxf.jaxrs.provider.atom.AtomPojoProvider;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.ext.MessageBodyReader;
+import jakarta.ws.rs.ext.MessageBodyWriter;
 import org.apache.cxf.jaxrs.provider.json.JSONProvider;
 import org.apache.cxf.jaxrs.resources.Book;
-import org.apache.cxf.jaxrs.resources.TagVO;
 import org.apache.cxf.message.MessageImpl;
 
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
-public class ProviderFactoryAllTest extends Assert {
+import static org.junit.Assert.assertSame;
+import static org.junit.Assert.assertTrue;
+
+public class ProviderFactoryAllTest {
 
     @Before
     public void setUp() {
@@ -41,28 +40,9 @@ public class ProviderFactoryAllTest extends Assert {
     }
 
     @Test
-    public void testAtomPojoProvider() {
-        ProviderFactory pf = ServerProviderFactory.getInstance();
-        AtomPojoProvider provider = new AtomPojoProvider();
-        pf.registerUserProvider(provider);
-        MessageBodyReader<?> feedReader = pf.createMessageBodyReader(Book.class,
-                                               Book.class, null,
-                                               MediaType.valueOf("application/atom+xml"),
-                                               new MessageImpl());
-        assertSame(feedReader, provider);
-
-        MessageBodyReader<?> entryReader = pf.createMessageBodyReader(TagVO.class,
-                                               TagVO.class, null,
-                                               MediaType.valueOf("application/atom+xml;type=entry"),
-                                               new MessageImpl());
-        assertSame(entryReader, provider);
-    }
-
-
-    @Test
     public void testCustomJsonProvider() {
         ProviderFactory pf = ServerProviderFactory.getInstance();
-        JSONProvider<Book> provider = new JSONProvider<Book>();
+        JSONProvider<Book> provider = new JSONProvider<>();
         pf.registerUserProvider(provider);
         MessageBodyReader<?> customJsonReader = pf.createMessageBodyReader(Book.class, null, null,
                                                MediaType.APPLICATION_JSON_TYPE, new MessageImpl());

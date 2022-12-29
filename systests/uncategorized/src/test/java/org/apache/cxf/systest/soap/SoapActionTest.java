@@ -19,8 +19,7 @@
 
 package org.apache.cxf.systest.soap;
 
-import javax.xml.ws.BindingProvider;
-
+import jakarta.xml.ws.BindingProvider;
 import org.apache.cxf.Bus;
 import org.apache.cxf.BusFactory;
 import org.apache.cxf.binding.soap.Soap12;
@@ -29,14 +28,17 @@ import org.apache.cxf.jaxws.JaxWsProxyFactoryBean;
 import org.apache.cxf.jaxws.JaxWsServerFactoryBean;
 import org.apache.cxf.testutil.common.TestUtil;
 import org.apache.hello_world_soap_action.Greeter;
+import org.apache.hello_world_soap_action.RPCGreeter;
 import org.apache.hello_world_soap_action.WrappedGreeter;
 
 import org.junit.AfterClass;
-import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-public class SoapActionTest extends Assert {
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
+
+public class SoapActionTest {
     static final String PORT1 = TestUtil.getPortNumber(SoapActionTest.class, 1);
     static final String PORT2 = TestUtil.getPortNumber(SoapActionTest.class, 2);
     static final String PORT3 = TestUtil.getPortNumber(SoapActionTest.class, 3);
@@ -342,13 +344,13 @@ public class SoapActionTest extends Assert {
     @Test
     public void testRPCLitSoapActionSpoofing() throws Exception {
         JaxWsProxyFactoryBean pf = new JaxWsProxyFactoryBean();
-        pf.setServiceClass(WrappedGreeter.class);
+        pf.setServiceClass(RPCGreeter.class);
         pf.setAddress(add15);
         pf.setBus(bus);
-        WrappedGreeter greeter = (WrappedGreeter) pf.create();
+        RPCGreeter greeter = (RPCGreeter) pf.create();
 
-        assertEquals("sayHi", greeter.sayHiRequestWrapped("test"));
-        assertEquals("sayHi2", greeter.sayHiRequest2Wrapped("test"));
+        assertEquals("sayHi", greeter.sayHi("test"));
+        assertEquals("sayHi2", greeter.sayHi2("test"));
 
         // Now test spoofing attack
         ((BindingProvider)greeter).getRequestContext().put(BindingProvider.SOAPACTION_USE_PROPERTY, "true");
@@ -356,7 +358,7 @@ public class SoapActionTest extends Assert {
             BindingProvider.SOAPACTION_URI_PROPERTY, "SAY_HI_2"
         );
         try {
-            greeter.sayHiRequestWrapped("test");
+            greeter.sayHi("test");
             fail("Failure expected on spoofing attack");
         } catch (Exception ex) {
             // expected
@@ -368,7 +370,7 @@ public class SoapActionTest extends Assert {
             BindingProvider.SOAPACTION_URI_PROPERTY, "SAY_HI_1"
         );
         try {
-            greeter.sayHiRequest2Wrapped("test");
+            greeter.sayHi2("test");
             fail("Failure expected on spoofing attack");
         } catch (Exception ex) {
             // expected
@@ -380,7 +382,7 @@ public class SoapActionTest extends Assert {
             BindingProvider.SOAPACTION_URI_PROPERTY, "SAY_HI_UNKNOWN"
         );
         try {
-            greeter.sayHiRequestWrapped("test");
+            greeter.sayHi("test");
             fail("Failure expected on spoofing attack");
         } catch (Exception ex) {
             // expected

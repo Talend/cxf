@@ -25,9 +25,9 @@ import java.util.concurrent.Executor;
 import java.util.logging.Logger;
 
 import javax.xml.transform.dom.DOMSource;
-import javax.xml.ws.Dispatch;
-import javax.xml.ws.Endpoint;
 
+import jakarta.xml.ws.Dispatch;
+import jakarta.xml.ws.Endpoint;
 import org.apache.cxf.Bus;
 import org.apache.cxf.BusFactory;
 import org.apache.cxf.binding.soap.SoapFault;
@@ -61,6 +61,10 @@ import org.apache.cxf.ws.rm.RMManager;
 import org.junit.After;
 import org.junit.BeforeClass;
 import org.junit.Test;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 /**
  * Tests control of WS-RM protocol variations on the client, and of the server responses matching whichever

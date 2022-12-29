@@ -37,19 +37,18 @@ import javax.management.modelmbean.ModelMBeanInfo;
 import javax.management.modelmbean.RequiredModelMBean;
 import javax.wsdl.extensions.ExtensibilityElement;
 import javax.xml.XMLConstants;
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.JAXBException;
 import javax.xml.namespace.QName;
 import javax.xml.transform.stream.StreamSource;
 import javax.xml.validation.Schema;
 import javax.xml.validation.SchemaFactory;
 
+import jakarta.xml.bind.JAXBContext;
+import jakarta.xml.bind.JAXBException;
 import org.apache.cxf.binding.soap.SoapVersion;
 import org.apache.cxf.binding.soap.model.SoapBindingInfo;
 import org.apache.cxf.binding.soap.model.SoapOperationInfo;
 import org.apache.cxf.common.logging.LogUtils;
 import org.apache.cxf.common.util.PackageUtils;
-import org.apache.cxf.databinding.DataBinding;
 import org.apache.cxf.endpoint.Endpoint;
 import org.apache.cxf.jaxb.JAXBDataBinding;
 import org.apache.cxf.management.InstrumentationManager;
@@ -102,28 +101,21 @@ public class RMEndpoint {
     private EndpointReferenceType replyTo;
     private Source source;
     private Destination destination;
-    private Map<ProtocolVariation, WrappedService> services;
-    private Map<ProtocolVariation, Endpoint> endpoints;
+    private final Map<ProtocolVariation, WrappedService> services = new HashMap<>();
+    private final Map<ProtocolVariation, Endpoint> endpoints = new HashMap<>();
     private Object tokenStore;
     private Proxy proxy;
     private Servant servant;
     private long lastApplicationMessage;
     private long lastControlMessage;
-    private AtomicInteger applicationMessageCount;
-    private AtomicInteger controlMessageCount;
+    private final AtomicInteger applicationMessageCount = new AtomicInteger();
+    private final AtomicInteger controlMessageCount = new AtomicInteger();
     private InstrumentationManager instrumentationManager;
     private RMConfiguration configuration;
     private ManagedRMEndpoint managedEndpoint;
     private RequiredModelMBean modelMBean;
-    private AtomicInteger acknowledgementSequence;
+    private final AtomicInteger acknowledgementSequence = new AtomicInteger();
 
-    /**
-     * Constructor.
-     *
-     * @param m
-     * @param ae
-     * @param pv
-     */
     public RMEndpoint(RMManager m, Endpoint ae) {
         manager = m;
         applicationEndpoint = ae;
@@ -131,11 +123,6 @@ public class RMEndpoint {
         destination = new Destination(this);
         proxy = new Proxy(this);
         servant = new Servant(this);
-        services = new HashMap<>();
-        endpoints = new HashMap<>();
-        applicationMessageCount = new AtomicInteger();
-        controlMessageCount = new AtomicInteger();
-        acknowledgementSequence = new AtomicInteger();
         tokenStore = ae.getEndpointInfo().getProperty(SecurityConstants.TOKEN_STORE_CACHE_INSTANCE);
     }
 
@@ -314,9 +301,7 @@ public class RMEndpoint {
             int seq = acknowledgementSequence.incrementAndGet();
             try {
                 modelMBean.sendNotification(new AcknowledgementNotification(this, seq, ssid, number));
-            } catch (RuntimeOperationsException e) {
-                LOG.log(Level.WARNING, "Error handling JMX notification", e);
-            } catch (MBeanException e) {
+            } catch (RuntimeOperationsException | MBeanException e) {
                 LOG.log(Level.WARNING, "Error handling JMX notification", e);
             }
         }
@@ -384,16 +369,14 @@ public class RMEndpoint {
 
         WrappedService service = new WrappedService(applicationEndpoint.getService(), serviceQName, si);
 
-        DataBinding dataBinding = null;
         Class<?> create = protocol.getCodec().getCreateSequenceType();
         try {
             JAXBContext ctx =
                 JAXBContext.newInstance(PackageUtils.getPackageName(create), create.getClassLoader());
-            dataBinding = new JAXBDataBinding(ctx);
+            service.setDataBinding(new JAXBDataBinding(ctx));
         } catch (JAXBException e) {
             throw new ServiceConstructionException(e);
         }
-        service.setDataBinding(dataBinding);
         service.setInvoker(servant);
         services.put(protocol, service);
     }
@@ -410,7 +393,7 @@ public class RMEndpoint {
                                                                  .getResource("/schemas/wsdl/wsrm.xsd")
                                                                  .openStream());
 
-                javax.xml.transform.Source schemas[] = new javax.xml.transform.Source[] {ad, rm};
+                javax.xml.transform.Source[] schemas = new javax.xml.transform.Source[] {ad, rm};
                 rmSchema = factory.newSchema(schemas);
             } catch (Exception ex) {
                 //ignore
@@ -520,16 +503,12 @@ public class RMEndpoint {
     }
 
     void buildCreateSequenceOperationInfo(InterfaceInfo ii, ProtocolVariation protocol) {
-
-        OperationInfo operationInfo = null;
-        MessagePartInfo partInfo = null;
-        MessageInfo messageInfo = null;
         RMConstants consts = protocol.getConstants();
-        operationInfo = ii.addOperation(consts.getCreateSequenceOperationName());
-        messageInfo = operationInfo.createMessage(consts.getCreateSequenceOperationName(),
+        OperationInfo operationInfo = ii.addOperation(consts.getCreateSequenceOperationName());
+        MessageInfo messageInfo = operationInfo.createMessage(consts.getCreateSequenceOperationName(),
                                                   MessageInfo.Type.INPUT);
         operationInfo.setInput(messageInfo.getName().getLocalPart(), messageInfo);
-        partInfo = messageInfo.addMessagePart(CREATE_PART_NAME);
+        MessagePartInfo partInfo = messageInfo.addMessagePart(CREATE_PART_NAME);
         partInfo.setElementQName(consts.getCreateSequenceOperationName());
         partInfo.setElement(true);
         partInfo.setTypeClass(protocol.getCodec().getCreateSequenceType());
@@ -563,18 +542,13 @@ public class RMEndpoint {
     }
 
     void buildTerminateSequenceOperationInfo(InterfaceInfo ii, ProtocolVariation protocol) {
-
-        OperationInfo operationInfo = null;
-        MessagePartInfo partInfo = null;
-        MessageInfo messageInfo = null;
-
         RMConstants consts = protocol.getConstants();
-        operationInfo = ii.addOperation(consts.getTerminateSequenceOperationName());
+        OperationInfo operationInfo = ii.addOperation(consts.getTerminateSequenceOperationName());
 
-        messageInfo = operationInfo.createMessage(consts.getTerminateSequenceOperationName(),
+        MessageInfo messageInfo = operationInfo.createMessage(consts.getTerminateSequenceOperationName(),
                                                   MessageInfo.Type.INPUT);
         operationInfo.setInput(messageInfo.getName().getLocalPart(), messageInfo);
-        partInfo = messageInfo.addMessagePart(TERMINATE_PART_NAME);
+        MessagePartInfo partInfo = messageInfo.addMessagePart(TERMINATE_PART_NAME);
         partInfo.setElementQName(consts.getTerminateSequenceOperationName());
         partInfo.setElement(true);
         partInfo.setTypeClass(protocol.getCodec().getTerminateSequenceType());
@@ -603,25 +577,17 @@ public class RMEndpoint {
     }
 
     void buildSequenceAckOperationInfo(InterfaceInfo ii, ProtocolVariation protocol) {
-
-        OperationInfo operationInfo = null;
-        MessageInfo messageInfo = null;
-
         RMConstants consts = protocol.getConstants();
-        operationInfo = ii.addOperation(consts.getSequenceAckOperationName());
-        messageInfo = operationInfo.createMessage(consts.getSequenceAckOperationName(),
+        OperationInfo operationInfo = ii.addOperation(consts.getSequenceAckOperationName());
+        MessageInfo messageInfo = operationInfo.createMessage(consts.getSequenceAckOperationName(),
                                                   MessageInfo.Type.INPUT);
         operationInfo.setInput(messageInfo.getName().getLocalPart(), messageInfo);
     }
 
     void buildCloseSequenceOperationInfo(InterfaceInfo ii, ProtocolVariation protocol) {
-
-        OperationInfo operationInfo = null;
-        MessageInfo messageInfo = null;
-
         RMConstants consts = protocol.getConstants();
-        operationInfo = ii.addOperation(consts.getCloseSequenceOperationName());
-        messageInfo = operationInfo.createMessage(consts.getCloseSequenceOperationName(),
+        OperationInfo operationInfo = ii.addOperation(consts.getCloseSequenceOperationName());
+        MessageInfo messageInfo = operationInfo.createMessage(consts.getCloseSequenceOperationName(),
                                                   MessageInfo.Type.INPUT);
         operationInfo.setInput(messageInfo.getName().getLocalPart(), messageInfo);
         if (RM11Constants.NAMESPACE_URI.equals(protocol.getWSRMNamespace())) {
@@ -642,13 +608,9 @@ public class RMEndpoint {
     }
 
     void buildAckRequestedOperationInfo(InterfaceInfo ii, ProtocolVariation protocol) {
-
-        OperationInfo operationInfo = null;
-        MessageInfo messageInfo = null;
-
         RMConstants consts = protocol.getConstants();
-        operationInfo = ii.addOperation(consts.getAckRequestedOperationName());
-        messageInfo = operationInfo.createMessage(consts.getAckRequestedOperationName(),
+        OperationInfo operationInfo = ii.addOperation(consts.getAckRequestedOperationName());
+        MessageInfo messageInfo = operationInfo.createMessage(consts.getAckRequestedOperationName(),
                                                   MessageInfo.Type.INPUT);
         operationInfo.setInput(messageInfo.getName().getLocalPart(), messageInfo);
     }
@@ -665,11 +627,10 @@ public class RMEndpoint {
             String bindingId = sbi.getBindingId();
             SoapBindingInfo bi = new SoapBindingInfo(si, bindingId, sv);
             bi.setName(bindingQName);
-            BindingOperationInfo boi = null;
 
             RMConstants consts = protocol.getConstants();
 
-            boi = bi.buildOperation(consts.getCreateSequenceOperationName(),
+            BindingOperationInfo boi = bi.buildOperation(consts.getCreateSequenceOperationName(),
                                     consts.getCreateSequenceOperationName().getLocalPart(), null);
             addAction(boi, consts.getCreateSequenceAction(), consts.getCreateSequenceResponseAction());
             bi.addOperation(boi);
@@ -747,9 +708,8 @@ public class RMEndpoint {
         if (null == endpointInfo) {
             return null;
         }
-        Object ua = null;
         List<ExtensibilityElement> exts = endpointInfo.getExtensors(ExtensibilityElement.class);
-        ua = getUsingAddressing(exts);
+        Object ua = getUsingAddressing(exts);
         if (null != ua) {
             return ua;
         }

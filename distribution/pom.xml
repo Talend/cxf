@@ -23,17 +23,18 @@
     <packaging>pom</packaging>
     <name>Apache CXF Distribution</name>
     <description>Apache CXF Distribution</description>
-    <url>http://cxf.apache.org</url>
+    <url>https://cxf.apache.org</url>
     <parent>
         <groupId>org.apache.cxf</groupId>
         <artifactId>cxf-parent</artifactId>
-        <version>3.2.5-SNAPSHOT</version>
+        <version>4.0.1-SNAPSHOT</version>
         <relativePath>../parent</relativePath>
     </parent>
     <properties>
         <maven.test.skip>true</maven.test.skip>
         <cxf.version>${project.version}</cxf.version>
         <cxf.checkstyle.extension>-corba</cxf.checkstyle.extension>
+        <tar.long.file.mode>gnu</tar.long.file.mode>
     </properties>
     <modules>
         <module>manifest</module>
@@ -132,6 +133,16 @@
         </dependency>
         <dependency>
             <groupId>${project.groupId}</groupId>
+            <artifactId>cxf-rt-features-throttling</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>cxf-rt-features-metrics</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>${project.groupId}</groupId>
             <artifactId>cxf-rt-management</artifactId>
             <version>${project.version}</version>
         </dependency>
@@ -185,6 +196,16 @@
                     <artifactId>netty-codec-http</artifactId>
                 </exclusion>
             </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>cxf-rt-transports-websocket</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>cxf-rt-transports-http-undertow</artifactId>
+            <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>org.slf4j</groupId>
@@ -251,6 +272,16 @@
         </dependency>
         <dependency>
             <groupId>${project.groupId}</groupId>
+            <artifactId>cxf-rt-ws-transfer</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>cxf-rt-ws-eventing</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>${project.groupId}</groupId>
             <artifactId>cxf-rt-frontend-jaxws</artifactId>
             <version>${project.version}</version>
         </dependency>
@@ -286,12 +317,12 @@
         </dependency>
         <dependency>
             <groupId>${project.groupId}</groupId>
-            <artifactId>cxf-rt-rs-security-oauth</artifactId>
+            <artifactId>cxf-rt-rs-security-oauth2</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>${project.groupId}</groupId>
-            <artifactId>cxf-rt-rs-security-oauth2</artifactId>
+            <artifactId>cxf-rt-rs-security-oauth2-saml</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
@@ -306,7 +337,27 @@
         </dependency>
         <dependency>
             <groupId>${project.groupId}</groupId>
+            <artifactId>cxf-rt-rs-security-sso-oidc</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>cxf-rt-rs-security-http-signature</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>${project.groupId}</groupId>
             <artifactId>cxf-rt-rs-sse</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>cxf-rt-rs-mp-client</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>cxf-rt-rs-http-sci</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
@@ -329,16 +380,6 @@
             <groupId>org.apache.cxf.services.wsn</groupId>
             <artifactId>cxf-services-wsn-core</artifactId>
             <version>${project.version}</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>org.apache.activemq</groupId>
-                    <artifactId>activemq-core</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.apache.geronimo.specs</groupId>
-                    <artifactId>geronimo-jms_1.1_spec</artifactId>
-                </exclusion>
-            </exclusions>
         </dependency>
         <dependency>
             <groupId>org.apache.cxf.services.ws-discovery</groupId>
@@ -365,6 +406,22 @@
         <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-web</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>jakarta.xml.ws</groupId>
+            <artifactId>jakarta.xml.ws-api</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>jakarta.xml.bind</groupId>
+            <artifactId>jakarta.xml.bind-api</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>jakarta.jws</groupId>
+            <artifactId>jakarta.jws-api</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>jakarta.xml.soap</groupId>
+            <artifactId>jakarta.xml.soap-api</artifactId>
         </dependency>
     </dependencies>
     <build>
@@ -417,7 +474,7 @@
                                 <descriptor>src/main/assembly/bin.xml</descriptor>
                             </descriptors>
                             <appendAssemblyId>false</appendAssemblyId>
-                            <tarLongFileMode>gnu</tarLongFileMode>
+                            <tarLongFileMode>${tar.long.file.mode}</tarLongFileMode>
                         </configuration>
                     </execution>
                     <execution>
@@ -430,7 +487,7 @@
                             <descriptors>
                                 <descriptor>src/main/assembly/src.xml</descriptor>
                             </descriptors>
-                            <tarLongFileMode>gnu</tarLongFileMode>
+                            <tarLongFileMode>${tar.long.file.mode}</tarLongFileMode>
                         </configuration>
                     </execution>
                 </executions>
@@ -443,7 +500,7 @@
                         <id>process-sources-xsl</id>
                         <phase>process-sources</phase>
                         <configuration>
-                            <tasks>
+                            <target>
                                 <mkdir dir="${basedir}/target" />
                                 <pathconvert property="cp" refid="maven.runtime.classpath" />
                                 <condition property="output.cp" value="set CXF_CLASSPATH=${cp}">
@@ -458,7 +515,7 @@
                                 <echo file="${basedir}/target/srcbuild_env.ant" message="${cp}" />
                                 <echo file="${basedir}/target/version.properties" message="cxf.version=${project.version}" />
                                 <delete file="build.xml" />
-                            </tasks>
+                            </target>
                         </configuration>
                         <goals>
                             <goal>run</goal>

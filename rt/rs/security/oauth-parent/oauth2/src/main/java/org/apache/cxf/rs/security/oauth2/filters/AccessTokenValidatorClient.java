@@ -22,9 +22,8 @@ import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 
-import javax.ws.rs.WebApplicationException;
-import javax.ws.rs.core.MultivaluedMap;
-
+import jakarta.ws.rs.WebApplicationException;
+import jakarta.ws.rs.core.MultivaluedMap;
 import org.apache.cxf.jaxrs.client.WebClient;
 import org.apache.cxf.jaxrs.ext.MessageContext;
 import org.apache.cxf.jaxrs.impl.MetadataMap;
@@ -36,7 +35,7 @@ import org.apache.cxf.rs.security.oauth2.utils.OAuthConstants;
 public class AccessTokenValidatorClient implements AccessTokenValidator {
 
     private WebClient tokenValidatorClient;
-    private List<String> supportedSchemes = new LinkedList<String>();
+    private List<String> supportedSchemes = new LinkedList<>();
     public List<String> getSupportedAuthorizationSchemes() {
         return supportedSchemes.isEmpty()
             ? Collections.singletonList(OAuthConstants.ALL_AUTH_SCHEMES)
@@ -49,7 +48,7 @@ public class AccessTokenValidatorClient implements AccessTokenValidator {
                                                      MultivaluedMap<String, String> extraProps)
         throws OAuthServiceException {
         WebClient client = WebClient.fromClient(tokenValidatorClient, true);
-        MultivaluedMap<String, String> props = new MetadataMap<String, String>();
+        MultivaluedMap<String, String> props = new MetadataMap<>();
         props.putSingle(OAuthConstants.AUTHORIZATION_SCHEME_TYPE, authScheme);
         props.putSingle(OAuthConstants.AUTHORIZATION_SCHEME_DATA, authSchemeData);
         if (extraProps != null) {

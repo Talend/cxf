@@ -21,9 +21,9 @@ package demo.jaxrs.server;
 import java.util.HashMap;
 import java.util.Map;
 
-import javax.ws.rs.GET;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
+import jakarta.ws.rs.GET;
+import jakarta.ws.rs.Path;
+import jakarta.ws.rs.PathParam;
 
 
 @Path("/customerservice/")
@@ -40,8 +40,7 @@ public class CustomerService {
     public Customer getCustomer(@PathParam("id") String id) {
         System.out.println("----invoking getCustomer, Customer id is: " + id);
         long idNumber = Long.parseLong(id);
-        Customer c = customers.get(idNumber);
-        return c;
+        return customers.get(idNumber);
     }
 
     final void init() {

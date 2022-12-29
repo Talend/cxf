@@ -23,13 +23,16 @@
     <artifactId>cxf-services-xkms-client</artifactId>
     <packaging>bundle</packaging>
     <name>Apache CXF XKMS Client</name>
-    <url>http://cxf.apache.org</url>
+    <url>https://cxf.apache.org</url>
     <parent>
         <groupId>org.apache.cxf</groupId>
         <artifactId>cxf-parent</artifactId>
-        <version>3.2.5-SNAPSHOT</version>
+        <version>4.0.1-SNAPSHOT</version>
         <relativePath>../../../parent/pom.xml</relativePath>
     </parent>
+    <properties>
+        <cxf.module.name>org.apache.cxf.xkms.client</cxf.module.name>
+    </properties>
     <build>
         <testSourceDirectory>${basedir}/src/test/java</testSourceDirectory>
         <testResources>
@@ -46,29 +49,6 @@
                 </includes>
             </testResource>
         </testResources>
-        <plugins>
-            <plugin>
-                <groupId>org.apache.felix</groupId>
-                <artifactId>maven-bundle-plugin</artifactId>
-                <extensions>true</extensions>
-                <configuration>
-                    <instructions>
-                        <Import-Package>
-                            javax.xml.ws, <!-- To workaround issue with BindingProvider interface not visible -->
-                            *
-                        </Import-Package>
-                        <Export-Package>
-                                org.apache.cxf.xkms.crypto.provider,
-                                org.apache.cxf.xkms.cache,
-                                org.apache.cxf.xkms.client
-                                <!-- To avoid problems with existing users.
-                                         We should try to remove the exports again in the future.
-                                 -->
-                        </Export-Package>
-                    </instructions>
-                </configuration>
-            </plugin>
-        </plugins>
     </build>
     <dependencies>
         <dependency>
@@ -87,9 +67,10 @@
             <version>${project.version}</version>
         </dependency>
         <dependency>
-            <groupId>net.sf.ehcache</groupId>
+            <groupId>org.ehcache</groupId>
             <artifactId>ehcache</artifactId>
-            <version>${cxf.ehcache.version}</version>
+            <version>${cxf.ehcache3.version}</version>
+            <classifier>jakarta</classifier>
         </dependency>
         <dependency>
             <groupId>org.apache.cxf</groupId>

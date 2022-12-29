@@ -25,9 +25,9 @@ import java.util.HashMap;
 import java.util.Map;
 
 import javax.xml.namespace.QName;
-import javax.xml.ws.Endpoint;
-import javax.xml.ws.soap.SOAPFaultException;
 
+import jakarta.xml.ws.Endpoint;
+import jakarta.xml.ws.soap.SOAPFaultException;
 import org.apache.cxf.ext.logging.LoggingInInterceptor;
 import org.apache.cxf.ext.logging.LoggingOutInterceptor;
 import org.apache.cxf.jaxws.EndpointImpl;
@@ -40,6 +40,11 @@ import org.apache.hello_world_soap_http.SOAPService;
 
 import org.junit.BeforeClass;
 import org.junit.Test;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 public class ProviderClientServerTest extends AbstractBusClientServerTestBase {
     public static final String ADDRESS

@@ -23,8 +23,7 @@ import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.xml.ws.Endpoint;
-
+import jakarta.xml.ws.Endpoint;
 import org.apache.cxf.BusFactory;
 import org.apache.cxf.ext.logging.LoggingOutInterceptor;
 import org.apache.cxf.frontend.ClientProxy;
@@ -33,6 +32,8 @@ import org.apache.cxf.jaxws.service.AddNumbersImpl;
 
 import org.junit.Test;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 public class SEIWithJAXBAnnoTest extends AbstractJaxWsTest {
     String address = "local://localhost:9000/Hello";

@@ -28,23 +28,21 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
-import java.util.regex.Pattern;
 
-import javax.annotation.Priority;
-import javax.ws.rs.HttpMethod;
-import javax.ws.rs.Priorities;
-import javax.ws.rs.container.ContainerRequestContext;
-import javax.ws.rs.container.ContainerRequestFilter;
-import javax.ws.rs.container.ContainerResponseContext;
-import javax.ws.rs.container.ContainerResponseFilter;
-import javax.ws.rs.container.PreMatching;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.HttpHeaders;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.MultivaluedMap;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.ext.Provider;
-
+import jakarta.annotation.Priority;
+import jakarta.ws.rs.HttpMethod;
+import jakarta.ws.rs.Priorities;
+import jakarta.ws.rs.container.ContainerRequestContext;
+import jakarta.ws.rs.container.ContainerRequestFilter;
+import jakarta.ws.rs.container.ContainerResponseContext;
+import jakarta.ws.rs.container.ContainerResponseFilter;
+import jakarta.ws.rs.container.PreMatching;
+import jakarta.ws.rs.core.Context;
+import jakarta.ws.rs.core.HttpHeaders;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.MultivaluedMap;
+import jakarta.ws.rs.core.Response;
+import jakarta.ws.rs.ext.Provider;
 import org.apache.cxf.common.util.ReflectionUtil;
 import org.apache.cxf.jaxrs.impl.MetadataMap;
 import org.apache.cxf.jaxrs.model.ClassResourceInfo;
@@ -76,8 +74,8 @@ import org.apache.cxf.phase.Phase;
 @Priority(Priorities.AUTHENTICATION - 1)
 public class CrossOriginResourceSharingFilter implements ContainerRequestFilter,
     ContainerResponseFilter {
-    private static final Pattern SPACE_PATTERN = Pattern.compile(" ");
-    private static final Pattern FIELD_COMMA_PATTERN = Pattern.compile(",");
+    private static final String SPACE_PATTERN = " ";
+    private static final String FIELD_COMMA_PATTERN = ",";
 
     private static final String LOCAL_PREFLIGHT = "local_preflight";
     private static final String LOCAL_PREFLIGHT_ORIGIN = "local_preflight.origin";
@@ -150,7 +148,7 @@ public class CrossOriginResourceSharingFilter implements ContainerRequestFilter,
 
         // 5.1.4
         List<String> effectiveExposeHeaders = effectiveExposeHeaders(ann);
-        if (effectiveExposeHeaders != null && effectiveExposeHeaders.size() != 0) {
+        if (effectiveExposeHeaders != null && !effectiveExposeHeaders.isEmpty()) {
             m.getExchange().put(CorsHeaderConstants.HEADER_AC_EXPOSE_HEADERS, effectiveExposeHeaders);
         }
 
@@ -279,7 +277,7 @@ public class CrossOriginResourceSharingFilter implements ContainerRequestFilter,
         if (matchedResources == null) {
             return null;
         }
-        MultivaluedMap<String, String> values = new MetadataMap<String, String>();
+        MultivaluedMap<String, String> values = new MetadataMap<>();
         OperationResourceInfo ori = findPreflightMethod(matchedResources, requestUri, httpMethod, values, m);
         return ori == null ? null : ori.getAnnotatedMethod();
     }
@@ -308,7 +306,7 @@ public class CrossOriginResourceSharingFilter implements ContainerRequestFilter,
             if (subcri == null) {
                 return null;
             }
-            MultivaluedMap<String, String> newValues = new MetadataMap<String, String>();
+            MultivaluedMap<String, String> newValues = new MetadataMap<>();
             newValues.putAll(values);
             return findPreflightMethod(Collections.singletonMap(subcri, newValues),
                                        values.getFirst(URITemplate.FINAL_MATCH_GROUP),
@@ -343,7 +341,7 @@ public class CrossOriginResourceSharingFilter implements ContainerRequestFilter,
 
         Message m = JAXRSUtils.getCurrentMessage();
         String op = (String)m.getExchange().get(CrossOriginResourceSharingFilter.class.getName());
-        if (op == null || op == PREFLIGHT_FAILED) {
+        if (op == null || PREFLIGHT_FAILED.equals(op)) {
             return;
         }
         if (responseContext.getStatus() == Response.Status.UNAUTHORIZED.getStatusCode()
@@ -428,26 +426,13 @@ public class CrossOriginResourceSharingFilter implements ContainerRequestFilter,
         if (effectiveAllowAnyHeaders(ann)) {
             return true;
         }
-        List<String> actualHeaders = null;
-        if (ann != null) {
-            actualHeaders = Arrays.asList(ann.allowHeaders());
-        } else {
-            actualHeaders = allowHeaders;
-        }
-        Set<String> actualHeadersSet = new TreeSet<String>(String.CASE_INSENSITIVE_ORDER);
-        actualHeadersSet.addAll(actualHeaders);
+        Set<String> actualHeadersSet = new TreeSet<>(String.CASE_INSENSITIVE_ORDER);
+        actualHeadersSet.addAll(ann != null ? Arrays.asList(ann.allowHeaders()) : allowHeaders);
         return actualHeadersSet.containsAll(aHeaders);
     }
 
     private List<String> effectiveExposeHeaders(CrossOriginResourceSharing ann) {
-        List<String> actualExposeHeaders = null;
-        if (ann != null) {
-            actualExposeHeaders = Arrays.asList(ann.exposeHeaders());
-        } else {
-            actualExposeHeaders = exposeHeaders;
-        }
-
-        return actualExposeHeaders;
+        return ann != null ? Arrays.asList(ann.exposeHeaders()) : exposeHeaders;
     }
 
     private Integer effectiveMaxAge(CrossOriginResourceSharing ann) {
@@ -485,20 +470,22 @@ public class CrossOriginResourceSharingFilter implements ContainerRequestFilter,
      */
     private List<String> getHeaderValues(String key, boolean spaceSeparated) {
         List<String> values = headers.getRequestHeader(key);
-        Pattern splitPattern;
+        String splitPattern;
         if (spaceSeparated) {
             splitPattern = SPACE_PATTERN;
         } else {
             splitPattern = FIELD_COMMA_PATTERN;
         }
-        List<String> results = new ArrayList<>();
+        final List<String> results;
         if (values != null) {
+            results = new ArrayList<>();
             for (String value : values) {
-                String[] items = splitPattern.split(value);
-                for (String item : items) {
+                for (String item : value.split(splitPattern)) {
                     results.add(item.trim());
                 }
             }
+        } else {
+            results = Collections.emptyList();
         }
         return results;
     }
@@ -515,7 +502,7 @@ public class CrossOriginResourceSharingFilter implements ContainerRequestFilter,
             sb.append(values.get(x));
             if (x != values.size() - 1) {
                 if (spaceSeparated) {
-                    sb.append(" ");
+                    sb.append(' ');
                 } else {
                     sb.append(", ");
                 }

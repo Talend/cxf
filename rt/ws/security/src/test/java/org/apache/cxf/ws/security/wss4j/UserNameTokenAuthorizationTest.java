@@ -20,8 +20,7 @@ package org.apache.cxf.ws.security.wss4j;
 
 import java.util.Collections;
 
-import javax.xml.ws.BindingProvider;
-
+import jakarta.xml.ws.BindingProvider;
 import org.apache.cxf.binding.soap.saaj.SAAJInInterceptor;
 import org.apache.cxf.binding.soap.saaj.SAAJOutInterceptor;
 import org.apache.cxf.endpoint.Client;
@@ -39,6 +38,9 @@ import org.apache.wss4j.common.ConfigurationConstants;
 import org.apache.wss4j.common.WSS4JConstants;
 
 import org.junit.Test;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
 
 public class UserNameTokenAuthorizationTest extends AbstractSecurityTest {
     private SimpleSubjectCreatingInterceptor wsIn;
@@ -119,7 +121,7 @@ public class UserNameTokenAuthorizationTest extends AbstractSecurityTest {
     @Test
     public void testDigestPasswordAuthorized() throws Exception {
         setUpService("developers", true, false);
-        String actions = ConfigurationConstants.ENCRYPT + " " + ConfigurationConstants.SIGNATURE + " "
+        String actions = ConfigurationConstants.ENCRYPTION + " " + ConfigurationConstants.SIGNATURE + " "
                          + ConfigurationConstants.TIMESTAMP + " " + ConfigurationConstants.USERNAME_TOKEN;
 
         wsIn.setProperty(ConfigurationConstants.ACTION, actions);
@@ -132,7 +134,7 @@ public class UserNameTokenAuthorizationTest extends AbstractSecurityTest {
     @Test
     public void testDigestPasswordUnauthorized() throws Exception {
         setUpService("managers", true, false);
-        String actions = ConfigurationConstants.ENCRYPT + " " + ConfigurationConstants.SIGNATURE + " "
+        String actions = ConfigurationConstants.ENCRYPTION + " " + ConfigurationConstants.SIGNATURE + " "
                          + ConfigurationConstants.TIMESTAMP + " " + ConfigurationConstants.USERNAME_TOKEN;
 
         wsIn.setProperty(ConfigurationConstants.ACTION, actions);
@@ -150,7 +152,7 @@ public class UserNameTokenAuthorizationTest extends AbstractSecurityTest {
     @Test
     public void testEncryptedDigestPasswordAuthorized() throws Exception {
         setUpService("developers", true, true);
-        String actions = ConfigurationConstants.USERNAME_TOKEN + " " + ConfigurationConstants.ENCRYPT;
+        String actions = ConfigurationConstants.USERNAME_TOKEN + " " + ConfigurationConstants.ENCRYPTION;
 
         wsIn.setProperty(ConfigurationConstants.ACTION, actions);
         wsOut.setProperty(ConfigurationConstants.ACTION, actions);
@@ -172,7 +174,7 @@ public class UserNameTokenAuthorizationTest extends AbstractSecurityTest {
     @Test
     public void testEncyptedClearPasswordAuthorized() throws Exception {
         setUpService("developers", false, true);
-        String actions = ConfigurationConstants.USERNAME_TOKEN + " " + ConfigurationConstants.ENCRYPT;
+        String actions = ConfigurationConstants.USERNAME_TOKEN + " " + ConfigurationConstants.ENCRYPTION;
 
         wsIn.setProperty(ConfigurationConstants.ACTION, actions);
         wsOut.setProperty(ConfigurationConstants.ACTION, actions);

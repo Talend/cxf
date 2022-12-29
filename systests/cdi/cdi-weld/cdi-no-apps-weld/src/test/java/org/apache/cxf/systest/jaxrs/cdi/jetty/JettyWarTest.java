@@ -21,12 +21,14 @@ package org.apache.cxf.systest.jaxrs.cdi.jetty;
 import org.apache.cxf.jaxrs.model.AbstractResourceInfo;
 import org.apache.cxf.systests.cdi.base.AbstractCdiSingleAppTest;
 import org.apache.cxf.systests.cdi.base.jetty.AbstractJettyServer;
-import org.jboss.weld.environment.Container;
 import org.jboss.weld.environment.jetty.JettyContainer;
+import org.jboss.weld.environment.servlet.Container;
 import org.jboss.weld.environment.servlet.Listener;
 
 import org.junit.BeforeClass;
 import org.junit.Ignore;
+
+import static org.junit.Assert.assertTrue;
 
 public class JettyWarTest extends AbstractCdiSingleAppTest {
     @Ignore

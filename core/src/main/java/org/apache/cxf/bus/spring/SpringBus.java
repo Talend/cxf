@@ -24,7 +24,6 @@ import org.apache.cxf.configuration.ConfiguredBeanLocator;
 import org.apache.cxf.configuration.Configurer;
 import org.apache.cxf.configuration.spring.ConfigurerImpl;
 import org.apache.cxf.resource.ResourceManager;
-import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.context.ApplicationEvent;
@@ -41,8 +40,17 @@ public class SpringBus extends ExtensionManagerBus
 
     AbstractApplicationContext ctx;
     boolean closeContext;
+    boolean contextLifecycleManaged;
 
     public SpringBus() {
+    }
+    
+    public SpringBus(boolean ctxManaged) {
+        // if this Bus is created via the cxf.xml, then the spring context has the "shutdown" method
+        // already configured as a destroy method.  Thus, we should NOT call destroy
+        // when the context is closed as Spring will do so the rest of the dependencies
+        // and such are ready to be destroyed.
+        contextLifecycleManaged = ctxManaged;
     }
 
     public void setBusConfig(BusDefinitionParser.BusConfig bc) {
@@ -50,7 +58,7 @@ public class SpringBus extends ExtensionManagerBus
     }
 
     /** {@inheritDoc}*/
-    public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
+    public void setApplicationContext(ApplicationContext applicationContext) {
         ctx = (AbstractApplicationContext)applicationContext;
         @SuppressWarnings("rawtypes")
         ApplicationListener listener = new ApplicationListener() {
@@ -91,7 +99,7 @@ public class SpringBus extends ExtensionManagerBus
         }
         boolean doIt = false;
         ApplicationContext ac = ctx;
-        while (ac != null && !doIt) {
+        while (ac != null) {
             if (event.getSource() == ac) {
                 doIt = true;
                 break;
@@ -103,7 +111,9 @@ public class SpringBus extends ExtensionManagerBus
                 if (getState() != BusState.RUNNING) {
                     initialize();
                 }
-            } else if (event instanceof ContextClosedEvent && getState() == BusState.RUNNING) {
+            } else if (event instanceof ContextClosedEvent
+                && getState() == BusState.RUNNING
+                && (!contextLifecycleManaged || ctx instanceof BusApplicationContext)) {
                 // The bus could be create by using SpringBusFactory.createBus("/cxf.xml");
                 // Just to make sure the shutdown is called rightly
                 shutdown();
@@ -111,6 +121,7 @@ public class SpringBus extends ExtensionManagerBus
         }
     }
 
+    @Override
     public void destroyBeans() {
         if (closeContext) {
             ctx.close();
@@ -118,18 +129,21 @@ public class SpringBus extends ExtensionManagerBus
         super.destroyBeans();
     }
 
+    @Override
     public String getId() {
         if (id == null) {
-            try {
+            id = super.getId();
+            //TODO:[OSGi+Jakarta] uncomment this when osgi comes back
+            /*try {
                 Class<?> clsbc = Class.forName("org.osgi.framework.BundleContext");
                 Class<?> clsb = Class.forName("org.osgi.framework.Bundle");
                 Object o = getExtension(clsbc);
                 Object o2 = clsbc.getMethod("getBundle").invoke(o);
                 String s = (String)clsb.getMethod("getSymbolicName").invoke(o2);
-                id = s + "-" + DEFAULT_BUS_ID + Integer.toString(this.hashCode());
+                id = s + '-' + DEFAULT_BUS_ID + Integer.toString(this.hashCode());
             } catch (Throwable t) {
                 id = super.getId();
-            }
+            }*/
         }
         return id;
     }

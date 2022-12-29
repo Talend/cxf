@@ -25,7 +25,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
 
-import javax.jws.soap.SOAPBinding;
 import javax.wsdl.Binding;
 import javax.wsdl.BindingOperation;
 import javax.wsdl.Definition;
@@ -41,6 +40,7 @@ import org.w3c.dom.Element;
 
 import org.xml.sax.InputSource;
 
+import jakarta.jws.soap.SOAPBinding;
 import org.apache.cxf.Bus;
 import org.apache.cxf.binding.soap.SOAPBindingUtil;
 import org.apache.cxf.catalog.OASISCatalogManager;
@@ -55,6 +55,7 @@ import org.apache.cxf.tools.wsdlto.core.WSDLDefinitionBuilder;
 import org.apache.cxf.tools.wsdlto.frontend.jaxws.customization.CustomizationParser;
 import org.apache.cxf.tools.wsdlto.frontend.jaxws.customization.JAXWSBinding;
 import org.apache.cxf.tools.wsdlto.frontend.jaxws.customization.JAXWSBindingDeserializer;
+import org.apache.cxf.tools.wsdlto.frontend.jaxws.customization.JAXWSBindingSerializer;
 import org.apache.cxf.wsdl.WSDLManager;
 
 public class JAXWSDefinitionBuilder extends AbstractWSDLBuilder {
@@ -99,6 +100,7 @@ public class JAXWSDefinitionBuilder extends AbstractWSDLBuilder {
     }
 
     private void registerJAXWSBinding(ExtensionRegistry registry, Class<?> clz) {
+        registry.registerSerializer(clz, ToolConstants.JAXWS_BINDINGS, new JAXWSBindingSerializer());
         registry.registerDeserializer(clz, ToolConstants.JAXWS_BINDINGS, new JAXWSBindingDeserializer());
         registry.mapExtensionTypes(clz, ToolConstants.JAXWS_BINDINGS, JAXWSBinding.class);
     }

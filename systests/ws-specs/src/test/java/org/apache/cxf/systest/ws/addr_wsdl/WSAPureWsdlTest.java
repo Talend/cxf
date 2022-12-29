@@ -28,14 +28,14 @@ import java.util.concurrent.ExecutionException;
 import javax.xml.namespace.QName;
 import javax.xml.transform.Source;
 import javax.xml.transform.stream.StreamSource;
-import javax.xml.ws.AsyncHandler;
-import javax.xml.ws.BindingProvider;
-import javax.xml.ws.Dispatch;
-import javax.xml.ws.Response;
-import javax.xml.ws.Service.Mode;
-import javax.xml.ws.handler.MessageContext;
-import javax.xml.ws.soap.SOAPFaultException;
 
+import jakarta.xml.ws.AsyncHandler;
+import jakarta.xml.ws.BindingProvider;
+import jakarta.xml.ws.Dispatch;
+import jakarta.xml.ws.Response;
+import jakarta.xml.ws.Service.Mode;
+import jakarta.xml.ws.handler.MessageContext;
+import jakarta.xml.ws.soap.SOAPFaultException;
 import org.apache.cxf.endpoint.Client;
 import org.apache.cxf.frontend.ClientProxy;
 import org.apache.cxf.interceptor.Interceptor;
@@ -51,6 +51,11 @@ import org.apache.cxf.ws.addressing.soap.MAPCodec;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 public class WSAPureWsdlTest extends AbstractWSATestBase {
     static final String PORT = allocatePort(Server.class);
@@ -110,7 +115,7 @@ public class WSAPureWsdlTest extends AbstractWSATestBase {
         } catch (Exception t) {
             //expected
             assertTrue(t.getCause().getCause().toString(),
-                       t.getCause().getCause() instanceof java.net.ConnectException 
+                       t.getCause().getCause() instanceof java.net.ConnectException
                        ||  t.getCause().getCause() instanceof java.net.SocketTimeoutException);
         }
         synchronized (handler) {

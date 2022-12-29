@@ -19,9 +19,8 @@
 
 package org.apache.cxf.aegis.client;
 
-import javax.xml.ws.Endpoint;
-import javax.xml.ws.Holder;
-
+import jakarta.xml.ws.Endpoint;
+import jakarta.xml.ws.Holder;
 import org.apache.cxf.aegis.AbstractAegisTest;
 import org.apache.cxf.aegis.databinding.AegisDatabinding;
 import org.apache.cxf.frontend.ClientProxyFactoryBean;
@@ -34,6 +33,8 @@ import org.apache.cxf.wsdl.service.factory.ReflectionServiceFactoryBean;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+
+import static org.junit.Assert.assertEquals;
 
 public class ClientServiceConfigTest extends AbstractAegisTest {
     EndpointImpl impl;
@@ -70,7 +71,7 @@ public class ClientServiceConfigTest extends AbstractAegisTest {
         factory.setDataBinding(new AegisDatabinding());
         factory.setAddress("local://JaxWsEcho");
         Echo client = factory.create(Echo.class);
-        Holder<String> sholder = new Holder<String>();
+        Holder<String> sholder = new Holder<>();
         client.echo("Channa Doll", sholder);
         assertEquals("Channa Doll", sholder.value);
     }

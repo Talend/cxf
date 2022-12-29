@@ -18,18 +18,21 @@
  */
 package org.apache.cxf.systest.type_test.soap;
 
-import java.util.Arrays;
+import java.util.Collections;
 
 import javax.xml.namespace.QName;
-import javax.xml.ws.Holder;
-import javax.xml.ws.soap.SOAPFaultException;
 
+import jakarta.xml.ws.Holder;
+import jakarta.xml.ws.soap.SOAPFaultException;
 import org.apache.cxf.systest.type_test.AbstractTypeTestClient5;
 import org.apache.type_test.types1.FixedArray;
 
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
+
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 public class SOAPDocLitClientTypeTest extends AbstractTypeTestClient5 {
     protected static final String WSDL_PATH = "/wsdl/type_test/type_test_doclit_soap.wsdl";
@@ -47,7 +50,7 @@ public class SOAPDocLitClientTypeTest extends AbstractTypeTestClient5 {
     public static void startServers() throws Exception {
         boolean ok = launchServer(SOAPDocLitServerImpl.class, true);
         assertTrue("failed to launch server", ok);
-        initClient(AbstractTypeTestClient5.class, SERVICE_NAME, PORT_NAME, WSDL_PATH);
+        initClient(SERVICE_NAME, PORT_NAME, WSDL_PATH);
     }
 
     @Test
@@ -55,11 +58,11 @@ public class SOAPDocLitClientTypeTest extends AbstractTypeTestClient5 {
         FixedArray x = new FixedArray();
         FixedArray yOrig = new FixedArray();
 
-        x.getItem().addAll(Arrays.asList(24, 42, 2008));
-        yOrig.getItem().addAll(Arrays.asList(24, 0, 1));
+        Collections.addAll(x.getItem(), 24, 42, 2008);
+        Collections.addAll(yOrig.getItem(), 24, 0, 1);
 
-        Holder<FixedArray> y = new Holder<FixedArray>(yOrig);
-        Holder<FixedArray> z = new Holder<FixedArray>();
+        Holder<FixedArray> y = new Holder<>(yOrig);
+        Holder<FixedArray> z = new Holder<>();
         try {
             docClient.testFixedArray(x, y, z);
             fail("should have thrown exception");

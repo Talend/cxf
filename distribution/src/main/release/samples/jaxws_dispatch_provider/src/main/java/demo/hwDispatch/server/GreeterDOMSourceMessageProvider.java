@@ -20,13 +20,14 @@
 package demo.hwDispatch.server;
 import java.io.InputStream;
 
-import javax.xml.soap.MessageFactory;
-import javax.xml.soap.SOAPMessage;
 import javax.xml.transform.dom.DOMSource;
-import javax.xml.ws.Provider;
-import javax.xml.ws.Service;
-import javax.xml.ws.ServiceMode;
-import javax.xml.ws.WebServiceProvider;
+
+import jakarta.xml.soap.MessageFactory;
+import jakarta.xml.soap.SOAPMessage;
+import jakarta.xml.ws.Provider;
+import jakarta.xml.ws.Service;
+import jakarta.xml.ws.ServiceMode;
+import jakarta.xml.ws.WebServiceProvider;
 
 @WebServiceProvider()
 @ServiceMode(value = Service.Mode.MESSAGE)
@@ -47,10 +48,10 @@ public class GreeterDOMSourceMessageProvider implements Provider<DOMSource> {
             soapReq.writeTo(System.out);
             System.out.println("\n");
 
-            InputStream is = getClass().getResourceAsStream("/GreetMeDocLiteralResp2.xml");
-            SOAPMessage greetMeResponse = factory.createMessage(null, is);
-            is.close();
-
+            SOAPMessage greetMeResponse = null;
+            try (InputStream is = getClass().getResourceAsStream("/GreetMeDocLiteralResp2.xml")) {
+                greetMeResponse = factory.createMessage(null, is);
+            }
             response.setNode(greetMeResponse.getSOAPPart());
         } catch (Exception ex) {
             ex.printStackTrace();

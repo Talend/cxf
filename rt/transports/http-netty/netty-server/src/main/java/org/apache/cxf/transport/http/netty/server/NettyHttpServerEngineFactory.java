@@ -28,8 +28,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import javax.annotation.Resource;
-
+import jakarta.annotation.Resource;
 import org.apache.cxf.Bus;
 import org.apache.cxf.buslifecycle.BusLifeCycleListener;
 import org.apache.cxf.buslifecycle.BusLifeCycleManager;
@@ -44,7 +43,7 @@ public class NettyHttpServerEngineFactory implements BusLifeCycleListener {
             LogUtils.getL7dLogger(NettyHttpServerEngineFactory.class);
 
     private static ConcurrentHashMap<Integer, NettyHttpServerEngine> portMap =
-            new ConcurrentHashMap<Integer, NettyHttpServerEngine>();
+            new ConcurrentHashMap<>();
 
     private Bus bus;
 
@@ -55,10 +54,10 @@ public class NettyHttpServerEngineFactory implements BusLifeCycleListener {
      * to new Engines when bound to the reference id.
      */
     private Map<String, ThreadingParameters> threadingParametersMap =
-        new TreeMap<String, ThreadingParameters>();
+        new TreeMap<>();
 
     private Map<String, TLSServerParameters> tlsServerParametersMap =
-        new TreeMap<String, TLSServerParameters>();
+        new TreeMap<>();
 
     public NettyHttpServerEngineFactory() {
         // Empty
@@ -151,7 +150,7 @@ public class NettyHttpServerEngineFactory implements BusLifeCycleListener {
 
         NettyHttpServerEngine ref = portMap.get(port);
         if (ref == null) {
-            ref = new NettyHttpServerEngine(host, port);
+            ref = new NettyHttpServerEngine(host, port, factory.getBus());
             if (tlsParams != null) {
                 ref.setTlsServerParameters(tlsParams);
             }

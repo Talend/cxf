@@ -23,13 +23,16 @@
     <packaging>bundle</packaging>
     <name>Apache CXF JAX-RS Extensions: Reactive Streams</name>
     <description>Apache CXF JAX-RS Extensions: Reactive Streams</description>
-    <url>http://cxf.apache.org</url>
+    <url>https://cxf.apache.org</url>
     <parent>
         <groupId>org.apache.cxf</groupId>
         <artifactId>cxf-parent</artifactId>
-        <version>3.2.5-SNAPSHOT</version>
+        <version>4.0.1-SNAPSHOT</version>
         <relativePath>../../../../parent/pom.xml</relativePath>
     </parent>
+    <properties>
+        <cxf.module.name>org.apache.cxf.rs.reactivestreams</cxf.module.name>
+    </properties>
     <dependencies>
         <dependency>
             <groupId>org.apache.cxf</groupId>

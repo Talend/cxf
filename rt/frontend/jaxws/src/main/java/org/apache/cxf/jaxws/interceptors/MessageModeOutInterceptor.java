@@ -24,15 +24,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.List;
 
-import javax.activation.DataSource;
 import javax.xml.namespace.QName;
-import javax.xml.soap.Detail;
-import javax.xml.soap.MessageFactory;
-import javax.xml.soap.SOAPException;
-import javax.xml.soap.SOAPFault;
-import javax.xml.soap.SOAPHeader;
-import javax.xml.soap.SOAPMessage;
-import javax.xml.soap.SOAPPart;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamWriter;
 import javax.xml.transform.Source;
@@ -43,6 +35,14 @@ import org.w3c.dom.DocumentFragment;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
+import jakarta.activation.DataSource;
+import jakarta.xml.soap.Detail;
+import jakarta.xml.soap.MessageFactory;
+import jakarta.xml.soap.SOAPException;
+import jakarta.xml.soap.SOAPFault;
+import jakarta.xml.soap.SOAPHeader;
+import jakarta.xml.soap.SOAPMessage;
+import jakarta.xml.soap.SOAPPart;
 import org.apache.cxf.annotations.SchemaValidation.SchemaValidationType;
 import org.apache.cxf.attachment.AttachmentDeserializer;
 import org.apache.cxf.binding.soap.Soap12;
@@ -208,7 +208,7 @@ public class MessageModeOutInterceptor extends AbstractPhaseInterceptor<Message>
                 for (BindingFaultInfo bfi : bop.getFaults()) {
                     if (bfi.getFaultInfo().getMessagePartByIndex(0).getConcreteName().equals(qn)) {
                         //Found a fault with the correct QName, we can validate it
-                        schema.newValidator().validate(new DOMSource(el));
+                        schema.newValidator().validate(new DOMSource(DOMUtils.getDomElement(el)));
                     }
                 }
                 el = DOMUtils.getNextElement(el);
@@ -252,8 +252,7 @@ public class MessageModeOutInterceptor extends AbstractPhaseInterceptor<Message>
                     String cxfNamespace = cxfSoapMessage.getVersion().getNamespace();
                     SOAPHeader soapHeader = soapMessage.getSOAPHeader();
                     String namespace = soapHeader == null ? null : soapHeader.getNamespaceURI();
-                    if (namespace != null && cxfNamespace != null && !namespace.equals(cxfNamespace)
-                            && Soap12.SOAP_NAMESPACE.equals(namespace)) {
+                    if (Soap12.SOAP_NAMESPACE.equals(namespace) && !namespace.equals(cxfNamespace)) {
                         cxfSoapMessage.setVersion(Soap12.getInstance());
                         cxfSoapMessage.put(Message.CONTENT_TYPE, cxfSoapMessage.getVersion().getContentType());
                     }
@@ -291,7 +290,7 @@ public class MessageModeOutInterceptor extends AbstractPhaseInterceptor<Message>
         public void handleMessage(SoapMessage message) throws Fault {
             MessageContentsList list = (MessageContentsList)message.getContent(List.class);
             Object o = list.remove(0);
-            SOAPMessage soapMessage = null;
+            final SOAPMessage soapMessage;
 
             if (o instanceof SOAPMessage) {
                 soapMessage = (SOAPMessage)o;
@@ -306,10 +305,7 @@ public class MessageModeOutInterceptor extends AbstractPhaseInterceptor<Message>
                     if (o instanceof Source) {
                         StaxUtils.copy((Source)o, new SAAJStreamWriter(part));
                     }
-                } catch (SOAPException e) {
-                    throw new SoapFault("Error creating SOAPMessage", e,
-                                        message.getVersion().getSender());
-                } catch (XMLStreamException e) {
+                } catch (SOAPException | XMLStreamException e) {
                     throw new SoapFault("Error creating SOAPMessage", e,
                                         message.getVersion().getSender());
                 }

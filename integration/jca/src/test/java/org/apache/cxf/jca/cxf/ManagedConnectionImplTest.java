@@ -22,15 +22,14 @@ import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Proxy;
 import java.net.URL;
 
-import javax.resource.ResourceException;
-import javax.resource.spi.ConnectionEvent;
-import javax.resource.spi.ManagedConnectionMetaData;
-import javax.resource.spi.ResourceAdapterInternalException;
-import javax.resource.spi.security.PasswordCredential;
 import javax.security.auth.Subject;
 import javax.xml.namespace.QName;
 
-
+import jakarta.resource.ResourceException;
+import jakarta.resource.spi.ConnectionEvent;
+import jakarta.resource.spi.ManagedConnectionMetaData;
+import jakarta.resource.spi.ResourceAdapterInternalException;
+import jakarta.resource.spi.security.PasswordCredential;
 import org.apache.cxf.connector.Connection;
 import org.apache.cxf.jca.cxf.handlers.ProxyInvocationHandler;
 import org.apache.hello_world_soap_http.Greeter;
@@ -38,6 +37,10 @@ import org.apache.hello_world_soap_http.Greeter;
 import org.easymock.EasyMock;
 import org.junit.Ignore;
 import org.junit.Test;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 public class ManagedConnectionImplTest extends ManagedConnectionTestBase {
 
@@ -119,7 +122,7 @@ public class ManagedConnectionImplTest extends ManagedConnectionTestBase {
     @Test
     public void testGetConnectionWithDudSubjectB() throws ResourceException {
         String user = new String("user");
-        char password[] = {'a', 'b', 'c'};
+        char[] password = {'a', 'b', 'c'};
         PasswordCredential creds = new PasswordCredential(user, password);
         subj.getPrivateCredentials().add(creds);
         Object o = mci.getConnection(subj, cri);
@@ -131,7 +134,7 @@ public class ManagedConnectionImplTest extends ManagedConnectionTestBase {
     @Test
     public void testGetConnectionWithSubject() throws ResourceException {
         String user = new String("user");
-        char password[] = {'a', 'b', 'c'};
+        char[] password = {'a', 'b', 'c'};
         PasswordCredential creds = new PasswordCredential(user, password);
         creds.setManagedConnectionFactory(factory);
         subj.getPrivateCredentials().add(creds);
@@ -199,7 +202,7 @@ public class ManagedConnectionImplTest extends ManagedConnectionTestBase {
             mci.associateConnection(dodgyHandle);
             fail("Except exception on call with ClassCast Exception");
         } catch (ResourceAdapterInternalException raie) {
-            assertTrue(true);
+            // expected
         }
 
     }

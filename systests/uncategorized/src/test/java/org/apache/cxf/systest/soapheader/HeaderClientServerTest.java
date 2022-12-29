@@ -23,14 +23,14 @@ package org.apache.cxf.systest.soapheader;
 
 import java.net.URL;
 
-import javax.jws.WebMethod;
-import javax.jws.WebParam;
-import javax.jws.WebResult;
-import javax.jws.WebService;
-import javax.jws.soap.SOAPBinding;
-import javax.xml.bind.annotation.XmlSeeAlso;
 import javax.xml.namespace.QName;
 
+import jakarta.jws.WebMethod;
+import jakarta.jws.WebParam;
+import jakarta.jws.WebResult;
+import jakarta.jws.WebService;
+import jakarta.jws.soap.SOAPBinding;
+import jakarta.xml.bind.annotation.XmlSeeAlso;
 import org.apache.cxf.pizza.Pizza;
 import org.apache.cxf.pizza.PizzaService;
 import org.apache.cxf.pizza.types.CallerIDHeaderType;
@@ -41,6 +41,10 @@ import org.apache.cxf.testutil.common.AbstractBusClientServerTestBase;
 
 import org.junit.BeforeClass;
 import org.junit.Test;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 public class HeaderClientServerTest extends AbstractBusClientServerTestBase {
     public static final String PORT = Server.PORT;

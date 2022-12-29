@@ -19,8 +19,6 @@
 
 package org.apache.cxf.systest.jaxrs;
 
-import java.io.File;
-import java.io.FileInputStream;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
@@ -53,6 +51,10 @@ import org.apache.cxf.transport.http.HTTPConduit;
 
 import org.junit.BeforeClass;
 import org.junit.Test;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 public class JAXRSClientServerResourceCreatedSpringProviderTest extends AbstractBusClientServerTestBase {
     public static final String PORT = BookServerResourceCreatedSpringProviders.PORT;
@@ -290,19 +292,9 @@ public class JAXRSClientServerResourceCreatedSpringProviderTest extends Abstract
         httpUrlConnection.setRequestProperty("Content-type",   "application/x-www-form-urlencoded");
         httpUrlConnection.setRequestProperty("Connection",   "close");
 
-        OutputStream outputstream = httpUrlConnection.getOutputStream();
-
-        File inputFile = new File(getClass().getResource("resources/singleValPostBody.txt").toURI());
-
-        byte[] tmp = new byte[4096];
-        int i = 0;
-        try (InputStream is = new FileInputStream(inputFile)) {
-            while ((i = is.read(tmp)) >= 0) {
-                outputstream.write(tmp, 0, i);
-            }
+        try (OutputStream outputstream = httpUrlConnection.getOutputStream()) {
+            IOUtils.copy(getClass().getResourceAsStream("resources/singleValPostBody.txt"), outputstream);
         }
-
-        outputstream.flush();
 
         int responseCode = httpUrlConnection.getResponseCode();
         assertEquals(200, responseCode);
@@ -315,16 +307,13 @@ public class JAXRSClientServerResourceCreatedSpringProviderTest extends Abstract
     public void testPostPetStatus2() throws Exception {
 
 
-        Socket s = new Socket("localhost", Integer.parseInt(PORT));
-        IOUtils.copyAndCloseInput(getClass().getResource("resources/formRequest.txt").openStream(),
-                                  s.getOutputStream());
+        try (Socket s = new Socket("localhost", Integer.parseInt(PORT))) {
+            IOUtils.copyAndCloseInput(getClass().getResource("resources/formRequest.txt").openStream(),
+                                      s.getOutputStream());
 
-        s.getOutputStream().flush();
-        try {
+            s.getOutputStream().flush();
             assertTrue("Wrong status returned", getStringFromInputStream(s.getInputStream())
                        .contains("open"));
-        } finally {
-            s.close();
         }
     }
 
@@ -335,7 +324,7 @@ public class JAXRSClientServerResourceCreatedSpringProviderTest extends Abstract
 
     @Test
     public void testPostPetStatusType() throws Exception {
-        JAXBElementProvider<Object> p = new JAXBElementProvider<Object>();
+        JAXBElementProvider<Object> p = new JAXBElementProvider<>();
         p.setUnmarshallAsJaxbElement(true);
         WebClient wc = WebClient.create("http://localhost:" + PORT + "/webapp/pets/petstore/jaxb/statusType/",
                                         Collections.singletonList(p));

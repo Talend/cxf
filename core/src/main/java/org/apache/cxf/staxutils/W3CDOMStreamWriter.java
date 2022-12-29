@@ -18,9 +18,10 @@
  */
 package org.apache.cxf.staxutils;
 
+import java.util.ArrayDeque;
 import java.util.Collections;
+import java.util.Deque;
 import java.util.Map;
-import java.util.Stack;
 
 import javax.xml.namespace.NamespaceContext;
 import javax.xml.parsers.DocumentBuilder;
@@ -38,7 +39,7 @@ import org.apache.cxf.helpers.MapNamespaceContext;
 
 public class W3CDOMStreamWriter implements XMLStreamWriter {
     static final String XML_NS = "http://www.w3.org/2000/xmlns/";
-    private Stack<Node> stack = new Stack<Node>();
+    private final Deque<Node> stack = new ArrayDeque<>();
     private Document document;
     private Node currentNode;
     private NamespaceContext context = new W3CNamespaceContext();
@@ -142,7 +143,7 @@ public class W3CDOMStreamWriter implements XMLStreamWriter {
     }
 
     public void writeStartElement(String prefix, String local, String namespace) throws XMLStreamException {
-        if (prefix == null || prefix.equals("")) {
+        if (prefix == null || prefix.isEmpty()) {
             writeStartElement(namespace, local);
         } else {
             createAndAddElement(prefix, local, namespace);
@@ -154,10 +155,7 @@ public class W3CDOMStreamWriter implements XMLStreamWriter {
     }
 
     protected Element createElementNS(String ns, String pfx, String local) {
-        if (pfx != null) {
-            local = pfx + ":" + local;
-        }
-        Element element = document.createElementNS(ns, local);
+        Element element = document.createElementNS(ns, pfx != null ? pfx + ':' + local : local);
         element = (Element)DOMUtils.getDomElement(element);
         return element;
     }
@@ -218,11 +216,7 @@ public class W3CDOMStreamWriter implements XMLStreamWriter {
 
     public void writeAttribute(String prefix, String namespace, String local, String value)
         throws XMLStreamException {
-        if (prefix.length() > 0) {
-            local = prefix + ":" + local;
-        }
-
-        Attr a = document.createAttributeNS(namespace, local);
+        Attr a = document.createAttributeNS(namespace, !prefix.isEmpty() ? prefix + ':' + local : local);
         a.setValue(value);
         ((Element)currentNode).setAttributeNodeNS(a);
         if (nsRepairing
@@ -238,7 +232,7 @@ public class W3CDOMStreamWriter implements XMLStreamWriter {
     }
 
     public void writeNamespace(String prefix, String namespace) throws XMLStreamException {
-        if (prefix.length() == 0) {
+        if (prefix.isEmpty()) {
             writeDefaultNamespace(namespace);
         } else {
             Attr attr = document.createAttributeNS(XML_NS, "xmlns:" + prefix);
@@ -342,8 +336,8 @@ public class W3CDOMStreamWriter implements XMLStreamWriter {
         return context;
     }
 
-    public Object getProperty(String prop) throws IllegalArgumentException {
-        return properties.get(prop);
+    public Object getProperty(String name) {
+        return properties.get(name);
     }
 
     public void close() throws XMLStreamException {

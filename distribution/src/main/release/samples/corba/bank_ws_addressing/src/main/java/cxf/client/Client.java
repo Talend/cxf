@@ -22,7 +22,7 @@ package cxf.client;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import javax.xml.ws.wsaddressing.W3CEndpointReference;
+import jakarta.xml.ws.wsaddressing.W3CEndpointReference;
 
 import cxf.common.Account;
 import cxf.common.AccountCORBAService;
@@ -38,7 +38,7 @@ public final class Client {
     private Client() {
     }
 
-    public static void main(String args[]) throws Exception {
+    public static void main(String[] args) throws Exception {
 
         LOG.log(Level.INFO, "Resolving the bank object");
         BankCORBAService service = new BankCORBAService();

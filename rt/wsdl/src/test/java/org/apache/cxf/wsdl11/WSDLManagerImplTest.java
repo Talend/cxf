@@ -19,6 +19,10 @@
 
 package org.apache.cxf.wsdl11;
 
+import java.io.File;
+import java.nio.file.FileSystems;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -34,18 +38,23 @@ import javax.xml.stream.XMLStreamReader;
 
 import org.apache.cxf.staxutils.PropertiesExpandingStreamReader;
 import org.apache.cxf.staxutils.XMLStreamReaderWrapper;
+import org.apache.cxf.wsdl.WSDLManager;
 
-import org.junit.Assert;
 import org.junit.Test;
 
-public class WSDLManagerImplTest extends Assert {
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+
+public class WSDLManagerImplTest {
 
     @Test
     public void testBuildSimpleWSDL() throws Exception {
         String qname = "http://apache.org/hello_world_soap_http";
         String wsdlUrl = getClass().getResource("hello_world.wsdl").toString();
 
-        WSDLManagerImpl builder = new WSDLManagerImpl();
+        WSDLManager builder = new WSDLManagerImpl();
         Definition def = builder.getDefinition(wsdlUrl);
         assertNotNull(def);
 
@@ -66,7 +75,7 @@ public class WSDLManagerImplTest extends Assert {
     public void testBuildImportedWSDL() throws Exception {
         String wsdlUrl = getClass().getResource("hello_world_services.wsdl").toString();
 
-        WSDLManagerImpl builder = new WSDLManagerImpl();
+        WSDLManager builder = new WSDLManagerImpl();
         Definition def = builder.getDefinition(wsdlUrl);
 
         assertNotNull(def);
@@ -106,7 +115,7 @@ public class WSDLManagerImplTest extends Assert {
     public void testLocalNamespacedWSDL() throws Exception {
         String wsdlUrl = getClass().getResource("hello_world_local_nsdecl.wsdl").toString();
 
-        WSDLManagerImpl builder = new WSDLManagerImpl();
+        WSDLManager builder = new WSDLManagerImpl();
         Definition def = builder.getDefinition(wsdlUrl);
         java.io.ByteArrayOutputStream bos = new java.io.ByteArrayOutputStream();
         builder.getWSDLFactory().newWSDLWriter().writeWSDL(def, bos);
@@ -128,5 +137,93 @@ public class WSDLManagerImplTest extends Assert {
         java.io.ByteArrayOutputStream bos = new java.io.ByteArrayOutputStream();
         builder.getWSDLFactory().newWSDLWriter().writeWSDL(def, bos);
         assertTrue(bos.toString().contains("http://localhost:99999/SoapContext/SoapPort"));
+    }
+
+    @Test
+    public void testRemoveDefinition() throws Exception {
+        String basedir = System.getProperty("basedir");
+        if (basedir == null) {
+            basedir = new File(".").getCanonicalPath();
+        }
+
+        // Copy hello_world.wsdl so that we can delete it
+        Path path1 = FileSystems.getDefault().getPath(basedir,
+                "/src/test/resources/org/apache/cxf/wsdl11/hello_world.wsdl");
+        Path path2 = FileSystems.getDefault().getPath(basedir, "/target/test-classes/hello_world2.wsdl");
+        Files.copy(path1, path2);
+
+        // Load the resource
+        WSDLManager builder = new WSDLManagerImpl();
+        Definition def = builder.getDefinition(path2.toString());
+        assertNotNull(def);
+
+        // Delete the resource
+        Files.delete(path2);
+
+        // Now load it again to test caching
+        def = builder.getDefinition(path2.toString());
+        assertNotNull(def);
+
+        Map<?, ?> services = def.getServices();
+        assertNotNull(services);
+        assertEquals(1, services.size());
+        String qname = "http://apache.org/hello_world_soap_http";
+        Service service = (Service) services.get(new QName(qname, "SOAPService"));
+        assertNotNull(service);
+
+        // Now remove it
+        builder.removeDefinition(def);
+
+        // This time loading should fail as the original resource is removed
+        try {
+            builder.getDefinition(path2.toString());
+            fail("Failure expected");
+        } catch (NullPointerException ex) {
+            // expected
+        }
+    }
+
+    @Test
+    public void testRemoveDefinitionByURL() throws Exception {
+        String basedir = System.getProperty("basedir");
+        if (basedir == null) {
+            basedir = new File(".").getCanonicalPath();
+        }
+
+        // Copy hello_world.wsdl so that we can delete it
+        Path path1 = FileSystems.getDefault().getPath(basedir,
+                "/src/test/resources/org/apache/cxf/wsdl11/hello_world.wsdl");
+        Path path2 = FileSystems.getDefault().getPath(basedir, "/target/test-classes/hello_world2.wsdl");
+        Files.copy(path1, path2);
+
+        // Load the resource
+        WSDLManager builder = new WSDLManagerImpl();
+        Definition def = builder.getDefinition(path2.toString());
+        assertNotNull(def);
+
+        // Delete the resource
+        Files.delete(path2);
+
+        // Now load it again to test caching
+        def = builder.getDefinition(path2.toString());
+        assertNotNull(def);
+
+        Map<?, ?> services = def.getServices();
+        assertNotNull(services);
+        assertEquals(1, services.size());
+        String qname = "http://apache.org/hello_world_soap_http";
+        Service service = (Service) services.get(new QName(qname, "SOAPService"));
+        assertNotNull(service);
+
+        // Now remove it
+        builder.removeDefinition(path2.toString());
+
+        // This time loading should fail as the original resource is removed
+        try {
+            builder.getDefinition(path2.toString());
+            fail("Failure expected");
+        } catch (NullPointerException ex) {
+            // expected
+        }
     }
 }

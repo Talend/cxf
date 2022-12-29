@@ -28,15 +28,14 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
 
-import javax.ws.rs.HttpMethod;
-import javax.ws.rs.core.EntityTag;
-import javax.ws.rs.core.HttpHeaders;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Request;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.ResponseBuilder;
-import javax.ws.rs.core.Variant;
-
+import jakarta.ws.rs.HttpMethod;
+import jakarta.ws.rs.core.EntityTag;
+import jakarta.ws.rs.core.HttpHeaders;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.Request;
+import jakarta.ws.rs.core.Response;
+import jakarta.ws.rs.core.Response.ResponseBuilder;
+import jakarta.ws.rs.core.Variant;
 import org.apache.cxf.common.util.StringUtils;
 import org.apache.cxf.jaxrs.utils.HttpUtils;
 import org.apache.cxf.jaxrs.utils.JAXRSUtils;
@@ -69,7 +68,7 @@ public class RequestImpl implements Request {
         List<String> acceptEncs = parseAcceptEnc(
             headers.getRequestHeaders().getFirst(HttpHeaders.ACCEPT_ENCODING));
         List<Variant> requestVariants = sortAllCombinations(acceptMediaTypes, acceptLangs, acceptEncs);
-        List<Object> varyValues = new LinkedList<Object>();
+        List<Object> varyValues = new LinkedList<>();
         for (Variant requestVar : requestVariants) {
             for (Variant var : vars) {
                 MediaType mt = var.getMediaType();
@@ -107,7 +106,7 @@ public class RequestImpl implements Request {
         List<Variant> requestVars = new LinkedList<>();
         for (MediaType mt : mediaTypes) {
             for (Locale lang : langs) {
-                if (encs.size() < 1) {
+                if (encs.isEmpty()) {
                     requestVars.add(new Variant(mt, lang, null));
                 } else {
                     for (String enc : encs) {
@@ -144,7 +143,7 @@ public class RequestImpl implements Request {
                     }
                     sb.append(varyValues.get(i).toString());
                 }
-                ((javax.servlet.http.HttpServletResponse)httpResponse)
+                ((jakarta.servlet.http.HttpServletResponse)httpResponse)
                     .setHeader(HttpHeaders.VARY, sb.toString());
             }
         }
@@ -165,10 +164,10 @@ public class RequestImpl implements Request {
         if (StringUtils.isEmpty(acceptEnc)) {
             return Collections.emptyList();
         }
-        List<String> list = new LinkedList<String>();
-        String[] values = StringUtils.split(acceptEnc, ",");
+        List<String> list = new LinkedList<>();
+        String[] values = acceptEnc.split(",");
         for (String value : values) {
-            String[] pair = StringUtils.split(value.trim(), ";");
+            String[] pair = value.trim().split(";");
             // ignore encoding qualifiers if any for now
             list.add(pair[0]);
         }
@@ -270,7 +269,7 @@ public class RequestImpl implements Request {
         SimpleDateFormat dateFormat = HttpUtils.getHttpDateFormat();
 
         dateFormat.setLenient(false);
-        Date dateSince = null;
+        final Date dateSince;
         try {
             dateSince = dateFormat.parse(ifModifiedSince.get(0));
         } catch (ParseException ex) {
@@ -296,7 +295,7 @@ public class RequestImpl implements Request {
         SimpleDateFormat dateFormat = HttpUtils.getHttpDateFormat();
 
         dateFormat.setLenient(false);
-        Date dateSince = null;
+        final Date dateSince;
         try {
             dateSince = dateFormat.parse(ifNotModifiedSince.get(0));
         } catch (ParseException ex) {

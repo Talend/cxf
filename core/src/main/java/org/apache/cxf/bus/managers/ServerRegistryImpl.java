@@ -22,9 +22,8 @@ package org.apache.cxf.bus.managers;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
-import javax.annotation.PreDestroy;
-import javax.annotation.Resource;
-
+import jakarta.annotation.PreDestroy;
+import jakarta.annotation.Resource;
 import org.apache.cxf.Bus;
 import org.apache.cxf.buslifecycle.BusLifeCycleListener;
 import org.apache.cxf.buslifecycle.BusLifeCycleManager;
@@ -40,10 +39,10 @@ public class ServerRegistryImpl implements ServerRegistry, BusLifeCycleListener 
     BusLifeCycleManager lifeCycleManager;
 
     public ServerRegistryImpl() {
-        serversList = new CopyOnWriteArrayList<Server>();
+        serversList = new CopyOnWriteArrayList<>();
     }
     public ServerRegistryImpl(Bus b) {
-        serversList = new CopyOnWriteArrayList<Server>();
+        serversList = new CopyOnWriteArrayList<>();
         setBus(b);
     }
 

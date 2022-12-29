@@ -20,6 +20,7 @@
 package org.apache.cxf.jaxrs.utils;
 
 import java.lang.annotation.Annotation;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Collections;
 import java.util.HashSet;
@@ -27,27 +28,31 @@ import java.util.LinkedHashSet;
 import java.util.Set;
 import java.util.logging.Logger;
 
-import javax.annotation.Priority;
-import javax.ws.rs.BeanParam;
-import javax.ws.rs.Consumes;
-import javax.ws.rs.CookieParam;
-import javax.ws.rs.DefaultValue;
-import javax.ws.rs.FormParam;
-import javax.ws.rs.HeaderParam;
-import javax.ws.rs.HttpMethod;
-import javax.ws.rs.MatrixParam;
-import javax.ws.rs.NameBinding;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Priorities;
-import javax.ws.rs.Produces;
-import javax.ws.rs.QueryParam;
-import javax.ws.rs.core.Context;
-
+import jakarta.ws.rs.BeanParam;
+import jakarta.ws.rs.Consumes;
+import jakarta.ws.rs.CookieParam;
+import jakarta.ws.rs.DefaultValue;
+import jakarta.ws.rs.FormParam;
+import jakarta.ws.rs.HeaderParam;
+import jakarta.ws.rs.HttpMethod;
+import jakarta.ws.rs.MatrixParam;
+import jakarta.ws.rs.NameBinding;
+import jakarta.ws.rs.Path;
+import jakarta.ws.rs.PathParam;
+import jakarta.ws.rs.Priorities;
+import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.QueryParam;
+import jakarta.ws.rs.core.Context;
+import org.apache.cxf.Bus;
 import org.apache.cxf.common.logging.LogUtils;
+import org.apache.cxf.common.util.ClassHelper;
 
 public final class AnnotationUtils {
     private static final Logger LOG = LogUtils.getL7dLogger(AnnotationUtils.class);
+    private static final Class<? extends Annotation> PRIORITY_API =
+            (Class<? extends Annotation>) loadClassOrNull("jakarta.annotation.Priority");
+    private static final Method PRIORITY_VALUE = getMethodOrNull(PRIORITY_API, "value");
+
     private static final Set<Class<?>> PARAM_ANNOTATION_CLASSES;
     private static final Set<Class<?>> METHOD_ANNOTATION_CLASSES;
     static {
@@ -59,9 +64,28 @@ public final class AnnotationUtils {
 
     }
 
+    private static Method getMethodOrNull(final Class<?> type, final String name) {
+        if (type == null) {
+            return null;
+        }
+        try {
+            return type.getMethod(name);
+        } catch (final NoSuchMethodException e) {
+            return null;
+        }
+    }
+
+    private static Class<? extends Annotation> loadClassOrNull(final String name) {
+        try {
+            return org.apache.cxf.common.classloader.ClassLoaderUtils.loadClass(
+                    name, AnnotationUtils.class, Annotation.class);
+        } catch (final ClassNotFoundException e) {
+            return null;
+        }
+    }
 
     private static Set<Class<?>> initParamAnnotationClasses() {
-        Set<Class<?>> classes = new HashSet<Class<?>>();
+        Set<Class<?>> classes = new HashSet<>();
         classes.add(PathParam.class);
         classes.add(QueryParam.class);
         classes.add(MatrixParam.class);
@@ -73,7 +97,7 @@ public final class AnnotationUtils {
     }
 
     private static Set<Class<?>> initMethodAnnotationClasses() {
-        Set<Class<?>> classes = new HashSet<Class<?>>();
+        Set<Class<?>> classes = new HashSet<>();
         classes.add(HttpMethod.class);
         classes.add(Path.class);
         classes.add(Produces.class);
@@ -82,14 +106,32 @@ public final class AnnotationUtils {
     }
 
     public static int getBindingPriority(Class<?> providerCls) {
-        Priority b = getClassAnnotation(providerCls, Priority.class);
-        return b == null ? Priorities.USER : b.value();
+        if (PRIORITY_API == null) {
+            return Priorities.USER;
+        }
+        Annotation b = getClassAnnotation(providerCls, PRIORITY_API);
+        try {
+            return b == null ? Priorities.USER : Integer.class.cast(PRIORITY_VALUE.invoke(b));
+        } catch (final IllegalAccessException | InvocationTargetException e) {
+            return Priorities.USER;
+        }
     }
+    
+    public static Set<String> getInstanceNameBindings(Bus bus, Object obj) {
+        final Class<?> realClazz = ClassHelper.getRealClass(bus, obj);
+        return getNameBindings(realClazz.getAnnotations());
+    }
+    
+    public static Set<String> getNameBindings(Bus bus, Class<?> clazz) {
+        final Class<?> realClazz = ClassHelper.getRealClassFromClass(bus, clazz);
+        return getNameBindings(realClazz.getAnnotations());
+    }
+    
     public static Set<String> getNameBindings(Annotation[] targetAnns) {
         if (targetAnns.length == 0) {
             return Collections.emptySet();
         }
-        Set<String> names = new LinkedHashSet<String>();
+        Set<String> names = new LinkedHashSet<>();
         for (Annotation a : targetAnns) {
             NameBinding nb = a.annotationType().getAnnotation(NameBinding.class);
             if (nb != null) {
@@ -159,19 +201,24 @@ public final class AnnotationUtils {
     private static Method doGetAnnotatedMethod(Class<?> serviceClass, Method m) {
 
         if (m != null) {
-            for (Annotation a : m.getAnnotations()) {
-                if (AnnotationUtils.isMethodAnnotation(a)) {
-                    return m;
+            if (!m.isBridge() && !m.isSynthetic()) {
+                //the bridge/synthetic methods may not have the parameter annotations
+                //thus we will need to search the super classes/interfaces to make 
+                //sure we get the proper method that would also have the parameters annotated
+                //properly
+                for (Annotation a : m.getAnnotations()) {
+                    if (AnnotationUtils.isMethodAnnotation(a)) {
+                        return m;
+                    }
+                }
+                for (Annotation[] paramAnnotations : m.getParameterAnnotations()) {
+                    if (isValidParamAnnotations(paramAnnotations)) {
+                        LOG.warning("Method " + m.getName() + " in " + m.getDeclaringClass().getName()
+                                     + " has no JAX-RS Path or HTTP Method annotations");
+                        return m;
+                    }
                 }
             }
-            for (Annotation[] paramAnnotations : m.getParameterAnnotations()) {
-                if (isValidParamAnnotations(paramAnnotations)) {
-                    LOG.warning("Method " + m.getName() + " in " + m.getDeclaringClass().getName()
-                                 + " has no JAX-RS Path or HTTP Method annotations");
-                    return m;
-                }
-            }
-
             Class<?> declaringClass = m.getDeclaringClass();
             Class<?> superC = declaringClass.getSuperclass();
             if (superC != null && Object.class != superC) {

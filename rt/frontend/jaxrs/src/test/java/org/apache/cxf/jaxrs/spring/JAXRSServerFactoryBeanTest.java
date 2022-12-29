@@ -20,9 +20,9 @@ package org.apache.cxf.jaxrs.spring;
 
 import java.util.List;
 
-import javax.xml.bind.JAXBContext;
 import javax.xml.namespace.QName;
 
+import jakarta.xml.bind.JAXBContext;
 import org.apache.cxf.BusFactory;
 import org.apache.cxf.jaxrs.JAXRSServerFactoryBean;
 import org.apache.cxf.jaxrs.provider.JAXBElementProvider;
@@ -34,12 +34,15 @@ import org.apache.cxf.jaxrs.resources.SuperBook;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 
 import org.junit.After;
-import org.junit.Assert;
 import org.junit.Test;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertSame;
 
 
-public class JAXRSServerFactoryBeanTest extends Assert {
+
+public class JAXRSServerFactoryBeanTest {
 
     @After
     public void tearDown() throws Exception {

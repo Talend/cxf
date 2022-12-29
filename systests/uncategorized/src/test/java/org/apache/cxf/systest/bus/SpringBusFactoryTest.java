@@ -34,11 +34,12 @@ import org.apache.cxf.workqueue.WorkQueueManager;
 import org.apache.cxf.wsdl.WSDLManager;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 
-import org.junit.Assert;
 import org.junit.Test;
 
+import static org.junit.Assert.assertNotNull;
 
-public class SpringBusFactoryTest extends Assert {
+
+public class SpringBusFactoryTest {
 
     @Test
     public void testKnownExtensions() throws BusException {
@@ -67,7 +68,7 @@ public class SpringBusFactoryTest extends Assert {
         checkBindingExtensions(bus);
         checkHTTPTransportFactories(bus);
         checkOtherCoreExtensions(bus);
-        ctx.destroy();
+        ctx.close();
     }
     @Test
     public void testLoadBusWithApplicationContext() throws BusException {

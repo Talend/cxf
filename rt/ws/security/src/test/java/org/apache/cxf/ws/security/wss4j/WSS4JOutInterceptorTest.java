@@ -21,10 +21,9 @@ package org.apache.cxf.ws.security.wss4j;
 import java.util.HashMap;
 import java.util.Map;
 
-import javax.xml.soap.SOAPMessage;
-
 import org.w3c.dom.Document;
 
+import jakarta.xml.soap.SOAPMessage;
 import org.apache.cxf.binding.soap.SoapFault;
 import org.apache.cxf.binding.soap.SoapMessage;
 import org.apache.cxf.phase.PhaseInterceptor;
@@ -38,6 +37,8 @@ import org.apache.wss4j.dom.handler.RequestData;
 import org.apache.wss4j.dom.handler.WSHandler;
 
 import org.junit.Test;
+
+import static org.junit.Assert.assertEquals;
 
 public class WSS4JOutInterceptorTest extends AbstractSecurityTest {
 
@@ -95,7 +96,7 @@ public class WSS4JOutInterceptorTest extends AbstractSecurityTest {
         WSS4JOutInterceptor ohandler = new WSS4JOutInterceptor();
         PhaseInterceptor<SoapMessage> handler = ohandler.createEndingInterceptor();
 
-        msg.put(ConfigurationConstants.ACTION, ConfigurationConstants.ENCRYPT);
+        msg.put(ConfigurationConstants.ACTION, ConfigurationConstants.ENCRYPTION);
         msg.put(ConfigurationConstants.SIG_PROP_FILE, "outsecurity.properties");
         msg.put(ConfigurationConstants.ENC_PROP_FILE, "outsecurity.properties");
         msg.put(ConfigurationConstants.USER, "myalias");

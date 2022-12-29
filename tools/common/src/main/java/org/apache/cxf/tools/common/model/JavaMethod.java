@@ -26,9 +26,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
 
-import javax.jws.soap.SOAPBinding;
 import javax.wsdl.OperationType;
 
+import jakarta.jws.soap.SOAPBinding;
 import org.apache.cxf.common.i18n.Message;
 import org.apache.cxf.common.logging.LogUtils;
 import org.apache.cxf.tools.common.ToolException;
@@ -86,18 +86,18 @@ public class JavaMethod implements JavaAnnotatable {
     public String getSignature() {
         StringBuilder sb = new StringBuilder();
         sb.append(javaReturn.getName());
-        sb.append("#");
+        sb.append('#');
         sb.append(javaInterface.getPackageName());
-        sb.append(".");
+        sb.append('.');
         sb.append(javaInterface.getName());
-        sb.append("#");
+        sb.append('#');
         sb.append(name);
-        sb.append("[");
+        sb.append('[');
         for (JavaParameter param : parameters) {
             sb.append(param.getName());
-            sb.append(",");
+            sb.append(',');
         }
-        sb.append("]");
+        sb.append(']');
         return sb.toString();
     }
 
@@ -148,9 +148,7 @@ public class JavaMethod implements JavaAnnotatable {
     }
 
     private void replaceParameter(JavaParameter p1, JavaParameter p2) {
-        int index = ((ArrayList<?>)parameters).indexOf(p1);
-        parameters.remove(index);
-        parameters.add(index, p2);
+        parameters.set(parameters.indexOf(p1), p2);
         if ((p1.isIN() && p2.isOUT()) || p1.isINOUT()) {
             p2.setStyle(Style.INOUT);
         }
@@ -325,13 +323,13 @@ public class JavaMethod implements JavaAnnotatable {
             sb.setLength(0);
             if (parameter.isHolder()) {
                 sb.append(parameter.getHolderName());
-                sb.append("<");
+                sb.append('<');
                 sb.append(getClassName(parameter));
-                sb.append(">");
+                sb.append('>');
             } else {
                 sb.append(getClassName(parameter));
             }
-            sb.append(" ");
+            sb.append(' ');
             sb.append(parameter.getName());
             if (i != (parameters.size() - 1)) {
                 sb.append(',');
@@ -342,7 +340,7 @@ public class JavaMethod implements JavaAnnotatable {
     }
 
     public String toString() {
-        StringBuilder sb = new StringBuilder();
+        StringBuilder sb = new StringBuilder(256);
         sb.append("\n========================\n");
         sb.append("\nMethod:");
         sb.append(getName());

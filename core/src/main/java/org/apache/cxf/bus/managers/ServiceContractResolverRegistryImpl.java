@@ -37,9 +37,8 @@ import org.apache.cxf.endpoint.ServiceContractResolverRegistry;
 @NoJSR250Annotations(unlessNull = "bus")
 public class ServiceContractResolverRegistryImpl implements ServiceContractResolverRegistry {
 
-    private Bus bus;
     private List<ServiceContractResolver> resolvers
-        = new CopyOnWriteArrayList<ServiceContractResolver>();
+        = new CopyOnWriteArrayList<>();
 
     public ServiceContractResolverRegistryImpl() {
 
@@ -52,10 +51,9 @@ public class ServiceContractResolverRegistryImpl implements ServiceContractResol
     /**
      * Sets the bus with which the registry is associated.
      *
-     * @param b
+     * @param bus
      */
-    public final void setBus(Bus b) {
-        this.bus = b;
+    public final void setBus(Bus bus) {
         if (bus != null) {
             bus.setExtension(this, ServiceContractResolverRegistry.class);
         }

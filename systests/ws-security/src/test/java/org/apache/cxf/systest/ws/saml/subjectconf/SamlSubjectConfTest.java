@@ -24,14 +24,13 @@ import java.util.Arrays;
 import java.util.Collection;
 
 import javax.xml.namespace.QName;
-import javax.xml.ws.BindingProvider;
-import javax.xml.ws.Service;
 
+import jakarta.xml.ws.BindingProvider;
+import jakarta.xml.ws.Service;
 import org.apache.cxf.Bus;
 import org.apache.cxf.BusFactory;
 import org.apache.cxf.bus.spring.SpringBusFactory;
 import org.apache.cxf.rt.security.SecurityConstants;
-import org.apache.cxf.systest.ws.common.SecurityTestUtil;
 import org.apache.cxf.systest.ws.common.TestParam;
 import org.apache.cxf.systest.ws.saml.client.SamlCallbackHandler;
 import org.apache.cxf.testutil.common.AbstractBusClientServerTestBase;
@@ -41,6 +40,9 @@ import org.example.contract.doubleit.DoubleItPortType;
 import org.junit.BeforeClass;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized.Parameters;
+
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 /**
  * A set of tests for the validation rules associated with various Subject Confirmation
@@ -77,16 +79,15 @@ public class SamlSubjectConfTest extends AbstractBusClientServerTestBase {
     }
 
     @Parameters(name = "{0}")
-    public static Collection<TestParam[]> data() {
+    public static Collection<TestParam> data() {
 
-        return Arrays.asList(new TestParam[][] {{new TestParam(PORT, false)},
-                                                {new TestParam(STAX_PORT, false)},
+        return Arrays.asList(new TestParam[] {new TestParam(PORT, false),
+                                              new TestParam(STAX_PORT, false),
         });
     }
 
     @org.junit.AfterClass
     public static void cleanup() throws Exception {
-        SecurityTestUtil.cleanup();
         stopAllServers();
     }
 
@@ -94,6 +95,7 @@ public class SamlSubjectConfTest extends AbstractBusClientServerTestBase {
     // HOK requires client auth + a internally signed token. The server is set up not to
     // require client auth to test this.
     //
+
     @org.junit.Test
     public void testHOKClientAuthentication() throws Exception {
 
@@ -139,7 +141,7 @@ public class SamlSubjectConfTest extends AbstractBusClientServerTestBase {
         try {
             port.doubleIt(25);
             fail("Failure expected on a unsigned assertion");
-        } catch (javax.xml.ws.soap.SOAPFaultException ex) {
+        } catch (jakarta.xml.ws.soap.SOAPFaultException ex) {
             // expected
         }
 
@@ -174,11 +176,12 @@ public class SamlSubjectConfTest extends AbstractBusClientServerTestBase {
         try {
             port.doubleIt(25);
             fail("Failure expected on a non matching cert (SAML -> TLS)");
-        } catch (javax.xml.ws.soap.SOAPFaultException ex) {
+        } catch (jakarta.xml.ws.soap.SOAPFaultException ex) {
             // expected
         }
 
         ((java.io.Closeable)port).close();
+
         bus.shutdown(true);
     }
 
@@ -213,11 +216,23 @@ public class SamlSubjectConfTest extends AbstractBusClientServerTestBase {
         try {
             port.doubleIt(25);
             fail("Failure expected on no client auth");
-        } catch (javax.xml.ws.soap.SOAPFaultException ex) {
+        } catch (jakarta.xml.ws.soap.SOAPFaultException ex) {
             // expected
         }
 
         ((java.io.Closeable)port).close();
+
+        // Here we try against a service that has explicitly disabled the SAML Subject Confirmation Method requirements,
+        // and so the invocation should pass
+        portQName = new QName(NAMESPACE, "DoubleItSaml2TransportPort2");
+        port = service.getPort(portQName, DoubleItPortType.class);
+        updateAddressPort(port, test.getPort());
+
+        ((BindingProvider)port).getRequestContext().put(SecurityConstants.SAML_CALLBACK_HANDLER, callbackHandler);
+        int result = port.doubleIt(25);
+        assertTrue(result == 50);
+        ((java.io.Closeable)port).close();
+
         bus.shutdown(true);
     }
 
@@ -283,7 +298,7 @@ public class SamlSubjectConfTest extends AbstractBusClientServerTestBase {
         try {
             port.doubleIt(25);
             fail("Failure expected on no client auth");
-        } catch (javax.xml.ws.soap.SOAPFaultException ex) {
+        } catch (jakarta.xml.ws.soap.SOAPFaultException ex) {
             // expected
         }
 
@@ -358,7 +373,7 @@ public class SamlSubjectConfTest extends AbstractBusClientServerTestBase {
         try {
             port.doubleIt(25);
             fail("Failure expected on an unsigned bearer token");
-        } catch (javax.xml.ws.soap.SOAPFaultException ex) {
+        } catch (jakarta.xml.ws.soap.SOAPFaultException ex) {
             // expected
         }
 
@@ -394,14 +409,13 @@ public class SamlSubjectConfTest extends AbstractBusClientServerTestBase {
         try {
             port.doubleIt(25);
             fail("Failure expected on an unknown custom subject confirmation method");
-        } catch (javax.xml.ws.soap.SOAPFaultException ex) {
+        } catch (jakarta.xml.ws.soap.SOAPFaultException ex) {
             // expected
         }
 
         ((java.io.Closeable)port).close();
         bus.shutdown(true);
     }
-
 
 
 }

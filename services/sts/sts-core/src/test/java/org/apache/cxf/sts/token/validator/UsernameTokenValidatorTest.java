@@ -21,11 +21,11 @@ package org.apache.cxf.sts.token.validator;
 import java.security.Principal;
 import java.util.Properties;
 
-import javax.xml.bind.JAXBElement;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
+import jakarta.xml.bind.JAXBElement;
 import org.apache.cxf.helpers.DOMUtils;
 import org.apache.cxf.jaxws.context.WrappedMessageContext;
 import org.apache.cxf.message.MessageImpl;
@@ -48,11 +48,13 @@ import org.apache.wss4j.common.ext.WSSecurityException;
 import org.apache.wss4j.common.principal.CustomTokenPrincipal;
 import org.apache.wss4j.dom.message.token.UsernameToken;
 
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 /**
  * Some unit tests for validating a UsernameToken via the UsernameTokenValidator.
  */
-public class UsernameTokenValidatorTest extends org.junit.Assert {
+public class UsernameTokenValidatorTest {
 
     /**
      * Test a valid UsernameToken with password text
@@ -82,8 +84,8 @@ public class UsernameTokenValidatorTest extends org.junit.Assert {
         // This will fail as there is no password
         TokenValidatorResponse validatorResponse =
                 usernameTokenValidator.validateToken(validatorParameters);
-        assertTrue(validatorResponse != null);
-        assertTrue(validatorResponse.getToken() != null);
+        assertNotNull(validatorResponse);
+        assertNotNull(validatorResponse.getToken());
         assertTrue(validatorResponse.getToken().getState() == STATE.INVALID);
 
         // Add a password
@@ -97,8 +99,8 @@ public class UsernameTokenValidatorTest extends org.junit.Assert {
         usernameToken.getAny().add(passwordType);
 
         validatorResponse = usernameTokenValidator.validateToken(validatorParameters);
-        assertTrue(validatorResponse != null);
-        assertTrue(validatorResponse.getToken() != null);
+        assertNotNull(validatorResponse);
+        assertNotNull(validatorResponse.getToken());
         assertTrue(validatorResponse.getToken().getState() == STATE.VALID);
 
         Principal principal = validatorResponse.getPrincipal();
@@ -143,16 +145,16 @@ public class UsernameTokenValidatorTest extends org.junit.Assert {
         // This will fail as the username is bad
         TokenValidatorResponse validatorResponse =
             usernameTokenValidator.validateToken(validatorParameters);
-        assertTrue(validatorResponse != null);
-        assertTrue(validatorResponse.getToken() != null);
+        assertNotNull(validatorResponse);
+        assertNotNull(validatorResponse.getToken());
         assertTrue(validatorResponse.getToken().getState() == STATE.INVALID);
 
         // This will fail as the password is bad
         username.setValue("alice");
         password.setValue("badpassword");
         validatorResponse = usernameTokenValidator.validateToken(validatorParameters);
-        assertTrue(validatorResponse != null);
-        assertTrue(validatorResponse.getToken() != null);
+        assertNotNull(validatorResponse);
+        assertNotNull(validatorResponse.getToken());
         assertTrue(validatorResponse.getToken().getState() == STATE.INVALID);
     }
 
@@ -218,8 +220,8 @@ public class UsernameTokenValidatorTest extends org.junit.Assert {
 
         TokenValidatorResponse validatorResponse =
                 usernameTokenValidator.validateToken(validatorParameters);
-        assertTrue(validatorResponse != null);
-        assertTrue(validatorResponse.getToken() != null);
+        assertNotNull(validatorResponse);
+        assertNotNull(validatorResponse.getToken());
         assertTrue(validatorResponse.getToken().getState() == STATE.VALID);
 
         Principal principal = validatorResponse.getPrincipal();
@@ -228,8 +230,8 @@ public class UsernameTokenValidatorTest extends org.junit.Assert {
         // Expected failure on a bad password
         password.setValue("badpassword");
         validatorResponse = usernameTokenValidator.validateToken(validatorParameters);
-        assertTrue(validatorResponse != null);
-        assertTrue(validatorResponse.getToken() != null);
+        assertNotNull(validatorResponse);
+        assertNotNull(validatorResponse.getToken());
         assertTrue(validatorResponse.getToken().getState() == STATE.INVALID);
     }
 

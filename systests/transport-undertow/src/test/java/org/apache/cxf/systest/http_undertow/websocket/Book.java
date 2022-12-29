@@ -22,17 +22,17 @@ package org.apache.cxf.systest.http_undertow.websocket;
 import java.util.HashMap;
 import java.util.Map;
 
-import javax.ws.rs.GET;
-import javax.ws.rs.PUT;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
-import javax.xml.bind.annotation.XmlRootElement;
-import javax.xml.bind.annotation.XmlSeeAlso;
-
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.annotation.JsonTypeInfo.As;
 import com.fasterxml.jackson.annotation.JsonTypeInfo.Id;
+
+import jakarta.ws.rs.GET;
+import jakarta.ws.rs.PUT;
+import jakarta.ws.rs.Path;
+import jakarta.ws.rs.PathParam;
+import jakarta.ws.rs.Produces;
+import jakarta.xml.bind.annotation.XmlRootElement;
+import jakarta.xml.bind.annotation.XmlSeeAlso;
 
 @JsonTypeInfo(use = Id.CLASS, include = As.PROPERTY, property = "class")
 @XmlRootElement(name = "Book")
@@ -40,7 +40,7 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo.Id;
 public class Book {
     private String name;
     private long id;
-    private Map<Long, Chapter> chapters = new HashMap<Long, Chapter>();
+    private Map<Long, Chapter> chapters = new HashMap<>();
 
     public Book() {
         init();
@@ -81,26 +81,26 @@ public class Book {
     @Path("chapters/{chapterid}/")
     @Produces("application/xml;charset=ISO-8859-1")
     public Chapter getChapter(@PathParam("chapterid")int chapterid) {
-        return chapters.get(new Long(chapterid));
+        return chapters.get(Long.valueOf(chapterid));
     }
 
     @GET
     @Path("chapters/acceptencoding/{chapterid}/")
     @Produces("application/xml")
     public Chapter getChapterAcceptEncoding(@PathParam("chapterid")int chapterid) {
-        return chapters.get(new Long(chapterid));
+        return chapters.get(Long.valueOf(chapterid));
     }
 
     @GET
     @Path("chapters/badencoding/{chapterid}/")
     @Produces("application/xml;charset=UTF-48")
     public Chapter getChapterBadEncoding(@PathParam("chapterid")int chapterid) {
-        return chapters.get(new Long(chapterid));
+        return chapters.get(Long.valueOf(chapterid));
     }
 
     @Path("chapters/sub/{chapterid}/")
     public Chapter getSubChapter(@PathParam("chapterid")int chapterid) {
-        return chapters.get(new Long(chapterid));
+        return chapters.get(Long.valueOf(chapterid));
     }
 
     @Path("chaptersobject/sub/{chapterid}/")

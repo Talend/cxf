@@ -26,9 +26,9 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-import javax.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.MediaType;
 
-import org.apache.cxf.interceptor.LoggingInInterceptor;
+import org.apache.cxf.ext.logging.LoggingInInterceptor;
 import org.apache.cxf.jaxrs.client.WebClient;
 import org.apache.cxf.jaxrs.provider.json.JsonMapObjectProvider;
 import org.apache.cxf.rs.security.jose.common.JoseType;

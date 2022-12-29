@@ -19,20 +19,18 @@
 package org.apache.cxf.sts.operation;
 
 import java.security.Principal;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
 import javax.security.auth.callback.CallbackHandler;
-import javax.xml.bind.JAXBElement;
 import javax.xml.namespace.QName;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
+import jakarta.xml.bind.JAXBElement;
 import org.apache.cxf.helpers.DOMUtils;
 import org.apache.cxf.jaxws.context.WrappedMessageContext;
 import org.apache.cxf.message.MessageImpl;
@@ -55,7 +53,6 @@ import org.apache.cxf.sts.common.PasswordCallbackHandler;
 import org.apache.cxf.sts.request.KeyRequirements;
 import org.apache.cxf.sts.request.TokenRequirements;
 import org.apache.cxf.sts.service.EncryptionProperties;
-import org.apache.cxf.sts.token.provider.AttributeStatementProvider;
 import org.apache.cxf.sts.token.provider.SAMLTokenProvider;
 import org.apache.cxf.sts.token.provider.TokenProvider;
 import org.apache.cxf.sts.token.provider.TokenProviderParameters;
@@ -64,7 +61,6 @@ import org.apache.cxf.sts.token.provider.jwt.JWTTokenProvider;
 import org.apache.cxf.sts.token.realm.JWTRealmCodec;
 import org.apache.cxf.sts.token.realm.RealmProperties;
 import org.apache.cxf.sts.token.validator.SAMLTokenValidator;
-import org.apache.cxf.sts.token.validator.TokenValidator;
 import org.apache.cxf.sts.token.validator.jwt.JWTTokenValidator;
 import org.apache.cxf.ws.security.sts.provider.STSException;
 import org.apache.cxf.ws.security.sts.provider.model.RequestSecurityTokenResponseType;
@@ -82,10 +78,13 @@ import org.apache.wss4j.common.util.DOM2Writer;
 
 import org.junit.Assert;
 
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+
 /**
  * This tests validating a JWT Token + transforming into a SAML token, and vice versa.
  */
-public class ValidateJWTTransformationTest extends org.junit.Assert {
+public class ValidateJWTTransformationTest {
 
     public static final QName REQUESTED_SECURITY_TOKEN =
         QNameConstants.WS_TRUST_FACTORY.createRequestedSecurityToken(null).getName();
@@ -97,14 +96,12 @@ public class ValidateJWTTransformationTest extends org.junit.Assert {
         TokenValidateOperation validateOperation = new TokenValidateOperation();
 
         // Add Token Validator
-        List<TokenValidator> validatorList = new ArrayList<>();
-        validatorList.add(new JWTTokenValidator());
-        validateOperation.setTokenValidators(validatorList);
+        validateOperation.setTokenValidators(Collections.singletonList(
+            new JWTTokenValidator()));
 
         // Add Token Provider
-        List<TokenProvider> providerList = new ArrayList<>();
-        providerList.add(new SAMLTokenProvider());
-        validateOperation.setTokenProviders(providerList);
+        validateOperation.setTokenProviders(Collections.singletonList(
+            new SAMLTokenProvider()));
 
         // Add STSProperties object
         STSPropertiesMBean stsProperties = new StaticSTSProperties();
@@ -176,17 +173,13 @@ public class ValidateJWTTransformationTest extends org.junit.Assert {
         TokenValidateOperation validateOperation = new TokenValidateOperation();
 
         // Add Token Validator
-        List<TokenValidator> validatorList = new ArrayList<>();
         JWTTokenValidator validator = new JWTTokenValidator();
         validator.setRealmCodec(new CustomJWTRealmCodec());
-        validatorList.add(validator);
-        validateOperation.setTokenValidators(validatorList);
+        validateOperation.setTokenValidators(Collections.singletonList(validator));
 
         // Add Token Provider
-        List<TokenProvider> providerList = new ArrayList<>();
         SAMLTokenProvider samlTokenProvider = new SAMLTokenProvider();
-        providerList.add(samlTokenProvider);
-        validateOperation.setTokenProviders(providerList);
+        validateOperation.setTokenProviders(Collections.singletonList(samlTokenProvider));
 
         // Add STSProperties object
         STSPropertiesMBean stsProperties = new StaticSTSProperties();
@@ -270,14 +263,12 @@ public class ValidateJWTTransformationTest extends org.junit.Assert {
         TokenValidateOperation validateOperation = new TokenValidateOperation();
 
         // Add Token Validator
-        List<TokenValidator> validatorList = new ArrayList<>();
-        validatorList.add(new SAMLTokenValidator());
-        validateOperation.setTokenValidators(validatorList);
+        validateOperation.setTokenValidators(Collections.singletonList(
+            new SAMLTokenValidator()));
 
         // Add Token Provider
-        List<TokenProvider> providerList = new ArrayList<>();
-        providerList.add(new JWTTokenProvider());
-        validateOperation.setTokenProviders(providerList);
+        validateOperation.setTokenProviders(Collections.singletonList(
+            new JWTTokenProvider()));
 
         // Add STSProperties object
         STSPropertiesMBean stsProperties = new StaticSTSProperties();
@@ -361,7 +352,7 @@ public class ValidateJWTTransformationTest extends org.junit.Assert {
 
         assertTrue(tokenProvider.canHandleToken(JWTTokenProvider.JWT_TOKEN_TYPE));
         TokenProviderResponse providerResponse = tokenProvider.createToken(providerParameters);
-        assertTrue(providerResponse != null);
+        assertNotNull(providerResponse);
         assertTrue(providerResponse.getToken() != null && providerResponse.getTokenId() != null);
 
         return providerResponse;
@@ -468,15 +459,13 @@ public class ValidateJWTTransformationTest extends org.junit.Assert {
         return properties;
     }
 
-    private Element createSAMLAssertion(
+    private static Element createSAMLAssertion(
         String tokenType, Crypto crypto, String signatureUsername, CallbackHandler callbackHandler
     ) throws WSSecurityException {
 
         SAMLTokenProvider samlTokenProvider = new SAMLTokenProvider();
-        List<AttributeStatementProvider> customProviderList =
-            new ArrayList<>();
-        customProviderList.add(new ClaimsAttributeStatementProvider());
-        samlTokenProvider.setAttributeStatementProviders(customProviderList);
+        samlTokenProvider.setAttributeStatementProviders(Collections.singletonList(
+            new ClaimsAttributeStatementProvider()));
 
         TokenProviderParameters providerParameters =
             createProviderParameters(
@@ -497,13 +486,13 @@ public class ValidateJWTTransformationTest extends org.junit.Assert {
         providerParameters.setRequestedSecondaryClaims(requestedClaims);
 
         TokenProviderResponse providerResponse = samlTokenProvider.createToken(providerParameters);
-        assertTrue(providerResponse != null);
+        assertNotNull(providerResponse);
         assertTrue(providerResponse.getToken() != null && providerResponse.getTokenId() != null);
 
         return (Element)providerResponse.getToken();
     }
 
-    private TokenProviderParameters createProviderParameters(
+    private static TokenProviderParameters createProviderParameters(
         String tokenType, String keyType, Crypto crypto,
         String signatureUsername, CallbackHandler callbackHandler
     ) throws WSSecurityException {

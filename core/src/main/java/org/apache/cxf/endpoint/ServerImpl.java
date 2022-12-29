@@ -30,6 +30,7 @@ import org.apache.cxf.Bus;
 import org.apache.cxf.BusException;
 import org.apache.cxf.binding.BindingFactory;
 import org.apache.cxf.common.logging.LogUtils;
+import org.apache.cxf.common.logging.RegexLoggingFilter;
 import org.apache.cxf.management.InstrumentationManager;
 import org.apache.cxf.service.model.EndpointInfo;
 import org.apache.cxf.transport.Destination;
@@ -51,6 +52,7 @@ public class ServerImpl implements Server {
     private InstrumentationManager iMgr;
     private ManagedEndpoint mep;
     private boolean stopped = true;
+    private boolean destroyDest = true;
 
     public ServerImpl(Bus bus,
                       Endpoint endpoint,
@@ -82,10 +84,18 @@ public class ServerImpl implements Server {
         }
 
         destination = destinationFactory.getDestination(ei, bus);
-        LOG.info("Setting the server's publish address to be " + ei.getAddress());
+        String wantFilter = ei.getAddress();
+        
+        if (wantFilter != null && wantFilter.startsWith("jms")) {
+            RegexLoggingFilter filter = new RegexLoggingFilter();
+            filter.setPattern("jms(.*?)password=+([^ ]+)");
+            filter.setGroup(2);
+            wantFilter = filter.filter(wantFilter).toString();
+        }
+        LOG.info("Setting the server's publish address to be " + wantFilter);
         serverRegistry = bus.getExtension(ServerRegistry.class);
 
-        mep = createManagedEndpoint();
+        mep = new ManagedEndpoint(bus, endpoint, this);
 
         slcMgr = bus.getExtension(ServerLifeCycleManager.class);
         if (slcMgr != null) {
@@ -102,10 +112,6 @@ public class ServerImpl implements Server {
         }
     }
 
-    private ManagedEndpoint createManagedEndpoint() {
-        return new ManagedEndpoint(bus, endpoint, this);
-    }
-
     public Destination getDestination() {
         return destination;
     }
@@ -120,7 +126,14 @@ public class ServerImpl implements Server {
         }
         LOG.fine("Server is starting.");
 
-        bindingFactory.addListener(destination, endpoint);
+        try {
+            bindingFactory.addListener(destination, endpoint);
+        } catch (ListenerRegistrationException e) {
+            //this destination is used by another endpoint with same endpoint address
+            //so shouldn't be destroyed by this server
+            this.destroyDest = false;
+            throw e;
+        }
 
         // register the active server to run
         if (null != serverRegistry) {
@@ -178,8 +191,10 @@ public class ServerImpl implements Server {
 
     public void destroy() {
         stop();
-        // we should shutdown the destination here
-        getDestination().shutdown();
+        if (this.destroyDest) {
+            //we should shutdown the destination here
+            getDestination().shutdown();
+        }
 
         if (null != serverRegistry) {
             LOG.fine("unregister the server to serverRegistry ");

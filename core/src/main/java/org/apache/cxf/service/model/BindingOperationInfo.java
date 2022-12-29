@@ -62,7 +62,7 @@ public class BindingOperationInfo extends AbstractPropertiesHolder {
 
         Collection<FaultInfo> of = opinfo.getFaults();
         if (of != null && !of.isEmpty()) {
-            faults = new ConcurrentHashMap<QName, BindingFaultInfo>(of.size(), 0.75f, 2);
+            faults = new ConcurrentHashMap<>(of.size(), 0.75f, 2);
             for (FaultInfo fault : of) {
                 faults.put(fault.getFaultName(), new BindingFaultInfo(fault, this));
             }
@@ -135,9 +135,9 @@ public class BindingOperationInfo extends AbstractPropertiesHolder {
 
     @Override
     public String toString() {
-        return new StringBuilder().append("[BindingOperationInfo: ")
+        return new StringBuilder("[BindingOperationInfo: ")
             .append(getName() == null ? "" : getName())
-            .append("]").toString();
+            .append(']').toString();
     }
 
 

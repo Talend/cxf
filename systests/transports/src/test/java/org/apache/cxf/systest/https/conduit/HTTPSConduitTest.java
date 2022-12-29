@@ -42,7 +42,6 @@ import org.apache.cxf.BusFactory;
 import org.apache.cxf.bus.spring.BusApplicationContext;
 import org.apache.cxf.bus.spring.SpringBusFactory;
 import org.apache.cxf.common.classloader.ClassLoaderUtils;
-import org.apache.cxf.common.util.Base64Utility;
 import org.apache.cxf.configuration.jsse.TLSClientParameters;
 import org.apache.cxf.configuration.security.AuthorizationPolicy;
 import org.apache.cxf.endpoint.Client;
@@ -54,6 +53,7 @@ import org.apache.cxf.transport.http.HTTPConduit;
 import org.apache.cxf.transport.http.MessageTrustDecider;
 import org.apache.cxf.transport.http.URLConnectionInfo;
 import org.apache.cxf.transport.http.UntrustedURLConnectionIOException;
+import org.apache.cxf.transport.http.auth.DefaultBasicAuthSupplier;
 import org.apache.cxf.transport.http.auth.HttpAuthHeader;
 import org.apache.cxf.transport.http.auth.HttpAuthSupplier;
 import org.apache.cxf.transport.https.HttpsURLConnectionInfo;
@@ -65,6 +65,11 @@ import org.springframework.context.ApplicationContext;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 /**
  * This class tests several issues and Conduit policies based
@@ -96,7 +101,7 @@ public class HTTPSConduitTest extends AbstractBusClientServerTestBase {
     private static TLSClientParameters tlsClientParameters = new TLSClientParameters();
     private static List<String> servers = new ArrayList<>();
 
-    private static Map<String, String> addrMap = new TreeMap<String, String>();
+    private static Map<String, String> addrMap = new TreeMap<>();
 
     static {
         try (InputStream key = ClassLoaderUtils.getResourceAsStream("keys/Morpit.jks", HTTPSConduitTest.class);
@@ -246,11 +251,11 @@ public class HTTPSConduitTest extends AbstractBusClientServerTestBase {
 
     //methods that a subclass can override to inject a Proxy into the flow
     //and assert the proxy was appropriately called
-    public void configureProxy(Client c) {
+    protected void configureProxy(Client c) {
     }
-    public void resetProxyCount() {
+    protected void resetProxyCount() {
     }
-    public void assertProxyRequestCount(int i) {
+    protected void assertProxyRequestCount(int i) {
     }
 
     /**
@@ -319,8 +324,8 @@ public class HTTPSConduitTest extends AbstractBusClientServerTestBase {
             (HTTPConduit) client.getConduit();
 
         HTTPClientPolicy httpClientPolicy = http.getClient();
-        assertEquals("the httpClientPolicy's autoRedirect should be true",
-                     true, httpClientPolicy.isAutoRedirect());
+        assertTrue("the httpClientPolicy's autoRedirect should be true",
+                     httpClientPolicy.isAutoRedirect());
         TLSClientParameters tlsParameters = http.getTlsClientParameters();
         assertNotNull("the http conduit's tlsParameters should not be null", tlsParameters);
 
@@ -476,7 +481,7 @@ public class HTTPSConduitTest extends AbstractBusClientServerTestBase {
             for (int i = 0; i < trustName.length; i++) {
                 sb.append("\"OU=");
                 sb.append(trustName[i]);
-                sb.append("\"");
+                sb.append('"');
                 if (i < trustName.length - 1) {
                     sb.append(", ");
                 }
@@ -676,9 +681,7 @@ public class HTTPSConduitTest extends AbstractBusClientServerTestBase {
         }
 
         private String createUserPass(String usr, String pwd) {
-            String userpass = usr + ":" + pwd;
-            String token = Base64Utility.encode(userpass.getBytes());
-            return "Basic " + token;
+            return DefaultBasicAuthSupplier.getBasicAuthHeader(usr, pwd);
         }
 
         public boolean requiresRequestCaching() {

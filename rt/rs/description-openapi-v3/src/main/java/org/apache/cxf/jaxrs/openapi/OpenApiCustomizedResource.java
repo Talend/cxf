@@ -18,25 +18,31 @@
  */
 package org.apache.cxf.jaxrs.openapi;
 
-import javax.servlet.ServletConfig;
-import javax.ws.rs.GET;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.HttpHeaders;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.UriInfo;
+import java.util.Objects;
+
+import jakarta.servlet.ServletConfig;
+import jakarta.ws.rs.GET;
+import jakarta.ws.rs.Path;
+import jakarta.ws.rs.PathParam;
+import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.core.Application;
+import jakarta.ws.rs.core.Context;
+import jakarta.ws.rs.core.HttpHeaders;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.Response;
+import jakarta.ws.rs.core.UriInfo;
 
 import io.swagger.v3.jaxrs2.integration.ServletConfigContextUtils;
-import io.swagger.v3.jaxrs2.integration.resources.OpenApiResource;
+import io.swagger.v3.jaxrs2.integration.resources.BaseOpenApiResource;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.integration.GenericOpenApiContext;
 import io.swagger.v3.oas.integration.OpenApiContextLocator;
 import io.swagger.v3.oas.integration.api.OpenAPIConfiguration;
 import io.swagger.v3.oas.integration.api.OpenApiContext;
+import io.swagger.v3.oas.models.OpenAPI;
 
-public class OpenApiCustomizedResource extends OpenApiResource {
+@Path("/openapi.{type:json|yaml}")
+public class OpenApiCustomizedResource extends BaseOpenApiResource {
 
     private final OpenApiCustomizer customizer;
 
@@ -47,8 +53,8 @@ public class OpenApiCustomizedResource extends OpenApiResource {
     @GET
     @Produces({ MediaType.APPLICATION_JSON, "application/yaml" })
     @Operation(hidden = true)
-    public Response getOpenApi(@Context ServletConfig config, @Context HttpHeaders headers,
-            @Context UriInfo uriInfo, @PathParam("type") String type) throws Exception {
+    public Response getOpenApi(@Context Application app, @Context ServletConfig config, 
+            @Context HttpHeaders headers, @Context UriInfo uriInfo, @PathParam("type") String type) throws Exception {
 
         if (customizer != null) {
             final OpenAPIConfiguration configuration = customizer.customize(getOpenApiConfiguration());
@@ -58,14 +64,50 @@ public class OpenApiCustomizedResource extends OpenApiResource {
             // changes won't be taken into account (due to the deep copying rather than reference 
             // passing). In order to reflect any changes which customization may do, we have to 
             // update reader's configuration directly.
-            final String ctxId = ServletConfigContextUtils.getContextIdFromServletConfig(config);
-            final OpenApiContext ctx = OpenApiContextLocator.getInstance().getOpenApiContext(ctxId);
+            OpenApiContext ctx = getOpenApiContext(config);
+            if (ctx == null) {
+                // If there is no context associated with the servlet config, let us
+                // try to fallback to default one. 
+                ctx = getOpenApiContext(null);
+            }
+            
             if (ctx instanceof GenericOpenApiContext<?>) {
                 ((GenericOpenApiContext<?>) ctx).getOpenApiReader().setConfiguration(configuration);
-                customizer.customize(ctx.read());
+                
+                final OpenAPI oas = ctx.read();
+                customizer.customize(oas);
+                
+                if (!Objects.equals(configuration.getOpenAPI().getInfo(), oas.getInfo())) {
+                    configuration.getOpenAPI().setInfo(oas.getInfo());
+                }
+                
+                if (!Objects.equals(configuration.getOpenAPI().getComponents(), oas.getComponents())) {
+                    configuration.getOpenAPI().setComponents(oas.getComponents());
+                }
+                
+                if (!Objects.equals(configuration.getOpenAPI().getExternalDocs(), oas.getExternalDocs())) {
+                    configuration.getOpenAPI().setExternalDocs(oas.getExternalDocs());
+                }
+                
+                if (!Objects.equals(configuration.getOpenAPI().getPaths(), oas.getPaths())) {
+                    configuration.getOpenAPI().setPaths(oas.getPaths());
+                }
+                
+                if (!Objects.equals(configuration.getOpenAPI().getTags(), oas.getTags())) {
+                    configuration.getOpenAPI().setTags(oas.getTags());
+                }
+                
+                if (!Objects.equals(configuration.getOpenAPI().getExtensions(), oas.getExtensions())) {
+                    configuration.getOpenAPI().setExtensions(oas.getExtensions());
+                }
             }
         }
 
-        return super.getOpenApi(headers, uriInfo, type);
+        return super.getOpenApi(headers, config, app, uriInfo, type);
+    }
+
+    private OpenApiContext getOpenApiContext(ServletConfig config) {
+        final String ctxId = ServletConfigContextUtils.getContextIdFromServletConfig(config);
+        return OpenApiContextLocator.getInstance().getOpenApiContext(ctxId);
     }
 }

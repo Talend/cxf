@@ -29,28 +29,33 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import javax.servlet.ServletContext;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.ws.rs.Consumes;
-import javax.ws.rs.GET;
-import javax.ws.rs.HEAD;
-import javax.ws.rs.NameBinding;
-import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
-import javax.ws.rs.core.Application;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.HttpHeaders;
-import javax.ws.rs.core.UriInfo;
-
+import jakarta.servlet.ServletContext;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import jakarta.ws.rs.Consumes;
+import jakarta.ws.rs.GET;
+import jakarta.ws.rs.HEAD;
+import jakarta.ws.rs.NameBinding;
+import jakarta.ws.rs.Path;
+import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.core.Application;
+import jakarta.ws.rs.core.Context;
+import jakarta.ws.rs.core.HttpHeaders;
+import jakarta.ws.rs.core.UriInfo;
 import org.apache.cxf.jaxrs.JAXRSServerFactoryBean;
 import org.apache.cxf.jaxrs.utils.ResourceUtils;
 
 import org.junit.After;
-import org.junit.Assert;
 import org.junit.Test;
 
-public class ClassResourceInfoTest extends Assert {
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNotSame;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertSame;
+import static org.junit.Assert.assertTrue;
+
+public class ClassResourceInfoTest {
 
     @Path("/bar")
     @Produces("test/bar")
@@ -136,7 +141,7 @@ public class ClassResourceInfoTest extends Assert {
     public void testGetHttpContexts() {
         ClassResourceInfo c = new ClassResourceInfo(TestClass.class, true);
         List<Field> fields = c.getContextFields();
-        Set<Class<?>> clses = new HashSet<Class<?>>();
+        Set<Class<?>> clses = new HashSet<>();
         for (Field f : fields) {
             clses.add(f.getType());
         }
@@ -266,7 +271,7 @@ public class ClassResourceInfoTest extends Assert {
     public class TestApplication extends Application {
         @Override
         public Set<Class<?>> getClasses() {
-            Set<Class<?>> classes = new HashSet<Class<?>>();
+            Set<Class<?>> classes = new HashSet<>();
             classes.add(TestClass.class);
             return classes;
         }

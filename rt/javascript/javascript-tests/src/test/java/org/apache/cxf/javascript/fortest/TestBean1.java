@@ -21,9 +21,9 @@ package org.apache.cxf.javascript.fortest;
 
 import java.util.Arrays;
 
-import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlRootElement;
-import javax.xml.bind.annotation.XmlType;
+import jakarta.xml.bind.annotation.XmlElement;
+import jakarta.xml.bind.annotation.XmlRootElement;
+import jakarta.xml.bind.annotation.XmlType;
 
 /**
  * Bean with a selection of elements suitable for testing the JavaScript client.
@@ -127,7 +127,7 @@ public class TestBean1 {
 
     @Override
     public String toString() {
-        StringBuilder builder = new StringBuilder();
+        StringBuilder builder = new StringBuilder(256);
         builder.append("TestBean1");
         builder.append(" stringItem ");
         builder.append(stringItem == null ? "Null" : stringItem);
@@ -140,7 +140,7 @@ public class TestBean1 {
             builder.append("Null");
         } else {
             for (byte b : base64Item) {
-                builder.append(" ");
+                builder.append(' ');
                 builder.append(Integer.toHexString(b));
             }
         }
@@ -152,7 +152,7 @@ public class TestBean1 {
             builder.append("Null");
         } else {
             for (int i : optionalIntArrayItem) {
-                builder.append(" ");
+                builder.append(' ');
                 builder.append(i);
             }
         }
@@ -168,7 +168,7 @@ public class TestBean1 {
         } else {
             builder.append(beanTwoNotRequiredItem.toString());
         }
-        builder.append(" " + enumeration);
+        builder.append(' ').append(enumeration);
 
         return builder.toString();
     }

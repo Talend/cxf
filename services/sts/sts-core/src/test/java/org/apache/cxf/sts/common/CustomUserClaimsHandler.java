@@ -18,8 +18,7 @@
  */
 package org.apache.cxf.sts.common;
 
-import java.net.URI;
-import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import org.apache.cxf.rt.security.claims.Claim;
@@ -35,14 +34,11 @@ import org.apache.cxf.sts.claims.ProcessedClaimCollection;
  */
 public class CustomUserClaimsHandler implements ClaimsHandler {
 
-    private static List<URI> knownURIs = new ArrayList<>();
+    private static final List<String> SUPPORTED_CLAIM_TYPES = Collections.singletonList(
+        ClaimTypes.FIRSTNAME.toString());
 
-    static {
-        knownURIs.add(ClaimTypes.FIRSTNAME);
-    }
-
-    public List<URI> getSupportedClaimTypes() {
-        return knownURIs;
+    public List<String> getSupportedClaimTypes() {
+        return SUPPORTED_CLAIM_TYPES;
     }
 
     public ProcessedClaimCollection retrieveClaimValues(
@@ -53,11 +49,11 @@ public class CustomUserClaimsHandler implements ClaimsHandler {
             for (Claim requestClaim : claims) {
                 ProcessedClaim claim = new ProcessedClaim();
                 claim.setClaimType(requestClaim.getClaimType());
-                if (ClaimTypes.FIRSTNAME.equals(requestClaim.getClaimType())) {
+                if (ClaimTypes.FIRSTNAME.toString().equals(requestClaim.getClaimType())) {
 
-                    if (parameters.getPrincipal().getName().equalsIgnoreCase("alice")) {
+                    if ("alice".equalsIgnoreCase(parameters.getPrincipal().getName())) {
                         claim.addValue("aliceClaim");
-                    } else if (parameters.getPrincipal().getName().equalsIgnoreCase("bob")) {
+                    } else if ("bob".equalsIgnoreCase(parameters.getPrincipal().getName())) {
                         claim.addValue("bobClaim");
                     }
                 }

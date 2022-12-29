@@ -19,6 +19,7 @@
 package org.apache.cxf.wsn;
 
 import java.io.ByteArrayInputStream;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.ServerSocket;
@@ -32,10 +33,15 @@ import java.util.NoSuchElementException;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
-import javax.xml.bind.JAXBElement;
 import javax.xml.namespace.QName;
 
-import org.apache.activemq.ActiveMQConnectionFactory;
+import jakarta.xml.bind.JAXBElement;
+import org.apache.activemq.artemis.api.core.SimpleString;
+import org.apache.activemq.artemis.core.config.Configuration;
+import org.apache.activemq.artemis.core.config.impl.ConfigurationImpl;
+import org.apache.activemq.artemis.core.server.ActiveMQServer;
+import org.apache.activemq.artemis.core.server.impl.ActiveMQServerImpl;
+import org.apache.activemq.artemis.jms.client.ActiveMQConnectionFactory;
 import org.apache.cxf.wsn.client.Consumer;
 import org.apache.cxf.wsn.client.CreatePullPoint;
 import org.apache.cxf.wsn.client.NotificationBroker;
@@ -49,15 +55,15 @@ import org.apache.cxf.wsn.types.CustomType;
 import org.apache.cxf.wsn.util.WSNHelper;
 import org.oasis_open.docs.wsn.b_2.NotificationMessageHolderType;
 import org.oasis_open.docs.wsn.b_2.TopicExpressionType;
-
 import org.junit.After;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
-
-public abstract class WsnBrokerTest extends Assert {
+public abstract class WsnBrokerTest {
     private boolean useExternal;
 
 
@@ -70,6 +76,7 @@ public abstract class WsnBrokerTest extends Assert {
 
     private int port1 = 8182;
     private int port2;
+    private ActiveMQServer broker;
 
     protected abstract String getProviderImpl();
 
@@ -78,16 +85,19 @@ public abstract class WsnBrokerTest extends Assert {
     public void setUp() throws Exception {
         loader = Thread.currentThread().getContextClassLoader();
         String impl = getProviderImpl();
+        System.setProperty("jakarta.xml.ws.spi.Provider", impl);
         Thread.currentThread()
             .setContextClassLoader(new FakeClassLoader(impl));
         WSNHelper.getInstance().setClassLoader(false);
 
-        System.setProperty("javax.xml.ws.spi.Provider", impl);
+
 
         port2 = getFreePort();
         if (!useExternal) {
             port1 = getFreePort();
             int brokerPort = getFreePort();
+            broker = new ActiveMQServerImpl(getConfiguration(brokerPort));
+            broker.start();
             activemq = new ActiveMQConnectionFactory("vm:(broker:(tcp://localhost:" + brokerPort
                                                      + ")?persistent=false)");
 
@@ -118,7 +128,8 @@ public abstract class WsnBrokerTest extends Assert {
             notificationBrokerServer.destroy();
             createPullPointServer.destroy();
         }
-        System.clearProperty("javax.xml.ws.spi.Provider");
+        broker.stop();
+        System.clearProperty("jakarta.xml.ws.spi.Provider");
         Thread.currentThread()
             .setContextClassLoader(loader);
         WSNHelper.clearInstance();
@@ -256,6 +267,7 @@ public abstract class WsnBrokerTest extends Assert {
         publisher.stop();
         consumer.stop();
     }
+
     @Test
     public void testNullPublisherReference() throws Exception {
         TestConsumer consumerCallback = new TestConsumer();
@@ -282,6 +294,7 @@ public abstract class WsnBrokerTest extends Assert {
         publisher.stop();
         consumer.stop();
     }
+
     @Test
     public void testPublisherOnDemand() throws Exception {
         TestConsumer consumerCallback = new TestConsumer();
@@ -383,14 +396,14 @@ public abstract class WsnBrokerTest extends Assert {
         }
         @Override
         public InputStream getResourceAsStream(String name) {
-            if ("META-INF/services/javax.xml.ws.spi.Provider".equals(name)) {
+            if ("META-INF/services/jakarta.xml.ws.spi.Provider".equals(name)) {
                 return provider != null ? new ByteArrayInputStream(provider.getBytes()) : null;
             }
             return super.getResourceAsStream(name);
         }
         @Override
         public Enumeration<URL> getResources(String name) throws IOException {
-            if ("META-INF/services/javax.xml.ws.spi.Provider".equals(name)) {
+            if ("META-INF/services/jakarta.xml.ws.spi.Provider".equals(name)) {
                 return new Enumeration<URL>() {
                     public boolean hasMoreElements() {
                         return false;
@@ -404,4 +417,19 @@ public abstract class WsnBrokerTest extends Assert {
         }
     }
 
+    private static Configuration getConfiguration(int port) {
+        try {
+            final Configuration config = new ConfigurationImpl()
+                .setManagementNotificationAddress(SimpleString.toSimpleString("activemq.notifications"))
+                .setSecurityEnabled(false)
+                .setPersistenceEnabled(false)
+                .addAcceptorConfiguration("vm", "vm://0")
+                .addAcceptorConfiguration("tcp", "tcp://localhost:" + port);
+            
+            config.setBrokerInstance(new File("./target/activemq-data"));
+            return config;
+        } catch (final Exception ex) {
+            throw new RuntimeException(ex);
+        }
+    }
 }

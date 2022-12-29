@@ -33,8 +33,7 @@ import java.util.Properties;
 import java.util.Random;
 import java.util.logging.Logger;
 
-import javax.xml.ws.BindingProvider;
-
+import jakarta.xml.ws.BindingProvider;
 import org.apache.cxf.common.logging.LogUtils;
 import org.apache.cxf.common.util.ReflectionUtil;
 import org.apache.cxf.endpoint.Client;
@@ -189,10 +188,8 @@ public final class TestUtil {
         }
         while (p == null) {
             int pn = portNum++;
-            try {
+            try (ServerSocket sock = new ServerSocket(pn)) {
                 //make sure the port can be opened.   Something MIGHT be running on it.
-                ServerSocket sock = new ServerSocket(pn);
-                sock.close();
                 p = Integer.toString(pn);
                 LOG.fine("Setting port for " + fullName + " to " + p);
             } catch (IOException ex) {

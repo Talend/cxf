@@ -24,11 +24,11 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.JAXBElement;
-import javax.xml.bind.JAXBException;
 import javax.xml.stream.XMLStreamReader;
 
+import jakarta.xml.bind.JAXBContext;
+import jakarta.xml.bind.JAXBElement;
+import jakarta.xml.bind.JAXBException;
 import org.apache.cxf.attachment.AttachmentDeserializer;
 import org.apache.cxf.attachment.AttachmentSerializer;
 import org.apache.cxf.common.util.PackageUtils;
@@ -65,7 +65,7 @@ public final class PersistenceUtils {
     public SequenceAcknowledgement deserialiseAcknowledgment(InputStream is) {
         Object obj = null;
         XMLStreamReader reader = StaxUtils.createXMLStreamReader(is);
-        try {
+        try {  //NOPMD
             obj = getContext().createUnmarshaller().unmarshal(reader);
             if (obj instanceof JAXBElement<?>) {
                 JAXBElement<?> el = (JAXBElement<?>)obj;

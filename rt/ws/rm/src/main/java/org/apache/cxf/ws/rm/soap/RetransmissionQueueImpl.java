@@ -109,10 +109,8 @@ public class RetransmissionQueueImpl implements RetransmissionQueue {
 
     private static final Logger LOG = LogUtils.getL7dLogger(RetransmissionQueueImpl.class);
 
-    private Map<String, List<ResendCandidate>> candidates =
-        new HashMap<String, List<ResendCandidate>>();
-    private Map<String, List<ResendCandidate>> suspendedCandidates =
-        new HashMap<String, List<ResendCandidate>>();
+    private final Map<String, List<ResendCandidate>> candidates = new HashMap<>();
+    private final Map<String, List<ResendCandidate>> suspendedCandidates = new HashMap<>();
     private Resender resender;
     private RMManager manager;
 
@@ -151,7 +149,7 @@ public class RetransmissionQueueImpl implements RetransmissionQueue {
      * @return true if there are no unacknowledged messages in the queue
      */
     public boolean isEmpty() {
-        return 0 == getUnacknowledged().size();
+        return getUnacknowledged().isEmpty();
     }
 
     /**
@@ -330,7 +328,7 @@ public class RetransmissionQueueImpl implements RetransmissionQueue {
     /**
      * Accepts a new resend candidate.
      *
-     * @param ctx the message context.
+     * @param message the message object.
      * @return ResendCandidate
      */
     protected ResendCandidate cacheUnacknowledged(Message message) {
@@ -339,7 +337,7 @@ public class RetransmissionQueueImpl implements RetransmissionQueue {
         Identifier sid = st.getIdentifier();
         String key = sid.getValue();
 
-        ResendCandidate candidate = null;
+        final ResendCandidate candidate;
 
         synchronized (this) {
             List<ResendCandidate> sequenceCandidates = getSequenceCandidates(key);
@@ -420,7 +418,7 @@ public class RetransmissionQueueImpl implements RetransmissionQueue {
         private boolean includeAckRequested;
 
         /**
-         * @param ctx message context for the unacked message
+         * @param m the unacked message
          */
         protected ResendCandidate(Message m) {
             message = m;
@@ -664,7 +662,7 @@ public class RetransmissionQueueImpl implements RetransmissionQueue {
          * Resend mechanics.
          *
          * @param message
-         * @param if a AckRequest should be included
+         * @param requestAcknowledge if a AckRequest should be included
          */
         void resend(Message message, boolean requestAcknowledge);
     }
@@ -712,7 +710,7 @@ public class RetransmissionQueueImpl implements RetransmissionQueue {
         XMLStreamReader filteredReader = new PartialXMLStreamReader(xmlReader, version.getBody());
         Node nd = message.getContent(Node.class);
         W3CDOMStreamWriter writer = message.get(W3CDOMStreamWriter.class);
-        Document doc = null;
+        final Document doc;
         if (writer != null) {
             StaxUtils.copy(filteredReader, writer);
             doc = writer.getDocument();
@@ -743,7 +741,7 @@ public class RetransmissionQueueImpl implements RetransmissionQueue {
 
     private void doResend(SoapMessage message) {
         InputStream is = null;
-        try {
+        try {   //NOPMD
 
             // initialize copied interceptor chain for message
             PhaseInterceptorChain retransmitChain = manager.getRetransmitChain(message);
@@ -828,7 +826,7 @@ public class RetransmissionQueueImpl implements RetransmissionQueue {
                 if (incept.getClass().getName().startsWith("org.apache.cxf.jaxws.interceptors")) {
                     retransmitChain.remove(incept);
                 } else if (incept instanceof PhaseInterceptor
-                    && (((PhaseInterceptor<?>)incept).getPhase() == Phase.MARSHAL)) {
+                    && Phase.MARSHAL.equals(((PhaseInterceptor<?>)incept).getPhase())) {
 
                     // remove any interceptors from the marshal phase
                     retransmitChain.remove(incept);
@@ -865,7 +863,6 @@ public class RetransmissionQueueImpl implements RetransmissionQueue {
                 SequenceType seq = rmps.getSequence();
                 LOG.log(Level.INFO, "Retransmitted message " + seq.getMessageNumber() + " in sequence "
                     + seq.getIdentifier().getValue());
-                rmps = new RMProperties();
             }
 
         } catch (Exception ex) {
@@ -894,7 +891,7 @@ public class RetransmissionQueueImpl implements RetransmissionQueue {
         DeferredConduitSelector cs = new DeferredConduitSelector() {
             @Override
             public synchronized Conduit selectConduit(Message message) {
-                Conduit conduit = null;
+                final Conduit conduit;
                 EndpointInfo endpointInfo = endpoint.getEndpointInfo();
                 EndpointReferenceType original = endpointInfo.getTarget();
                 try {

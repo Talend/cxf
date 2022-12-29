@@ -56,11 +56,11 @@ import java.security.SecureClassLoader;
  * classloader. Take as example this filter set:
  *
  * <pre>
- * [&quot;com.iona.&quot;, &quot;javax.servlet.jsp.&quot;]
+ * [&quot;com.iona.&quot;, &quot;jakarta.servlet.jsp.&quot;]
  * </pre>
  *
  * This will allow requests to any class/resource staring with com.iona. or
- * javax.servlet.jsp. through to the parent classloader and block all other
+ * jakarta.servlet.jsp. through to the parent classloader and block all other
  * requests.
  * <P>
  * A very common set of filters would be a set that allows nothing through
@@ -132,7 +132,7 @@ public class FireWallClassLoader extends SecureClassLoader {
             javaCovered = true;
         } else {
             for (int i = 0; i < this.filters.length; i++) {
-                if (this.filters[i].equals("java.")) {
+                if ("java.".equals(this.filters[i])) {
                     javaCovered = true;
                 }
             }

@@ -26,15 +26,15 @@ import java.util.HashMap;
 import java.util.Map;
 
 import javax.security.auth.callback.CallbackHandler;
-import javax.ws.rs.ProcessingException;
-import javax.ws.rs.WebApplicationException;
-import javax.ws.rs.core.Form;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
+import jakarta.ws.rs.ProcessingException;
+import jakarta.ws.rs.WebApplicationException;
+import jakarta.ws.rs.core.Form;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.Response;
 import org.apache.cxf.Bus;
 import org.apache.cxf.bus.spring.SpringBusFactory;
 import org.apache.cxf.common.util.Base64Exception;
@@ -65,6 +65,10 @@ import org.apache.wss4j.common.util.DOM2Writer;
 
 import org.junit.BeforeClass;
 import org.junit.Test;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 public class JAXRSSamlTest extends AbstractBusClientServerTestBase {
     public static final String PORT = BookServerSaml.PORT;
@@ -160,7 +164,7 @@ public class JAXRSSamlTest extends AbstractBusClientServerTestBase {
     @Test
     public void testGetBookSAMLTokenInForm() throws Exception {
         String address = "https://localhost:" + PORT + "/samlform/bookstore/books";
-        FormEncodingProvider<Form> formProvider = new FormEncodingProvider<Form>();
+        FormEncodingProvider<Form> formProvider = new FormEncodingProvider<>();
         formProvider.setExpectedEncoded(true);
         WebClient wc = createWebClient(address, new SamlFormOutInterceptor(), formProvider);
 
@@ -226,7 +230,7 @@ public class JAXRSSamlTest extends AbstractBusClientServerTestBase {
     @Test
     public void testGetBookPreviousSAMLTokenInForm() throws Exception {
         String address = "https://localhost:" + PORT + "/samlform/bookstore/books";
-        FormEncodingProvider<Form> formProvider = new FormEncodingProvider<Form>();
+        FormEncodingProvider<Form> formProvider = new FormEncodingProvider<>();
         formProvider.setExpectedEncoded(true);
         WebClient wc = createWebClientForExistingToken(address, new SamlFormOutInterceptor(),
                                        formProvider);

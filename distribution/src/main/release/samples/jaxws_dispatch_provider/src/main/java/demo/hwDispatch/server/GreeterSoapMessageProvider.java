@@ -20,12 +20,12 @@
 package demo.hwDispatch.server;
 import java.io.InputStream;
 
-import javax.xml.soap.MessageFactory;
-import javax.xml.soap.SOAPMessage;
-import javax.xml.ws.Provider;
-import javax.xml.ws.Service;
-import javax.xml.ws.ServiceMode;
-import javax.xml.ws.WebServiceProvider;
+import jakarta.xml.soap.MessageFactory;
+import jakarta.xml.soap.SOAPMessage;
+import jakarta.xml.ws.Provider;
+import jakarta.xml.ws.Service;
+import jakarta.xml.ws.ServiceMode;
+import jakarta.xml.ws.WebServiceProvider;
 
 @WebServiceProvider(portName = "SoapPort1", serviceName = "SOAPService1",
                       targetNamespace = "http://apache.org/hello_world_soap_http",
@@ -42,9 +42,9 @@ public class GreeterSoapMessageProvider implements Provider<SOAPMessage> {
         try {
             System.out.println("Incoming Client Request as a SOAPMessage");
             MessageFactory factory = MessageFactory.newInstance();
-            InputStream is = getClass().getResourceAsStream("/GreetMeDocLiteralResp1.xml");
-            response = factory.createMessage(null, is);
-            is.close();
+            try (InputStream is = getClass().getResourceAsStream("/GreetMeDocLiteralResp1.xml")) {
+                response = factory.createMessage(null, is);
+            }
         } catch (Exception ex) {
             ex.printStackTrace();
         }

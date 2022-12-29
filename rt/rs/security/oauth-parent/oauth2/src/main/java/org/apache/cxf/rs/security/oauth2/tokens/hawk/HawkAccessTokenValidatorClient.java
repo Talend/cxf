@@ -21,8 +21,7 @@ package org.apache.cxf.rs.security.oauth2.tokens.hawk;
 import java.util.List;
 import java.util.Map;
 
-import javax.ws.rs.core.MultivaluedMap;
-
+import jakarta.ws.rs.core.MultivaluedMap;
 import org.apache.cxf.jaxrs.ext.MessageContext;
 import org.apache.cxf.jaxrs.impl.MetadataMap;
 import org.apache.cxf.rs.security.oauth2.common.AccessTokenValidation;
@@ -39,7 +38,7 @@ public class HawkAccessTokenValidatorClient extends AbstractHawkAccessTokenValid
                                                      MultivaluedMap<String, String> extraProps)
         throws OAuthServiceException {
         if (isRemoteSignatureValidation()) {
-            MultivaluedMap<String, String> map = new MetadataMap<String, String>();
+            MultivaluedMap<String, String> map = new MetadataMap<>();
             if (extraProps != null) {
                 map.putAll(extraProps);
             }

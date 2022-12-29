@@ -23,10 +23,10 @@ import java.net.URL;
 import java.util.List;
 
 import javax.xml.namespace.QName;
-import javax.xml.ws.BindingProvider;
 
 import org.w3c.dom.Node;
 
+import jakarta.xml.ws.BindingProvider;
 import org.apache.cxf.binding.soap.SoapHeader;
 import org.apache.cxf.ext.logging.LoggingInInterceptor;
 import org.apache.cxf.ext.logging.LoggingOutInterceptor;
@@ -39,6 +39,11 @@ import org.apache.intfault.SOAPService;
 
 import org.junit.BeforeClass;
 import org.junit.Test;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 public class IntFaultClientServerTest extends AbstractBusClientServerTestBase {
     public static final String PORT = Server.PORT;

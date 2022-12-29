@@ -48,6 +48,8 @@ import org.apache.cxf.common.util.SystemPropertyAction;
 import org.apache.cxf.helpers.FileUtils;
 import org.apache.cxf.helpers.IOUtils;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
+
 public class CachedWriter extends Writer {
     private static final File DEFAULT_TEMP_DIR;
     private static int defaultThreshold;
@@ -56,7 +58,7 @@ public class CachedWriter extends Writer {
 
     static {
 
-        String s = SystemPropertyAction.getPropertyOrNull("org.apache.cxf.io.CachedOutputStream.OutputDirectory");
+        String s = SystemPropertyAction.getPropertyOrNull(CachedConstants.OUTPUT_DIRECTORY_SYS_PROP);
         if (s == null) {
             // lookup the deprecated property
             s = SystemPropertyAction.getPropertyOrNull("org.apache.cxf.io.CachedWriter.OutputDirectory");
@@ -83,6 +85,8 @@ public class CachedWriter extends Writer {
     private boolean cosClosed;
     private long threshold = defaultThreshold;
     private long maxSize = defaultMaxSize;
+    private File outputDir = DEFAULT_TEMP_DIR;
+    private String cipherTransformation = defaultCipherTransformation;
 
     private long totalLength;
 
@@ -90,9 +94,7 @@ public class CachedWriter extends Writer {
 
     private boolean tempFileFailed;
     private File tempFile;
-    private File outputDir = DEFAULT_TEMP_DIR;
     private boolean allowDeleteOfFile = true;
-    private String cipherTransformation = defaultCipherTransformation;
     private CipherPair ciphers;
 
     private List<CachedWriterCallback> callbacks;
@@ -126,17 +128,24 @@ public class CachedWriter extends Writer {
     private void readBusProperties() {
         Bus b = BusFactory.getThreadDefaultBus(false);
         if (b != null) {
-            String v = getBusProperty(b, "bus.io.CachedOutputStream.Threshold", null);
+            String v = getBusProperty(b, CachedConstants.THRESHOLD_BUS_PROP, null);
             if (v != null && threshold == defaultThreshold) {
                 threshold = Integer.parseInt(v);
             }
-            v = getBusProperty(b, "bus.io.CachedOutputStream.MaxSize", null);
+            v = getBusProperty(b, CachedConstants.MAX_SIZE_BUS_PROP, null);
             if (v != null) {
                 maxSize = Integer.parseInt(v);
             }
-            v = getBusProperty(b, "bus.io.CachedOutputStream.CipherTransformation", null);
+            v = getBusProperty(b, CachedConstants.CIPHER_TRANSFORMATION_BUS_PROP, null);
             if (v != null) {
                 cipherTransformation = v;
+            }
+            v = getBusProperty(b, CachedConstants.OUTPUT_DIRECTORY_BUS_PROP, null);
+            if (v != null) {
+                File f = new File(v);
+                if (f.exists() && f.isDirectory()) {
+                    outputDir = f;
+                }
             }
         }
     }
@@ -238,6 +247,9 @@ public class CachedWriter extends Writer {
         doClose();
         currentStream.close();
         maybeDeleteTempFile(currentStream);
+        if (ciphers != null) {
+            ciphers.clean();
+        }
         postClose();
     }
 
@@ -313,7 +325,7 @@ public class CachedWriter extends Writer {
         // read the file
         try (Reader fin = createInputStreamReader(tempFile)) {
             CharArrayWriter out = new CharArrayWriter((int)tempFile.length());
-            char bytes[] = new char[1024];
+            char[] bytes = new char[1024];
             int x = fin.read(bytes);
             while (x != -1) {
                 out.write(bytes, 0, x);
@@ -334,7 +346,7 @@ public class CachedWriter extends Writer {
         } else {
             // read the file
             try (Reader fin = createInputStreamReader(tempFile)) {
-                char bytes[] = new char[1024];
+                char[] bytes = new char[1024];
                 int x = fin.read(bytes);
                 while (x != -1) {
                     out.write(bytes, 0, x);
@@ -363,7 +375,7 @@ public class CachedWriter extends Writer {
         } else {
             // read the file
             try (Reader fin = createInputStreamReader(tempFile)) {
-                char bytes[] = new char[1024];
+                char[] bytes = new char[1024];
                 long x = fin.read(bytes);
                 while (x != -1) {
                     if ((count + x) > limit) {
@@ -394,7 +406,7 @@ public class CachedWriter extends Writer {
         } else {
             // read the file
             try (Reader r = createInputStreamReader(tempFile)) {
-                char chars[] = new char[1024];
+                char[] chars = new char[1024];
                 int x = r.read(chars);
                 while (x != -1) {
                     out.append(chars, 0, x);
@@ -417,7 +429,7 @@ public class CachedWriter extends Writer {
     }
 
     public String toString() {
-        StringBuilder builder = new StringBuilder().append("[")
+        StringBuilder builder = new StringBuilder().append('[')
             .append(CachedWriter.class.getName())
             .append(" Content: ");
         try {
@@ -425,7 +437,7 @@ public class CachedWriter extends Writer {
         } catch (IOException e) {
             //ignore
         }
-        return builder.append("]").toString();
+        return builder.append(']').toString();
     }
 
     protected void onWrite() throws IOException {
@@ -495,6 +507,8 @@ public class CachedWriter extends Writer {
         try {
             InputStream fileInputStream = new FileInputStream(tempFile) {
                 boolean closed;
+                
+                @Override
                 public void close() throws IOException {
                     if (!closed) {
                         super.close();
@@ -507,6 +521,8 @@ public class CachedWriter extends Writer {
             if (cipherTransformation != null) {
                 fileInputStream = new CipherInputStream(fileInputStream, ciphers.getDecryptor()) {
                     boolean closed;
+                    
+                    @Override
                     public void close() throws IOException {
                         if (!closed) {
                             super.close();
@@ -562,7 +578,7 @@ public class CachedWriter extends Writer {
 
     public static void setDefaultMaxSize(long l) {
         if (l == -1) {
-            String s = System.getProperty("org.apache.cxf.io.CachedOutputStream.MaxSize");
+            String s = System.getProperty(CachedConstants.MAX_SIZE_SYS_PROP);
             if (s == null) {
                 // lookup the deprecated property
                 s = System.getProperty("org.apache.cxf.io.CachedWriter.MaxSize", "-1");
@@ -571,14 +587,14 @@ public class CachedWriter extends Writer {
         }
         defaultMaxSize = l;
     }
+
     public static void setDefaultThreshold(int i) {
         if (i == -1) {
-            String s = SystemPropertyAction.getProperty("org.apache.cxf.io.CachedOutputStream.Threshold");
-            if (s == null) {
+            i = SystemPropertyAction.getInteger(CachedConstants.THRESHOLD_SYS_PROP, -1);
+            if (i == -1) {
                 // lookup the deprecated property
-                s = SystemPropertyAction.getProperty("org.apache.cxf.io.CachedWriter.Threshold", "-1");
+                i = SystemPropertyAction.getInteger("org.apache.cxf.io.CachedWriter.Threshold", -1);
             }
-            i = Integer.parseInt(s);
             if (i <= 0) {
                 i = 64 * 1024;
             }
@@ -589,7 +605,7 @@ public class CachedWriter extends Writer {
 
     public static void setDefaultCipherTransformation(String n) {
         if (n == null) {
-            n = SystemPropertyAction.getPropertyOrNull("org.apache.cxf.io.CachedOutputStream.CipherTransformation");
+            n = SystemPropertyAction.getPropertyOrNull(CachedConstants.CIPHER_TRANSFORMATION_SYS_PROP);
         }
         defaultCipherTransformation = n;
     }
@@ -606,6 +622,8 @@ public class CachedWriter extends Writer {
                 throw new IOException(e.getMessage(), e);
             }
             out = new CipherOutputStream(out, ciphers.getEncryptor()) {
+                
+                @Override
                 public void close() throws IOException {
                     if (!cosClosed) {
                         super.close();
@@ -614,7 +632,9 @@ public class CachedWriter extends Writer {
                 }
             };
         }
-        return new OutputStreamWriter(out, "utf-8") {
+        return new OutputStreamWriter(out, UTF_8) {
+            
+            @Override
             public void close() throws IOException {
                 if (!cosClosed) {
                     super.close();
@@ -629,6 +649,8 @@ public class CachedWriter extends Writer {
         if (cipherTransformation != null) {
             in = new CipherInputStream(in, ciphers.getDecryptor()) {
                 boolean closed;
+                
+                @Override
                 public void close() throws IOException {
                     if (!closed) {
                         super.close();
@@ -637,7 +659,7 @@ public class CachedWriter extends Writer {
                 }
             };
         }
-        return new InputStreamReader(in, "utf-8");
+        return new InputStreamReader(in, UTF_8);
     }
 
 }

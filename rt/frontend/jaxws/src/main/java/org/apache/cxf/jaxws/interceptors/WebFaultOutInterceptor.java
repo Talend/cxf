@@ -30,9 +30,9 @@ import java.util.logging.Logger;
 import javax.xml.namespace.QName;
 import javax.xml.stream.XMLStreamWriter;
 import javax.xml.validation.Schema;
-import javax.xml.ws.WebFault;
-import javax.xml.ws.soap.SOAPFaultException;
 
+import jakarta.xml.ws.WebFault;
+import jakarta.xml.ws.soap.SOAPFaultException;
 import org.apache.cxf.annotations.SchemaValidation.SchemaValidationType;
 import org.apache.cxf.binding.soap.SoapFault;
 import org.apache.cxf.binding.soap.SoapVersion;
@@ -65,7 +65,7 @@ public class WebFaultOutInterceptor extends FaultOutInterceptor {
 
     private QName getFaultName(WebFault wf, Class<?> cls, OperationInfo op) {
         String ns = wf.targetNamespace();
-        if (StringUtils.isEmpty(ns)) {
+        if (StringUtils.isEmpty(ns) && op != null) {
             ns = op.getName().getNamespaceURI();
         }
         String name = wf.name();
@@ -134,20 +134,18 @@ public class WebFaultOutInterceptor extends FaultOutInterceptor {
                 }
             }
         }
+
         if (cause instanceof Exception && fault != null) {
             Exception ex = (Exception)cause;
-            Object faultInfo = null;
+            Object faultInfo;
             try {
                 Method method = cause.getClass().getMethod("getFaultInfo", new Class[0]);
                 faultInfo = method.invoke(cause, new Object[0]);
             } catch (NoSuchMethodException e) {
                 faultInfo = createFaultInfoBean(fault, cause);
-
             } catch (InvocationTargetException e) {
                 throw new Fault(new org.apache.cxf.common.i18n.Message("INVOCATION_TARGET_EXC", BUNDLE), e);
-            } catch (IllegalAccessException e) {
-                throw new Fault(new org.apache.cxf.common.i18n.Message("COULD_NOT_INVOKE", BUNDLE), e);
-            } catch (IllegalArgumentException e) {
+            } catch (IllegalAccessException | IllegalArgumentException e) {
                 throw new Fault(new org.apache.cxf.common.i18n.Message("COULD_NOT_INVOKE", BUNDLE), e);
             }
             Service service = message.getExchange().getService();
@@ -162,9 +160,14 @@ public class WebFaultOutInterceptor extends FaultOutInterceptor {
                     writer.setSchema(schema);
                 }
 
-                OperationInfo op = message.getExchange().getBindingOperationInfo().getOperationInfo();
+                OperationInfo op = null;
+                // Prevent a NPE if we can't match the operation
+                if (message.getExchange().getBindingOperationInfo() != null) {
+                    op = message.getExchange().getBindingOperationInfo().getOperationInfo();
+                }
                 QName faultName = getFaultName(fault, cause.getClass(), op);
-                MessagePartInfo part = getFaultMessagePart(faultName, op);
+                MessagePartInfo part = op != null ? getFaultMessagePart(faultName, op) : null;
+
                 if (f.hasDetails()) {
                     writer.write(faultInfo, part, new W3CDOMStreamWriter(f.getDetail()));
                 } else {
@@ -175,16 +178,19 @@ public class WebFaultOutInterceptor extends FaultOutInterceptor {
                 }
 
                 f.setMessage(ex.getMessage());
+            } catch (Fault f2) {
+                message.setContent(Exception.class, f2);
+                super.handleMessage(message);
             } catch (Exception nex) {
-                if (nex instanceof Fault) {
-                    message.setContent(Exception.class, nex);
-                    super.handleMessage(message);
-                } else {
-                    //if exception occurs while writing a fault, we'll just let things continue
-                    //and let the rest of the chain try handling it as is.
-                    LOG.log(Level.WARNING, "EXCEPTION_WHILE_WRITING_FAULT", nex);
-                }
+                //if exception occurs while writing a fault, we'll just let things continue
+                //and let the rest of the chain try handling it as is.
+                LOG.log(Level.WARNING, "EXCEPTION_WHILE_WRITING_FAULT", nex);
             }
+        } else if (cause instanceof SOAPFaultException && ((SOAPFaultException)cause).getFault().hasDetail()) {
+            return;
+        } else if (f instanceof SoapFault && f.getCause() instanceof SOAPFaultException
+                && ((SOAPFaultException)f.getCause()).getFault().hasDetail()) {
+            return;
         } else {
             FaultMode mode = message.get(FaultMode.class);
             if (mode == FaultMode.CHECKED_APPLICATION_FAULT) {
@@ -201,9 +207,9 @@ public class WebFaultOutInterceptor extends FaultOutInterceptor {
                 Class<?> cls = ClassLoaderUtils.loadClass(fault.faultBean(),
                                                           cause.getClass());
                 if (cls != null) {
-                    Object ret = cls.newInstance();
+                    Object ret = cls.getDeclaredConstructor().newInstance();
                     //copy props
-                    Method meth[] = cause.getClass().getMethods();
+                    Method[] meth = cause.getClass().getMethods();
                     for (Method m : meth) {
                         if (m.getParameterTypes().length == 0
                             && (m.getName().startsWith("get")
@@ -224,11 +230,9 @@ public class WebFaultOutInterceptor extends FaultOutInterceptor {
                     }
                     return ret;
                 }
-            } catch (ClassNotFoundException e1) {
-                //ignore
-            } catch (InstantiationException e) {
-                //ignore
-            } catch (IllegalAccessException e) {
+            } catch (ClassNotFoundException | InstantiationException | IllegalAccessException 
+                | IllegalArgumentException | InvocationTargetException | NoSuchMethodException 
+                | SecurityException e1) {
                 //ignore
             }
         }
@@ -242,7 +246,7 @@ public class WebFaultOutInterceptor extends FaultOutInterceptor {
     private MessagePartInfo getFaultMessagePart(QName qname, OperationInfo op) {
         for (FaultInfo faultInfo : op.getFaults()) {
             for (MessagePartInfo mpi : faultInfo.getMessageParts()) {
-                String ns = null;
+                final String ns;
                 if (mpi.isElement()) {
                     ns = mpi.getElementQName().getNamespaceURI();
                 } else {

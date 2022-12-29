@@ -23,18 +23,18 @@ import java.io.File;
 import java.net.URL;
 
 import javax.xml.namespace.QName;
-import javax.xml.ws.BindingProvider;
-import javax.xml.ws.Service;
 
+import jakarta.xml.ws.BindingProvider;
+import jakarta.xml.ws.Service;
 import org.apache.cxf.Bus;
 import org.apache.cxf.BusFactory;
 import org.apache.cxf.bus.spring.SpringBusFactory;
 import org.apache.cxf.systest.kerberos.common.SecurityTestUtil;
 import org.apache.cxf.systest.kerberos.wssec.sts.STSServer;
 import org.apache.cxf.systest.kerberos.wssec.sts.StaxSTSServer;
+import org.apache.cxf.testutil.common.AbstractBusClientServerTestBase;
 import org.apache.cxf.testutil.common.AbstractClientServerTestBase;
 import org.apache.cxf.testutil.common.TestUtil;
-import org.apache.directory.server.core.integ.AbstractLdapTestUnit;
 import org.apache.kerby.kerberos.kerb.server.SimpleKdcServer;
 import org.apache.wss4j.dom.engine.WSSConfig;
 import org.example.contract.doubleit.DoubleItPortType;
@@ -45,7 +45,7 @@ import org.junit.BeforeClass;
 /**
  * A set of tests for Kerberos Tokens that use an Apache Kerby instance as the KDC.
  */
-public class KerberosTokenTest extends AbstractLdapTestUnit {
+public class KerberosTokenTest extends AbstractBusClientServerTestBase {
     static final String PORT = TestUtil.getPortNumber(Server.class);
     static final String STAX_PORT = TestUtil.getPortNumber(StaxServer.class);
     static final String PORT2 = TestUtil.getPortNumber(Server.class, 2);
@@ -62,7 +62,7 @@ public class KerberosTokenTest extends AbstractLdapTestUnit {
         SecurityTestUtil.checkUnrestrictedPoliciesInstalled();
 
     private static boolean runTests;
-    
+
     private static SimpleKdcServer kerbyServer;
 
     @BeforeClass
@@ -76,7 +76,7 @@ public class KerberosTokenTest extends AbstractLdapTestUnit {
         if (!"IBM Corporation".equals(System.getProperty("java.vendor"))) {
             runTests = true;
         }
-        
+
         String basedir = System.getProperty("basedir");
         if (basedir == null) {
             basedir = new File(".").getCanonicalPath();
@@ -99,9 +99,16 @@ public class KerberosTokenTest extends AbstractLdapTestUnit {
         // Create principals
         String alice = "alice@service.ws.apache.org";
         String bob = "bob/service.ws.apache.org@service.ws.apache.org";
+        String carol = "carol@service.ws.apache.org";
+        String dave = "dave/service.ws.apache.org@service.ws.apache.org";
 
         kerbyServer.createPrincipal(alice, "alice");
         kerbyServer.createPrincipal(bob, "bob");
+        kerbyServer.createPrincipal(carol, "carol");
+        kerbyServer.createPrincipal(dave, "dave");
+
+        File keytabFile = new File(basedir + "/target/dave.keytab");
+        kerbyServer.exportPrincipal(dave, keytabFile);
 
         kerbyServer.start();
 
@@ -137,7 +144,6 @@ public class KerberosTokenTest extends AbstractLdapTestUnit {
 
     @org.junit.AfterClass
     public static void cleanup() throws Exception {
-        SecurityTestUtil.cleanup();
         AbstractClientServerTestBase.stopAllServers();
         if (kerbyServer != null) {
             kerbyServer.stop();
@@ -168,6 +174,17 @@ public class KerberosTokenTest extends AbstractLdapTestUnit {
         runKerberosTest(portName, false, STAX_PORT2);
         runKerberosTest(portName, true, PORT2);
         runKerberosTest(portName, true, STAX_PORT2);
+    }
+
+    @org.junit.Test
+    public void testKerberosOverTransportKeytabs() throws Exception {
+        if (!runTests) {
+            return;
+        }
+
+        String portName = "DoubleItKerberosTransportPort3";
+        runKerberosTest(portName, false, PORT2);
+        runKerberosTest(portName, true, PORT2);
     }
 
     @org.junit.Test
@@ -375,6 +392,29 @@ public class KerberosTokenTest extends AbstractLdapTestUnit {
         runKerberosSTSTest(portName, true, PORT3, STSPORT);
         runKerberosSTSTest(portName, false, PORT3, STAX_STSPORT);
         runKerberosSTSTest(portName, true, PORT3, STAX_STSPORT);
+    }
+
+    @org.junit.Test
+    public void testKerberosViaCustomTokenAction() throws Exception {
+        SpringBusFactory bf = new SpringBusFactory();
+        URL busFile = KerberosTokenTest.class.getResource("client.xml");
+
+        Bus bus = bf.createBus(busFile.toString());
+        BusFactory.setDefaultBus(bus);
+        BusFactory.setThreadDefaultBus(bus);
+
+        URL wsdl = KerberosTokenTest.class.getResource("DoubleItKerberos.wsdl");
+        Service service = Service.create(wsdl, SERVICE_QNAME);
+        QName portQName = new QName(NAMESPACE, "DoubleItKerberosTransportActionPort");
+        DoubleItPortType kerberosPort =
+                service.getPort(portQName, DoubleItPortType.class);
+
+        TestUtil.updateAddressPort(kerberosPort, PORT2);
+
+        Assert.assertEquals(50, kerberosPort.doubleIt(25));
+
+        ((java.io.Closeable)kerberosPort).close();
+        bus.shutdown(true);
     }
 
     private void runKerberosTest(String portName, boolean streaming, String portNumber) throws Exception {

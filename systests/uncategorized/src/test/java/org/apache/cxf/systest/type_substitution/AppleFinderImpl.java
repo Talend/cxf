@@ -21,14 +21,14 @@ package org.apache.cxf.systest.type_substitution;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.jws.WebService;
+import jakarta.jws.WebService;
 
 @WebService(endpointInterface = "org.apache.cxf.systest.type_substitution.AppleFinder",
             serviceName = "AppleFinder")
 public class AppleFinderImpl implements AppleFinder {
 
     public List<Apple> getApple(String appleType) {
-        if (appleType.equalsIgnoreCase("Fuji")) {
+        if ("Fuji".equalsIgnoreCase(appleType)) {
             List<Apple> apples = new ArrayList<>();
             apples.add(new Fuji("Red", "mild", "Fuji-1"));
             apples.add(new Fuji("Yellow", "sweet", "Fuji-2"));

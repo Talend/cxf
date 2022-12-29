@@ -23,10 +23,9 @@ import java.lang.reflect.UndeclaredThrowableException;
 import java.net.URL;
 
 import javax.xml.namespace.QName;
-import javax.xml.ws.BindingProvider;
-import javax.xml.ws.Service;
 
-
+import jakarta.xml.ws.BindingProvider;
+import jakarta.xml.ws.Service;
 import org.apache.cxf.systest.jaxws.ServerMixedStyle.MixedTest;
 import org.apache.cxf.testutil.common.AbstractClientServerTestBase;
 import org.apache.hello_world_mixedstyle.Greeter;
@@ -36,6 +35,11 @@ import org.apache.hello_world_mixedstyle.types.GreetMeResponse;
 
 import org.junit.BeforeClass;
 import org.junit.Test;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 public class ClientServerMixedStyleTest extends AbstractClientServerTestBase {
     static final String PORT = allocatePort(ServerMixedStyle.class);

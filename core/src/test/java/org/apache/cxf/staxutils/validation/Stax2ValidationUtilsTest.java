@@ -38,9 +38,7 @@ import org.apache.cxf.service.model.ServiceInfo;
 import org.apache.ws.commons.schema.XmlSchemaCollection;
 
 import org.junit.Before;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 
@@ -53,7 +51,7 @@ import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.CoreMatchers.nullValue;
-import static org.junit.Assert.assertThat;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 @RunWith(Parameterized.class)
 public class Stax2ValidationUtilsTest {
@@ -80,10 +78,7 @@ public class Stax2ValidationUtilsTest {
 
     private static final String MULTI_IMPORT_SCHEMA = "schemas/schemaWithImports.xsd";
 
-    @Rule
-    public ExpectedException expectedException = ExpectedException.none();
-
-    private Stax2ValidationUtils utils = new Stax2ValidationUtils();
+    private Stax2ValidationUtils utils;
     private XMLStreamReader xmlReader;
     private final Endpoint endpoint = mock(Endpoint.class);
     private final ServiceInfo serviceInfo = new ServiceInfo();
@@ -98,11 +93,12 @@ public class Stax2ValidationUtilsTest {
     private String schemaPath;
 
     public Stax2ValidationUtilsTest(String validMessage, String invalidMessage, String errorMessage,
-                                    String schemaPath) {
+                                    String schemaPath) throws ClassNotFoundException {
         this.validMessage = validMessage;
         this.invalidMessage = invalidMessage;
         this.errorMessage = errorMessage;
         this.schemaPath = schemaPath;
+        utils = new Stax2ValidationUtils();
     }
 
     @Parameterized.Parameters
@@ -118,11 +114,13 @@ public class Stax2ValidationUtilsTest {
     @Before
     public void setUp() throws Exception {
         XmlSchemaCollection schemaCol = new XmlSchemaCollection();
+
         InputStream io = getClass().getClassLoader().getResourceAsStream(schemaPath);
+        String sysId = getClass().getClassLoader().getResource(schemaPath).toString();
         schemaCol.setBaseUri(getTestBaseURI());
-        schemaCol.read(new StreamSource(io));
+        schemaCol.read(new StreamSource(io, sysId));
         serviceInfo.addSchema(schemaInfo);
-        schemaInfo.setSchema(schemaCol.getXmlSchemas()[0]);
+        schemaInfo.setSchema(schemaCol.getXmlSchema(sysId)[0]);
         expect(endpoint.get(anyObject())).andReturn(null);
         expect(endpoint.containsKey(anyObject())).andReturn(false);
         expect(endpoint.put(anyString(), anyObject())).andReturn(null);

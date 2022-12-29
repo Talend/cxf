@@ -27,11 +27,10 @@ import java.lang.reflect.Proxy;
 import java.net.URL;
 import java.net.URLConnection;
 
-import javax.xml.ws.BindingProvider;
-import javax.xml.ws.Endpoint;
-import javax.xml.ws.Service;
-import javax.xml.ws.wsaddressing.W3CEndpointReference;
-
+import jakarta.xml.ws.BindingProvider;
+import jakarta.xml.ws.Endpoint;
+import jakarta.xml.ws.Service;
+import jakarta.xml.ws.wsaddressing.W3CEndpointReference;
 import org.apache.cxf.bus.spring.SpringBusFactory;
 import org.apache.cxf.factory_pattern.IsEvenResponse;
 import org.apache.cxf.factory_pattern.Number;
@@ -46,6 +45,10 @@ import org.apache.cxf.testutil.common.TestUtil;
 
 import org.junit.BeforeClass;
 import org.junit.Test;
+
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 /*
  * exercise with multiplexWithAddress config rather than ws-a headers
@@ -112,7 +115,7 @@ public class MultiplexHttpAddressClientServerTest extends AbstractBusClientServe
 
         W3CEndpointReference numberTwentyThreeRef = factory.create("23");
         num = serviceImpl.getPort(numberTwentyThreeRef, Number.class);
-        assertTrue("23 is not even", !num.isEven().isEven());
+        assertFalse("23 is not even", num.isEven().isEven());
     }
 
     @Test
@@ -127,7 +130,7 @@ public class MultiplexHttpAddressClientServerTest extends AbstractBusClientServe
                                    NUMBER_SERVANT_ADDRESS_ROOT + "103");
 
         IsEvenResponse numResp = num.isEven();
-        assertTrue("103 is not even", Boolean.FALSE.equals(numResp.isEven()));
+        assertFalse("103 is not even", numResp.isEven());
     }
 
     @Test

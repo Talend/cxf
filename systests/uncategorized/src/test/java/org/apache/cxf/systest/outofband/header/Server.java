@@ -24,10 +24,10 @@ package org.apache.cxf.systest.outofband.header;
 import java.util.HashMap;
 import java.util.Map;
 
-import javax.jws.WebService;
 import javax.xml.namespace.QName;
-import javax.xml.ws.Endpoint;
 
+import jakarta.jws.WebService;
+import jakarta.xml.ws.Endpoint;
 import org.apache.cxf.Bus;
 import org.apache.cxf.annotations.EndpointProperty;
 import org.apache.cxf.testutil.common.AbstractBusTestServerBase;
@@ -104,7 +104,7 @@ public class Server extends AbstractBusTestServerBase {
                 portName = "SoapPort",
                 endpointInterface = "org.apache.hello_world_doc_lit_bare.PutLastTradedPricePortType",
                 targetNamespace = "http://apache.org/hello_world_doc_lit_bare",
-                wsdlLocation = "testutils/doc_lit_bare.wsdl")
+                wsdlLocation = "wsdl/doc_lit_bare.wsdl")
     @EndpointProperty(key = "endpoint-processes-headers",
                       value = "{http://cxf.apache.org/outofband/Header}outofbandHeader")
     public class OOBHdrPropertyServiceImpl extends OOBHdrServiceImpl {

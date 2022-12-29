@@ -23,7 +23,7 @@ import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
 
-import javax.xml.ws.Endpoint;
+import jakarta.xml.ws.Endpoint;
 
 import org.apache.cxf.Bus;
 import org.apache.cxf.BusFactory;
@@ -56,9 +56,9 @@ public class Server {
         outProps.put("passwordCallbackClass", "demo.wssec.server.UTPasswordCallback");
 
         outProps.put("user", "Alice");
-        outProps.put("signatureUser", "serverx509v1");
+        outProps.put("signatureUser", "morpit");
 
-        outProps.put("encryptionUser", "clientx509v1");
+        outProps.put("encryptionUser", "bethal");
         outProps.put("encryptionPropFile", "etc/Server_SignVerf.properties");
         outProps.put("encryptionKeyIdentifier", "IssuerSerial");
         outProps.put("encryptionParts", "{Element}{" + WSSE_NS + "}UsernameToken;"
@@ -102,7 +102,7 @@ public class Server {
 
     }
 
-    public static void main(String args[]) throws Exception {
+    public static void main(String[] args) throws Exception {
 
         SpringBusFactory bf = new SpringBusFactory();
         URL busFile = Server.class.getResource("wssec.xml");

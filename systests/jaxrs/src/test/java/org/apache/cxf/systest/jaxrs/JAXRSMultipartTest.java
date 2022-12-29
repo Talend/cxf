@@ -35,16 +35,21 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
-import javax.activation.DataHandler;
 import javax.imageio.ImageIO;
-import javax.mail.util.ByteArrayDataSource;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.MultivaluedHashMap;
-import javax.ws.rs.core.MultivaluedMap;
-import javax.ws.rs.core.Response;
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.Unmarshaller;
 
+import com.fasterxml.jackson.jakarta.rs.json.JacksonJsonProvider;
+
+import jakarta.activation.DataHandler;
+import jakarta.mail.util.ByteArrayDataSource;
+import jakarta.ws.rs.client.ClientBuilder;
+import jakarta.ws.rs.client.Entity;
+import jakarta.ws.rs.client.WebTarget;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.MultivaluedHashMap;
+import jakarta.ws.rs.core.MultivaluedMap;
+import jakarta.ws.rs.core.Response;
+import jakarta.xml.bind.JAXBContext;
+import jakarta.xml.bind.Unmarshaller;
 import org.apache.cxf.ext.logging.LoggingInInterceptor;
 import org.apache.cxf.ext.logging.LoggingOutInterceptor;
 import org.apache.cxf.helpers.FileUtils;
@@ -53,6 +58,7 @@ import org.apache.cxf.jaxrs.client.JAXRSClientFactory;
 import org.apache.cxf.jaxrs.client.JAXRSClientFactoryBean;
 import org.apache.cxf.jaxrs.client.WebClient;
 import org.apache.cxf.jaxrs.ext.multipart.Attachment;
+import org.apache.cxf.jaxrs.ext.multipart.AttachmentBuilder;
 import org.apache.cxf.jaxrs.ext.multipart.ContentDisposition;
 import org.apache.cxf.jaxrs.ext.multipart.InputStreamDataSource;
 import org.apache.cxf.jaxrs.ext.multipart.MultipartBody;
@@ -60,10 +66,11 @@ import org.apache.cxf.jaxrs.impl.MetadataMap;
 import org.apache.cxf.jaxrs.provider.json.JSONProvider;
 import org.apache.cxf.testutil.common.AbstractBusClientServerTestBase;
 import org.apache.cxf.transport.http.HTTPConduit;
+import org.apache.http.HttpEntity;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.InputStreamEntity;
-import org.apache.http.entity.mime.MultipartEntity;
+import org.apache.http.entity.mime.MultipartEntityBuilder;
 import org.apache.http.entity.mime.content.ByteArrayBody;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
@@ -71,6 +78,14 @@ import org.apache.http.util.EntityUtils;
 
 import org.junit.BeforeClass;
 import org.junit.Test;
+
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.Assert.assertArrayEquals;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNotSame;
+import static org.junit.Assert.assertTrue;
 
 public class JAXRSMultipartTest extends AbstractBusClientServerTestBase {
     public static final String PORT = MultipartServer.PORT;
@@ -147,7 +162,7 @@ public class JAXRSMultipartTest extends AbstractBusClientServerTestBase {
 
     int countTempFiles() {
         File file = FileUtils.getDefaultTempDir();
-        File files[] = file.listFiles();
+        File[] files = file.listFiles();
         if (files == null) {
             return 0;
         }
@@ -171,7 +186,7 @@ public class JAXRSMultipartTest extends AbstractBusClientServerTestBase {
         PushbackInputStream buf = new PushbackInputStream(is, 1024 * 20) {
             int bcount = -1;
             @Override
-            public int read(byte b[], int offset, int len) throws IOException {
+            public int read(byte[] b, int offset, int len) throws IOException {
                 if (bcount >= 0 && bcount < 1024 * 50) {
                     for (int x = 0; x < len; x++) {
                         b[offset + x] = (byte)x;
@@ -524,7 +539,7 @@ public class JAXRSMultipartTest extends AbstractBusClientServerTestBase {
     private void doTestNullPart(String address) throws Exception {
         WebClient client = WebClient.create(address);
         client.type("multipart/form-data").accept("text/plain");
-        List<Attachment> atts = new LinkedList<Attachment>();
+        List<Attachment> atts = new LinkedList<>();
         atts.add(new Attachment("somepart", "text/plain", "hello there"));
         Response r = client.postCollection(atts, Attachment.class);
         assertEquals(Response.Status.OK.getStatusCode(), r.getStatus());
@@ -536,7 +551,7 @@ public class JAXRSMultipartTest extends AbstractBusClientServerTestBase {
         String address = "http://localhost:" + PORT + "/bookstore/books/testnullpartprimitive";
         WebClient client = WebClient.create(address);
         client.type("multipart/form-data").accept("text/plain");
-        List<Attachment> atts = new LinkedList<Attachment>();
+        List<Attachment> atts = new LinkedList<>();
         atts.add(new Attachment("somepart", "text/plain", "hello there"));
         Response r = client.postCollection(atts, Attachment.class);
         assertEquals(Response.Status.OK.getStatusCode(), r.getStatus());
@@ -575,21 +590,21 @@ public class JAXRSMultipartTest extends AbstractBusClientServerTestBase {
         Book json = new Book("json", 2L);
         InputStream is1 =
             getClass().getResourceAsStream("/org/apache/cxf/systest/jaxrs/resources/java.jpg");
-        Map<String, Object> objects = new LinkedHashMap<String, Object>();
+        Map<String, Object> objects = new LinkedHashMap<>();
 
-        MultivaluedMap<String, String> headers = new MetadataMap<String, String>();
+        MultivaluedMap<String, String> headers = new MetadataMap<>();
         headers.putSingle("Content-Type", "application/xml");
         headers.putSingle("Content-ID", "theroot");
         headers.putSingle("Content-Transfer-Encoding", "customxml");
         Attachment attJaxb = new Attachment(headers, jaxb);
 
-        headers = new MetadataMap<String, String>();
+        headers = new MetadataMap<>();
         headers.putSingle("Content-Type", "application/json");
         headers.putSingle("Content-ID", "thejson");
         headers.putSingle("Content-Transfer-Encoding", "customjson");
         Attachment attJson = new Attachment(headers, json);
 
-        headers = new MetadataMap<String, String>();
+        headers = new MetadataMap<>();
         headers.putSingle("Content-Type", "application/octet-stream");
         headers.putSingle("Content-ID", "theimage");
         headers.putSingle("Content-Transfer-Encoding", "customstream");
@@ -611,7 +626,7 @@ public class JAXRSMultipartTest extends AbstractBusClientServerTestBase {
         byte[] image1 = IOUtils.readBytesFromStream(
             getClass().getResourceAsStream("/org/apache/cxf/systest/jaxrs/resources/java.jpg"));
         byte[] image2 = IOUtils.readBytesFromStream(is2);
-        assertTrue(Arrays.equals(image1, image2));
+        assertArrayEquals(image1, image2);
     }
 
     @Test
@@ -625,17 +640,15 @@ public class JAXRSMultipartTest extends AbstractBusClientServerTestBase {
         Book json = new Book("json", 1L);
         InputStream is1 =
             getClass().getResourceAsStream("/org/apache/cxf/systest/jaxrs/resources/java.jpg");
-        Map<String, Object> objects = new LinkedHashMap<String, Object>();
+        Map<String, Object> objects = new LinkedHashMap<>();
 
-        MultivaluedMap<String, String> headers = new MetadataMap<String, String>();
-
-        headers = new MetadataMap<String, String>();
+        MultivaluedMap<String, String> headers = new MetadataMap<>();
         headers.putSingle("Content-Type", "application/json");
         headers.putSingle("Content-ID", "thejson");
         headers.putSingle("Content-Transfer-Encoding", "customjson");
         Attachment attJson = new Attachment(headers, json);
 
-        headers = new MetadataMap<String, String>();
+        headers = new MetadataMap<>();
         headers.putSingle("Content-Type", "application/octet-stream");
         headers.putSingle("Content-ID", "theimage");
         headers.putSingle("Content-Transfer-Encoding", "customstream");
@@ -654,7 +667,7 @@ public class JAXRSMultipartTest extends AbstractBusClientServerTestBase {
         byte[] image1 = IOUtils.readBytesFromStream(
             getClass().getResourceAsStream("/org/apache/cxf/systest/jaxrs/resources/java.jpg"));
         byte[] image2 = IOUtils.readBytesFromStream(is2);
-        assertTrue(Arrays.equals(image1, image2));
+        assertArrayEquals(image1, image2);
     }
 
     private Map<String, String> doTestAddBookJaxbJsonImageWebClient(String multipartType) throws Exception {
@@ -667,7 +680,7 @@ public class JAXRSMultipartTest extends AbstractBusClientServerTestBase {
         Book json = new Book("json", 2L);
         InputStream is1 =
             getClass().getResourceAsStream("/org/apache/cxf/systest/jaxrs/resources/java.jpg");
-        Map<String, Object> objects = new LinkedHashMap<String, Object>();
+        Map<String, Object> objects = new LinkedHashMap<>();
         objects.put(MediaType.APPLICATION_XML, jaxb);
         objects.put(MediaType.APPLICATION_JSON, json);
         objects.put(MediaType.APPLICATION_OCTET_STREAM, is1);
@@ -683,7 +696,7 @@ public class JAXRSMultipartTest extends AbstractBusClientServerTestBase {
         byte[] image1 = IOUtils.readBytesFromStream(
             getClass().getResourceAsStream("/org/apache/cxf/systest/jaxrs/resources/java.jpg"));
         byte[] image2 = IOUtils.readBytesFromStream(is2);
-        assertTrue(Arrays.equals(image1, image2));
+        assertArrayEquals(image1, image2);
 
         String ctString =
             client.getResponse().getMetadata().getFirst("Content-Type").toString();
@@ -769,7 +782,7 @@ public class JAXRSMultipartTest extends AbstractBusClientServerTestBase {
         byte[] image1 = IOUtils.readBytesFromStream(
             getClass().getResourceAsStream("/org/apache/cxf/systest/jaxrs/resources/java.jpg"));
         byte[] image2 = IOUtils.readBytesFromStream(is2);
-        assertTrue(Arrays.equals(image1, image2));
+        assertArrayEquals(image1, image2);
     }
 
     @Test
@@ -807,7 +820,7 @@ public class JAXRSMultipartTest extends AbstractBusClientServerTestBase {
         byte[] image1 = IOUtils.readBytesFromStream(
             getClass().getResourceAsStream("/org/apache/cxf/systest/jaxrs/resources/java.jpg"));
         byte[] image2 = IOUtils.readBytesFromStream(is2);
-        assertTrue(Arrays.equals(image1, image2));
+        assertArrayEquals(image1, image2);
 
     }
 
@@ -823,7 +836,7 @@ public class JAXRSMultipartTest extends AbstractBusClientServerTestBase {
         client.type("multipart/form-data").accept("multipart/form-data");
 
         ContentDisposition cd = new ContentDisposition("attachment;filename=java.jpg");
-        MultivaluedMap<String, String> headers = new MetadataMap<String, String>();
+        MultivaluedMap<String, String> headers = new MetadataMap<>();
         headers.putSingle("Content-ID", "image");
         headers.putSingle("Content-Disposition", cd.toString());
         headers.putSingle("Content-Location", "http://host/bar");
@@ -836,7 +849,7 @@ public class JAXRSMultipartTest extends AbstractBusClientServerTestBase {
         byte[] image1 = IOUtils.readBytesFromStream(
             getClass().getResourceAsStream("/org/apache/cxf/systest/jaxrs/resources/java.jpg"));
         byte[] image2 = IOUtils.readBytesFromStream(is2);
-        assertTrue(Arrays.equals(image1, image2));
+        assertArrayEquals(image1, image2);
         ContentDisposition cd2 = body2.getRootAttachment().getContentDisposition();
         assertEquals("attachment;filename=java.jpg", cd2.toString());
         assertEquals("java.jpg", cd2.getParameter("filename"));
@@ -850,7 +863,7 @@ public class JAXRSMultipartTest extends AbstractBusClientServerTestBase {
         client.type("multipart/form-data").accept("text/plain");
 
         ContentDisposition cd = new ContentDisposition("attachment;name=\"a\";filename=\"a;txt\"");
-        MultivaluedMap<String, String> headers = new MetadataMap<String, String>();
+        MultivaluedMap<String, String> headers = new MetadataMap<>();
         headers.putSingle("Content-Disposition", cd.toString());
         Attachment att = new Attachment(new ByteArrayInputStream("file name with semicolon".getBytes()),
                                         headers);
@@ -875,7 +888,7 @@ public class JAXRSMultipartTest extends AbstractBusClientServerTestBase {
         byte[] image1 = IOUtils.readBytesFromStream(
             getClass().getResourceAsStream("/org/apache/cxf/systest/jaxrs/resources/java.jpg"));
         byte[] image2 = IOUtils.readBytesFromStream(is2);
-        assertTrue(Arrays.equals(image1, image2));
+        assertArrayEquals(image1, image2);
         ContentDisposition cd2 = body2.getRootAttachment().getContentDisposition();
         assertEquals("form-data;name=file;filename=java.jpg", cd2.toString());
         assertEquals("java.jpg", cd2.getParameter("filename"));
@@ -904,8 +917,9 @@ public class JAXRSMultipartTest extends AbstractBusClientServerTestBase {
         String ct = "multipart/mixed";
         post.setHeader("Content-Type", ct);
 
-        MultipartEntity entity = new MultipartEntity();
-        entity.addPart("image", new ByteArrayBody(new byte[1024 * 11], "testfile.png"));
+        HttpEntity entity = MultipartEntityBuilder.create()
+            .addPart("image", new ByteArrayBody(new byte[1024 * 11], "testfile.png"))
+            .build();
 
         post.setEntity(entity);
 
@@ -925,9 +939,10 @@ public class JAXRSMultipartTest extends AbstractBusClientServerTestBase {
         String ct = "multipart/mixed";
         post.setHeader("Content-Type", ct);
 
-        MultipartEntity entity = new MultipartEntity();
-        entity.addPart("image", new ByteArrayBody(new byte[1024 * 9], "testfile.png"));
-        entity.addPart("image", new ByteArrayBody(new byte[1024 * 11], "testfile2.png"));
+        MultipartEntityBuilder builder = MultipartEntityBuilder.create();
+
+        HttpEntity entity = builder.addPart("image", new ByteArrayBody(new byte[1024 * 9], "testfile.png"))
+                                   .addPart("image", new ByteArrayBody(new byte[1024 * 11], "testfile2.png")).build();
 
         post.setEntity(entity);
 
@@ -951,7 +966,7 @@ public class JAXRSMultipartTest extends AbstractBusClientServerTestBase {
         WebClient.getConfig(client).getRequestContext().put("support.type.as.multipart",
             "true");
 
-        StringBuilder sb = new StringBuilder();
+        StringBuilder sb = new StringBuilder(100500);
         sb.append("form-data;");
         for (int i = 0; i < 10000; i++) {
             sb.append("aaaaaaaaaa");
@@ -982,7 +997,7 @@ public class JAXRSMultipartTest extends AbstractBusClientServerTestBase {
         WebClient.getConfig(client).getRequestContext().put("support.type.as.multipart",
             "true");
 
-        StringBuilder sb = new StringBuilder();
+        StringBuilder sb = new StringBuilder(64);
         sb.append("form-data;");
         for (int i = 0; i < 35; i++) {
             sb.append("aaaaaaaaaa");
@@ -999,6 +1014,30 @@ public class JAXRSMultipartTest extends AbstractBusClientServerTestBase {
         assertEquals(response.getStatus(), 200);
 
         client.close();
+    }
+
+    @Test
+    public void testUpdateBookMultipart() {
+        final WebTarget target = ClientBuilder
+            .newClient()
+            .register(JacksonJsonProvider.class)
+            .target("http://localhost:" + PORT + "/bookstore");
+
+        final MultipartBody builder = new MultipartBody(Arrays.asList(
+                new AttachmentBuilder()
+                    .id("name")
+                    .contentDisposition(new ContentDisposition("form-data; name=\"name\""))
+                    .object("The Book")
+                    .build()
+            ));
+        
+        try (Response response = target
+                .path("1")
+                .request()
+                .put(Entity.entity(builder, MediaType.MULTIPART_FORM_DATA))) {
+            assertThat(response.getStatus(), equalTo(200));
+            assertThat(response.readEntity(Book.class).getName(), equalTo("The Book"));
+        }
     }
 
     private void doAddBook(String address, String resourceName, int status) throws Exception {
@@ -1070,7 +1109,7 @@ public class JAXRSMultipartTest extends AbstractBusClientServerTestBase {
     }
 
     private Book readJSONBookFromInputStream(InputStream is) throws Exception {
-        JSONProvider<Book> provider = new JSONProvider<Book>();
+        JSONProvider<Book> provider = new JSONProvider<>();
         return provider.readFrom(Book.class, Book.class, new Annotation[]{},
                                  MediaType.APPLICATION_JSON_TYPE, null, is);
 

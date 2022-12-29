@@ -25,10 +25,9 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
-import javax.ws.rs.BadRequestException;
-import javax.ws.rs.ProcessingException;
-import javax.ws.rs.WebApplicationException;
-
+import jakarta.ws.rs.BadRequestException;
+import jakarta.ws.rs.ProcessingException;
+import jakarta.ws.rs.WebApplicationException;
 import org.apache.cxf.Bus;
 import org.apache.cxf.bus.spring.SpringBusFactory;
 import org.apache.cxf.jaxrs.client.JAXRSClientFactoryBean;
@@ -52,6 +51,10 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized.Parameters;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 @RunWith(value = org.junit.runners.Parameterized.class)
 public class JAXRSXmlSecTest extends AbstractBusClientServerTestBase {
@@ -503,18 +506,6 @@ public class JAXRSXmlSecTest extends AbstractBusClientServerTestBase {
 
     @Test
     public void testPostEncryptedBookGCM() throws Exception {
-        //
-        // This test fails with the IBM JDK 7
-        // IBM JDK 7 appears to require a GCMParameter class to be used, which
-        // only exists in JDK 7. The Sun JDK appears to be more lenient and
-        // allows us to use the existing IVParameterSpec class.
-        //
-        if ("IBM Corporation".equals(System.getProperty("java.vendor"))
-            && System.getProperty("java.version") != null
-            &&  System.getProperty("java.version").startsWith("1.7")) {
-            return;
-        }
-
         String address = "https://localhost:" + test.port + "/xmlenc/bookstore/books";
         Map<String, Object> properties = new HashMap<>();
         properties.put(SecurityConstants.CALLBACK_HANDLER,
@@ -811,6 +802,49 @@ public class JAXRSXmlSecTest extends AbstractBusClientServerTestBase {
         } catch (WebApplicationException ex) {
             // expected
         }
+    }
+
+    @Test
+    public void testSignaturePassword() throws Exception {
+        String address = "https://localhost:" + test.port + "/xmlsig/bookstore/books";
+
+        JAXRSClientFactoryBean bean = new JAXRSClientFactoryBean();
+        bean.setAddress(address);
+
+        SpringBusFactory bf = new SpringBusFactory();
+        URL busFile = JAXRSXmlSecTest.class.getResource("client.xml");
+        Bus springBus = bf.createBus(busFile.toString());
+        bean.setBus(springBus);
+
+        Map<String, Object> properties = new HashMap<>();
+        properties.put(SecurityConstants.SIGNATURE_USERNAME, "alice");
+        properties.put(SecurityConstants.SIGNATURE_PASSWORD, "password");
+        properties.put(SecurityConstants.SIGNATURE_PROPERTIES,
+                       "org/apache/cxf/systest/jaxrs/security/alice.properties");
+        bean.setProperties(properties);
+        if (test.streaming) {
+            XmlSecOutInterceptor sigOutInterceptor = new XmlSecOutInterceptor();
+            sigOutInterceptor.setSignRequest(true);
+            sigOutInterceptor.setKeyInfoMustBeAvailable(true);
+            bean.getOutInterceptors().add(sigOutInterceptor);
+
+            XmlSecInInterceptor sigInInterceptor = new XmlSecInInterceptor();
+            sigInInterceptor.setRequireSignature(true);
+            bean.setProvider(sigInInterceptor);
+        } else {
+            XmlSigOutInterceptor sigOutInterceptor = new XmlSigOutInterceptor();
+            sigOutInterceptor.setKeyInfoMustBeAvailable(true);
+            bean.getOutInterceptors().add(sigOutInterceptor);
+
+            XmlSigInInterceptor sigInInterceptor = new XmlSigInInterceptor();
+            sigInInterceptor.setKeyInfoMustBeAvailable(true);
+            bean.getInInterceptors().add(sigInInterceptor);
+        }
+
+        WebClient wc = bean.createWebClient();
+        WebClient.getConfig(wc).getHttpConduit().getClient().setReceiveTimeout(10000000L);
+        Book book = wc.type("application/xml").post(new Book("CXF", 126L), Book.class);
+        assertEquals(126L, book.getId());
     }
 
     private static final class TestParam {

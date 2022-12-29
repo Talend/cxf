@@ -20,23 +20,30 @@ package org.apache.cxf.jca.core.resourceadapter;
 
 
 import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.util.HashSet;
 import java.util.Properties;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicBoolean;
 
-import javax.resource.ResourceException;
-import javax.resource.spi.ConnectionManager;
-import javax.resource.spi.ConnectionRequestInfo;
-import javax.resource.spi.ManagedConnection;
-import javax.resource.spi.ResourceAdapterInternalException;
 import javax.security.auth.Subject;
 
+import jakarta.resource.ResourceException;
+import jakarta.resource.spi.ConnectionManager;
+import jakarta.resource.spi.ConnectionRequestInfo;
+import jakarta.resource.spi.ManagedConnection;
+import jakarta.resource.spi.ResourceAdapterInternalException;
 
-import org.easymock.EasyMock;
-import org.junit.Assert;
 import org.junit.Test;
 
-public class ManagedConnectionFactoryImplTest extends Assert {
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertSame;
+import static org.junit.Assert.assertTrue;
+
+public class ManagedConnectionFactoryImplTest {
     DummyManagedConnectionFactoryImpl mcf = new DummyManagedConnectionFactoryImpl();
 
 
@@ -102,7 +109,7 @@ public class ManagedConnectionFactoryImplTest extends Assert {
         connectionSet.add(con1);
 
         ManagedConnection mcon = mcf.matchManagedConnections(connectionSet, subject, cri2);
-        assertTrue("should not get a match", mcon == null);
+        assertNull("should not get a match", mcon);
     }
 
     @Test
@@ -117,33 +124,29 @@ public class ManagedConnectionFactoryImplTest extends Assert {
         connectionSet.add(con1);
 
         ManagedConnection mcon = mcf.matchManagedConnections(connectionSet, subject, cri);
-        assertTrue("Connection must be null", mcon == null);
+        assertNull("Connection must be null", mcon);
     }
 
     @Test
     public void testGetSetLogWriter() throws Exception {
-        PrintWriter writer = EasyMock.createMock(PrintWriter.class);
-        writer.write(EasyMock.isA(String.class));
-        EasyMock.expectLastCall().anyTimes();
-        writer.flush();
-        EasyMock.expectLastCall().anyTimes();
-        writer.close();
-        EasyMock.expectLastCall().anyTimes();
-        // the write could be call lots of time
-        EasyMock.replay(writer);
+        final AtomicBoolean closed = new AtomicBoolean();
+        PrintWriter writer = new PrintWriter(new StringWriter()) {
+            @Override
+            public void close() {
+                super.close();
+                closed.set(true);
+            }
+        };
         mcf.setLogWriter(writer);
-        assertTrue(mcf.getLogWriter() == writer);
-        EasyMock.verify(writer);
+        assertSame(writer, mcf.getLogWriter());
+
+        mcf.close();
+        assertFalse(closed.get());
     }
 
-    @Test
+    @Test(expected = IllegalArgumentException.class)
     public void testSetNullLogWriter() throws Exception {
-        try {
-            mcf.setLogWriter(null);
-            fail("expect ex on null log writer arg");
-        } catch (IllegalArgumentException expected) {
-            //do nothing here
-        }
+        mcf.setLogWriter(null);
     }
 }
 
@@ -175,6 +178,7 @@ class DummyManagedConnectionFactoryImpl extends AbstractManagedConnectionFactory
     }
 
     public void close() throws ResourceAdapterInternalException {
+        // do nothing here
     }
 
     protected void validateReference(AbstractManagedConnectionImpl conn, Subject subject)
@@ -194,10 +198,10 @@ class DummyManagedConnectionFactoryImpl extends AbstractManagedConnectionFactory
         }
     }
 
-    public void setResourceAdapter(javax.resource.spi.ResourceAdapter ra) {
+    public void setResourceAdapter(jakarta.resource.spi.ResourceAdapter ra) {
     }
 
-    public javax.resource.spi.ResourceAdapter getResourceAdapter() {
+    public jakarta.resource.spi.ResourceAdapter getResourceAdapter() {
         return null;
     }
 }

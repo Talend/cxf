@@ -98,7 +98,7 @@ public class WadlOption extends Option {
         if (wadlLocation.contains(".") && !wadlLocation.contains("*")) {
             return Collections.singletonList(getWadlURI(baseURI, wadlLocation));
         }
-        List<URI> uris = new LinkedList<URI>();
+        List<URI> uris = new LinkedList<>();
         try {
             for (URL nextLocation : ClasspathScanner.findResources(wadlLocation, wadlFileExtension, resourceLoader)) {
                 uris.add(getWadlURI(baseURI, nextLocation.toURI().getPath()));
@@ -133,7 +133,7 @@ public class WadlOption extends Option {
     }
 
     public String toString() {
-        StringBuilder builder = new StringBuilder();
+        StringBuilder builder = new StringBuilder(64);
         builder.append("WADL: ").append(wadl).append('\n');
         builder.append("OutputDir: ").append(outputDir).append('\n');
         builder.append('\n');
@@ -155,6 +155,7 @@ public class WadlOption extends Option {
         addList(list, "-sp", true, getSchemaPackagenames());
         addIfTrue(list, isImpl(), "-impl");
         addIfTrue(list, isInterface(), "-interface");
+        addIfNotNull(list, getRx(), "-rx");
         addList(list, "", false, getExtraargs());
         list.add(wadlURI.toString());
         return list;

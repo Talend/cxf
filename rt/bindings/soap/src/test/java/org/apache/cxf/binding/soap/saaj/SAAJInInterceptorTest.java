@@ -25,16 +25,16 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
-import javax.mail.util.ByteArrayDataSource;
-import javax.xml.soap.Detail;
-import javax.xml.soap.DetailEntry;
-import javax.xml.soap.SOAPFault;
-import javax.xml.soap.SOAPMessage;
 import javax.xml.stream.XMLStreamReader;
 
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
+import jakarta.mail.util.ByteArrayDataSource;
+import jakarta.xml.soap.Detail;
+import jakarta.xml.soap.DetailEntry;
+import jakarta.xml.soap.SOAPFault;
+import jakarta.xml.soap.SOAPMessage;
 import org.apache.cxf.BusFactory;
 import org.apache.cxf.binding.soap.Soap12;
 import org.apache.cxf.binding.soap.TestBase;
@@ -47,6 +47,9 @@ import org.apache.cxf.interceptor.StaxInInterceptor;
 
 import org.junit.Before;
 import org.junit.Test;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
 
 
 public class SAAJInInterceptorTest extends TestBase {
@@ -140,7 +143,7 @@ public class SAAJInInterceptorTest extends TestBase {
         Iterator<?> detailEntries = faultDetail.getDetailEntries();
         DetailEntry detailEntry = (DetailEntry)detailEntries.next();
         assertEquals("errorcode", detailEntry.getLocalName());
-        assertEquals(3, Integer.valueOf(detailEntry.getTextContent()).intValue());
+        assertEquals(3, Integer.parseInt(detailEntry.getTextContent()));
         detailEntry = (DetailEntry)detailEntries.next();
         assertEquals("errorstring", detailEntry.getLocalName());
         assertEquals("This is a fault detail error string", detailEntry.getTextContent());

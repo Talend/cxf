@@ -19,21 +19,20 @@
 
 package org.apache.cxf.systest.soap;
 
-import javax.jws.WebService;
-import javax.jws.soap.SOAPBinding;
+import jakarta.jws.WebService;
+import org.apache.hello_world_soap_action.Greeter;
 
-import org.apache.hello_world_soap_action.WrappedGreeter;
+@WebService(endpointInterface = "org.apache.hello_world_soap_action.RPCGreeter",
+            serviceName = "SOAPRPCService")
+public class RPCLitSoapActionGreeterImpl implements Greeter {
 
-@WebService(endpointInterface = "org.apache.hello_world_soap_action.WrappedGreeter",
-            serviceName = "WrappedSOAPService")
-@SOAPBinding(style = SOAPBinding.Style.RPC)
-public class RPCLitSoapActionGreeterImpl implements WrappedGreeter {
-
-    public String sayHiRequestWrapped(String in) {
+    @Override
+    public String sayHi(String in) {
         return "sayHi";
     }
 
-    public String sayHiRequest2Wrapped(String in) {
+    @Override
+    public String sayHi2(String in) {
         return "sayHi2";
     }
 

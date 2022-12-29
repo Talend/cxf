@@ -749,29 +749,24 @@ public class RMTxStore implements RMStore {
                     new Object[] {outbound ? "outbound" : "inbound", nr, id, to});
         }
         PreparedStatement stmt = null;
-        CachedOutputStream cos = msg.getContent();
-        InputStream msgin = null;
-        try {
-            msgin = cos.getInputStream();
-            stmt = getStatement(con, outbound ? CREATE_OUTBOUND_MESSAGE_STMT_STR : CREATE_INBOUND_MESSAGE_STMT_STR);
+        try (CachedOutputStream cos = msg.getContent()) {
+            try (InputStream msgin = cos.getInputStream()) {
+                stmt = getStatement(con, outbound ? CREATE_OUTBOUND_MESSAGE_STMT_STR : CREATE_INBOUND_MESSAGE_STMT_STR);
 
-            stmt.setString(1, id);
-            stmt.setLong(2, nr);
-            stmt.setString(3, to);
-            stmt.setLong(4, msg.getCreatedTime());
-            stmt.setBinaryStream(5, msgin);
-            stmt.setString(6, contentType);
-            stmt.execute();
-            if (LOG.isLoggable(Level.FINE)) {
-                LOG.log(Level.FINE, "Successfully stored {0} message number {1} for sequence {2}",
-                        new Object[] {outbound ? "outbound" : "inbound", nr, id});
+                stmt.setString(1, id);
+                stmt.setLong(2, nr);
+                stmt.setString(3, to);
+                stmt.setLong(4, msg.getCreatedTime());
+                stmt.setBinaryStream(5, msgin);
+                stmt.setString(6, contentType);
+                stmt.execute();
+                if (LOG.isLoggable(Level.FINE)) {
+                    LOG.log(Level.FINE, "Successfully stored {0} message number {1} for sequence {2}",
+                            new Object[] {outbound ? "outbound" : "inbound", nr, id});
+                }
+            } finally  {
+                releaseResources(stmt, null);
             }
-        } finally  {
-            releaseResources(stmt, null);
-            if (null != msgin) {
-                msgin.close();
-            }
-            cos.close(); // needed to clean-up tmp file folder
         }
     }
 
@@ -838,12 +833,10 @@ public class RMTxStore implements RMStore {
             LOG.warning("Skip creating tables as we have no connection.");
             return;
         }
-        Statement stmt = null;
 
-        try {
+        try {   //NOPMD
             con.setAutoCommit(true);
-            stmt = con.createStatement();
-            try {
+            try (Statement stmt = con.createStatement()) {
                 stmt.executeUpdate(CREATE_SRC_SEQUENCES_TABLE_STMT);
             } catch (SQLException ex) {
                 if (!isTableExistsError(ex)) {
@@ -851,12 +844,9 @@ public class RMTxStore implements RMStore {
                 }
                 LOG.fine("Table CXF_RM_SRC_SEQUENCES already exists.");
                 verifyTable(con, SRC_SEQUENCES_TABLE_NAME, SRC_SEQUENCES_TABLE_COLS);
-            } finally {
-                stmt.close();
             }
 
-            stmt = con.createStatement();
-            try {
+            try (Statement stmt = con.createStatement()) {
                 stmt.executeUpdate(CREATE_DEST_SEQUENCES_TABLE_STMT);
             } catch (SQLException ex) {
                 if (!isTableExistsError(ex)) {
@@ -864,13 +854,10 @@ public class RMTxStore implements RMStore {
                 }
                 LOG.fine("Table CXF_RM_DEST_SEQUENCES already exists.");
                 verifyTable(con, DEST_SEQUENCES_TABLE_NAME, DEST_SEQUENCES_TABLE_COLS);
-            } finally {
-                stmt.close();
             }
 
             for (String tableName : new String[] {OUTBOUND_MSGS_TABLE_NAME, INBOUND_MSGS_TABLE_NAME}) {
-                stmt = con.createStatement();
-                try {
+                try (Statement stmt = con.createStatement()) {
                     stmt.executeUpdate(MessageFormat.format(CREATE_MESSAGES_TABLE_STMT, tableName));
                 } catch (SQLException ex) {
                     if (!isTableExistsError(ex)) {
@@ -880,13 +867,11 @@ public class RMTxStore implements RMStore {
                         LOG.fine("Table " + tableName + " already exists.");
                     }
                     verifyTable(con, tableName, MESSAGES_TABLE_COLS);
-                } finally {
-                    stmt.close();
                 }
             }
         } finally {
             con.setAutoCommit(false);
-            if (connection == null && con != null) {
+            if (connection == null) {
                 con.close();
             }
         }
@@ -897,7 +882,7 @@ public class RMTxStore implements RMStore {
             DatabaseMetaData metadata = con.getMetaData();
             ResultSet rs = metadata.getColumns(null, null, tableName, "%");
             Set<String> dbCols = new HashSet<>();
-            List<String[]> newCols = new ArrayList<String[]>();
+            List<String[]> newCols = new ArrayList<>();
             while (rs.next()) {
                 dbCols.add(rs.getString(4));
             }
@@ -913,16 +898,13 @@ public class RMTxStore implements RMStore {
                 }
 
                 for (String[] newCol : newCols) {
-                    Statement st = con.createStatement();
-                    try {
+                    try (Statement st = con.createStatement()) {
                         st.executeUpdate(MessageFormat.format(ALTER_TABLE_STMT_STR,
                                                               tableName, newCol[0], newCol[1]));
                         if (LOG.isLoggable(Level.FINE)) {
                             LOG.log(Level.FINE, "Successfully added column {0} to table {1}",
                                     new Object[] {tableName, newCol[0]});
                         }
-                    } finally {
-                        st.close();
                     }
                 }
             }
@@ -944,33 +926,26 @@ public class RMTxStore implements RMStore {
             return;
         }
 
-        Statement stmt = connection.createStatement();
         // schemaName has been verified at setSchemaName(String)
-        try {
+        try (Statement stmt = connection.createStatement()) {
             stmt.executeUpdate(MessageFormat.format(CREATE_SCHEMA_STMT_STR,
                                                     schemaName));
         } catch (SQLException ex) {
             // assume it is already created or no authorization is provided (create one manually)
-        } finally {
-            stmt.close();
         }
-        stmt = connection.createStatement();
-        SQLException ex0 = null;
-        for (int i = 0; i < SET_SCHEMA_STMT_STRS.length; i++) {
-            try {
-                stmt.executeUpdate(MessageFormat.format(SET_SCHEMA_STMT_STRS[i], schemaName));
-                break;
-            } catch (SQLException ex) {
-                ex.setNextException(ex0);
-                ex0 = ex;
-                if (i == SET_SCHEMA_STMT_STRS.length - 1) {
-                    throw ex0;
-                }
-                // continue
-            } finally {
-                // close the statement after its last use
-                if (ex0 == null || i == SET_SCHEMA_STMT_STRS.length - 1) {
-                    stmt.close();
+
+        try (Statement stmt = connection.createStatement()) {
+            SQLException ex0 = null;
+            for (int i = 0; i < SET_SCHEMA_STMT_STRS.length; i++) {
+                try {
+                    stmt.executeUpdate(MessageFormat.format(SET_SCHEMA_STMT_STRS[i], schemaName));
+                    break;
+                } catch (SQLException ex) {
+                    ex.setNextException(ex0);
+                    ex0 = ex;
+                    if (i == SET_SCHEMA_STMT_STRS.length - 1) {
+                        throw ex0;
+                    }
                 }
             }
         }
@@ -1110,9 +1085,7 @@ public class RMTxStore implements RMStore {
                 }
                 Class.forName(driverClassName);
                 con = DriverManager.getConnection(url, userName, password);
-            } catch (ClassNotFoundException ex) {
-                LogUtils.log(LOG, Level.SEVERE, "CONNECT_EXC", ex);
-            } catch (SQLException ex) {
+            } catch (ClassNotFoundException | SQLException ex) {
                 LogUtils.log(LOG, Level.SEVERE, "CONNECT_EXC", ex);
             }
         }
@@ -1185,8 +1158,8 @@ public class RMTxStore implements RMStore {
     public static void deleteDatabaseFiles(String dbName, boolean now) {
         String dsh = SystemPropertyAction.getPropertyOrNull("derby.system.home");
 
-        File root = null;
-        File log = null;
+        final File root;
+        final File log;
         if (null == dsh) {
             log = new File("derby.log");
             root = new File(dbName);
@@ -1244,10 +1217,10 @@ public class RMTxStore implements RMStore {
     }
 
     private static String buildCreateTableStatement(String name, String[][] cols, String[] keys) {
-        StringBuilder buf = new StringBuilder();
+        StringBuilder buf = new StringBuilder(128);
         buf.append("CREATE TABLE ").append(name).append(" (");
         for (String[] col : cols) {
-            buf.append(col[0]).append(" ").append(col[1]).append(", ");
+            buf.append(col[0]).append(' ').append(col[1]).append(", ");
         }
         buf.append("PRIMARY KEY (");
         for (int i = 0; i < keys.length; i++) {

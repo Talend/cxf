@@ -24,11 +24,10 @@ import java.util.Collections;
 import java.util.Set;
 import java.util.logging.Logger;
 
-import javax.xml.soap.SOAPException;
-import javax.xml.soap.SOAPMessage;
-
 import org.w3c.dom.Element;
 
+import jakarta.xml.soap.SOAPException;
+import jakarta.xml.soap.SOAPMessage;
 import org.apache.cxf.binding.soap.SoapFault;
 import org.apache.cxf.binding.soap.SoapMessage;
 import org.apache.cxf.binding.soap.saaj.SAAJOutInterceptor;
@@ -43,6 +42,7 @@ import org.apache.cxf.phase.PhaseInterceptor;
 import org.apache.cxf.ws.policy.AssertionInfoMap;
 import org.apache.cxf.ws.security.SecurityConstants;
 import org.apache.cxf.ws.security.policy.PolicyUtils;
+import org.apache.cxf.ws.security.tokenstore.TokenStoreException;
 import org.apache.cxf.ws.security.wss4j.policyhandlers.AsymmetricBindingHandler;
 import org.apache.cxf.ws.security.wss4j.policyhandlers.SymmetricBindingHandler;
 import org.apache.cxf.ws.security.wss4j.policyhandlers.TransportBindingHandler;
@@ -139,7 +139,7 @@ public class PolicyBasedWSS4JOutInterceptor extends AbstractPhaseInterceptor<Soa
 
             if (binding != null) {
                 WSSecHeader secHeader = new WSSecHeader(actor, mustUnderstand, saaj.getSOAPPart());
-                Element el = null;
+                final Element el;
                 try {
                     el = secHeader.insertSecurityHeader();
                 } catch (WSSecurityException e) {
@@ -153,7 +153,7 @@ public class PolicyBasedWSS4JOutInterceptor extends AbstractPhaseInterceptor<Soa
                     SAAJUtils.getHeader(saaj).appendChild(el);
                 } catch (SOAPException e) {
                     //ignore
-                } 
+                }
 
                 WSSConfig config = (WSSConfig)message.getContextualProperty(WSSConfig.class.getName());
                 if (config == null) {
@@ -164,13 +164,13 @@ public class PolicyBasedWSS4JOutInterceptor extends AbstractPhaseInterceptor<Soa
                 String asymSignatureAlgorithm =
                     (String)message.getContextualProperty(SecurityConstants.ASYMMETRIC_SIGNATURE_ALGORITHM);
                 if (asymSignatureAlgorithm != null && binding.getAlgorithmSuite() != null) {
-                    binding.getAlgorithmSuite().setAsymmetricSignature(asymSignatureAlgorithm);
+                    binding.getAlgorithmSuite().getAlgorithmSuiteType().setAsymmetricSignature(asymSignatureAlgorithm);
                 }
 
                 String symSignatureAlgorithm =
                     (String)message.getContextualProperty(SecurityConstants.SYMMETRIC_SIGNATURE_ALGORITHM);
                 if (symSignatureAlgorithm != null && binding.getAlgorithmSuite() != null) {
-                    binding.getAlgorithmSuite().setSymmetricSignature(symSignatureAlgorithm);
+                    binding.getAlgorithmSuite().getAlgorithmSuiteType().setSymmetricSignature(symSignatureAlgorithm);
                 }
 
                 try {
@@ -184,7 +184,7 @@ public class PolicyBasedWSS4JOutInterceptor extends AbstractPhaseInterceptor<Soa
                         new AsymmetricBindingHandler(config, (AsymmetricBinding)binding, saaj,
                                                      secHeader, aim, message).handleBinding();
                     }
-                } catch (SOAPException e) {
+                } catch (SOAPException | TokenStoreException e) {
                     throw new SoapFault(
                         new Message("SECURITY_FAILED", LOG), e, message.getVersion().getSender()
                     );

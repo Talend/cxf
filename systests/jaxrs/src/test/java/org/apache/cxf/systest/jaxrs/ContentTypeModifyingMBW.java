@@ -23,10 +23,10 @@ import java.io.OutputStream;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
 
-import javax.ws.rs.WebApplicationException;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.MultivaluedMap;
-import javax.ws.rs.ext.MessageBodyWriter;
+import jakarta.ws.rs.WebApplicationException;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.MultivaluedMap;
+import jakarta.ws.rs.ext.MessageBodyWriter;
 
 public class ContentTypeModifyingMBW implements MessageBodyWriter<String> {
 
@@ -37,7 +37,7 @@ public class ContentTypeModifyingMBW implements MessageBodyWriter<String> {
 
     @Override
     public boolean isWriteable(Class<?> arg0, Type arg1, Annotation[] arg2, MediaType mt) {
-        return mt.toString().equals("text/custom");
+        return "text/custom".equals(mt.toString());
     }
 
     @Override

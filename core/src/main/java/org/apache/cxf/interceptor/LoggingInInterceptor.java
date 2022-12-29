@@ -76,14 +76,14 @@ public class LoggingInInterceptor extends AbstractLoggingInterceptor {
         this.writer = w;
     }
 
-    public void handleMessage(Message message) throws Fault {
+    public void handleMessage(Message message) {
         Logger logger = getMessageLogger(message);
         if (logger != null && (writer != null || logger.isLoggable(Level.INFO))) {
             logging(logger, message);
         }
     }
 
-    protected void logging(Logger logger, Message message) throws Fault {
+    protected void logging(Logger logger, Message message) {
         if (message.containsKey(LoggingMessage.ID_KEY)) {
             return;
         }
@@ -129,7 +129,7 @@ public class LoggingInInterceptor extends AbstractLoggingInterceptor {
             if (uri != null && uri.startsWith("/")) {
                 if (address != null && !address.startsWith(uri)) {
                     if (address.endsWith("/") && address.length() > 1) {
-                        address = address.substring(0, address.length());
+                        address = address.substring(0, address.length() - 1);
                     }
                     uri = address + uri;
                 }
@@ -141,7 +141,7 @@ public class LoggingInInterceptor extends AbstractLoggingInterceptor {
             buffer.getAddress().append(uri);
             String query = (String)message.get(Message.QUERY_STRING);
             if (query != null) {
-                buffer.getAddress().append("?").append(query);
+                buffer.getAddress().append('?').append(query);
             }
         }
 
@@ -183,6 +183,7 @@ public class LoggingInInterceptor extends AbstractLoggingInterceptor {
                 buffer.getMessage().append("(message truncated to " + limit + " bytes)\n");
             }
             writer.writeCacheTo(buffer.getPayload(), limit);
+            writer.close();
         } catch (Exception e) {
             throw new Fault(e);
         }

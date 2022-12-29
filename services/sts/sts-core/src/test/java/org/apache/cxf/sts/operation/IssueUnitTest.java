@@ -20,15 +20,13 @@ package org.apache.cxf.sts.operation;
 
 import java.time.Instant;
 import java.time.ZoneOffset;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-
-import javax.xml.bind.JAXBElement;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
+import jakarta.xml.bind.JAXBElement;
 import org.apache.cxf.helpers.DOMUtils;
 import org.apache.cxf.jaxws.context.WrappedMessageContext;
 import org.apache.cxf.message.MessageImpl;
@@ -38,7 +36,6 @@ import org.apache.cxf.sts.STSPropertiesMBean;
 import org.apache.cxf.sts.StaticSTSProperties;
 import org.apache.cxf.sts.service.ServiceMBean;
 import org.apache.cxf.sts.service.StaticService;
-import org.apache.cxf.sts.token.provider.TokenProvider;
 import org.apache.cxf.ws.security.sts.provider.STSException;
 import org.apache.cxf.ws.security.sts.provider.model.LifetimeType;
 import org.apache.cxf.ws.security.sts.provider.model.RequestSecurityTokenCollectionType;
@@ -49,10 +46,14 @@ import org.apache.cxf.ws.security.sts.provider.model.utility.AttributedDateTime;
 import org.apache.wss4j.common.WSS4JConstants;
 import org.apache.wss4j.common.util.DateUtil;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.fail;
+
 /**
  * Some unit tests for the issue operation.
  */
-public class IssueUnitTest extends org.junit.Assert {
+public class IssueUnitTest {
 
     /**
      * Test to successfully issue a (dummy) token.
@@ -62,9 +63,8 @@ public class IssueUnitTest extends org.junit.Assert {
         TokenIssueOperation issueOperation = new TokenIssueOperation();
 
         // Add Token Provider
-        List<TokenProvider> providerList = new ArrayList<>();
-        providerList.add(new DummyTokenProvider());
-        issueOperation.setTokenProviders(providerList);
+        issueOperation.setTokenProviders(Collections.singletonList(
+            new DummyTokenProvider()));
 
         // Add Service
         ServiceMBean service = new StaticService();
@@ -93,7 +93,7 @@ public class IssueUnitTest extends org.junit.Assert {
             issueOperation.issue(request, null, msgCtx);
         List<RequestSecurityTokenResponseType> securityTokenResponse =
             response.getRequestSecurityTokenResponse();
-        assertTrue(!securityTokenResponse.isEmpty());
+        assertFalse(securityTokenResponse.isEmpty());
     }
 
     /**
@@ -104,9 +104,8 @@ public class IssueUnitTest extends org.junit.Assert {
         TokenIssueOperation issueOperation = new TokenIssueOperation();
 
         // Add Token Provider
-        List<TokenProvider> providerList = new ArrayList<>();
-        providerList.add(new DummyTokenProvider());
-        issueOperation.setTokenProviders(providerList);
+        issueOperation.setTokenProviders(Collections.singletonList(
+            new DummyTokenProvider()));
 
         // Add Service
         ServiceMBean service = new StaticService();
@@ -154,9 +153,8 @@ public class IssueUnitTest extends org.junit.Assert {
         TokenIssueOperation issueOperation = new TokenIssueOperation();
 
         // Add Token Provider
-        List<TokenProvider> providerList = new ArrayList<>();
-        providerList.add(new DummyTokenProvider());
-        issueOperation.setTokenProviders(providerList);
+        issueOperation.setTokenProviders(Collections.singletonList(
+            new DummyTokenProvider()));
 
         // Add Service
         ServiceMBean service = new StaticService();
@@ -205,7 +203,7 @@ public class IssueUnitTest extends org.junit.Assert {
             issueOperation.issue(request, null, msgCtx);
         List<RequestSecurityTokenResponseType> securityTokenResponse =
             response.getRequestSecurityTokenResponse();
-        assertTrue(!securityTokenResponse.isEmpty());
+        assertFalse(securityTokenResponse.isEmpty());
     }
 
 
@@ -218,9 +216,8 @@ public class IssueUnitTest extends org.junit.Assert {
         TokenIssueOperation issueOperation = new TokenIssueOperation();
 
         // Add Token Provider
-        List<TokenProvider> providerList = new ArrayList<>();
-        providerList.add(new DummyTokenProvider());
-        issueOperation.setTokenProviders(providerList);
+        issueOperation.setTokenProviders(Collections.singletonList(
+            new DummyTokenProvider()));
 
         // Add Service
         ServiceMBean service = new StaticService();
@@ -260,7 +257,7 @@ public class IssueUnitTest extends org.junit.Assert {
             issueOperation.issue(request, null, msgCtx);
         List<RequestSecurityTokenResponseType> securityTokenResponse =
             response.getRequestSecurityTokenResponse();
-        assertTrue(!securityTokenResponse.isEmpty());
+        assertFalse(securityTokenResponse.isEmpty());
     }
 
     /**
@@ -271,9 +268,8 @@ public class IssueUnitTest extends org.junit.Assert {
         TokenIssueOperation issueOperation = new TokenIssueOperation();
 
         // Add Token Provider
-        List<TokenProvider> providerList = new ArrayList<>();
-        providerList.add(new DummyTokenProvider());
-        issueOperation.setTokenProviders(providerList);
+        issueOperation.setTokenProviders(Collections.singletonList(
+            new DummyTokenProvider()));
 
         // Add Service
         ServiceMBean service = new StaticService();
@@ -301,7 +297,7 @@ public class IssueUnitTest extends org.junit.Assert {
             issueOperation.issue(request, null, msgCtx);
         List<RequestSecurityTokenResponseType> securityTokenResponse =
             response.getRequestSecurityTokenResponse();
-        assertTrue(!securityTokenResponse.isEmpty());
+        assertFalse(securityTokenResponse.isEmpty());
     }
 
 
@@ -314,9 +310,8 @@ public class IssueUnitTest extends org.junit.Assert {
         TokenIssueOperation issueOperation = new TokenIssueOperation();
 
         // Add Token Provider
-        List<TokenProvider> providerList = new ArrayList<>();
-        providerList.add(new DummyTokenProvider());
-        issueOperation.setTokenProviders(providerList);
+        issueOperation.setTokenProviders(Collections.singletonList(
+            new DummyTokenProvider()));
 
         // Add Service
         ServiceMBean service = new StaticService();
@@ -346,8 +341,8 @@ public class IssueUnitTest extends org.junit.Assert {
             issueOperation.issue(request, null, msgCtx);
         List<RequestSecurityTokenResponseType> securityTokenResponse =
             response.getRequestSecurityTokenResponse();
-        assertTrue(!securityTokenResponse.isEmpty());
-        assertTrue("AuthenticationContext".equals(securityTokenResponse.get(0).getContext()));
+        assertFalse(securityTokenResponse.isEmpty());
+        assertEquals("AuthenticationContext", securityTokenResponse.get(0).getContext());
     }
 
     /**
@@ -359,9 +354,8 @@ public class IssueUnitTest extends org.junit.Assert {
         TokenIssueOperation issueOperation = new TokenIssueOperation();
 
         // Add Token Provider
-        List<TokenProvider> providerList = new ArrayList<>();
-        providerList.add(new DummyTokenProvider());
-        issueOperation.setTokenProviders(providerList);
+        issueOperation.setTokenProviders(Collections.singletonList(
+            new DummyTokenProvider()));
 
         // Add Service
         ServiceMBean service = new StaticService();
@@ -382,7 +376,7 @@ public class IssueUnitTest extends org.junit.Assert {
         request.getAny().add(createAppliesToElement("http://dummy-service.com/dummy"));
         LifetimeType lifetime = createLifetime(300L * 5L);
         JAXBElement<LifetimeType> lifetimeJaxb =
-            new JAXBElement<LifetimeType>(QNameConstants.LIFETIME, LifetimeType.class, lifetime);
+            new JAXBElement<>(QNameConstants.LIFETIME, LifetimeType.class, lifetime);
         request.getAny().add(lifetimeJaxb);
 
         // Mock up message context
@@ -394,7 +388,7 @@ public class IssueUnitTest extends org.junit.Assert {
             issueOperation.issue(request, null, msgCtx);
         List<RequestSecurityTokenResponseType> securityTokenResponse =
             response.getRequestSecurityTokenResponse();
-        assertTrue(!securityTokenResponse.isEmpty());
+        assertFalse(securityTokenResponse.isEmpty());
     }
 
     /**
@@ -405,9 +399,8 @@ public class IssueUnitTest extends org.junit.Assert {
         TokenIssueOperation issueOperation = new TokenIssueOperation();
 
         // Add Token Provider
-        List<TokenProvider> providerList = new ArrayList<>();
-        providerList.add(new DummyTokenProvider());
-        issueOperation.setTokenProviders(providerList);
+        issueOperation.setTokenProviders(Collections.singletonList(
+            new DummyTokenProvider()));
 
         // Add Service
         ServiceMBean service = new StaticService();
@@ -434,7 +427,7 @@ public class IssueUnitTest extends org.junit.Assert {
         // Issue a token
         RequestSecurityTokenResponseType response =
             issueOperation.issueSingle(request, null, msgCtx);
-        assertTrue(!response.getAny().isEmpty());
+        assertFalse(response.getAny().isEmpty());
     }
 
 

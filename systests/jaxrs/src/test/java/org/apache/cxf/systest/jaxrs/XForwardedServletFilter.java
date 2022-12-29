@@ -20,14 +20,14 @@ package org.apache.cxf.systest.jaxrs;
 
 import java.io.IOException;
 
-import javax.servlet.Filter;
-import javax.servlet.FilterChain;
-import javax.servlet.FilterConfig;
-import javax.servlet.ServletException;
-import javax.servlet.ServletRequest;
-import javax.servlet.ServletResponse;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletRequestWrapper;
+import jakarta.servlet.Filter;
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.FilterConfig;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.ServletRequest;
+import jakarta.servlet.ServletResponse;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequestWrapper;
 
 public class XForwardedServletFilter implements Filter {
 
@@ -43,6 +43,8 @@ public class XForwardedServletFilter implements Filter {
         HttpServletRequest httpReq = (HttpServletRequest)req;
         if (httpReq.getHeader("USE_XFORWARDED") != null) {
             httpReq = new HttpServletRequestXForwardedFilter(httpReq);
+        } else if (httpReq.getHeader("USE_XFORWARDED_MANY_HOSTS") != null) {
+            httpReq = new HttpServletRequestXForwardedFilter(httpReq, true);
         }
         chain.doFilter(httpReq, resp);
     }
@@ -54,9 +56,15 @@ public class XForwardedServletFilter implements Filter {
     }
 
     private static class HttpServletRequestXForwardedFilter extends HttpServletRequestWrapper {
+        private final boolean multihost;
 
         HttpServletRequestXForwardedFilter(HttpServletRequest request) {
+            this(request, false);
+        }
+
+        HttpServletRequestXForwardedFilter(HttpServletRequest request, boolean multihost) {
             super(request);
+            this.multihost = multihost;
         }
 
         @Override
@@ -70,7 +78,7 @@ public class XForwardedServletFilter implements Filter {
             } else if ("X-Forwarded-Port".equals(name)) {
                 return "8090";
             } else if ("X-Forwarded-Host".equals(name)) {
-                return "external";
+                return !multihost ? "external" : "external1, external2, external3";
             } else { 
                 return super.getHeader(name);
             }

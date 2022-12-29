@@ -18,450 +18,702 @@
  */
 package org.apache.cxf.jaxrs.sse.client;
 
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.net.URI;
-import java.nio.charset.StandardCharsets;
+import java.time.Duration;
 import java.util.ArrayList;
-import java.util.Collection;
+import java.util.Collections;
+import java.util.EnumMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Function;
 
-import javax.ws.rs.client.Invocation;
-import javax.ws.rs.core.Configuration;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.sse.InboundSseEvent;
-import javax.ws.rs.sse.SseEventSource;
-
-import org.apache.cxf.endpoint.Endpoint;
-import org.apache.cxf.jaxrs.client.ClientConfiguration;
-import org.apache.cxf.jaxrs.client.ClientProviderFactory;
-import org.apache.cxf.jaxrs.client.WebClient;
-import org.apache.cxf.jaxrs.client.spec.ClientImpl.WebTargetImpl;
+import jakarta.ws.rs.BadRequestException;
+import jakarta.ws.rs.GET;
+import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.client.Client;
+import jakarta.ws.rs.client.ClientBuilder;
+import jakarta.ws.rs.client.WebTarget;
+import jakarta.ws.rs.core.Context;
+import jakarta.ws.rs.core.HttpHeaders;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.Response;
+import jakarta.ws.rs.core.Response.Status;
+import jakarta.ws.rs.sse.InboundSseEvent;
+import jakarta.ws.rs.sse.SseEventSource;
+import org.apache.cxf.endpoint.Server;
+import org.apache.cxf.jaxrs.JAXRSServerFactoryBean;
 
 import org.junit.After;
-import org.junit.Assert;
-import org.junit.Before;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
-import org.junit.runner.RunWith;
-import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
 
+import static org.awaitility.Awaitility.await;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.instanceOf;
 import static org.hamcrest.CoreMatchers.nullValue;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.atLeast;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.hamcrest.MatcherAssert.assertThat;
 
-@RunWith(MockitoJUnitRunner.class)
-public class SseEventSourceImplTest extends Assert {
+
+public class SseEventSourceImplTest {
+
+    enum Type {
+        NO_CONTENT, NO_SERVER, BUSY, UNAVAILABLE, RETRY_AFTER,
+        EVENT, EVENT_JUST_DATA, EVENT_JUST_NAME, EVENT_MULTILINE_DATA, EVENT_NO_RETRY, EVENT_BAD_RETRY, EVENT_MIXED,
+        EVENT_BAD_NEW_LINES, EVENT_NOT_AUTHORIZED, EVENT_LAST_EVENT_ID, EVENT_RETRY_LAST_EVENT_ID;
+    }
+
     private static final String EVENT = "event: event\n"
         + "id: 1\n"
         + "data: test data\n"
         + "retry: 10000\n"
         + ": test comment\n"
         + "\n";
-    
+
     private static final String EVENT_JUST_DATA = "\n"
         + "data: just test data\n"
         + "\n";
-    
+
+    private static final String EVENT_MULTILINE_DATA = "\n"
+            + "data: just test data\n"
+            + "data: in multiple lines\n"
+            + "\n";
+
     private static final String EVENT_JUST_NAME = "\n"
         + "event: just name\n";
-    
+
     private static final String EVENT_NO_RETRY = "event: event\n"
         + "id: 1\n"
         + "data: test data\n"
         + ": test comment\n"
         + "\n";
-    
+
     private static final String EVENT_BAD_RETRY = "event: event\n"
         + "id: 1\n"
         + "data: test data\n"
         + "retry: blba\n"
         + ": test comment\n"
         + "\n";
-    
+
     private static final String EVENT_MIXED = EVENT_JUST_DATA + EVENT;
     private static final String EVENT_BAD_NEW_LINES =  "\n\n\n\n\n\n";
-    
+
+    private static final String LOCAL_ADDRESS = "local://";
+
+    private static final Map<Type, Server> SERVERS = new EnumMap<>(Type.class);
+
     @Rule
     public ExpectedException exception = ExpectedException.none();
-    
-    private final ExecutorService executor = Executors.newSingleThreadExecutor();
-    private final ClientProviderFactory clientProviderFactory = ClientProviderFactory.createInstance(null);
-    
-    /**
-     * Subclass the WebClient to augment the visibility of getConfiguration() method.
-     */
-    private static class TestWebClient extends WebClient {
-        TestWebClient(URI baseURI) {
-            super(baseURI);
-        }
-        
-        @Override
-        public ClientConfiguration getConfiguration() {
-            return super.getConfiguration();
-        }
-    }
-    
-    @Mock
-    private TestWebClient client;
-    @Mock
-    private ClientConfiguration clientConfiguration;
-    @Mock
-    private WebTargetImpl target;
-    @Mock
-    private Configuration configuration;
-    @Mock
-    private Invocation.Builder builder;
-    @Mock
-    private Endpoint endpoint;
-    @Mock
-    private Response response;
 
-    @Before
-    public void setUp() {
-        when(target.getConfiguration()).thenReturn(configuration);
-        when(target.getWebClient()).thenReturn(client);
-        when(target.request(MediaType.SERVER_SENT_EVENTS)).thenReturn(builder);
-        when(builder.header(any(String.class), any(Object.class))).thenReturn(builder);
-        when(builder.get()).thenReturn(response);
-        when(client.getConfiguration()).thenReturn(clientConfiguration);
-        when(clientConfiguration.getEndpoint()).thenReturn(endpoint);
-        when(endpoint.get("org.apache.cxf.jaxrs.client.ClientProviderFactory")).thenReturn(clientProviderFactory);
-    }
-    
+    private final List<InboundSseEvent> events = new ArrayList<>();
+    private final List<Throwable> errors = new ArrayList<>();
+
+    private final ExecutorService executor = Executors.newSingleThreadExecutor();
+
     @After
     public void tearDown() throws InterruptedException {
         executor.shutdown();
-        executor.awaitTermination(1, TimeUnit.SECONDS);
+        executor.awaitTermination(1L, TimeUnit.SECONDS);
     }
-    
+
     @Test
     public void testNoReconnectWhenNoContentIsReturned() {
-        // Verify that 204 response code won't force reconnect
-        when(response.getStatus()).thenReturn(204);
-        
-        try (SseEventSource eventSource = withNoReconnect()) {
+        try (SseEventSource eventSource = withNoReconnect(Type.NO_CONTENT)) {
             eventSource.open();
             assertThat(eventSource.isOpen(), equalTo(false));
-            verify(response, times(1)).getStatus();
-        }
-    }
-    
-    @Test
-    public void testReuseSameEventSourceSeveralTimes() {
-        // Verify that 204 response code won't force reconnect
-        when(response.getStatus()).thenReturn(204);
-        
-        try (SseEventSource eventSource = withNoReconnect()) {
-            eventSource.open();
-            assertThat(eventSource.isOpen(), equalTo(false));
-            verify(response, times(1)).getStatus();
 
-            eventSource.open();
-            assertThat(eventSource.isOpen(), equalTo(false));
-            verify(response, times(2)).getStatus();
-        }
-    }
-
-    @Test
-    public void testReconnectWillBeScheduledOnError() throws InterruptedException {
-        when(builder.get()).thenThrow(new RuntimeException("Connection refused"));
-        
-        try (SseEventSource eventSource = withReconnect()) {
-            eventSource.open();
-            assertThat(eventSource.isOpen(), equalTo(false));
-            
-            // Sleep a little bit for reconnect to reschedule
-            Thread.sleep(150);
-            verify(builder, atLeast(2)).get();
-        }
-    }
-    
-    @Test
-    public void testNoReconnectWillBeScheduledWhenClosed() throws InterruptedException {
-        when(builder.get()).thenThrow(new RuntimeException("Connection refused"));
-        
-        try (SseEventSource eventSource = withReconnect()) {
-            eventSource.open();
-            assertThat(eventSource.isOpen(), equalTo(false));
-            eventSource.close(1, TimeUnit.SECONDS);
-            
-            // Sleep a little bit to make sure for reconnect to reschedule (after 100ms)
-            Thread.sleep(150);
-            verify(builder, times(1)).get();
-        }
-    }
-    
-    @Test
-    public void testWhenTryToConnectTwiceSecondAttemtShouldFail() throws InterruptedException, ExecutionException {
-        when(builder.get()).then(invocation -> {
-            Thread.sleep(100);
-            return response;
-        });
-        
-        try (SseEventSource eventSource = withReconnect()) {
-            eventSource.open();
-            
-            // The attempt to open the SSE connection in another thread at the same 
-            // time should fail 
-            final Future<?> future = executor.submit(() -> eventSource.open());
-            exception.expectCause(instanceOf(IllegalStateException.class));
-            assertThat(future.get(), equalTo(null));
-            
-            assertThat(eventSource.isOpen(), equalTo(true));
-            verify(builder, times(1)).get();
-        }
-    }
-    
-    @Test
-    public void testNoReconnectAndOneEventReceived() throws InterruptedException, IOException {
-        try (InputStream is = new ByteArrayInputStream(EVENT.getBytes(StandardCharsets.UTF_8))) {
-            when(response.getStatus()).thenReturn(200);
-            when(response.readEntity(InputStream.class)).thenReturn(is);
-            
-            final List<InboundSseEvent> events = new ArrayList<>();
-            try (SseEventSource eventSource = withNoReconnect()) {
-                eventSource.register(events::add);
-                eventSource.open();
-                
-                assertThat(eventSource.isOpen(), equalTo(true));
-                verify(response, times(1)).getStatus();
-                
-                // Allow the event processor to pull for events (150ms)
-                Thread.sleep(150);
-            }
-            
-            assertThat(events.size(), equalTo(1));
-            assertThat(events.get(0).getId(), equalTo("1"));
-            assertThat(events.get(0).getReconnectDelay(), equalTo(10000L));
-            assertThat(events.get(0).getComment(), equalTo("test comment"));
-            assertThat(events.get(0).readData(), equalTo("test data"));
-        }
-    }
-    
-    @Test
-    public void testNoReconnectAndJustDataEventIsReceived() throws InterruptedException, IOException {
-        try (InputStream is = new ByteArrayInputStream(EVENT_JUST_DATA.getBytes(StandardCharsets.UTF_8))) {
-            when(response.getStatus()).thenReturn(200);
-            when(response.readEntity(InputStream.class)).thenReturn(is);
-            
-            final List<InboundSseEvent> events = new ArrayList<>();
-            try (SseEventSource eventSource = withNoReconnect()) {
-                eventSource.register(events::add);
-                eventSource.open();
-                
-                assertThat(eventSource.isOpen(), equalTo(true));
-                verify(response, times(1)).getStatus();
-                
-                // Allow the event processor to pull for events (150ms)
-                Thread.sleep(150);
-            }
-            
-            assertThat(events.size(), equalTo(1));
-            assertThat(events.get(0).getName(), nullValue());
-            assertThat(events.get(0).readData(), equalTo("just test data"));
-        }
-    }
-    
-    @Test
-    public void testNoReconnectAndJustEventNameIsReceived() throws InterruptedException, IOException {
-        try (InputStream is = new ByteArrayInputStream(EVENT_JUST_NAME.getBytes(StandardCharsets.UTF_8))) {
-            when(response.getStatus()).thenReturn(200);
-            when(response.readEntity(InputStream.class)).thenReturn(is);
-            
-            final List<InboundSseEvent> events = new ArrayList<>();
-            try (SseEventSource eventSource = withNoReconnect()) {
-                eventSource.register(events::add);
-                eventSource.open();
-                
-                assertThat(eventSource.isOpen(), equalTo(true));
-                verify(response, times(1)).getStatus();
-                
-                // Allow the event processor to pull for events (150ms)
-                Thread.sleep(150);
-            }
-            
-            assertThat(events.size(), equalTo(1));
-            assertThat(events.get(0).getName(), equalTo("just name"));
-        }
-    }
-    
-    @Test
-    public void testNoReconnectAndMixedEventsAreReceived() throws InterruptedException, IOException {
-        try (InputStream is = new ByteArrayInputStream(EVENT_MIXED.getBytes(StandardCharsets.UTF_8))) {
-            when(response.getStatus()).thenReturn(200);
-            when(response.readEntity(InputStream.class)).thenReturn(is);
-            
-            final List<InboundSseEvent> events = new ArrayList<>();
-            try (SseEventSource eventSource = withNoReconnect()) {
-                eventSource.register(events::add);
-                eventSource.open();
-                
-                assertThat(eventSource.isOpen(), equalTo(true));
-                verify(response, times(1)).getStatus();
-                
-                // Allow the event processor to pull for events (150ms)
-                Thread.sleep(150);
-            }
-            
-            assertThat(events.size(), equalTo(2));
-            assertThat(events.get(0).getName(), nullValue());
-            assertThat(events.get(0).readData(), equalTo("just test data"));
-            assertThat(events.get(1).getId(), equalTo("1"));
-            assertThat(events.get(1).getReconnectDelay(), equalTo(10000L));
-            assertThat(events.get(1).getComment(), equalTo("test comment"));
-            assertThat(events.get(1).readData(), equalTo("test data"));
-        }
-    }
-    
-    @Test
-    public void testNoReconnectAndNoEventsAreDetected() throws InterruptedException, IOException {
-        try (InputStream is = new ByteArrayInputStream(EVENT_BAD_NEW_LINES.getBytes(StandardCharsets.UTF_8))) {
-            when(response.getStatus()).thenReturn(200);
-            when(response.readEntity(InputStream.class)).thenReturn(is);
-            
-            final List<InboundSseEvent> events = new ArrayList<>();
-            try (SseEventSource eventSource = withNoReconnect()) {
-                eventSource.register(events::add);
-                eventSource.open();
-                
-                assertThat(eventSource.isOpen(), equalTo(true));
-                verify(response, times(1)).getStatus();
-                
-                // Allow the event processor to pull for events (150ms)
-                Thread.sleep(150);
-            }
-            
             assertThat(events.size(), equalTo(0));
         }
     }
     
     @Test
-    public void testReconnectAndTwoEventsReceived() throws InterruptedException, IOException {
-        final Collection<InputStream> closeables = new ArrayList<>();
-        
-        try {
-            when(response.getStatus()).thenReturn(200);
-            when(response.readEntity(InputStream.class)).then(Invocation -> {
-                final InputStream is = new ByteArrayInputStream(EVENT_NO_RETRY.getBytes(StandardCharsets.UTF_8));
-                closeables.add(is);
-                return is;
-            });
-            
-            final List<InboundSseEvent> events = new ArrayList<>();
-            try (SseEventSource eventSource = withReconnect()) {
-                eventSource.register(events::add);
-                eventSource.open();
-                
-                assertThat(eventSource.isOpen(), equalTo(true));
-                //verify(response, times(1)).getStatus();
-                
-                // Allow the event processor to pull for events (200ms)
-                Thread.sleep(150);
-            }
-            
-            assertThat(events.size(), equalTo(2));
-            assertThat(events.get(0).getId(), equalTo("1"));
-            assertThat(events.get(0).getComment(), equalTo("test comment"));
-            assertThat(events.get(0).readData(), equalTo("test data"));
-            assertThat(events.get(1).getId(), equalTo("1"));
-            assertThat(events.get(1).getComment(), equalTo("test comment"));
-            assertThat(events.get(1).readData(), equalTo("test data"));
-        } finally {
-            for (final InputStream is: closeables) {
-                is.close();
-            }
-        }
-    }
-    
-    @Test
-    public void testNoReconnectAndCloseTheStreamWhileEventIsBeingReceived() throws InterruptedException, IOException {
-        when(response.getStatus()).thenReturn(200);
-        when(response.readEntity(InputStream.class)).then(invocation -> {
-            Thread.sleep(200);
-            return null;
-        });
-        
-        final List<InboundSseEvent> events = new ArrayList<>();
-        try (SseEventSource eventSource = withNoReconnect()) {
-            eventSource.register(events::add);
+    public void testNoReconnectWhenUnavailableIsReturned() {
+        try (SseEventSource eventSource = withNoReconnect(Type.UNAVAILABLE)) {
             eventSource.open();
-            
-            assertThat(eventSource.isOpen(), equalTo(true));
-            verify(response, times(1)).getStatus();
-            
-            // Allow the event processor to pull for events (200ms)
-            Thread.sleep(50);
-            assertThat(eventSource.close(100, TimeUnit.MILLISECONDS), equalTo(true));
             assertThat(eventSource.isOpen(), equalTo(false));
+
+            await()
+                .during(Duration.ofMillis(3000L))
+                .untilAsserted(() -> assertThat(eventSource.isOpen(), equalTo(false)));
+
+            assertThat(events.size(), equalTo(0));
         }
     }
     
     @Test
-    public void testInvalidReconnectDelayInTheEvent() throws InterruptedException, IOException {
-        try (InputStream is = new ByteArrayInputStream(EVENT_BAD_RETRY.getBytes(StandardCharsets.UTF_8))) {
-            when(response.getStatus()).thenReturn(200);
-            when(response.readEntity(InputStream.class)).thenReturn(is);
-            
-            final List<InboundSseEvent> events = new ArrayList<>();
-            try (SseEventSource eventSource = withNoReconnect()) {
-                eventSource.register(events::add);
-                eventSource.open();
-                
-                assertThat(eventSource.isOpen(), equalTo(true));
-                verify(response, times(1)).getStatus();
-                
-                // Allow the event processor to pull for events (150ms)
-                Thread.sleep(150);
-            }
-            
+    public void testNoReconnectWhenRetryAfterIsReturned() {
+        try (SseEventSource eventSource = withNoReconnect(Type.RETRY_AFTER)) {
+            eventSource.open();
+            assertThat(eventSource.isOpen(), equalTo(false));
+
+            await()
+                .atMost(Duration.ofMillis(3000L))
+                .untilAsserted(() -> assertThat(eventSource.isOpen(), equalTo(true)));
+
             assertThat(events.size(), equalTo(1));
-            assertThat(events.get(0).getId(), equalTo("1"));
-            assertThat(events.get(0).getReconnectDelay(), equalTo(-1L));
-            assertThat(events.get(0).getComment(), equalTo("test comment"));
-            assertThat(events.get(0).readData(), equalTo("test data"));
         }
     }
 
     @Test
-    public void testTryToCloseWhileConnecting() throws ExecutionException, InterruptedException {
-        when(response.getStatus()).thenReturn(200);
-        when(builder.get()).then(invocation -> {
-            Thread.sleep(200);
-            return response;
-        });
-        
-        try (SseEventSource eventSource = withNoReconnect()) {
+    public void testReuseSameEventSourceSeveralTimes() {
+        try (SseEventSource eventSource = withNoReconnect(Type.NO_CONTENT)) {
+            eventSource.open();
+            assertThat(eventSource.isOpen(), equalTo(false));
+
+            eventSource.open();
+            assertThat(eventSource.isOpen(), equalTo(false));
+
+            assertThat(events.size(), equalTo(0));
+        }
+    }
+
+    @Test
+    public void testReconnectWillBeScheduledOnError() throws InterruptedException {
+        try (SseEventSource eventSource = withReconnect(Type.NO_SERVER)) {
+            eventSource.open();
+            assertThat(eventSource.isOpen(), equalTo(false));
+
+            // Sleep a little bit for reconnect to reschedule
+            Thread.sleep(150L);
+            assertThat(errors.size(), equalTo(2));
+        }
+    }
+
+    @Test
+    public void testNoReconnectWillBeScheduledWhenClosed() throws InterruptedException {
+        try (SseEventSource eventSource = withReconnect(Type.NO_SERVER)) {
+            eventSource.open();
+            assertThat(eventSource.isOpen(), equalTo(false));
+            eventSource.close(1L, TimeUnit.SECONDS);
+
+            // Sleep a little bit to make sure for reconnect to reschedule (after 100ms)
+            Thread.sleep(150L);
+            assertThat(errors.size(), equalTo(1));
+        }
+    }
+
+    @Test
+    public void testWhenTryToConnectTwiceSecondAttemtShouldFail() throws InterruptedException, ExecutionException {
+        try (SseEventSource eventSource = withReconnect(Type.BUSY)) {
+            eventSource.open();
+
+            // The attempt to open the SSE connection in another thread at the same
+            // time should fail
             final Future<?> future = executor.submit(() -> eventSource.open());
-            
+            exception.expectCause(instanceOf(IllegalStateException.class));
+            assertThat(future.get(), equalTo(null));
+
+            assertThat(eventSource.isOpen(), equalTo(true));
+            assertThat(events.size(), equalTo(1));
+        }
+    }
+
+    @Test
+    public void testNoReconnectAndOneEventReceived() throws InterruptedException, IOException {
+        try (SseEventSource eventSource = withNoReconnect(Type.EVENT)) {
+            eventSource.open();
+
+            assertThat(eventSource.isOpen(), equalTo(true));
+
+            // Allow the event processor to pull for events (150ms)
+            Thread.sleep(150L);
+        }
+
+        await()
+            .atMost(Duration.ofMillis(500L))
+            .untilAsserted(() -> assertThat(events.size(), equalTo(1)));
+
+        assertThat(events.get(0).getId(), equalTo("1"));
+        assertThat(events.get(0).getReconnectDelay(), equalTo(10000L));
+        assertThat(events.get(0).getComment(), equalTo("test comment"));
+        assertThat(events.get(0).readData(), equalTo("test data"));
+    }
+
+    @Test
+    public void testNoReconnectAndJustDataEventIsReceived() throws InterruptedException, IOException {
+        try (SseEventSource eventSource = withNoReconnect(Type.EVENT_JUST_DATA)) {
+            eventSource.open();
+
+            assertThat(eventSource.isOpen(), equalTo(true));
+
+            // Allow the event processor to pull for events (150ms)
+            Thread.sleep(150L);
+        }
+
+        await()
+            .atMost(Duration.ofMillis(500L))
+            .untilAsserted(() -> assertThat(events.size(), equalTo(1)));
+
+        assertThat(events.get(0).getName(), nullValue());
+        assertThat(events.get(0).readData(), equalTo("just test data"));
+    }
+
+    @Test
+    public void testNoReconnectAndMultilineDataEventIsReceived() throws InterruptedException, IOException {
+        try (SseEventSource eventSource = withNoReconnect(Type.EVENT_MULTILINE_DATA)) {
+            eventSource.open();
+
+            assertThat(eventSource.isOpen(), equalTo(true));
+
+            // Allow the event processor to pull for events (150ms)
+            Thread.sleep(150L);
+        }
+
+        await()
+            .atMost(Duration.ofMillis(500L))
+            .untilAsserted(() -> assertThat(events.size(), equalTo(1)));
+
+        assertThat(events.get(0).getName(), nullValue());
+        assertThat(events.get(0).readData(), equalTo("just test data\nin multiple lines"));
+    }
+    
+    @Test
+    public void testNoReconnectAndJustEventNameIsReceived() throws InterruptedException, IOException {
+        final Map<String, Object> properties = Collections
+            .singletonMap(SseEventSourceImpl.DISCARD_INCOMPLETE_EVENTS, false);
+        
+        try (SseEventSource eventSource = withNoReconnect(Type.EVENT_JUST_NAME, properties)) {
+            eventSource.open();
+
+            assertThat(eventSource.isOpen(), equalTo(true));
+
+            // Allow the event processor to pull for events (150ms)
+            Thread.sleep(150L);
+        }
+
+        await()
+            .atMost(Duration.ofMillis(500L))
+            .untilAsserted(() -> assertThat(events.size(), equalTo(1)));
+
+        assertThat(events.get(0).getName(), equalTo("just name"));
+    }
+
+    @Test
+    public void testNoReconnectAndIncompleteEventIsDiscarded() throws InterruptedException, IOException {
+        try (SseEventSource eventSource = withNoReconnect(Type.EVENT_JUST_NAME)) {
+            eventSource.open();
+
+            assertThat(eventSource.isOpen(), equalTo(true));
+
+            // Allow the event processor to pull for events (150ms)
+            Thread.sleep(150L);
+        }
+
+        // incomplete event should be discarded
+        await()
+            .during(Duration.ofMillis(500L))
+            .until(events::isEmpty);
+
+        assertThat(events.size(), equalTo(0));
+    }
+
+    @Test
+    public void testNoReconnectAndMixedEventsAreReceived() throws InterruptedException, IOException {
+        try (SseEventSource eventSource = withNoReconnect(Type.EVENT_MIXED)) {
+            eventSource.open();
+
+            assertThat(eventSource.isOpen(), equalTo(true));
+
+            // Allow the event processor to pull for events (150ms)
+            Thread.sleep(150L);
+        }
+
+        await()
+            .atMost(Duration.ofMillis(500L))
+            .untilAsserted(() -> assertThat(events.size(), equalTo(2)));
+
+        assertThat(events.get(0).getName(), nullValue());
+        assertThat(events.get(0).readData(), equalTo("just test data"));
+        assertThat(events.get(1).getId(), equalTo("1"));
+        assertThat(events.get(1).getReconnectDelay(), equalTo(10000L));
+        assertThat(events.get(1).getComment(), equalTo("test comment"));
+        assertThat(events.get(1).readData(), equalTo("test data"));
+    }
+
+    @Test
+    public void testNoReconnectAndNoEventsAreDetected() throws InterruptedException, IOException {
+        try (SseEventSource eventSource = withNoReconnect(Type.EVENT_BAD_NEW_LINES)) {
+            eventSource.open();
+
+            assertThat(eventSource.isOpen(), equalTo(true));
+
+            // Allow the event processor to pull for events (150ms)
+            Thread.sleep(150L);
+        }
+
+        assertThat(events.size(), equalTo(0));
+    }
+
+    @Test
+    public void testReconnectAndTwoEventsReceived() throws InterruptedException, IOException {
+        try (SseEventSource eventSource = withReconnect(Type.EVENT_NO_RETRY)) {
+            eventSource.open();
+
+            assertThat(eventSource.isOpen(), equalTo(true));
+
+            // Allow the event processor to pull for events (200ms)
+            Thread.sleep(150L);
+        }
+
+        await()
+            .atMost(Duration.ofMillis(500L))
+            .untilAsserted(() -> assertThat(events.size(), equalTo(2)));
+
+        assertThat(events.get(0).getId(), equalTo("1"));
+        assertThat(events.get(0).getComment(), equalTo("test comment"));
+        assertThat(events.get(0).readData(), equalTo("test data"));
+        assertThat(events.get(1).getId(), equalTo("1"));
+        assertThat(events.get(1).getComment(), equalTo("test comment"));
+        assertThat(events.get(1).readData(), equalTo("test data"));
+    }
+
+    @Test
+    public void testReconnectAndNotAuthorized() throws InterruptedException, IOException {
+        try (SseEventSource eventSource = withReconnect(Type.EVENT_NOT_AUTHORIZED)) {
+            eventSource.open();
+            assertThat(eventSource.isOpen(), equalTo(false));
+            assertThat(errors.size(), equalTo(1));
+
+            // Allow the event processor to pull for events (150ms)
+            Thread.sleep(150L);
+        }
+        
+        await()
+            .atMost(Duration.ofMillis(500L))
+            .untilAsserted(() -> assertThat(errors.size(), equalTo(2)));
+
+        assertThat(events.size(), equalTo(0));
+    }
+
+    @Test
+    public void testNoReconnectAndNotAuthorized() throws InterruptedException, IOException {
+        try (SseEventSource eventSource = withNoReconnect(Type.EVENT_NOT_AUTHORIZED)) {
+            eventSource.open();
+            assertThat(eventSource.isOpen(), equalTo(false));
+            assertThat(errors.size(), equalTo(1));
+
+            // Allow the event processor to pull for events (150ms)
+            Thread.sleep(150L);
+        }
+        
+        await()
+            .atMost(Duration.ofMillis(500L))
+            .untilAsserted(() -> assertThat(errors.size(), equalTo(1)));
+
+        assertThat(events.size(), equalTo(0));
+    }
+
+    @Test
+    public void testNoReconnectAndCloseTheStreamWhileEventIsBeingReceived() throws InterruptedException, IOException {
+        try (SseEventSource eventSource = withNoReconnect(Type.BUSY)) {
+            eventSource.open();
+
+            assertThat(eventSource.isOpen(), equalTo(true));
+
+            // Allow the event processor to pull for events (200ms)
+            Thread.sleep(50L);
+            assertThat(eventSource.close(100L, TimeUnit.MILLISECONDS), equalTo(true));
+            assertThat(eventSource.isOpen(), equalTo(false));
+        }
+    }
+
+    @Test
+    public void testInvalidReconnectDelayInTheEvent() throws InterruptedException, IOException {
+        try (SseEventSource eventSource = withNoReconnect(Type.EVENT_BAD_RETRY)) {
+            eventSource.open();
+
+            assertThat(eventSource.isOpen(), equalTo(true));
+
+            // Allow the event processor to pull for events (150ms)
+            Thread.sleep(150L);
+        }
+
+        await()
+            .atMost(Duration.ofMillis(500L))
+            .untilAsserted(() -> assertThat(events.size(), equalTo(1)));
+
+        assertThat(events.get(0).getId(), equalTo("1"));
+        assertThat(events.get(0).getReconnectDelay(), equalTo(-1L));
+        assertThat(events.get(0).getComment(), equalTo("test comment"));
+        assertThat(events.get(0).readData(), equalTo("test data"));
+    }
+
+    @Test
+    public void testTryToCloseWhileConnecting() throws ExecutionException, InterruptedException {
+        try (SseEventSource eventSource = withNoReconnect(Type.BUSY)) {
+            final Future<?> future = executor.submit(() -> eventSource.open());
+
             // Wait a bit for open() to advance
-            Thread.sleep(100);
+            Thread.sleep(50L);
             eventSource.close();
-            
+
             assertThat(future.get(), equalTo(null));
             assertThat(eventSource.isOpen(), equalTo(false));
         }
     }
-    
-    private SseEventSource withNoReconnect() {
-        return SseEventSource.target(target).build();
+
+    @Test
+    public void testConnectWithLastEventId() throws InterruptedException, IOException {
+        try (SseEventSource eventSource = withNoReconnect(Type.EVENT_LAST_EVENT_ID, "10")) {
+            eventSource.open();
+            assertThat(eventSource.isOpen(), equalTo(true));
+
+            // Allow the event processor to pull for events (150ms)
+            Thread.sleep(150L);
+        }
+
+        await()
+            .atMost(Duration.ofMillis(500L))
+            .untilAsserted(() -> assertThat(events.size(), equalTo(1)));
+        
+        assertThat(events.get(0).getId(), equalTo("10"));
+        assertThat(events.get(0).getReconnectDelay(), equalTo(10000L));
+        assertThat(events.get(0).getComment(), equalTo("test comment"));
+        assertThat(events.get(0).readData(), equalTo("test data"));
     }
     
-    private SseEventSource withReconnect() {
-        return SseEventSource.target(target).reconnectingEvery(100, TimeUnit.MILLISECONDS).build();
+    @Test
+    public void testReconnectWithLastEventId() throws InterruptedException, IOException {
+        try (SseEventSource eventSource = withReconnect(Type.EVENT_RETRY_LAST_EVENT_ID, "10")) {
+            eventSource.open();
+            assertThat(eventSource.isOpen(), equalTo(false));
+            assertThat(errors.size(), equalTo(1));
+
+            // Allow the event processor to pull for events (150ms)
+            Thread.sleep(150L);
+        }
+
+        await()
+            .atMost(Duration.ofMillis(500L))
+            .untilAsserted(() -> assertThat(events.size(), equalTo(1)));
+        
+        assertThat(events.get(0).getId(), equalTo("10"));
+        assertThat(events.get(0).getReconnectDelay(), equalTo(10000L));
+        assertThat(events.get(0).getComment(), equalTo("test comment"));
+        assertThat(events.get(0).readData(), equalTo("test data"));
     }
+    
+    private SseEventSource withNoReconnect(Type type) {
+        return withNoReconnect(type, null, Collections.emptyMap());
+    }
+    
+    private SseEventSource withNoReconnect(Type type, Map<String, Object> properties) {
+        return withNoReconnect(type, null, properties);
+    }
+    
+    private SseEventSource withNoReconnect(Type type, String lastEventId) {
+        return withNoReconnect(type, lastEventId, Collections.emptyMap());
+    }
+    
+    private SseEventSource withNoReconnect(Type type, String lastEventId, Map<String, Object> properties) {
+        SseEventSource eventSource = SseEventSource.target(target(type, lastEventId, properties)).build();
+        eventSource.register(events::add, errors::add);
+        return eventSource;
+    }
+    
+    private SseEventSource withReconnect(Type type) {
+        return withReconnect(type, null);
+    }
+
+    private SseEventSource withReconnect(Type type, String lastEventId) {
+        SseEventSource eventSource = SseEventSource.target(target(type, lastEventId))
+                .reconnectingEvery(100L, TimeUnit.MILLISECONDS)
+                .build();
+        eventSource.register(events::add, errors::add);
+        return eventSource;
+    }
+
+    private static WebTarget target(Type type, String lastEventId) {
+        return target(type, lastEventId, Collections.emptyMap());
+    }
+    
+    private static WebTarget target(Type type, String lastEventId, Map<String, Object> properties) {
+        final Client client = ClientBuilder.newClient();
+        if (properties != null) {
+            properties.forEach(client::property);
+        }
+        
+        final WebTarget target = client.target(LOCAL_ADDRESS + type.name());
+        if (lastEventId != null) {
+            target.property(HttpHeaders.LAST_EVENT_ID_HEADER, lastEventId);
+        }
+        return target;
+    }
+
+    @BeforeClass
+    public static void startServer() {
+        startServer(Type.NO_CONTENT, null);
+        // Type.NO_SERVER
+
+        startBusyServer(Type.BUSY);
+        startNotAuthorizedServer(Type.EVENT_NOT_AUTHORIZED);
+        startUnavailableServer(Type.UNAVAILABLE);
+        startUnavailableServer(Type.RETRY_AFTER);
+
+        startServer(Type.EVENT, EVENT);
+        startServer(Type.EVENT_JUST_DATA, EVENT_JUST_DATA);
+        startServer(Type.EVENT_JUST_NAME, EVENT_JUST_NAME);
+        startServer(Type.EVENT_MULTILINE_DATA, EVENT_MULTILINE_DATA);
+        startServer(Type.EVENT_NO_RETRY, EVENT_NO_RETRY);
+        startServer(Type.EVENT_BAD_RETRY, EVENT_BAD_RETRY);
+        startServer(Type.EVENT_MIXED, EVENT_MIXED);
+        startServer(Type.EVENT_BAD_NEW_LINES, EVENT_BAD_NEW_LINES);
+        
+        final Function<HttpHeaders, String> function = headers -> {
+            final String lastEventId = headers.getHeaderString(HttpHeaders.LAST_EVENT_ID_HEADER);
+            if (lastEventId != null) {
+                return EVENT.replaceAll("id: 1", "id: " + lastEventId); 
+            } else {
+                return EVENT;
+            }
+        };
+        
+        startDynamicServer(Type.EVENT_RETRY_LAST_EVENT_ID, function);
+        startDynamicServer(Type.EVENT_LAST_EVENT_ID, function);
+    }
+
+    private static void startNotAuthorizedServer(Type type) {
+        JAXRSServerFactoryBean sf = new JAXRSServerFactoryBean();
+        sf.setAddress(LOCAL_ADDRESS + type.name());
+        sf.setServiceBean(new ProtectedEventServer());
+        SERVERS.put(type, sf.create());
+    }
+
+    private static void startBusyServer(Type type) {
+        JAXRSServerFactoryBean sf = new JAXRSServerFactoryBean();
+        sf.setAddress(LOCAL_ADDRESS + type.name());
+        sf.setServiceBean(new BusyEventServer());
+        SERVERS.put(type, sf.create());
+    }
+    
+    private static void startUnavailableServer(Type type) {
+        JAXRSServerFactoryBean sf = new JAXRSServerFactoryBean();
+        sf.setAddress(LOCAL_ADDRESS + type.name());
+        sf.setServiceBean(new StatusServer(503, type));
+        SERVERS.put(type, sf.create());
+    }
+
+    
+    private static void startServer(Type type, String payload) {
+        JAXRSServerFactoryBean sf = new JAXRSServerFactoryBean();
+        sf.setAddress(LOCAL_ADDRESS + type.name());
+        sf.setServiceBean(new EventServer(payload));
+        SERVERS.put(type, sf.create());
+    }
+    
+    private static void startDynamicServer(Type type, Function<HttpHeaders, String> function) {
+        JAXRSServerFactoryBean sf = new JAXRSServerFactoryBean();
+        sf.setAddress(LOCAL_ADDRESS + type.name());
+        sf.setServiceBean(new DynamicServer(function, type == Type.EVENT_RETRY_LAST_EVENT_ID));
+        SERVERS.put(type, sf.create());
+    }
+
+    @AfterClass
+    public static void stopServer() {
+        for (Server server : SERVERS.values()) {
+            server.stop();
+            server.destroy();
+        }
+    }
+    
+    public static class StatusServer {
+        private final int status;
+        private final Type type;
+        private volatile boolean triggered;
+
+        public StatusServer(int status, Type type) {
+            this.status = status;
+            this.type = type;
+        }
+
+        @GET
+        @Produces(MediaType.SERVER_SENT_EVENTS)
+        public Response event() {
+            try {
+                if (triggered) {
+                    return Response.ok(EVENT).build();
+                } else if (status == 503) {
+                    if (type == Type.RETRY_AFTER) {
+                        return Response
+                           .status(status)
+                           .header(HttpHeaders.RETRY_AFTER, "2")
+                           .build();
+                    } else {
+                        return Response
+                            .status(status)
+                            .build();
+                    }
+                } else {
+                    return Response.status(status).build();
+                }
+            } finally {
+                triggered = true;
+            }
+        }
+    }
+
+    public static class EventServer {
+        private final String payload;
+
+        public EventServer(String event) {
+            payload = event;
+        }
+
+        @GET
+        @Produces(MediaType.SERVER_SENT_EVENTS)
+        public String event() {
+            return payload;
+        }
+    }
+
+    public static class BusyEventServer extends EventServer {
+        public BusyEventServer() {
+            super(EVENT);
+        }
+        @Override
+        public String event() {
+            try {
+                Thread.sleep(100L);
+            } catch (InterruptedException e) {
+            }
+            return super.event();
+        }
+    }
+
+    public static class ProtectedEventServer {
+        @GET
+        @Produces(MediaType.SERVER_SENT_EVENTS)
+        public Response event() {
+            return Response.status(Status.UNAUTHORIZED).build();
+        }
+    }
+
+    public static class DynamicServer {
+        private final Function<HttpHeaders, String> function;
+        private volatile boolean fail; 
+
+        public DynamicServer(Function<HttpHeaders, String> function, boolean fail) {
+            this.function = function;
+            this.fail = fail;
+        }
+
+        @GET
+        @Produces(MediaType.SERVER_SENT_EVENTS)
+        public String event(@Context HttpHeaders headers) {
+            if (fail) {
+                fail = false;
+                throw new BadRequestException();
+            } else {
+                return function.apply(headers);
+            }
+        }
+    }
+
 }

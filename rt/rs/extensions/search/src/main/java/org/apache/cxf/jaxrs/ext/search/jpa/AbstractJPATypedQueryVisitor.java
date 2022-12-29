@@ -18,25 +18,25 @@
  */
 package org.apache.cxf.jaxrs.ext.search.jpa;
 
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Deque;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.Stack;
 
-import javax.persistence.EntityManager;
-import javax.persistence.TypedQuery;
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.CriteriaQuery;
-import javax.persistence.criteria.Expression;
-import javax.persistence.criteria.From;
-import javax.persistence.criteria.Join;
-import javax.persistence.criteria.Path;
-import javax.persistence.criteria.Predicate;
-import javax.persistence.criteria.Root;
-
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.TypedQuery;
+import jakarta.persistence.criteria.CriteriaBuilder;
+import jakarta.persistence.criteria.CriteriaQuery;
+import jakarta.persistence.criteria.Expression;
+import jakarta.persistence.criteria.From;
+import jakarta.persistence.criteria.Join;
+import jakarta.persistence.criteria.Path;
+import jakarta.persistence.criteria.Predicate;
+import jakarta.persistence.criteria.Root;
 import org.apache.cxf.jaxrs.ext.search.ConditionType;
 import org.apache.cxf.jaxrs.ext.search.OrSearchCondition;
 import org.apache.cxf.jaxrs.ext.search.PrimitiveStatement;
@@ -54,7 +54,7 @@ public abstract class AbstractJPATypedQueryVisitor<T, T1, E>
     private Root<T> root;
     private CriteriaBuilder builder;
     private CriteriaQuery<T1> cq;
-    private Stack<List<Predicate>> predStack = new Stack<List<Predicate>>();
+    private final Deque<List<Predicate>> predStack = new ArrayDeque<>();
     private boolean criteriaFinalized;
     private Set<String> joinProperties;
 
@@ -75,7 +75,7 @@ public abstract class AbstractJPATypedQueryVisitor<T, T1, E>
     protected AbstractJPATypedQueryVisitor(EntityManager em,
                                            Class<T> tClass,
                                            List<String> joinProps) {
-           this(em, tClass, null, null, joinProps);
+        this(em, tClass, null, null, joinProps);
     }
 
     protected AbstractJPATypedQueryVisitor(EntityManager em,
@@ -128,7 +128,7 @@ public abstract class AbstractJPATypedQueryVisitor<T, T1, E>
                 condition.accept(this);
             }
             List<Predicate> predsList = predStack.pop();
-            Predicate[] preds = predsList.toArray(new Predicate[predsList.size()]);
+            Predicate[] preds = predsList.toArray(new Predicate[0]);
             Predicate newPred;
             if (sc instanceof OrSearchCondition) {
                 newPred = builder.or(preds);
@@ -158,7 +158,7 @@ public abstract class AbstractJPATypedQueryVisitor<T, T1, E>
     public CriteriaQuery<T1> getCriteriaQuery() {
         if (!criteriaFinalized) {
             List<Predicate> predsList = predStack.pop();
-            cq.where(predsList.toArray(new Predicate[predsList.size()]));
+            cq.where(predsList.toArray(new Predicate[0]));
             criteriaFinalized = true;
         }
         return cq;
@@ -303,7 +303,7 @@ public abstract class AbstractJPATypedQueryVisitor<T, T1, E>
     }
 
     private boolean isJoinProperty(String prop) {
-        return joinProperties == null ? false : joinProperties.contains(prop);
+        return joinProperties != null && joinProperties.contains(prop);
     }
 
     private Path<?> getExistingJoinProperty(From<?, ?> element, String prop) {

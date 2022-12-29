@@ -22,8 +22,8 @@ package org.apache.cxf.systest.http_jetty;
 import java.net.URL;
 
 import javax.xml.namespace.QName;
-import javax.xml.ws.BindingProvider;
 
+import jakarta.xml.ws.BindingProvider;
 import org.apache.cxf.testutil.common.AbstractClientServerTestBase;
 import org.apache.hello_world_soap_http.Greeter;
 import org.apache.hello_world_soap_http.SOAPService;
@@ -31,6 +31,8 @@ import org.apache.hello_world_soap_http.SOAPService;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
+
+import static org.junit.Assert.assertTrue;
 
 /**
  * Tests thread pool config.
@@ -89,7 +91,7 @@ public class ThreadPoolTest extends AbstractClientServerTestBase {
         //make sure things are running
         greeter.greetMeLater(1);
         greeter.greetMeLater(1);
-        TestRunnable r[] = new TestRunnable[5];
+        TestRunnable[] r = new TestRunnable[5];
         Thread[] invokers = new Thread[5];
         for (int i = 0; i < invokers.length; i++) {
             r[i] = new TestRunnable(i);

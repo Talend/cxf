@@ -24,8 +24,8 @@ import java.util.Iterator;
 import java.util.List;
 
 import javax.xml.namespace.QName;
-import javax.xml.ws.BindingProvider;
 
+import jakarta.xml.ws.BindingProvider;
 import org.apache.cxf.pat.internal.TestCaseBase;
 import org.apache.cxf.pat.internal.TestResult;
 import org.apache.cxf.performance.basic_type.BasicPortType;
@@ -75,10 +75,10 @@ public final class Client extends TestCaseBase<BasicPortType> {
         System.out.println("      echoString");
     }
 
-    public static void main(String args[]) throws Exception {
+    public static void main(String[] args) throws Exception {
         Client client = new Client(args);
         client.initialize();
-        if (client.getOperationName().equals("echoString")) {
+        if ("echoString".equals(client.getOperationName())) {
             opid = 0;
         } else {
             opid = 1;

@@ -21,11 +21,9 @@ package org.apache.cxf.jaxrs.impl;
 
 import java.util.Date;
 
-import javax.ws.rs.core.Cookie;
-import javax.ws.rs.core.NewCookie;
-import javax.ws.rs.ext.RuntimeDelegate.HeaderDelegate;
-
-import org.apache.cxf.common.util.StringUtils;
+import jakarta.ws.rs.core.Cookie;
+import jakarta.ws.rs.core.NewCookie;
+import jakarta.ws.rs.ext.RuntimeDelegate.HeaderDelegate;
 import org.apache.cxf.jaxrs.utils.HttpUtils;
 
 public class NewCookieHeaderProvider implements HeaderDelegate<NewCookie> {
@@ -62,14 +60,20 @@ public class NewCookieHeaderProvider implements HeaderDelegate<NewCookie> {
         boolean httpOnly = false;
         int version = Cookie.DEFAULT_VERSION;
 
-        String[] tokens = StringUtils.split(c, ";");
+        String[] tokens = c.split(";");
         for (String token : tokens) {
             String theToken = token.trim();
 
             int sepIndex = theToken.indexOf('=');
             String paramName = sepIndex != -1 ? theToken.substring(0, sepIndex) : theToken;
-            String paramValue = sepIndex == -1 || sepIndex == theToken.length() - 1
-                ? null : theToken.substring(sepIndex + 1);
+            String paramValue = null;
+
+            if (sepIndex == theToken.length() - 1) {
+                paramValue = "";
+            } else if (sepIndex != -1) {
+                paramValue = theToken.substring(sepIndex + 1);
+            }
+
             if (paramValue != null) {
                 paramValue = stripQuotes(paramValue);
             }
@@ -155,7 +159,7 @@ public class NewCookieHeaderProvider implements HeaderDelegate<NewCookie> {
             buff.append('"');
             return buff.toString();
         }
-        return value == null ? "" : value;
+        return value;
     }
     static String maybeQuoteAll(String value) {
         return maybeQuote(TSPECIALS_ALL, value);
@@ -165,7 +169,7 @@ public class NewCookieHeaderProvider implements HeaderDelegate<NewCookie> {
     }
 
     /**
-     * Return true iff the string contains special characters that need to be
+     * Return true if the string contains special characters that need to be
      * quoted.
      *
      * @param value

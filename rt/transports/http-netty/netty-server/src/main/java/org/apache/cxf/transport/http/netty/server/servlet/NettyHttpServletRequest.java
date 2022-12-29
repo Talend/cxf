@@ -36,29 +36,38 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import javax.net.ssl.SSLPeerUnverifiedException;
 import javax.net.ssl.SSLSession;
-import javax.servlet.RequestDispatcher;
-import javax.servlet.ServletInputStream;
-import javax.servlet.http.Cookie;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpSession;
 
+import jakarta.servlet.AsyncContext;
+import jakarta.servlet.DispatcherType;
+import jakarta.servlet.RequestDispatcher;
+import jakarta.servlet.ServletContext;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.ServletInputStream;
+import jakarta.servlet.ServletRequest;
+import jakarta.servlet.ServletResponse;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
+import jakarta.servlet.http.HttpUpgradeHandler;
+import jakarta.servlet.http.Part;
 import org.apache.cxf.transport.http.netty.server.util.Utils;
 
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.http.HttpContent;
-import io.netty.handler.codec.http.HttpHeaders;
-import io.netty.handler.codec.http.HttpHeaders.Names;
+import io.netty.handler.codec.http.HttpHeaderNames;
 import io.netty.handler.codec.http.HttpRequest;
+import io.netty.handler.codec.http.HttpUtil;
 import io.netty.handler.codec.http.QueryStringDecoder;
 import io.netty.handler.codec.http.cookie.ServerCookieDecoder;
 import io.netty.handler.ssl.SslHandler;
 
-import static io.netty.handler.codec.http.HttpHeaders.Names.COOKIE;
+import static io.netty.handler.codec.http.HttpHeaderNames.COOKIE;
 
 public class NettyHttpServletRequest implements HttpServletRequest {
 
-    private static final String SSL_CIPHER_SUITE_ATTRIBUTE = "javax.servlet.request.cipher_suite";
-    private static final String SSL_PEER_CERT_CHAIN_ATTRIBUTE = "javax.servlet.request.X509Certificate";
+    private static final String SSL_CIPHER_SUITE_ATTRIBUTE = "jakarta.servlet.request.cipher_suite";
+    private static final String SSL_PEER_CERT_CHAIN_ATTRIBUTE = "jakarta.servlet.request.X509Certificate";
 
     private static final Locale DEFAULT_LOCALE = Locale.getDefault();
 
@@ -72,7 +81,7 @@ public class NettyHttpServletRequest implements HttpServletRequest {
 
     private QueryStringDecoder queryStringDecoder;
 
-    private Map<String, Object> attributes = new ConcurrentHashMap<String, Object>();
+    private Map<String, Object> attributes = new ConcurrentHashMap<>();
 
     private String characterEncoding;
 
@@ -84,10 +93,10 @@ public class NettyHttpServletRequest implements HttpServletRequest {
         this.originalRequest = request;
         this.contextPath = contextPath;
         this.uriParser = new URIParser(contextPath);
-        uriParser.parse(request.getUri());
+        uriParser.parse(request.uri());
         this.inputStream = new NettyServletInputStream((HttpContent)request);
         this.reader = new BufferedReader(new InputStreamReader(inputStream));
-        this.queryStringDecoder = new QueryStringDecoder(request.getUri());
+        this.queryStringDecoder = new QueryStringDecoder(request.uri());
         // setup the SSL security attributes
         this.channelHandlerContext = ctx;
         SslHandler sslHandler = channelHandlerContext.pipeline().get(SslHandler.class);
@@ -149,7 +158,7 @@ public class NettyHttpServletRequest implements HttpServletRequest {
 
     @Override
     public String getHeader(String name) {
-        return HttpHeaders.getHeader(this.originalRequest, name);
+        return this.originalRequest.headers().get(name);
     }
 
     @SuppressWarnings("rawtypes")
@@ -166,12 +175,12 @@ public class NettyHttpServletRequest implements HttpServletRequest {
 
     @Override
     public int getIntHeader(String name) {
-        return HttpHeaders.getIntHeader(this.originalRequest, name, -1);
+        return this.originalRequest.headers().getInt(name, -1);
     }
 
     @Override
     public String getMethod() {
-        return this.originalRequest.getMethod().name();
+        return this.originalRequest.method().name();
     }
 
     @Override
@@ -207,13 +216,12 @@ public class NettyHttpServletRequest implements HttpServletRequest {
 
     @Override
     public int getContentLength() {
-        return (int) HttpHeaders.getContentLength(this.originalRequest, -1);
+        return HttpUtil.getContentLength(this.originalRequest, -1);
     }
 
     @Override
     public String getContentType() {
-        return HttpHeaders.getHeader(this.originalRequest,
-                HttpHeaders.Names.CONTENT_TYPE);
+        return this.originalRequest.headers().get(HttpHeaderNames.CONTENT_TYPE);
     }
 
     @Override
@@ -253,12 +261,12 @@ public class NettyHttpServletRequest implements HttpServletRequest {
         if (values == null || values.isEmpty()) {
             return null;
         }
-        return values.toArray(new String[values.size()]);
+        return values.toArray(new String[0]);
     }
 
     @Override
     public String getProtocol() {
-        return this.originalRequest.getProtocolVersion().toString();
+        return this.originalRequest.protocolVersion().toString();
     }
 
     @Override
@@ -317,8 +325,8 @@ public class NettyHttpServletRequest implements HttpServletRequest {
 
     @Override
     public Locale getLocale() {
-        String locale = HttpHeaders.getHeader(this.originalRequest,
-                Names.ACCEPT_LANGUAGE, DEFAULT_LOCALE.toString());
+        String locale = this.originalRequest.headers().get(
+                HttpHeaderNames.ACCEPT_LANGUAGE, DEFAULT_LOCALE.toString());
         return new Locale(locale);
     }
 
@@ -402,9 +410,8 @@ public class NettyHttpServletRequest implements HttpServletRequest {
     @Override
     public Enumeration getLocales() {
         Collection<Locale> locales = Utils
-                .parseAcceptLanguageHeader(HttpHeaders
-                        .getHeader(this.originalRequest,
-                                HttpHeaders.Names.ACCEPT_LANGUAGE));
+                .parseAcceptLanguageHeader(this.originalRequest.headers().get(
+                                HttpHeaderNames.ACCEPT_LANGUAGE));
 
         if (locales == null || locales.isEmpty()) {
             locales = new ArrayList<>();
@@ -470,5 +477,82 @@ public class NettyHttpServletRequest implements HttpServletRequest {
     public RequestDispatcher getRequestDispatcher(String path) {
         throw new IllegalStateException(
                 "Method 'getRequestDispatcher' not yet implemented!");
+    }
+
+    @Override
+    public long getContentLengthLong() {
+        throw new IllegalStateException("Method 'getContentLengthLong' not yet implemented!");
+    }
+
+    @Override
+    public ServletContext getServletContext() {
+        throw new IllegalStateException("Method 'getServletContext' not yet implemented!");
+    }
+
+    @Override
+    public AsyncContext startAsync() throws IllegalStateException {
+        throw new IllegalStateException("Method 'startAsync' not yet implemented!");
+    }
+
+    @Override
+    public AsyncContext startAsync(ServletRequest servletRequest,
+            ServletResponse servletResponse) throws IllegalStateException {
+        throw new IllegalStateException("Method 'startAsync' not yet implemented!");
+    }
+
+    @Override
+    public boolean isAsyncStarted() {
+        throw new IllegalStateException("Method 'isAsyncStarted' not yet implemented!");
+    }
+
+    @Override
+    public boolean isAsyncSupported() {
+        throw new IllegalStateException("Method 'isAsyncSupported' not yet implemented!");
+    }
+
+    @Override
+    public AsyncContext getAsyncContext() {
+        throw new IllegalStateException("Method 'getAsyncContext' not yet implemented!");
+    }
+
+    @Override
+    public DispatcherType getDispatcherType() {
+        throw new IllegalStateException("Method 'getDispatcherType' not yet implemented!");
+    }
+
+    @Override
+    public String changeSessionId() {
+        throw new IllegalStateException("Method 'changeSessionId' not yet implemented!");
+    }
+
+    @Override
+    public boolean authenticate(HttpServletResponse response) throws IOException, ServletException {
+        throw new IllegalStateException("Method 'authenticate' not yet implemented!");
+    }
+
+    @Override
+    public void login(String username, String password) throws ServletException {
+        throw new IllegalStateException("Method 'login' not yet implemented!");
+    }
+
+    @Override
+    public void logout() throws ServletException {
+        throw new IllegalStateException("Method 'logout' not yet implemented!");
+    }
+
+    @Override
+    public Collection<Part> getParts() throws IOException, ServletException {
+        throw new IllegalStateException("Method 'getParts' not yet implemented!");
+    }
+
+    @Override
+    public Part getPart(String name) throws IOException, ServletException {
+        throw new IllegalStateException("Method 'getPart' not yet implemented!");
+    }
+
+    @Override
+    public <T extends HttpUpgradeHandler> T upgrade(Class<T> handlerClass)
+            throws IOException, ServletException {
+        throw new IllegalStateException("Method 'upgrade' not yet implemented!");
     }
 }

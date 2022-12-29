@@ -21,6 +21,7 @@ package demo.colocated.client;
 
 import java.io.File;
 import java.net.URL;
+
 import javax.xml.namespace.QName;
 
 import org.apache.hello_world_soap_http.Greeter;
@@ -39,7 +40,7 @@ public final class Client {
     private Client() {
     }
 
-    public static void main(String args[]) throws Exception {
+    public static void main(String[] args) throws Exception {
 
         if (args.length == 0) {
             System.out.println("please specify wsdl");

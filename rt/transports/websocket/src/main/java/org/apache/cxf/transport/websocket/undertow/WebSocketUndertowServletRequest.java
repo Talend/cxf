@@ -38,22 +38,21 @@ import java.util.TreeMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import javax.servlet.AsyncContext;
-import javax.servlet.DispatcherType;
-import javax.servlet.ReadListener;
-import javax.servlet.RequestDispatcher;
-import javax.servlet.ServletContext;
-import javax.servlet.ServletException;
-import javax.servlet.ServletInputStream;
-import javax.servlet.ServletRequest;
-import javax.servlet.ServletResponse;
-import javax.servlet.http.Cookie;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpSession;
-import javax.servlet.http.HttpUpgradeHandler;
-import javax.servlet.http.Part;
-
+import jakarta.servlet.AsyncContext;
+import jakarta.servlet.DispatcherType;
+import jakarta.servlet.ReadListener;
+import jakarta.servlet.RequestDispatcher;
+import jakarta.servlet.ServletContext;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.ServletInputStream;
+import jakarta.servlet.ServletRequest;
+import jakarta.servlet.ServletResponse;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
+import jakarta.servlet.http.HttpUpgradeHandler;
+import jakarta.servlet.http.Part;
 import org.apache.cxf.common.logging.LogUtils;
 import org.apache.cxf.transport.websocket.WebSocketUtils;
 
@@ -61,6 +60,8 @@ import io.undertow.server.HttpServerExchange;
 import io.undertow.websockets.core.BufferedBinaryMessage;
 import io.undertow.websockets.core.BufferedTextMessage;
 import io.undertow.websockets.core.WebSocketChannel;
+
+import static java.nio.charset.StandardCharsets.UTF_8;
 
 /**
  *
@@ -89,7 +90,7 @@ public class WebSocketUndertowServletRequest implements HttpServletRequest {
         if (!path.startsWith(origin)) {
             throw new InvalidPathException();
         }*/
-        this.attributes = new TreeMap<String, Object>(String.CASE_INSENSITIVE_ORDER);
+        this.attributes = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
         Object v = channel.getAttribute("org.apache.cxf.transport.endpoint.address");
         if (v != null) {
             attributes.put("org.apache.cxf.transport.endpoint.address", v);
@@ -175,7 +176,7 @@ public class WebSocketUndertowServletRequest implements HttpServletRequest {
         try {
             return new URL(channel.getUrl()).getHost();
         } catch (MalformedURLException e) {
-            e.printStackTrace();
+            LOG.log(Level.FINE, "getLocalAddr error", e);
             return null;
         }
     }
@@ -186,7 +187,7 @@ public class WebSocketUndertowServletRequest implements HttpServletRequest {
         try {
             return new URL(channel.getUrl()).getHost();
         } catch (MalformedURLException e) {
-            e.printStackTrace();
+            LOG.log(Level.FINE, "getLocalName error", e);
             return null;
         }
     }
@@ -197,7 +198,7 @@ public class WebSocketUndertowServletRequest implements HttpServletRequest {
         try {
             return new URL(channel.getUrl()).getPort();
         } catch (MalformedURLException e) {
-            e.printStackTrace();
+            LOG.log(Level.FINE, "getLocalPort error", e);
             return 0;
         }
     }
@@ -248,7 +249,7 @@ public class WebSocketUndertowServletRequest implements HttpServletRequest {
         try {
             return new URL(channel.getUrl()).getProtocol();
         } catch (MalformedURLException e) {
-            e.printStackTrace();
+            LOG.log(Level.FINE, "getProtocol error", e);
             return null;
         }
     }
@@ -256,7 +257,7 @@ public class WebSocketUndertowServletRequest implements HttpServletRequest {
     @Override
     public BufferedReader getReader() throws IOException {
         LOG.log(Level.FINE, "getReader");
-        return new BufferedReader(new InputStreamReader(in, "utf-8"));
+        return new BufferedReader(new InputStreamReader(in, UTF_8));
     }
 
     @Override
@@ -271,7 +272,7 @@ public class WebSocketUndertowServletRequest implements HttpServletRequest {
         try {
             return new URL(channel.getPeerAddress().toString()).getHost();
         } catch (MalformedURLException e) {
-            e.printStackTrace();
+            LOG.log(Level.FINE, "getRemoteAddr error", e);
             return null;
         }
     }
@@ -282,7 +283,7 @@ public class WebSocketUndertowServletRequest implements HttpServletRequest {
         try {
             return new URL(channel.getPeerAddress().toString()).getHost();
         } catch (MalformedURLException e) {
-            e.printStackTrace();
+            LOG.log(Level.FINE, "getRemoteHost error", e);
             return null;
         }
     }
@@ -293,7 +294,7 @@ public class WebSocketUndertowServletRequest implements HttpServletRequest {
         try {
             return new URL(channel.getPeerAddress().toString()).getPort();
         } catch (MalformedURLException e) {
-            e.printStackTrace();
+            LOG.log(Level.FINE, "getRemotePort error", e);
             return 0;
         }
     }
@@ -310,7 +311,7 @@ public class WebSocketUndertowServletRequest implements HttpServletRequest {
         try {
             return new URL(channel.getUrl()).getProtocol();
         } catch (MalformedURLException e) {
-            e.printStackTrace();
+            LOG.log(Level.FINE, "getScheme error", e);
             return null;
         }
     }

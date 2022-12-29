@@ -24,14 +24,13 @@ import java.io.IOException;
 import java.security.GeneralSecurityException;
 import java.util.List;
 
-import javax.annotation.PostConstruct;
-import javax.xml.bind.JAXBContext;
-
 import org.w3c.dom.Attr;
 import org.w3c.dom.Element;
 import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 
+import jakarta.annotation.PostConstruct;
+import jakarta.xml.bind.JAXBContext;
 import org.apache.cxf.Bus;
 import org.apache.cxf.bus.spring.BusWiringBeanFactoryPostProcessor;
 import org.apache.cxf.common.injection.NoJSR250Annotations;
@@ -135,7 +134,8 @@ public class JettyHTTPServerEngineBeanDefinitionParser extends AbstractBeanDefin
                     List<?> handlers =
                         ctx.getDelegate().parseListElement(elem, bean.getBeanDefinition());
                     bean.addPropertyValue("handlers", handlers);
-                } else if ("sessionSupport".equals(name) || "reuseAddress".equals(name)) {
+                } else if ("sessionTimeout".equals(name) 
+                    || "sessionSupport".equals(name) || "reuseAddress".equals(name)) {
                     String text = elem.getTextContent();
                     bean.addPropertyValue(name, text);
                 }
@@ -301,9 +301,7 @@ public class JettyHTTPServerEngineBeanDefinitionParser extends AbstractBeanDefin
         }
 
         @PostConstruct
-        public void finalizeConfig()
-            throws GeneralSecurityException,
-                   IOException {
+        public void finalizeConfig() {
             if (tlsRef != null || threadingRef != null) {
 
                 if (threadingRef != null) {

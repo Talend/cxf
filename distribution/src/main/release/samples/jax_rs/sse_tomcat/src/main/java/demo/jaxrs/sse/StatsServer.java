@@ -29,7 +29,6 @@ import org.apache.catalina.startup.Tomcat;
 import org.apache.catalina.webresources.DirResourceSet;
 import org.apache.catalina.webresources.StandardRoot;
 import org.apache.cxf.transport.servlet.CXFServlet;
-import org.apache.cxf.transport.sse.SseHttpTransportFactory;
 import org.springframework.web.context.ContextLoaderListener;
 
 public final class StatsServer {
@@ -49,18 +48,19 @@ public final class StatsServer {
         context.addApplicationListener(ContextLoaderListener.class.getName());
         context.setAddWebinfClassesResources(true);
         context.setResources(resourcesFrom(context, "target/classes"));
+        context.setParentClassLoader(Thread.currentThread().getContextClassLoader());
 
         final Wrapper cxfServlet = Tomcat.addServlet(context, "cxfServlet", new CXFServlet());
-        cxfServlet.addInitParameter(CXFServlet.TRANSPORT_ID, SseHttpTransportFactory.TRANSPORT_ID);
         cxfServlet.setAsyncSupported(true);
-        context.addServletMapping("/rest/*", "cxfServlet");
+        context.addServletMappingDecoded("/rest/*", "cxfServlet");
 
         final Context staticContext = server.addWebapp("/static", base.getAbsolutePath());
         Tomcat.addServlet(staticContext, "cxfStaticServlet", new DefaultServlet());
-        staticContext.addServletMapping("/static/*", "cxfStaticServlet");
+        staticContext.addServletMappingDecoded("/static/*", "cxfStaticServlet");
         staticContext.setResources(resourcesFrom(staticContext, "target/classes/web-ui"));
         staticContext.setParentClassLoader(Thread.currentThread().getContextClassLoader());
 
+        server.getConnector();
         server.start();
         server.getServer().await();
     }

@@ -86,7 +86,6 @@ public class SCTSAMLTokenProvider implements TokenProvider {
      */
     public TokenProviderResponse createToken(TokenProviderParameters tokenParameters) {
         testKeyType(tokenParameters);
-        byte[] secret = null;
         byte[] entropyBytes = null;
         long keySize = 0;
         boolean computedKey = false;
@@ -95,7 +94,7 @@ public class SCTSAMLTokenProvider implements TokenProvider {
         LOG.fine("Handling token of type: " + tokenRequirements.getTokenType());
 
         keyRequirements.setKeyType(STSConstants.SYMMETRIC_KEY_KEYTYPE);
-        secret = (byte[])tokenParameters.getAdditionalProperties().get(SCTValidator.SCT_VALIDATOR_SECRET);
+        byte[] secret = (byte[])tokenParameters.getAdditionalProperties().get(SCTValidator.SCT_VALIDATOR_SECRET);
 
         try {
             Document doc = DOMUtils.createDocument();
@@ -266,8 +265,8 @@ public class SCTSAMLTokenProvider implements TokenProvider {
 
         String keyType = keyRequirements.getKeyType();
         if (STSConstants.PUBLIC_KEY_KEYTYPE.equals(keyType)) {
-            if (keyRequirements.getReceivedKey() == null
-                || keyRequirements.getReceivedKey().getX509Cert() == null) {
+            if (keyRequirements.getReceivedCredential() == null
+                || keyRequirements.getReceivedCredential().getX509Cert() == null) {
                 LOG.log(Level.WARNING, "A PublicKey Keytype is requested, but no certificate is provided");
                 throw new STSException(
                     "No client certificate for PublicKey KeyType", STSException.INVALID_REQUEST

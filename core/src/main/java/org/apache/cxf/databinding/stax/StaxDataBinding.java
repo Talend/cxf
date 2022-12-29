@@ -76,7 +76,7 @@ public class StaxDataBinding extends AbstractInterceptorProvidingDataBinding {
             addBefore(StaxInEndingInterceptor.class.getName());
         }
 
-        public void handleMessage(Message message) throws Fault {
+        public void handleMessage(Message message) {
             message.getInterceptorChain().remove(StaxInEndingInterceptor.INSTANCE);
         }
     }
@@ -90,6 +90,8 @@ public class StaxDataBinding extends AbstractInterceptorProvidingDataBinding {
                 continue;
             }
             new ServiceModelVisitor(serviceInfo) {
+                
+                @Override
                 public void begin(MessagePartInfo part) {
                     if (part.getTypeQName() != null || part.getElementQName() != null) {
                         return;

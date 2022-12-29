@@ -45,18 +45,18 @@ import org.apache.wss4j.common.ConfigurationConstants;
 
 import org.junit.Test;
 
-
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 public class CryptoCoverageCheckerTest extends AbstractSecurityTest {
 
     @Test
     public void testOrder() throws Exception {
         //make sure the interceptors get ordered correctly
-        SortedSet<Phase> phases = new TreeSet<Phase>();
+        SortedSet<Phase> phases = new TreeSet<>();
         phases.add(new Phase(Phase.PRE_PROTOCOL, 1));
 
-        List<Interceptor<? extends Message>> lst =
-            new ArrayList<Interceptor<? extends Message>>();
+        List<Interceptor<? extends Message>> lst = new ArrayList<>();
         lst.add(new MustUnderstandInterceptor());
         lst.add(new WSS4JInInterceptor());
         lst.add(new SAAJInInterceptor());
@@ -237,7 +237,7 @@ public class CryptoCoverageCheckerTest extends AbstractSecurityTest {
 
     private PhaseInterceptor<SoapMessage> getWss4jInInterceptor() {
         final WSS4JInInterceptor inHandler = new WSS4JInInterceptor(true);
-        final String action = ConfigurationConstants.SIGNATURE + " " + ConfigurationConstants.ENCRYPT;
+        final String action = ConfigurationConstants.SIGNATURE + " " + ConfigurationConstants.ENCRYPTION;
 
         inHandler.setProperty(ConfigurationConstants.ACTION, action);
         inHandler.setProperty(ConfigurationConstants.SIG_VER_PROP_FILE,

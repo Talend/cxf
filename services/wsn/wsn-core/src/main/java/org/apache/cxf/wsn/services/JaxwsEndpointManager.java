@@ -28,11 +28,12 @@ import javax.management.MBeanServer;
 import javax.management.ObjectName;
 import javax.xml.transform.Source;
 import javax.xml.transform.stream.StreamSource;
-import javax.xml.ws.Endpoint;
-import javax.xml.ws.soap.SOAPBinding;
-import javax.xml.ws.spi.Provider;
-import javax.xml.ws.wsaddressing.W3CEndpointReference;
 
+import jakarta.xml.ws.Endpoint;
+import jakarta.xml.ws.soap.SOAPBinding;
+import jakarta.xml.ws.spi.Provider;
+import jakarta.xml.ws.wsaddressing.W3CEndpointReference;
+import org.apache.cxf.message.Message;
 import org.apache.cxf.wsn.AbstractEndpoint;
 import org.apache.cxf.wsn.EndpointManager;
 import org.apache.cxf.wsn.EndpointRegistrationException;
@@ -56,17 +57,13 @@ public class JaxwsEndpointManager implements EndpointManager {
             if (WSNHelper.getInstance().setClassLoader()) {
                 Thread.currentThread().setContextClassLoader(JaxwsEndpointManager.class.getClassLoader());
             }
-            String bindingId = SOAPBinding.SOAP11HTTP_BINDING;
-            if (isCXF()) {
-                bindingId = SOAPBinding.SOAP12HTTP_BINDING;
-            }
-            Endpoint endpoint = Endpoint.create(bindingId, service);
+            Endpoint endpoint = createEndpoint(service);
             if (wsdlLocation != null) {
                 try {
                     if (endpoint.getProperties() == null) {
                         endpoint.setProperties(new HashMap<String, Object>());
                     }
-                    endpoint.getProperties().put("javax.xml.ws.wsdl.description", wsdlLocation.toExternalForm());
+                    endpoint.getProperties().put(Message.WSDL_DESCRIPTION, wsdlLocation.toExternalForm());
                     List<Source> mt = new ArrayList<>();
                     StreamSource src = new StreamSource(wsdlLocation.openStream(), wsdlLocation.toExternalForm());
                     mt.add(src);
@@ -92,6 +89,14 @@ public class JaxwsEndpointManager implements EndpointManager {
         } finally {
             Thread.currentThread().setContextClassLoader(cl);
         }
+    }
+
+    protected Endpoint createEndpoint(Object service) {
+        String bindingId = SOAPBinding.SOAP11HTTP_BINDING;
+        if (isCXF()) {
+            bindingId = SOAPBinding.SOAP12HTTP_BINDING;
+        }
+        return Endpoint.create(bindingId, service);
     }
 
     private boolean isCXF() {

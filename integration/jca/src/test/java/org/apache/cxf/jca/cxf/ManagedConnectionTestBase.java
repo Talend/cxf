@@ -21,22 +21,21 @@ package org.apache.cxf.jca.cxf;
 import java.net.MalformedURLException;
 import java.net.URL;
 
-import javax.resource.ResourceException;
-import javax.resource.spi.ConnectionEventListener;
 import javax.security.auth.Subject;
 import javax.xml.namespace.QName;
 
+import jakarta.resource.ResourceException;
+import jakarta.resource.spi.ConnectionEventListener;
 import org.apache.cxf.Bus;
 import org.apache.cxf.BusException;
 import org.apache.cxf.BusFactory;
 import org.apache.hello_world_soap_http.Greeter;
 
 import org.easymock.EasyMock;
-import org.junit.Assert;
 import org.junit.Before;
 
 
-public abstract class ManagedConnectionTestBase extends Assert {
+public abstract class ManagedConnectionTestBase {
     protected Subject subj;
 
     protected CXFConnectionRequestInfo cri;

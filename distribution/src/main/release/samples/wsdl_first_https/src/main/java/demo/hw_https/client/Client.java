@@ -21,7 +21,9 @@ package demo.hw_https.client;
 
 import java.io.File;
 import java.net.URL;
+
 import javax.xml.namespace.QName;
+
 import org.apache.cxf.Bus;
 import org.apache.cxf.BusFactory;
 import org.apache.cxf.bus.spring.SpringBusFactory;
@@ -40,7 +42,7 @@ public final class Client {
     private Client() {
     }
 
-    public static void main(String args[]) throws Exception {
+    public static void main(String[] args) throws Exception {
 
         if (args.length == 0) {
             System.out.println("please specify wsdl");

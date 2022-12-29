@@ -26,14 +26,14 @@ import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import javax.jms.Connection;
-import javax.jms.Destination;
-import javax.jms.MessageListener;
-import javax.jms.Session;
 import javax.naming.InitialContext;
 import javax.naming.NamingException;
-import javax.transaction.TransactionManager;
 
+import jakarta.jms.Connection;
+import jakarta.jms.Destination;
+import jakarta.jms.MessageListener;
+import jakarta.jms.Session;
+import jakarta.transaction.TransactionManager;
 import org.apache.cxf.common.logging.LogUtils;
 
 public abstract class AbstractMessageListenerContainer implements JMSListenerContainer {
@@ -45,7 +45,7 @@ public abstract class AbstractMessageListenerContainer implements JMSListenerCon
     protected boolean transacted;
     protected int acknowledgeMode = Session.AUTO_ACKNOWLEDGE;
     protected String messageSelector;
-    protected boolean running;
+    protected volatile boolean running;
     protected String durableSubscriptionName;
     protected boolean pubSubNoLocal;
     protected TransactionManager transactionManager;

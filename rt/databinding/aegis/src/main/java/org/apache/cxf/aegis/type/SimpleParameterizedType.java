@@ -66,11 +66,11 @@ class SimpleParameterizedType implements ParameterizedType {
         if (this == obj) {
             return true;
         }
-        if (obj == null) {
+        if (!(obj instanceof ParameterizedType)) {
             return false;
         }
 
-        ParameterizedType opt = null;
+        final ParameterizedType opt;
         try {
             opt = (ParameterizedType) obj;
         } catch (ClassCastException cce) {

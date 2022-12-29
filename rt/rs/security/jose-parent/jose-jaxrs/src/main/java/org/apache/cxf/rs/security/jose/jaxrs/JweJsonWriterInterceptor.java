@@ -25,12 +25,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
-import javax.annotation.Priority;
-import javax.ws.rs.WebApplicationException;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.ext.WriterInterceptor;
-import javax.ws.rs.ext.WriterInterceptorContext;
-
+import jakarta.annotation.Priority;
+import jakarta.ws.rs.WebApplicationException;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.ext.WriterInterceptor;
+import jakarta.ws.rs.ext.WriterInterceptorContext;
 import org.apache.cxf.common.util.StringUtils;
 import org.apache.cxf.helpers.IOUtils;
 import org.apache.cxf.io.CachedOutputStream;
@@ -55,7 +54,7 @@ public class JweJsonWriterInterceptor extends AbstractJweJsonWriterProvider impl
         OutputStream actualOs = ctx.getOutputStream();
         JweHeaders sharedProtectedHeaders = new JweHeaders();
         List<String> propLocs = getPropertyLocations();
-        List<JweHeaders> perRecipientUnprotectedHeaders = new ArrayList<JweHeaders>(propLocs.size());
+        List<JweHeaders> perRecipientUnprotectedHeaders = new ArrayList<>(propLocs.size());
         for (int i = 0; i < propLocs.size(); i++) {
             perRecipientUnprotectedHeaders.add(new JweHeaders());
         }

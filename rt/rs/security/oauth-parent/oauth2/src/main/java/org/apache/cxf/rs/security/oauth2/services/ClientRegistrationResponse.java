@@ -19,6 +19,7 @@
 package org.apache.cxf.rs.security.oauth2.services;
 
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.apache.cxf.jaxrs.json.basic.JsonMapObject;
@@ -73,10 +74,16 @@ public class ClientRegistrationResponse extends JsonMapObject {
         return getLongProperty(CLIENT_ID_ISSUED_AT);
     }
     public void setClientSecretExpiresAt(Long expiresAt) {
-        super.setProperty(CLIENT_ID_ISSUED_AT, expiresAt);
+        super.setProperty(CLIENT_SECRET_EXPIRES_AT, expiresAt);
     }
     public Long getClientSecretExpiresAt() {
         return getLongProperty(CLIENT_SECRET_EXPIRES_AT);
+    }
+    public void setGrantTypes(List<String> grantTypes) {
+        super.setProperty(ClientRegistration.GRANT_TYPES, grantTypes);
+    }
+    public List<String> getGrantTypes() {
+        return getListStringProperty(ClientRegistration.GRANT_TYPES);
     }
 
 }

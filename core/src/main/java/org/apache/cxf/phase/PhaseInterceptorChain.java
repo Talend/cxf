@@ -68,22 +68,22 @@ public class PhaseInterceptorChain implements InterceptorChain {
 
     private static final Logger LOG = LogUtils.getL7dLogger(PhaseInterceptorChain.class);
 
-    private static final ThreadLocal<Message> CURRENT_MESSAGE = new ThreadLocal<Message>();
+    private static final ThreadLocal<Message> CURRENT_MESSAGE = new ThreadLocal<>();
 
     private final Map<String, Integer> nameMap;
-    private final Phase phases[];
+    private final Phase[] phases;
 
     // heads[phase] refers to the first interceptor of the given phase
-    private InterceptorHolder heads[];
+    private InterceptorHolder[] heads;
     // tails[phase] refers to the last interceptor of the given phase
-    private InterceptorHolder tails[];
+    private InterceptorHolder[] tails;
     // hasAfters[phase] indicates that the given phase has already inserted
     // interceptors that may need to be placed after future to-be-inserted
     // interceptors.  This flag is used to activate ordering of interceptors
     // when new ones are added to the list for this phase.
     // Note no hasBefores[] is needed because implementation adds subsequent
     // interceptors to the end of the list by default.
-    private boolean hasAfters[];
+    private boolean[] hasAfters;
 
 
     private State state;
@@ -206,7 +206,6 @@ public class PhaseInterceptorChain implements InterceptorChain {
         if (iterator == null) {
             iterator = new PhaseInterceptorIterator(heads);
             outputChainToLog(false);
-            //System.out.println(toString());
         }
     }
 
@@ -386,7 +385,7 @@ public class PhaseInterceptorChain implements InterceptorChain {
                 BindingOperationInfo boi = exchange.getBindingOperationInfo();
                 OperationInfo opInfo = boi != null ? boi.getOperationInfo() : null;
                 if (opInfo != null) {
-                    description.append("#").append(opInfo.getName());
+                    description.append('#').append(opInfo.getName());
                 }
                 description.append("\' ");
             }
@@ -428,7 +427,7 @@ public class PhaseInterceptorChain implements InterceptorChain {
     }
 
     private boolean isOneWay(Message message) {
-        return (message.getExchange() != null) ? message.getExchange().isOneWay() && !isRobustOneWay(message) : false;
+        return (message.getExchange() != null) && message.getExchange().isOneWay() && !isRobustOneWay(message);
     }
 
     private boolean isRobustOneWay(Message message) {
@@ -637,8 +636,7 @@ public class PhaseInterceptorChain implements InterceptorChain {
                 if (lastAfter == null && beforeList.contains("*")) {
                     firstBefore = heads[phase];
                 }
-                //System.out.print("Didn't skip: " + phase.toString());
-                //System.out.println("             " + interc.getId());
+                
             } else if (!force) {
                 // skip interceptor if already in chain
                 InterceptorHolder ih2 = heads[phase];
@@ -649,8 +647,6 @@ public class PhaseInterceptorChain implements InterceptorChain {
                     ih2 = ih2.next;
                 }
 
-                //System.out.print("Skipped: " + phase.toString());
-                //System.out.println("         " + interc.getId());
             }
             hasAfters[phase] |= !afterList.isEmpty();
 
@@ -696,7 +692,7 @@ public class PhaseInterceptorChain implements InterceptorChain {
         return toString("");
     }
     private String toString(String message) {
-        StringBuilder chain = new StringBuilder();
+        StringBuilder chain = new StringBuilder(128);
 
         chain.append("Chain ")
             .append(super.toString())
@@ -752,11 +748,11 @@ public class PhaseInterceptorChain implements InterceptorChain {
     }
 
     static final class PhaseInterceptorIterator implements ListIterator<Interceptor<? extends Message>> {
-        InterceptorHolder heads[];
+        InterceptorHolder[] heads;
         InterceptorHolder prev;
         InterceptorHolder first;
 
-        PhaseInterceptorIterator(InterceptorHolder h[]) {
+        PhaseInterceptorIterator(InterceptorHolder[] h) {
             heads = h;
             first = findFirst();
         }

@@ -23,11 +23,11 @@
       xmlns:jaxrsclient="http://cxf.apache.org/jaxrs-client"
       xsi:schemaLocation="
          http://www.springframework.org/schema/beans 
-         http://www.springframework.org/schema/beans/spring-beans-4.2.xsd
+         http://www.springframework.org/schema/beans/spring-beans.xsd
          http://cxf.apache.org/jaxrs
          http://cxf.apache.org/schemas/jaxrs.xsd">
 
-     <jaxrs:server id="statsServer" address="/api" transportId="http://cxf.apache.org/transports/http/sse">
+     <jaxrs:server id="statsServer" address="/api">
         <jaxrs:serviceBeans>
            <ref bean="statsRestService"/>
         </jaxrs:serviceBeans>
@@ -37,6 +37,6 @@
      </jaxrs:server> 
      
      <bean id="statsRestService" class="demo.jaxrs.sse.StatsRestServiceImpl"/>
-     <bean id="jacksonJsonProvider" class="com.fasterxml.jackson.jaxrs.json.JacksonJsonProvider"/>
+     <bean id="jacksonJsonProvider" class="com.fasterxml.jackson.jakarta.rs.json.JacksonJsonProvider"/>
 </beans>
 

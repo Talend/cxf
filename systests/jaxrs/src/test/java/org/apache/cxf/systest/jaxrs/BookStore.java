@@ -19,7 +19,6 @@
 
 package org.apache.cxf.systest.jaxrs;
 
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -32,60 +31,65 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collections;
+import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.UUID;
 
-import javax.annotation.PostConstruct;
-import javax.annotation.PreDestroy;
-import javax.servlet.http.HttpServletResponse;
-import javax.ws.rs.BeanParam;
-import javax.ws.rs.Consumes;
-import javax.ws.rs.CookieParam;
-import javax.ws.rs.DELETE;
-import javax.ws.rs.DefaultValue;
-import javax.ws.rs.Encoded;
-import javax.ws.rs.GET;
-import javax.ws.rs.HEAD;
-import javax.ws.rs.HeaderParam;
-import javax.ws.rs.InternalServerErrorException;
-import javax.ws.rs.MatrixParam;
-import javax.ws.rs.OPTIONS;
-import javax.ws.rs.POST;
-import javax.ws.rs.PUT;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
-import javax.ws.rs.QueryParam;
-import javax.ws.rs.WebApplicationException;
-import javax.ws.rs.container.ResourceContext;
-import javax.ws.rs.core.Configuration;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.Cookie;
-import javax.ws.rs.core.EntityTag;
-import javax.ws.rs.core.Form;
-import javax.ws.rs.core.GenericEntity;
-import javax.ws.rs.core.HttpHeaders;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.MultivaluedMap;
-import javax.ws.rs.core.NewCookie;
-import javax.ws.rs.core.PathSegment;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.ResponseBuilder;
-import javax.ws.rs.core.SecurityContext;
-import javax.ws.rs.core.StreamingOutput;
-import javax.ws.rs.core.UriBuilder;
-import javax.ws.rs.core.UriInfo;
-import javax.ws.rs.ext.MessageBodyReader;
-import javax.ws.rs.ext.MessageBodyWriter;
-import javax.xml.bind.JAXBElement;
-import javax.xml.bind.annotation.adapters.XmlAdapter;
-import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 import javax.xml.namespace.QName;
 import javax.xml.transform.dom.DOMSource;
 
+import jakarta.annotation.PostConstruct;
+import jakarta.annotation.PreDestroy;
+import jakarta.servlet.http.HttpServletResponse;
+import jakarta.ws.rs.BeanParam;
+import jakarta.ws.rs.Consumes;
+import jakarta.ws.rs.CookieParam;
+import jakarta.ws.rs.DELETE;
+import jakarta.ws.rs.DefaultValue;
+import jakarta.ws.rs.Encoded;
+import jakarta.ws.rs.FormParam;
+import jakarta.ws.rs.GET;
+import jakarta.ws.rs.HEAD;
+import jakarta.ws.rs.HeaderParam;
+import jakarta.ws.rs.InternalServerErrorException;
+import jakarta.ws.rs.MatrixParam;
+import jakarta.ws.rs.OPTIONS;
+import jakarta.ws.rs.POST;
+import jakarta.ws.rs.PUT;
+import jakarta.ws.rs.Path;
+import jakarta.ws.rs.PathParam;
+import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.QueryParam;
+import jakarta.ws.rs.WebApplicationException;
+import jakarta.ws.rs.container.ResourceContext;
+import jakarta.ws.rs.core.CacheControl;
+import jakarta.ws.rs.core.Configuration;
+import jakarta.ws.rs.core.Context;
+import jakarta.ws.rs.core.Cookie;
+import jakarta.ws.rs.core.EntityTag;
+import jakarta.ws.rs.core.Form;
+import jakarta.ws.rs.core.GenericEntity;
+import jakarta.ws.rs.core.HttpHeaders;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.MultivaluedMap;
+import jakarta.ws.rs.core.NewCookie;
+import jakarta.ws.rs.core.PathSegment;
+import jakarta.ws.rs.core.Response;
+import jakarta.ws.rs.core.Response.ResponseBuilder;
+import jakarta.ws.rs.core.SecurityContext;
+import jakarta.ws.rs.core.StreamingOutput;
+import jakarta.ws.rs.core.UriBuilder;
+import jakarta.ws.rs.core.UriInfo;
+import jakarta.ws.rs.ext.MessageBodyReader;
+import jakarta.ws.rs.ext.MessageBodyWriter;
+import jakarta.ws.rs.ext.Provider;
+import jakarta.xml.bind.JAXBElement;
+import jakarta.xml.bind.annotation.adapters.XmlAdapter;
+import jakarta.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 import org.apache.cxf.annotations.GZIP;
 import org.apache.cxf.common.util.ProxyHelper;
 import org.apache.cxf.helpers.IOUtils;
@@ -183,9 +187,13 @@ public class BookStore {
         String dStr = dBuilder.toString();
         if (!lStr.equals(dStr)) {
             throw new InternalServerErrorException();
+        } else if ("".equalsIgnoreCase(lStr)) {
+            lStr = "0";
         }
+
         return new Book("cxf", Long.parseLong(lStr));
     }
+
     @GET
     @Path("/")
     public Book getBookRoot() {
@@ -311,7 +319,7 @@ public class BookStore {
     @Produces("application/xml")
     @Consumes("application/xml")
     public Response patchBook(Book book) {
-        if (book.getName().equals("Timeout")) {
+        if ("Timeout".equals(book.getName())) {
             try {
                 Thread.sleep(2000);
             } catch (InterruptedException e) {
@@ -343,6 +351,21 @@ public class BookStore {
     @Path("/echoxmlbook")
     @Produces("application/xml")
     public Book echoXmlBook(Book book) {
+        return book;
+    }
+    
+    @POST
+    @Path("/echoxmlbook-i18n")
+    @Produces("application/xml")
+    public Response echoXmlBooki18n(Book book, @HeaderParam(HttpHeaders.CONTENT_LANGUAGE) String language) {
+        return Response.ok(new Book(book.getName() + "-" + language, book.getId())).build();
+    }
+
+    // Only books with id consisting of 3 or 4 digits of the numbers between 5 and 9 are accepted
+    @POST
+    @Path("/echoxmlbookregex/{id : [5-9]{3,4}}")
+    @Produces("application/xml")
+    public Book echoXmlBookregex(Book book, @PathParam("id") String id) {
         return book;
     }
 
@@ -390,6 +413,11 @@ public class BookStore {
         return new BookStoreSub(this);
     }
 
+    @Path("/querysub")
+    public BookStoreQuerySub getQuerySub() {
+        return new BookStoreQuerySub();
+    }
+
     @GET
     @Path("/twoBeanParams/{id}")
     @Produces("application/xml")
@@ -398,9 +426,53 @@ public class BookStore {
 
         long id = bean1.getId() + bean1.getId2() + bean1.getId3();
         if (bean2.getId4() != id) {
-            throw new RuntimeException();
+            throw new RuntimeException("id4 != id");
         }
         return books.get(id);
+    }
+
+    @POST
+    @Path("/formBeanParams/{id}")
+    @Produces("application/xml")
+    public Book postFormBeanParamsBook(@BeanParam BookBeanForm bean) {
+        long id = bean.getId() + bean.getId2();
+        if (bean.getId3() != id) {
+            throw new RuntimeException("id3 != id");
+        }
+        return books.get(id);
+    }
+
+    @POST
+    @Path("/formParams/{id}")
+    @Produces("application/xml")
+    public Book postFormParamsBook(@PathParam("id") long id, @QueryParam("id2") long id2, @FormParam("id3") long id3) {
+        long theBookId = id + id2;
+        if (id3 != theBookId) {
+            throw new RuntimeException("id3 != id");
+        }
+        return books.get(theBookId);
+    }
+
+    @GET
+    @Path("/formBeanParams/{id}")
+    @Produces("application/xml")
+    public Book getFormBeanParamsBook(@BeanParam BookBeanForm bean) {
+        long id = bean.getId() + bean.getId2();
+        if (bean.getId3() != 0) {
+            throw new RuntimeException("id3 != 0");
+        }
+        return books.get(id);
+    }
+
+    @GET
+    @Path("/formParams/{id}")
+    @Produces("application/xml")
+    public Book getFormParamsBook(@PathParam("id") long id, @QueryParam("id2") long id2, @FormParam("id3") long id3) {
+        long theBookId = id + id2;
+        if (id3 != 0) {
+            throw new RuntimeException("id3 != 0");
+        }
+        return books.get(theBookId);
     }
 
     @POST
@@ -473,7 +545,7 @@ public class BookStore {
     @Path("emptyput")
     @Consumes("application/json")
     public void emptyput() {
-        if (!httpHeaders.getMediaType().toString().equals("application/json")) {
+        if (!"application/json".equals(httpHeaders.getMediaType().toString())) {
             throw new RuntimeException();
         }
     }
@@ -525,8 +597,8 @@ public class BookStore {
     @Path("setmanycookies")
     public Response setTwoCookies() {
         return Response.ok().header("Set-Cookie", "JSESSIONID=0475F7F30A26E5B0C15D69; Path=/")
-            .header("Set-Cookie", "COOKIETWO=dummy; Expires=Sat, 20-Nov-2010 19:11:32 GMT; Path=/")
-            .header("Set-Cookie", "COOKIETWO=dummy2; expires=Sat, 20-Nov-2010 19:11:32 GMT; Path=/")
+            .header("Set-cookie", "COOKIETWO=dummy; Expires=Sat, 20-Nov-2010 19:11:32 GMT; Path=/")
+            .header("set-cookie", "COOKIETWO=dummy2; expires=Sat, 20-Nov-2010 19:11:32 GMT; Path=/")
             .build();
     }
 
@@ -588,6 +660,13 @@ public class BookStore {
     @Produces("text/plain,text/boolean")
     public boolean checkBook(@PathParam("id") Long id) {
         return books.containsKey(id);
+    }
+    
+    @GET
+    @Path("books/check/uuid/{uuid}")
+    @Produces("text/plain,text/boolean")
+    public boolean checkBookUuid(@PathParam("uuid") BookId id) {
+        return books.containsKey(id.getId());
     }
 
     @GET
@@ -1030,16 +1109,58 @@ public class BookStore {
         return books.get(id + 123);
     }
 
-
-
     @GET
     @Path("/books/response/{bookId}/")
     @Produces("application/xml")
     public Response getBookAsResponse(@PathParam("bookId") String id) throws BookNotFoundFault {
         Book entity = doGetBook(id);
         EntityTag etag = new EntityTag(Integer.toString(entity.hashCode()));
-        return Response.ok().tag(etag).entity(entity).build();
+
+        CacheControl cacheControl = new CacheControl();
+        cacheControl.setMaxAge(100000);
+        cacheControl.setPrivate(true);
+
+        return Response.ok().tag(etag).entity(entity).cacheControl(cacheControl).build();
     }
+
+    @GET
+    @Path("/books/response2/{bookId}/")
+    @Produces("application/xml")
+    public Response getBookAsResponse2(@PathParam("bookId") String id) throws BookNotFoundFault {
+        Book entity = doGetBook(id);
+        EntityTag etag = new EntityTag(Integer.toString(entity.hashCode()));
+
+        CacheControl cacheControl = new CacheControl();
+        cacheControl.setMaxAge(1);
+        cacheControl.setPrivate(true);
+
+        return Response.ok().tag(etag).entity(entity).cacheControl(cacheControl).build();
+    }
+
+    @GET
+    @Path("/books/response3/{bookId}/")
+    @Produces("application/xml")
+    public Response getBookAsResponse3(@PathParam("bookId") String id,
+                                       @HeaderParam("If-Modified-Since") String modifiedSince
+    ) throws BookNotFoundFault {
+        Book entity = doGetBook(id);
+
+        EntityTag etag = new EntityTag(Integer.toString(entity.hashCode()));
+
+        CacheControl cacheControl = new CacheControl();
+        cacheControl.setMaxAge(1);
+        cacheControl.setPrivate(true);
+
+        if (modifiedSince != null) {
+            return Response.status(304).tag(etag)
+                .cacheControl(cacheControl).lastModified(new Date()).build();
+        } else {
+            return Response.ok().tag(etag).entity(entity)
+                .cacheControl(cacheControl).lastModified(new Date()).build();
+        }
+    }
+
+
 
     @GET
     @Path("/books/{bookId}/cglib")
@@ -1096,7 +1217,7 @@ public class BookStore {
     public String getBookQueryContext(@PathParam("expression") String expression,
                                       @Context QueryContext searchContext)
         throws BookNotFoundFault {
-        return searchContext.getConvertedExpression(expression);
+        return searchContext.getConvertedExpression(expression, Book.class);
     }
 
     @GET
@@ -1361,7 +1482,7 @@ public class BookStore {
     public Book2 getBookSubResourceInstanceRC(@Context ResourceContext rc) {
         return rc.initResource(book2Sub);
     }
-    
+
     @Path("/booksubresource/class/context")
     public Class<Book2> getBookSubResourceClass() {
         return Book2.class;
@@ -1376,7 +1497,7 @@ public class BookStore {
     @Path("/booknames/{bookId}/")
     @Produces("text/*")
     public String getBookName(@PathParam("bookId") int id) throws BookNotFoundFault {
-        Book book = books.get(new Long(id));
+        Book book = books.get(Long.valueOf(id));
         if (book != null) {
             return book.getName();
         }
@@ -1404,7 +1525,8 @@ public class BookStore {
         String ct1 = httpHeaders.getMediaType().toString();
         String ct2 = httpHeaders.getRequestHeader("Content-Type").get(0);
         String ct3 = httpHeaders.getRequestHeaders().getFirst("Content-Type");
-        if (!("application/xml".equals(ct1) && ct1.equals(ct2) && ct1.equals(ct3))) {
+        if (!(ct1.startsWith("application/xml") && ct2.startsWith("application/xml")
+            && ct3.startsWith("application/xml"))) {
             throw new RuntimeException("Unexpected content type");
         }
 
@@ -1428,6 +1550,11 @@ public class BookStore {
         if (!PhaseInterceptorChain.getCurrentMessage().getExchange().isOneWay()) {
             throw new WebApplicationException();
         }
+    }
+
+    @POST
+    @Path("/no-content")
+    public void noContent() {
     }
 
     @POST
@@ -1534,7 +1661,7 @@ public class BookStore {
         if (id != 123) {
             throw new WebApplicationException();
         }
-        Book b = books.get(new Long(id));
+        Book b = books.get(Long.valueOf(id));
 
         Response r;
         if (b != null) {
@@ -1551,7 +1678,7 @@ public class BookStore {
     @Consumes("text/plain")
     @Produces("text/plain")
     public Long echoBookId(long theBookId) {
-        return new Long(theBookId);
+        return Long.valueOf(theBookId);
     }
 
     @POST
@@ -1600,6 +1727,15 @@ public class BookStore {
     }
 
 
+    @POST
+    @Path("/empty202")
+    @Consumes("text/plain")
+    @Produces("text/plain")
+    public Response empty202(String name) {
+        return Response.accepted().build();
+    }
+
+
     @GET
     @Path("/cd/{CDId}/")
     public CD getCD() {
@@ -1629,7 +1765,7 @@ public class BookStore {
                 header("SomeHeader1", "\"some text, some more text\"").
                 header("SomeHeader2", "\"some text\"").
                 header("SomeHeader2", "\"quoted,text\"").
-                header("SomeHeader2", "\"even more text\"").
+                header("SomeHeader2", "\"and backslash\\\"").
                 header("SomeHeader3", "\"some text, some more text with inlined \\\"\"").
                 header("SomeHeader4", "\"\"").
                 build();
@@ -1668,7 +1804,7 @@ public class BookStore {
     public BookSubresource getBookFromSubresource() {
         return new BookSubresourceImpl();
     }
-    
+
     @POST
     @Path("/entityecho")
     @Consumes("text/plain")
@@ -1676,7 +1812,31 @@ public class BookStore {
     public Response echoEntity(String entity) {
         return Response.ok().entity(entity).build();
     }
+    
+    @GET
+    @Path("/queryParamSpecialCharacters")
+    @Produces("text/plain")
+    @SuppressWarnings({"checkstyle:linelength"})
+    public Response queryParamSpecialCharacters(@QueryParam("/?abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-._~%1A!$'()*+,;:@") String queryParm1) {
+        return Response
+            .ok(queryParm1)
+            .type(MediaType.TEXT_PLAIN)
+            .build();
+    }
 
+    @GET
+    @Path("/annotated/{bookId}/")
+    @Produces(MediaType.TEXT_PLAIN)
+    public Response getGenericBookDate(@PathParam("bookId") String id) {
+        @Provider
+        @Consumes
+        class AnnotatedClass {
+        }
+        
+        return Response.ok().entity(new GregorianCalendar(2020, 00, 01),
+            AnnotatedClass.class.getAnnotations()).build();
+    }
+    
     public final String init() {
         books.clear();
         cds.clear();
@@ -1805,7 +1965,7 @@ public class BookStore {
                 throw new RuntimeException();
             }
             BookStore.this.messageContext.put(Message.RESPONSE_CODE, 503);
-            MultivaluedMap<String, String> headers = new MetadataMap<String, String>();
+            MultivaluedMap<String, String> headers = new MetadataMap<>();
             headers.putSingle("Content-Type", "text/custom+plain");
             headers.putSingle("CustomHeader", "CustomValue");
             BookStore.this.messageContext.put(Message.PROTOCOL_HEADERS, headers);
@@ -1890,11 +2050,44 @@ public class BookStore {
         public long getId4() {
             return id4;
         }
+
         @QueryParam("id4")
         public void setId4(long id4) {
             this.id4 = id4;
         }
+    }
 
+    public static class BookBeanForm {
+        private long id;
+        private long id2;
+        private long id3;
+
+        public long getId() {
+            return id;
+        }
+
+        @PathParam("id")
+        public void setId(long id) {
+            this.id = id;
+        }
+
+        @QueryParam("id2")
+        public void setId2(long id2) {
+            this.id2 = id2;
+        }
+
+        public long getId2() {
+            return id2;
+        }
+
+        @FormParam("id3")
+        public void setId3(long id3) {
+            this.id3 = id3;
+        }
+
+        public long getId3() {
+            return id3;
+        }
     }
 
     public static class BookBean2 {
@@ -2043,7 +2236,7 @@ public class BookStore {
             for (int i = 0; i < arg0.length; i++) {
                 sb.append(Integer.toString(arg0[i]));
                 if (i + 1 < arg0.length) {
-                    sb.append(",");
+                    sb.append(',');
                 }
             }
             arg6.write(sb.toString().getBytes());
@@ -2085,7 +2278,7 @@ public class BookStore {
             for (int i = 0; i < arr.length; i++) {
                 sb.append(Double.toString(arr[i]));
                 if (i + 1 < arr.length) {
-                    sb.append(",");
+                    sb.append(',');
                 }
             }
             arg6.write(sb.toString().getBytes());
@@ -2102,6 +2295,47 @@ public class BookStore {
         @Produces("application/xml")
         public Book getBeanParamBook(@BeanParam BookBeanExtended bean) {
             return bookStore.getBeanParamBook(bean);
+        }
+    }
+
+    public static class BookStoreQuerySub {
+        @GET
+        @Path("/listofstrings")
+        @Produces("text/xml")
+        public Book getBookFromListStrings(@QueryParam("value") List<String> value) {
+            final StringBuilder builder = new StringBuilder();
+
+            for (String v : value) {
+                if (builder.length() > 0) {
+                    builder.append(' ');
+                }
+
+                builder.append(v);
+            }
+
+            return new Book(builder.toString(), 0L);
+        }
+    }
+
+    public abstract static class AbstractBookId {
+        public static BookId fromString(String id) {
+            return BookId.of(UUID.fromString(id));
+        }
+    }
+
+    public static final class BookId extends AbstractBookId {
+        private final UUID uuid;
+
+        private BookId(UUID uuid) {
+            this.uuid = uuid;
+        }
+
+        public long getId() {
+            return uuid.getMostSignificantBits();
+        }
+
+        public static BookId of(UUID uuid) {
+            return new BookId(uuid);
         }
     }
 }

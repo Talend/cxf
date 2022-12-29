@@ -22,12 +22,12 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.security.Principal;
 
-import javax.annotation.Priority;
-import javax.ws.rs.HttpMethod;
-import javax.ws.rs.container.ContainerRequestContext;
-import javax.ws.rs.container.ContainerRequestFilter;
-import javax.ws.rs.container.PreMatching;
-
+import jakarta.annotation.Priority;
+import jakarta.ws.rs.HttpMethod;
+import jakarta.ws.rs.container.ContainerRequestContext;
+import jakarta.ws.rs.container.ContainerRequestFilter;
+import jakarta.ws.rs.container.PreMatching;
+import org.apache.cxf.common.util.StringUtils;
 import org.apache.cxf.helpers.IOUtils;
 import org.apache.cxf.jaxrs.utils.HttpUtils;
 import org.apache.cxf.jaxrs.utils.JAXRSUtils;
@@ -46,7 +46,11 @@ public class JwsContainerRequestFilter extends AbstractJwsReaderProvider impleme
             || isCheckEmptyStream() && !context.hasEntity()) {
             return;
         }
-        JwsCompactConsumer p = new JwsCompactConsumer(IOUtils.readStringFromStream(context.getEntityStream()));
+        final String content = IOUtils.readStringFromStream(context.getEntityStream());
+        if (StringUtils.isEmpty(content)) {
+            return;
+        }
+        JwsCompactConsumer p = new JwsCompactConsumer(content);
         JwsSignatureVerifier theSigVerifier = getInitializedSigVerifier(p.getJwsHeaders());
         if (!p.verifySignatureWith(theSigVerifier)) {
             context.abortWith(JAXRSUtils.toResponse(400));

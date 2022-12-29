@@ -20,15 +20,18 @@
 package org.apache.cxf.microprofile.client.config;
 
 import java.util.Optional;
+import java.util.OptionalLong;
 
+import org.apache.cxf.common.util.StringUtils;
 import org.eclipse.microprofile.config.Config;
 import org.eclipse.microprofile.config.ConfigProvider;
+import org.eclipse.microprofile.rest.client.inject.RegisterRestClient;
 
 public final class ConfigFacade {
 
     private ConfigFacade() {
     }
-    
+
     private static Optional<Config> config() {
         Config c;
         try {
@@ -39,15 +42,82 @@ public final class ConfigFacade {
         }
         return Optional.ofNullable(c);
     }
-    
+
     public static <T> Optional<T> getOptionalValue(String propertyName, Class<T> clazz) {
         Optional<Config> c = config();
         return c.isPresent() ? c.get().getOptionalValue(propertyName, clazz) : Optional.empty();
     }
-    
+
+    public static <T> Optional<T> getOptionalValue(String propertyNameFormat, Class<?> clientIntf, Class<T> clazz) {
+        Optional<Config> c = config();
+        if (c.isPresent()) {
+            String propertyName = String.format(propertyNameFormat, clientIntf.getName());
+            T value = c.get().getOptionalValue(propertyName, clazz).orElseGet(() -> {
+                RegisterRestClient anno = clientIntf.getAnnotation(RegisterRestClient.class);
+                if (anno != null && !StringUtils.isEmpty(getConfigKey(anno))) {
+                    String configKeyPropName = String.format(propertyNameFormat, getConfigKey(anno));
+                    return c.get().getOptionalValue(configKeyPropName, clazz).orElse(null);
+                }
+                return null;
+            });
+            return Optional.ofNullable(value);
+        }
+
+        return Optional.empty();
+    }
+
     public static <T> T getValue(String propertyName, Class<T> clazz) {
         Optional<Config> c = config();
         return c.isPresent() ? c.get().getValue(propertyName, clazz) : null;
     }
-    
+
+    public static <T> T getValue(String propertyNameFormat, Class<?> clientIntf, Class<T> clazz) {
+        Optional<Config> c = config();
+        T value = null;
+        if (c.isPresent()) {
+            String propertyName = String.format(propertyNameFormat, clientIntf.getName());
+            value = c.get().getOptionalValue(propertyName, clazz).orElseGet(() -> {
+                RegisterRestClient anno = clientIntf.getAnnotation(RegisterRestClient.class);
+                if (anno != null && !StringUtils.isEmpty(getConfigKey(anno))) {
+                    String configKeyPropName = String.format(propertyNameFormat, getConfigKey(anno));
+                    return c.get().getValue(configKeyPropName, clazz);
+                }
+                return null;
+            });
+        }
+
+        return value;
+    }
+
+    public static OptionalLong getOptionalLong(String propName) {
+        Optional<Config> c = config();
+        Optional<Long> opt =
+            c.isPresent() ? c.get().getOptionalValue(propName, Long.class) : Optional.empty();
+        return opt.isPresent() ? OptionalLong.of(opt.get()) : OptionalLong.empty();
+    }
+
+    public static OptionalLong getOptionalLong(String propNameFormat, Class<?> clientIntf) {
+        Optional<Config> c = config();
+        if (c.isPresent()) {
+            String propertyName = String.format(propNameFormat, clientIntf.getName());
+            Long value = c.get().getOptionalValue(propertyName, Long.class).orElseGet(() -> {
+                RegisterRestClient anno = clientIntf.getAnnotation(RegisterRestClient.class);
+                if (anno != null && !StringUtils.isEmpty(getConfigKey(anno))) {
+                    String configKeyPropName = String.format(propNameFormat, getConfigKey(anno));
+                    return c.get().getOptionalValue(configKeyPropName, Long.class).orElse(null);
+                }
+                return null;
+            });
+            return value == null ? OptionalLong.empty() : OptionalLong.of(value);
+        }
+        return OptionalLong.empty();
+    }
+
+    private static String getConfigKey(RegisterRestClient anno) {
+        try {
+            return anno.configKey();
+        } catch (Throwable t) {
+            return "";
+        }
+    }
 }

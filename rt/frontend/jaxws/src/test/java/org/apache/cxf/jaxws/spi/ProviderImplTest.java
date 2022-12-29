@@ -26,16 +26,18 @@ import javax.xml.namespace.QName;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.transform.stream.StreamResult;
-import javax.xml.ws.wsaddressing.W3CEndpointReference;
 
 import org.w3c.dom.Element;
 
+import jakarta.xml.ws.wsaddressing.W3CEndpointReference;
 import org.apache.cxf.BusFactory;
 
 import org.junit.After;
 
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
-public class ProviderImplTest extends org.junit.Assert {
+public class ProviderImplTest {
 
     @org.junit.Test
     public void testCreateW3CEpr() throws Exception {

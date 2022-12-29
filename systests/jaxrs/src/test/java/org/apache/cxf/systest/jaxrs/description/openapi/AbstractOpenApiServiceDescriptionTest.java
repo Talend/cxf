@@ -23,12 +23,12 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
-import javax.ws.rs.HttpMethod;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
+import com.fasterxml.jackson.jakarta.rs.json.JacksonJsonProvider;
 
-import com.fasterxml.jackson.jaxrs.json.JacksonJsonProvider;
-
+import jakarta.ws.rs.HttpMethod;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.Response;
+import org.apache.cxf.Bus;
 import org.apache.cxf.ext.logging.LoggingFeature;
 import org.apache.cxf.feature.Feature;
 import org.apache.cxf.jaxrs.JAXRSServerFactoryBean;
@@ -42,30 +42,32 @@ import org.apache.cxf.jaxrs.model.UserOperation;
 import org.apache.cxf.jaxrs.model.UserResource;
 import org.apache.cxf.jaxrs.openapi.OpenApiFeature;
 import org.apache.cxf.jaxrs.openapi.parse.OpenApiParseUtils;
-import org.apache.cxf.testutil.common.AbstractBusClientServerTestBase;
-import org.apache.cxf.testutil.common.AbstractBusTestServerBase;
+import org.apache.cxf.testutil.common.AbstractClientServerTestBase;
+import org.apache.cxf.testutil.common.AbstractServerTestServerBase;
 import org.hamcrest.CoreMatchers;
 
 import io.swagger.v3.oas.models.security.SecurityScheme;
 import io.swagger.v3.oas.models.security.SecurityScheme.Type;
 
-import org.junit.Ignore;
 import org.junit.Test;
 
 import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
-public abstract class AbstractOpenApiServiceDescriptionTest extends AbstractBusClientServerTestBase {
+public abstract class AbstractOpenApiServiceDescriptionTest extends AbstractClientServerTestBase {
     static final String SECURITY_DEFINITION_NAME = "basicAuth";
-    
+
     private static final String CONTACT = "cxf@apache.org";
     private static final String TITLE = "CXF unittest";
     private static final String DESCRIPTION = "API Description";
     private static final String LICENSE = "API License";
     private static final String LICENSE_URL = "API License URL";
-    
-    @Ignore
-    public abstract static class Server extends AbstractBusTestServerBase {
+
+    public abstract static class Server extends AbstractServerTestServerBase {
         protected final String port;
         protected final boolean runAsFilter;
 
@@ -75,7 +77,7 @@ public abstract class AbstractOpenApiServiceDescriptionTest extends AbstractBusC
         }
 
         @Override
-        protected void run() {
+        protected org.apache.cxf.endpoint.Server createServer(Bus bus) throws Exception {
             final JAXRSServerFactoryBean sf = new JAXRSServerFactoryBean();
             sf.setResourceClasses(BookStoreOpenApi.class);
             sf.setResourceClasses(BookStoreStylesheetsOpenApi.class);
@@ -85,9 +87,9 @@ public abstract class AbstractOpenApiServiceDescriptionTest extends AbstractBusC
             final OpenApiFeature feature = createOpenApiFeature();
             sf.setFeatures(Arrays.asList(feature));
             sf.setAddress("http://localhost:" + port + "/");
-            sf.create();
+            return sf.create();
         }
-        
+
         protected OpenApiFeature createOpenApiFeature() {
             final OpenApiFeature feature = new OpenApiFeature();
             feature.setRunAsFilter(runAsFilter);
@@ -96,22 +98,11 @@ public abstract class AbstractOpenApiServiceDescriptionTest extends AbstractBusC
             feature.setDescription(DESCRIPTION);
             feature.setLicense(LICENSE);
             feature.setLicenseUrl(LICENSE_URL);
-            
+
             feature.setSecurityDefinitions(Collections.singletonMap(SECURITY_DEFINITION_NAME,
                 new SecurityScheme().type(Type.HTTP)));
 
             return feature;
-        }
-
-        protected static void start(final Server s) {
-            try {
-                s.start();
-            } catch (Exception ex) {
-                ex.printStackTrace();
-                System.exit(-1);
-            } finally {
-                System.out.println("done!");
-            }
         }
     }
 
@@ -119,7 +110,6 @@ public abstract class AbstractOpenApiServiceDescriptionTest extends AbstractBusC
         AbstractResourceInfo.clearAllMaps();
         //keep out of process due to stack traces testing failures
         assertTrue("server did not launch correctly", launchServer(serverClass, false));
-        createStaticBus();
     }
 
     protected abstract String getPort();
@@ -135,7 +125,7 @@ public abstract class AbstractOpenApiServiceDescriptionTest extends AbstractBusC
         checkUiResource();
     }
     protected void doTestApiListingIsProperlyReturnedJSON(final WebClient client,
-            boolean useXForwarded, String basePath) throws Exception {    
+            boolean useXForwarded, String basePath) throws Exception {
         if (useXForwarded) {
             client.header("USE_XFORWARDED", true);
         }
@@ -143,27 +133,24 @@ public abstract class AbstractOpenApiServiceDescriptionTest extends AbstractBusC
             String swaggerJson = client.get(String.class);
             UserApplication ap = OpenApiParseUtils.getUserApplicationFromJson(swaggerJson);
             assertNotNull(ap);
-            
+
             if (basePath == null) {
                 assertEquals(useXForwarded ? "/reverse" : "/", ap.getBasePath());
             } else {
                 assertEquals(basePath, ap.getBasePath());
             }
-            
+
             List<UserResource> urs = ap.getResources();
             assertNotNull(urs);
             assertEquals(1, urs.size());
             UserResource r = urs.get(0);
-            
+
             Map<String, UserOperation> map = r.getOperationsAsMap();
             assertEquals(3, map.size());
             UserOperation getBooksOp = map.get("getBooks");
             assertEquals(HttpMethod.GET, getBooksOp.getVerb());
             assertEquals(getApplicationPath() + "/bookstore", getBooksOp.getPath());
-            // see https://github.com/swagger-api/swagger-core/issues/2646
-            if (getBooksOp.getProduces() != null) {
-                assertEquals(MediaType.APPLICATION_JSON, getBooksOp.getProduces());
-            }
+            assertEquals(MediaType.APPLICATION_JSON, getBooksOp.getProduces());
             List<Parameter> getBooksOpParams = getBooksOp.getParameters();
             assertEquals(1, getBooksOpParams.size());
             assertEquals(ParameterType.QUERY, getBooksOpParams.get(0).getType());
@@ -181,20 +168,49 @@ public abstract class AbstractOpenApiServiceDescriptionTest extends AbstractBusC
             assertEquals(1, delOpParams.size());
             assertEquals(ParameterType.PATH, delOpParams.get(0).getType());
 
-            assertThat(swaggerJson, CoreMatchers.containsString(CONTACT));
-            assertThat(swaggerJson, CoreMatchers.containsString(TITLE));
-            assertThat(swaggerJson, CoreMatchers.containsString(DESCRIPTION));
-            assertThat(swaggerJson, CoreMatchers.containsString(LICENSE));
-            assertThat(swaggerJson, CoreMatchers.containsString(LICENSE_URL));
-            assertThat(swaggerJson, CoreMatchers.containsString(SECURITY_DEFINITION_NAME));
+            assertThat(swaggerJson, CoreMatchers.containsString(getContract()));
+            assertThat(swaggerJson, CoreMatchers.containsString(getTitle()));
+            assertThat(swaggerJson, CoreMatchers.containsString(getDescription()));
+            assertThat(swaggerJson, CoreMatchers.containsString(getLicense()));
+            assertThat(swaggerJson, CoreMatchers.containsString(getLicenseUrl()));
+            assertThat(swaggerJson, CoreMatchers.containsString(getSecurityDefinitionName()));
+            assertThat(swaggerJson, CoreMatchers.containsString(getTags()));
         } finally {
             client.close();
         }
     }
 
+    protected String getTags() {
+        return "";
+    }
+
+    protected String getSecurityDefinitionName() {
+        return SECURITY_DEFINITION_NAME;
+    }
+
+    protected String getLicenseUrl() {
+        return LICENSE_URL;
+    }
+
+    protected String getLicense() {
+        return LICENSE;
+    }
+
+    protected String getDescription() {
+        return DESCRIPTION;
+    }
+
+    protected String getTitle() {
+        return TITLE;
+    }
+
+    protected String getContract() {
+        return CONTACT;
+    }
+
     @Test
     public void testNonUiResource() {
-        // Test that Swagger UI resources do not interfere with 
+        // Test that Swagger UI resources do not interfere with
         // application-specific ones.
         WebClient uiClient = WebClient
             .create(getBaseUrl() + "/css/book.css")
@@ -202,10 +218,10 @@ public abstract class AbstractOpenApiServiceDescriptionTest extends AbstractBusC
         String css = uiClient.get(String.class);
         assertThat(css, equalTo("body { background-color: lightblue; }"));
     }
-    
+
     @Test
     public void testUiResource() {
-        // Test that Swagger UI resources do not interfere with 
+        // Test that Swagger UI resources do not interfere with
         // application-specific ones and are accessible.
         WebClient uiClient = WebClient
             .create(getBaseUrl() + "/swagger-ui.css")
@@ -217,26 +233,26 @@ public abstract class AbstractOpenApiServiceDescriptionTest extends AbstractBusC
             assertThat(response.getMediaType(), equalTo(MediaType.valueOf("text/css")));
         }
     }
-    
+
     @Test
     public void testUiRootResource() {
-        // Test that Swagger UI resources do not interfere with 
+        // Test that Swagger UI resources do not interfere with
         // application-specific ones and are accessible.
         WebClient uiClient = WebClient
             .create(getBaseUrl() + "/api-docs")
             .accept("*/*");
-        
+
         try (Response response = uiClient.get()) {
             String html = response.readEntity(String.class);
             assertThat(html, containsString("<!-- HTML"));
             assertThat(response.getMediaType(), equalTo(MediaType.TEXT_HTML_TYPE));
         }
     }
-    
+
     protected String getApplicationPath() {
         return "";
     }
-    
+
     protected String getBaseUrl() {
         return "http://localhost:" + getPort();
     }

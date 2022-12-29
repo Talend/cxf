@@ -18,7 +18,6 @@
  */
 package org.apache.cxf.systest.sts.delegation;
 
-import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
@@ -28,8 +27,6 @@ import javax.security.auth.callback.CallbackHandler;
 import org.w3c.dom.Element;
 
 import org.apache.cxf.Bus;
-import org.apache.cxf.BusFactory;
-import org.apache.cxf.bus.spring.SpringBusFactory;
 import org.apache.cxf.jaxws.context.WrappedMessageContext;
 import org.apache.cxf.message.MessageImpl;
 import org.apache.cxf.sts.STSConstants;
@@ -41,7 +38,6 @@ import org.apache.cxf.sts.token.provider.SAMLTokenProvider;
 import org.apache.cxf.sts.token.provider.TokenProviderParameters;
 import org.apache.cxf.sts.token.provider.TokenProviderResponse;
 import org.apache.cxf.systest.sts.common.CommonCallbackHandler;
-import org.apache.cxf.systest.sts.common.SecurityTestUtil;
 import org.apache.cxf.testutil.common.AbstractBusClientServerTestBase;
 import org.apache.cxf.ws.security.SecurityConstants;
 import org.apache.cxf.ws.security.tokenstore.SecurityToken;
@@ -53,6 +49,11 @@ import org.apache.wss4j.common.ext.WSSecurityException;
 import org.apache.wss4j.common.principal.CustomTokenPrincipal;
 
 import org.junit.BeforeClass;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 /**
  * Some tests for sending a SAML Token OnBehalfOf/ActAs to the STS. The STS is set up with
@@ -83,27 +84,16 @@ public class SAMLDelegationTest extends AbstractBusClientServerTestBase {
         );
     }
 
-    @org.junit.AfterClass
-    public static void cleanup() throws Exception {
-        SecurityTestUtil.cleanup();
-        stopAllServers();
-    }
-
     @org.junit.Test
     public void testSAMLOnBehalfOf() throws Exception {
-        SpringBusFactory bf = new SpringBusFactory();
-        URL busFile = SAMLDelegationTest.class.getResource("cxf-client.xml");
-
-        Bus bus = bf.createBus(busFile.toString());
-        BusFactory.setDefaultBus(bus);
-        BusFactory.setThreadDefaultBus(bus);
+        createBus(getClass().getResource("cxf-client.xml").toString());
 
         // Get a token from the UT endpoint first
         SecurityToken token =
             requestSecurityToken(SAML2_TOKEN_TYPE, BEARER_KEYTYPE, bus,
                                  DEFAULT_ADDRESS, "Transport_UT_Port");
-        assertTrue(SAML2_TOKEN_TYPE.equals(token.getTokenType()));
-        assertTrue(token.getToken() != null);
+        assertEquals(SAML2_TOKEN_TYPE, token.getTokenType());
+        assertNotNull(token.getToken());
 
         // Use the first token as OnBehalfOf to get another token
 
@@ -120,27 +110,20 @@ public class SAMLDelegationTest extends AbstractBusClientServerTestBase {
         SecurityToken token2 =
             requestSecurityToken(SAML2_TOKEN_TYPE, BEARER_KEYTYPE, token.getToken(), bus,
                                  DEFAULT_ADDRESS, true, "Transport_Port");
-        assertTrue(SAML2_TOKEN_TYPE.equals(token2.getTokenType()));
-        assertTrue(token2.getToken() != null);
-
-        bus.shutdown(true);
+        assertEquals(SAML2_TOKEN_TYPE, token2.getTokenType());
+        assertNotNull(token2.getToken());
     }
 
     @org.junit.Test
     public void testSAMLActAs() throws Exception {
-        SpringBusFactory bf = new SpringBusFactory();
-        URL busFile = SAMLDelegationTest.class.getResource("cxf-client.xml");
-
-        Bus bus = bf.createBus(busFile.toString());
-        BusFactory.setDefaultBus(bus);
-        BusFactory.setThreadDefaultBus(bus);
+        createBus(getClass().getResource("cxf-client.xml").toString());
 
         // Get a token from the UT endpoint first
         SecurityToken token =
             requestSecurityToken(SAML2_TOKEN_TYPE, BEARER_KEYTYPE, bus,
                                  DEFAULT_ADDRESS, "Transport_UT_Port");
-        assertTrue(SAML2_TOKEN_TYPE.equals(token.getTokenType()));
-        assertTrue(token.getToken() != null);
+        assertEquals(SAML2_TOKEN_TYPE, token.getTokenType());
+        assertNotNull(token.getToken());
 
         // Use the first token as ActAs to get another token
 
@@ -157,20 +140,13 @@ public class SAMLDelegationTest extends AbstractBusClientServerTestBase {
         SecurityToken token2 =
             requestSecurityToken(SAML2_TOKEN_TYPE, BEARER_KEYTYPE, token.getToken(), bus,
                                  DEFAULT_ADDRESS, false, "Transport_Port");
-        assertTrue(SAML2_TOKEN_TYPE.equals(token2.getTokenType()));
-        assertTrue(token2.getToken() != null);
-
-        bus.shutdown(true);
+        assertEquals(SAML2_TOKEN_TYPE, token2.getTokenType());
+        assertNotNull(token2.getToken());
     }
 
     @org.junit.Test
     public void testTransportForgedDelegationToken() throws Exception {
-        SpringBusFactory bf = new SpringBusFactory();
-        URL busFile = SAMLDelegationTest.class.getResource("cxf-client.xml");
-
-        Bus bus = bf.createBus(busFile.toString());
-        BusFactory.setDefaultBus(bus);
-        BusFactory.setThreadDefaultBus(bus);
+        createBus(getClass().getResource("cxf-client.xml").toString());
 
         Crypto crypto = CryptoFactory.getInstance(getEncryptionProperties());
         CallbackHandler callbackHandler = new CommonCallbackHandler();
@@ -195,18 +171,11 @@ public class SAMLDelegationTest extends AbstractBusClientServerTestBase {
         } catch (Exception ex) {
             // expected
         }
-
-        bus.shutdown(true);
     }
 
     @org.junit.Test
     public void testTransportUnsignedDelegationToken() throws Exception {
-        SpringBusFactory bf = new SpringBusFactory();
-        URL busFile = SAMLDelegationTest.class.getResource("cxf-client.xml");
-
-        Bus bus = bf.createBus(busFile.toString());
-        BusFactory.setDefaultBus(bus);
-        BusFactory.setThreadDefaultBus(bus);
+        createBus(getClass().getResource("cxf-client.xml").toString());
 
         // Create SAML token
         Element samlToken =
@@ -228,8 +197,6 @@ public class SAMLDelegationTest extends AbstractBusClientServerTestBase {
         } catch (Exception ex) {
             // expected
         }
-
-        bus.shutdown(true);
     }
 
     private SecurityToken requestSecurityToken(
@@ -304,7 +271,7 @@ public class SAMLDelegationTest extends AbstractBusClientServerTestBase {
             );
 
         TokenProviderResponse providerResponse = samlTokenProvider.createToken(providerParameters);
-        assertTrue(providerResponse != null);
+        assertNotNull(providerResponse);
         assertTrue(providerResponse.getToken() != null && providerResponse.getTokenId() != null);
 
         return (Element)providerResponse.getToken();
@@ -322,7 +289,7 @@ public class SAMLDelegationTest extends AbstractBusClientServerTestBase {
             );
 
         TokenProviderResponse providerResponse = samlTokenProvider.createToken(providerParameters);
-        assertTrue(providerResponse != null);
+        assertNotNull(providerResponse);
         assertTrue(providerResponse.getToken() != null && providerResponse.getTokenId() != null);
 
         return (Element)providerResponse.getToken();

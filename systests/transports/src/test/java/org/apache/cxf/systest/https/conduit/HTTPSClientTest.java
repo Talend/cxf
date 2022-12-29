@@ -23,8 +23,8 @@ import java.net.URL;
 
 import javax.net.ssl.KeyManager;
 import javax.net.ssl.TrustManager;
-import javax.xml.ws.BindingProvider;
 
+import jakarta.xml.ws.BindingProvider;
 import org.apache.cxf.BusFactory;
 import org.apache.cxf.configuration.Configurer;
 import org.apache.cxf.configuration.jsse.TLSParameterJaxBUtils;
@@ -39,6 +39,10 @@ import org.apache.hello_world.services.SOAPService;
 
 import org.junit.BeforeClass;
 import org.junit.Test;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 /**
  * This test is meant to run against a spring-loaded
@@ -69,7 +73,7 @@ public class HTTPSClientTest extends AbstractBusClientServerTestBase {
         BusServer.resetPortMap();
     }
 
-    public void startServers() throws Exception {
+    protected void startServers() throws Exception {
         assertTrue(
             "Server failed to launch",
             // run the server in the same process
@@ -79,7 +83,7 @@ public class HTTPSClientTest extends AbstractBusClientServerTestBase {
     }
 
 
-    public void stopServers() throws Exception {
+    protected void stopServers() throws Exception {
         stopAllServers();
         System.clearProperty(Configurer.USER_CFG_FILE_PROPERTY_URL);
         BusFactory.setDefaultBus(null);

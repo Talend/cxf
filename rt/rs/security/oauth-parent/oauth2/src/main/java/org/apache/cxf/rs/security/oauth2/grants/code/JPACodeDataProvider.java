@@ -20,10 +20,9 @@ package org.apache.cxf.rs.security.oauth2.grants.code;
 
 import java.util.List;
 
-import javax.persistence.EntityManager;
-import javax.persistence.EntityNotFoundException;
-import javax.persistence.TypedQuery;
-
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.EntityNotFoundException;
+import jakarta.persistence.TypedQuery;
 import org.apache.cxf.rs.security.oauth2.common.Client;
 import org.apache.cxf.rs.security.oauth2.common.UserSubject;
 import org.apache.cxf.rs.security.oauth2.provider.JPAOAuthDataProvider;
@@ -46,49 +45,40 @@ public class JPACodeDataProvider extends JPAOAuthDataProvider implements Authori
     }
 
     protected void saveCodeGrant(final ServerAuthorizationCodeGrant grant) {
-        executeInTransaction(new EntityManagerOperation<Void>() {
-            @Override
-            public Void execute(EntityManager em) {
-                if (grant.getSubject() != null) {
-                    UserSubject sub = em.find(UserSubject.class, grant.getSubject().getId());
-                    if (sub == null) {
-                        em.persist(grant.getSubject());
-                    } else {
-                        sub = em.merge(grant.getSubject());
-                        grant.setSubject(sub);
-                    }
+        executeInTransaction(em -> {
+            if (grant.getSubject() != null) {
+                UserSubject sub = em.find(UserSubject.class, grant.getSubject().getId());
+                if (sub == null) {
+                    em.persist(grant.getSubject());
+                } else {
+                    sub = em.merge(grant.getSubject());
+                    grant.setSubject(sub);
                 }
-                // ensure we have a managed association
-                // (needed for OpenJPA : InvalidStateException: Encountered unmanaged object)
-                if (grant.getClient() != null) {
-                    grant.setClient(em.find(Client.class, grant.getClient().getClientId()));
-                }
-                em.persist(grant);
-                return null;
             }
+            // ensure we have a managed association
+            // (needed for OpenJPA : InvalidStateException: Encountered unmanaged object)
+            if (grant.getClient() != null) {
+                grant.setClient(em.find(Client.class, grant.getClient().getClientId()));
+            }
+            em.persist(grant);
+            return null;
         });
     }
 
     @Override
     protected void doRemoveClient(final Client c) {
-        executeInTransaction(new EntityManagerOperation<Void>() {
-            @Override
-            public Void execute(EntityManager em) {
-                removeClientCodeGrants(c, em);
-                Client clientToRemove = em.getReference(Client.class, c.getClientId());
-                em.remove(clientToRemove);
-                return null;
-            }
+        executeInTransaction(em -> {
+            removeClientCodeGrants(c, em);
+            Client clientToRemove = em.getReference(Client.class, c.getClientId());
+            em.remove(clientToRemove);
+            return null;
         });
     }
 
     protected void removeClientCodeGrants(final Client c) {
-        executeInTransaction(new EntityManagerOperation<Void>() {
-            @Override
-            public Void execute(EntityManager em) {
-                removeClientCodeGrants(c, em);
-                return null;
-            }
+        executeInTransaction(em -> {
+            removeClientCodeGrants(c, em);
+            return null;
         });
     }
 
@@ -100,11 +90,8 @@ public class JPACodeDataProvider extends JPAOAuthDataProvider implements Authori
 
     @Override
     public ServerAuthorizationCodeGrant removeCodeGrant(final String code) throws OAuthServiceException {
-        return executeInTransaction(new EntityManagerOperation<ServerAuthorizationCodeGrant>() {
-            @Override
-            public ServerAuthorizationCodeGrant execute(EntityManager em) {
-                return removeCodeGrant(code, em);
-            }
+        return executeInTransaction(em -> {
+            return removeCodeGrant(code, em);
         });
     }
 
@@ -120,11 +107,8 @@ public class JPACodeDataProvider extends JPAOAuthDataProvider implements Authori
     @Override
     public List<ServerAuthorizationCodeGrant> getCodeGrants(final Client c, final UserSubject subject)
             throws OAuthServiceException {
-        return execute(new EntityManagerOperation<List<ServerAuthorizationCodeGrant>>() {
-            @Override
-            public List<ServerAuthorizationCodeGrant> execute(EntityManager em) {
-                return getCodeGrants(c, subject, em);
-            }
+        return executeInTransaction(em -> {
+            return getCodeGrants(c, subject, em);
         });
     }
 
@@ -143,13 +127,13 @@ public class JPACodeDataProvider extends JPAOAuthDataProvider implements Authori
         if (c == null && resourceOwnerSubject == null) {
             return em.createQuery("SELECT c FROM ServerAuthorizationCodeGrant c",
                     ServerAuthorizationCodeGrant.class);
-        } else if (c == null) {
+        } else if (c == null && resourceOwnerSubject != null) {
             return em.createQuery(
                     "SELECT c FROM ServerAuthorizationCodeGrant"
                             + " c JOIN c.subject s"
                             + " WHERE s.login = :login", ServerAuthorizationCodeGrant.class)
                     .setParameter("login", resourceOwnerSubject.getLogin());
-        } else if (resourceOwnerSubject == null) {
+        } else if (c != null && resourceOwnerSubject == null) {
             return em.createQuery(
                     "SELECT code FROM ServerAuthorizationCodeGrant code"
                             + " JOIN code.client c"

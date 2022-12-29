@@ -20,17 +20,15 @@
 package org.apache.cxf.transport.http_undertow;
 
 import java.io.IOException;
-import java.io.OutputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.security.GeneralSecurityException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import javax.servlet.ServletContext;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
+import jakarta.servlet.ServletContext;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import org.apache.cxf.Bus;
 import org.apache.cxf.BusFactory;
 import org.apache.cxf.common.classloader.ClassLoaderUtils;
@@ -230,11 +228,6 @@ public class UndertowHTTPDestination extends ServletDestination {
             super.setupContinuation(inMessage, req, resp);
         }
     }
-
-    protected OutputStream flushHeaders(Message outMessage, boolean getStream) throws IOException {
-        return super.flushHeaders(outMessage, getStream);
-    }
-
 
     protected String getAddress(EndpointInfo endpointInfo) {
         return endpointInfo.getAddress();

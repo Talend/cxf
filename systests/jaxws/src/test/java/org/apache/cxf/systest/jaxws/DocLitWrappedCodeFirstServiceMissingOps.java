@@ -18,12 +18,12 @@
  */
 package org.apache.cxf.systest.jaxws;
 
-import java.util.Vector;
+import java.util.List;
 
-import javax.jws.WebMethod;
-import javax.jws.WebParam;
-import javax.jws.WebService;
-import javax.jws.soap.SOAPBinding;
+import jakarta.jws.WebMethod;
+import jakarta.jws.WebParam;
+import jakarta.jws.WebService;
+import jakarta.jws.soap.SOAPBinding;
 
 
 @WebService(name = "DocLitWrappedCodeFirstService",
@@ -40,7 +40,7 @@ public interface DocLitWrappedCodeFirstServiceMissingOps {
             @WebParam(name = "input") String[] inputs);
 
     @WebMethod
-    Vector<String> listOutput();
+    List<String> listOutput();
 
     @WebMethod
     int[] echoIntArray(int[] ar);

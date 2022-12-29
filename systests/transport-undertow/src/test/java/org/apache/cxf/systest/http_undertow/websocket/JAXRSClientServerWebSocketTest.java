@@ -30,6 +30,12 @@ import org.apache.cxf.transport.websocket.WebSocketConstants;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+
 public class JAXRSClientServerWebSocketTest extends AbstractBusClientServerTestBase {
     private static final String PORT = BookServerWebSocket.PORT;
 
@@ -44,9 +50,7 @@ public class JAXRSClientServerWebSocketTest extends AbstractBusClientServerTestB
     public void testBookWithWebSocket() throws Exception {
         String address = "ws://localhost:" + getPort() + getContext() + "/websocket/web/bookstore";
 
-        WebSocketTestClient wsclient = new WebSocketTestClient(address);
-        wsclient.connect();
-        try {
+        try (WebSocketTestClient wsclient = new WebSocketTestClient(address)) {
             // call the GET service
             wsclient.sendMessage(("GET " +  getContext() + "/websocket/web/bookstore/booknames").getBytes());
             assertTrue("one book must be returned", wsclient.await(30000));
@@ -123,8 +127,6 @@ public class JAXRSClientServerWebSocketTest extends AbstractBusClientServerTestB
                 assertEquals(0, resp.getStatusCode());
                 assertEquals(r, Integer.parseInt(resp.getTextEntity()));
             }
-        } finally {
-            wsclient.close();
         }
     }
 
@@ -132,9 +134,7 @@ public class JAXRSClientServerWebSocketTest extends AbstractBusClientServerTestB
     public void testGetBookStream() throws Exception {
         String address = "ws://localhost:" + getPort() + getContext() + "/websocket/web/bookstore";
 
-        WebSocketTestClient wsclient = new WebSocketTestClient(address);
-        wsclient.connect();
-        try {
+        try (WebSocketTestClient wsclient = new WebSocketTestClient(address)) {
             wsclient.reset(5);
             wsclient.sendMessage(
                 ("GET " +  getContext() + "/websocket/web/bookstore/bookstream\r\nAccept: application/json\r\n\r\n")
@@ -153,8 +153,6 @@ public class JAXRSClientServerWebSocketTest extends AbstractBusClientServerTestB
                 assertEquals(0, resp.getStatusCode());
                 assertEquals(resp.getTextEntity(), getBookJson(i));
             }
-        } finally {
-            wsclient.close();
         }
     }
 
@@ -162,9 +160,7 @@ public class JAXRSClientServerWebSocketTest extends AbstractBusClientServerTestB
     public void testGetBookStreamWithIDReferences() throws Exception {
         String address = "ws://localhost:" + getPort() + getContext() + "/websocket/web/bookstore";
 
-        WebSocketTestClient wsclient = new WebSocketTestClient(address);
-        wsclient.connect();
-        try {
+        try (WebSocketTestClient wsclient = new WebSocketTestClient(address)) {
             wsclient.reset(5);
             String reqid = UUID.randomUUID().toString();
             wsclient.sendMessage(
@@ -186,8 +182,6 @@ public class JAXRSClientServerWebSocketTest extends AbstractBusClientServerTestB
                 assertEquals(reqid, resp.getId());
                 assertEquals(resp.getTextEntity(), getBookJson(i));
             }
-        } finally {
-            wsclient.close();
         }
     }
 
@@ -199,9 +193,7 @@ public class JAXRSClientServerWebSocketTest extends AbstractBusClientServerTestB
     public void testBookWithWebSocketAndHTTP() throws Exception {
         String address = "ws://localhost:" + getPort() + getContext() + "/websocket/web/bookstore";
 
-        WebSocketTestClient wsclient = new WebSocketTestClient(address);
-        wsclient.connect();
-        try {
+        try (WebSocketTestClient wsclient = new WebSocketTestClient(address)) {
             // call the GET service
             wsclient.sendMessage(("GET " +  getContext() + "/websocket/web/bookstore/booknames").getBytes());
             assertTrue("one book must be returned", wsclient.await(3));
@@ -214,9 +206,6 @@ public class JAXRSClientServerWebSocketTest extends AbstractBusClientServerTestB
             assertEquals("CXF in Action", value);
 
             testGetBookHTTPFromWebSocketEndpoint();
-
-        } finally {
-            wsclient.close();
         }
     }
 
@@ -233,9 +222,7 @@ public class JAXRSClientServerWebSocketTest extends AbstractBusClientServerTestB
     public void testBookWithWebSocketServletStream() throws Exception {
         String address = "ws://localhost:" + getPort() + getContext() + "/websocket/web/bookstore";
 
-        WebSocketTestClient wsclient = new WebSocketTestClient(address);
-        wsclient.connect();
-        try {
+        try (WebSocketTestClient wsclient = new WebSocketTestClient(address)) {
             wsclient.sendMessage(("GET " +  getContext() + "/websocket/web/bookstore/booknames/servletstream")
                                  .getBytes());
             assertTrue("one book must be returned", wsclient.await(3));
@@ -246,8 +233,6 @@ public class JAXRSClientServerWebSocketTest extends AbstractBusClientServerTestB
             assertEquals("text/plain", resp.getContentType());
             String value = resp.getTextEntity();
             assertEquals("CXF in Action", value);
-        } finally {
-            wsclient.close();
         }
     }
 
@@ -255,9 +240,7 @@ public class JAXRSClientServerWebSocketTest extends AbstractBusClientServerTestB
     public void testWrongMethod() throws Exception {
         String address = "ws://localhost:" + getPort() + getContext() + "/websocket/web/bookstore";
 
-        WebSocketTestClient wsclient = new WebSocketTestClient(address);
-        wsclient.connect();
-        try {
+        try (WebSocketTestClient wsclient = new WebSocketTestClient(address)) {
             // call the GET service using POST
             wsclient.reset(1);
             wsclient.sendMessage(("POST " +  getContext() + "/websocket/web/bookstore/booknames").getBytes());
@@ -266,8 +249,6 @@ public class JAXRSClientServerWebSocketTest extends AbstractBusClientServerTestB
             assertEquals(1, received.size());
             WebSocketTestClient.Response resp = received.get(0);
             assertEquals(405, resp.getStatusCode());
-        } finally {
-            wsclient.close();
         }
     }
 
@@ -275,9 +256,7 @@ public class JAXRSClientServerWebSocketTest extends AbstractBusClientServerTestB
     public void testPathRestriction() throws Exception {
         String address = "ws://localhost:" + getPort() + getContext() + "/websocket/web/bookstore";
 
-        WebSocketTestClient wsclient = new WebSocketTestClient(address);
-        wsclient.connect();
-        try {
+        try (WebSocketTestClient wsclient = new WebSocketTestClient(address)) {
             // call the GET service over the different path
             wsclient.sendMessage(("GET " +  getContext() + "/websocket/bookstore2").getBytes());
             assertTrue("error response expected", wsclient.await(3));
@@ -285,8 +264,6 @@ public class JAXRSClientServerWebSocketTest extends AbstractBusClientServerTestB
             assertEquals(1, received.size());
             WebSocketTestClient.Response resp = received.get(0);
             assertEquals(404, resp.getStatusCode());
-        } finally {
-            wsclient.close();
         }
     }
 
@@ -294,9 +271,7 @@ public class JAXRSClientServerWebSocketTest extends AbstractBusClientServerTestB
     public void testCallsWithIDReferences() throws Exception {
         String address = "ws://localhost:" + getPort() + getContext() + "/websocket/web/bookstore";
 
-        WebSocketTestClient wsclient = new WebSocketTestClient(address);
-        wsclient.connect();
-        try {
+        try (WebSocketTestClient wsclient = new WebSocketTestClient(address)) {
             // call the POST service without requestId
             wsclient.sendTextMessage(
                 "POST " +  getContext() + "/websocket/web/bookstore/booksplain\r\nContent-Type: text/plain\r\n\r\n459");
@@ -335,8 +310,6 @@ public class JAXRSClientServerWebSocketTest extends AbstractBusClientServerTestB
                     fail("unexpected responseId: " + id);
                 }
             }
-        } finally {
-            wsclient.close();
         }
     }
 
@@ -344,9 +317,7 @@ public class JAXRSClientServerWebSocketTest extends AbstractBusClientServerTestB
     public void testCallsInParallel() throws Exception {
         String address = "ws://localhost:" + getPort() + getContext() + "/websocket/web/bookstore";
 
-        WebSocketTestClient wsclient = new WebSocketTestClient(address);
-        wsclient.connect();
-        try {
+        try (WebSocketTestClient wsclient = new WebSocketTestClient(address)) {
             // call the GET service that takes a long time to response
             wsclient.reset(2);
             wsclient.sendTextMessage(
@@ -357,8 +328,6 @@ public class JAXRSClientServerWebSocketTest extends AbstractBusClientServerTestB
             assertTrue("response expected", wsclient.await(4));
             List<WebSocketTestClient.Response> received = wsclient.getReceivedResponses();
             assertEquals(2, received.size());
-        } finally {
-            wsclient.close();
         }
     }
 
@@ -366,11 +335,8 @@ public class JAXRSClientServerWebSocketTest extends AbstractBusClientServerTestB
     public void testStreamRegisterAndUnregister() throws Exception {
         String address = "ws://localhost:" + getPort() + getContext() + "/websocket/web/bookstore";
 
-        WebSocketTestClient wsclient1 = new WebSocketTestClient(address);
-        WebSocketTestClient wsclient2 = new WebSocketTestClient(address);
-        wsclient1.connect();
-        wsclient2.connect();
-        try {
+        try (WebSocketTestClient wsclient1 = new WebSocketTestClient(address);
+            WebSocketTestClient wsclient2 = new WebSocketTestClient(address)) {
             String regkey = UUID.randomUUID().toString();
 
             EventCreatorRunner runner = new EventCreatorRunner(wsclient2, regkey, 1000, 1000);
@@ -407,9 +373,6 @@ public class JAXRSClientServerWebSocketTest extends AbstractBusClientServerTestB
             assertEquals("Hello created", values[0]);
             assertTrue(values[1].startsWith("Unregistered: " + regkey));
             assertEquals("Hola created", values[2]);
-        } finally {
-            wsclient1.close();
-            wsclient2.close();
         }
     }
 

@@ -20,8 +20,7 @@ package org.apache.cxf.systest.jaxrs;
 
 import java.io.IOException;
 
-import javax.servlet.http.HttpServletResponse;
-
+import jakarta.servlet.http.HttpServletResponse;
 import org.apache.cxf.interceptor.Fault;
 import org.apache.cxf.message.Message;
 import org.apache.cxf.phase.AbstractPhaseInterceptor;
@@ -31,12 +30,7 @@ import org.apache.cxf.transport.http.AbstractHTTPDestination;
 public class CustomOutFaultInterceptor extends AbstractPhaseInterceptor<Message> {
     private boolean handleMessageCalled;
     public CustomOutFaultInterceptor() {
-        this(Phase.PRE_STREAM);
-    }
-
-    public CustomOutFaultInterceptor(String s) {
-        super(Phase.MARSHAL);
-
+        super(Phase.PRE_STREAM);
     }
 
     public void handleMessage(Message message) throws Fault {

@@ -26,13 +26,14 @@ import java.io.InputStream;
 import java.net.URI;
 import java.net.URL;
 
-import javax.activation.DataHandler;
 import javax.imageio.ImageIO;
 import javax.xml.namespace.QName;
-import javax.xml.ws.Binding;
-import javax.xml.ws.BindingProvider;
-import javax.xml.ws.Holder;
-import javax.xml.ws.soap.SOAPBinding;
+
+import jakarta.activation.DataHandler;
+import jakarta.xml.ws.Binding;
+import jakarta.xml.ws.BindingProvider;
+import jakarta.xml.ws.Holder;
+import jakarta.xml.ws.soap.SOAPBinding;
 
 import org.apache.cxf.mime.TestMtomPortType;
 import org.apache.cxf.mime.TestMtomService;
@@ -48,7 +49,7 @@ public final class Client {
     private Client() {
     }
 
-    public static void main(String args[]) throws Exception {
+    public static void main(String[] args) throws Exception {
         if (args.length == 0) {
             System.out.println("Please specify the WSDL file.");
             System.exit(1);
@@ -75,8 +76,8 @@ public final class Client {
         System.out.println("Filesize of me.bmp image is: " + fileSize);
 
         System.out.println("\nStarting MTOM Test using basic byte array:");
-        Holder<String> name = new Holder<String>("Sam");
-        Holder<byte[]> param = new Holder<byte[]>();
+        Holder<String> name = new Holder<>("Sam");
+        Holder<byte[]> param = new Holder<>();
         param.value = new byte[(int) fileSize];
         InputStream in = fileURL.openStream();
         int len = in.read(param.value);
@@ -99,7 +100,7 @@ public final class Client {
 
         System.out.println("\nStarting MTOM test with DataHandler:");
         name.value = "Bob";
-        Holder<DataHandler> handler = new Holder<DataHandler>();
+        Holder<DataHandler> handler = new Holder<>();
 
         handler.value = new DataHandler(fileURL);
 

@@ -32,11 +32,12 @@ import java.net.URI;
 import org.apache.cxf.tools.corba.processors.wsdl.WSDLToIDLAction;
 
 import org.junit.After;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
-public class WSDLToIDLGenerationTest extends Assert {
+import static org.junit.Assert.assertEquals;
+
+public class WSDLToIDLGenerationTest {
 
     protected static final String START_COMMENT = "/*";
     protected static final String END_COMMENT = "*/";
@@ -56,7 +57,7 @@ public class WSDLToIDLGenerationTest extends Assert {
     }
 
 
-    private void checkIDLStrings(byte orig[], byte generated[]) throws Exception {
+    private void checkIDLStrings(byte[] orig, byte[] generated) throws Exception {
         BufferedReader origReader = new BufferedReader(new InputStreamReader(new ByteArrayInputStream(orig)));
         BufferedReader genReader = new BufferedReader(
                                        new InputStreamReader(new ByteArrayInputStream(generated)));
@@ -73,7 +74,7 @@ public class WSDLToIDLGenerationTest extends Assert {
             if (sgen.trim().startsWith(START_COMMENT)) {
                 genComment = true;
             }
-            if ((!origComment) && (!genComment)) {
+            if (!origComment && !genComment) {
                 assertEquals(sorig, sgen);
                 sgen = genReader.readLine();
                 sorig = origReader.readLine();
@@ -124,7 +125,7 @@ public class WSDLToIDLGenerationTest extends Assert {
         idlgen.generateIDL(null);
 
         InputStream origstream = getClass().getResourceAsStream("/idlgen/expected_oneway.idl");
-        byte orig[] = inputStreamToBytes(origstream);
+        byte[] orig = inputStreamToBytes(origstream);
 
         checkIDLStrings(orig, idloutput.toByteArray());
     }
@@ -141,7 +142,7 @@ public class WSDLToIDLGenerationTest extends Assert {
             idlgen.generateIDL(null);
 
             InputStream origstream = getClass().getResourceAsStream("/idlgen/expected_stringtypes.idl");
-            byte orig[] = inputStreamToBytes(origstream);
+            byte[] orig = inputStreamToBytes(origstream);
 
             checkIDLStrings(orig, idloutput.toByteArray());
         } finally {
@@ -161,7 +162,7 @@ public class WSDLToIDLGenerationTest extends Assert {
             idlgen.generateIDL(null);
 
             InputStream origstream = getClass().getResourceAsStream("/idlgen/expected_integertypes.idl");
-            byte orig[] = inputStreamToBytes(origstream);
+            byte[] orig = inputStreamToBytes(origstream);
 
             checkIDLStrings(orig, idloutput.toByteArray());
         } finally {
@@ -181,7 +182,7 @@ public class WSDLToIDLGenerationTest extends Assert {
             idlgen.generateIDL(null);
 
             InputStream origstream = getClass().getResourceAsStream("/idlgen/expected_uniontypes.idl");
-            byte orig[] = inputStreamToBytes(origstream);
+            byte[] orig = inputStreamToBytes(origstream);
 
             checkIDLStrings(orig, idloutput.toByteArray());
         } finally {
@@ -201,7 +202,7 @@ public class WSDLToIDLGenerationTest extends Assert {
             idlgen.generateIDL(null);
 
             InputStream origstream = getClass().getResourceAsStream("/idlgen/expected_defaultuniontypes.idl");
-            byte orig[] = inputStreamToBytes(origstream);
+            byte[] orig = inputStreamToBytes(origstream);
 
             checkIDLStrings(orig, idloutput.toByteArray());
         } finally {
@@ -223,7 +224,7 @@ public class WSDLToIDLGenerationTest extends Assert {
             idlgen.generateIDL(null);
 
             InputStream origstream = getClass().getResourceAsStream("/idlgen/expected_exceptions.idl");
-            byte orig[] = inputStreamToBytes(origstream);
+            byte[] orig = inputStreamToBytes(origstream);
 
             checkIDLStrings(orig, idloutput.toByteArray());
         } finally {
@@ -244,7 +245,7 @@ public class WSDLToIDLGenerationTest extends Assert {
             idlgen.generateIDL(null);
 
             InputStream origstream = getClass().getResourceAsStream("/idlgen/expected_struct.idl");
-            byte orig[] = inputStreamToBytes(origstream);
+            byte[] orig = inputStreamToBytes(origstream);
 
             checkIDLStrings(orig, idloutput.toByteArray());
         } finally {
@@ -266,7 +267,7 @@ public class WSDLToIDLGenerationTest extends Assert {
             idlgen.generateIDL(null);
 
             InputStream origstream = getClass().getResourceAsStream("/idlgen/expected_sequencetype.idl");
-            byte orig[] = inputStreamToBytes(origstream);
+            byte[] orig = inputStreamToBytes(origstream);
 
             checkIDLStrings(orig, idloutput.toByteArray());
         } finally {
@@ -287,7 +288,7 @@ public class WSDLToIDLGenerationTest extends Assert {
             idlgen.generateIDL(null);
 
             InputStream origstream = getClass().getResourceAsStream("/idlgen/expected_array.idl");
-            byte orig[] = inputStreamToBytes(origstream);
+            byte[] orig = inputStreamToBytes(origstream);
 
             checkIDLStrings(orig, idloutput.toByteArray());
         } finally {
@@ -309,7 +310,7 @@ public class WSDLToIDLGenerationTest extends Assert {
             idlgen.generateIDL(null);
 
             InputStream origstream = getClass().getResourceAsStream("/idlgen/expected_enum.idl");
-            byte orig[] = inputStreamToBytes(origstream);
+            byte[] orig = inputStreamToBytes(origstream);
 
             checkIDLStrings(orig, idloutput.toByteArray());
         } finally {
@@ -330,7 +331,7 @@ public class WSDLToIDLGenerationTest extends Assert {
             idlgen.generateIDL(null);
 
             InputStream origstream = getClass().getResourceAsStream("/idlgen/expected_content.idl");
-            byte orig[] = inputStreamToBytes(origstream);
+            byte[] orig = inputStreamToBytes(origstream);
 
             checkIDLStrings(orig, idloutput.toByteArray());
         } finally {
@@ -351,7 +352,7 @@ public class WSDLToIDLGenerationTest extends Assert {
             idlgen.generateIDL(null);
 
             InputStream origstream = getClass().getResourceAsStream("/idlgen/expected_alltype.idl");
-            byte orig[] = inputStreamToBytes(origstream);
+            byte[] orig = inputStreamToBytes(origstream);
 
             checkIDLStrings(orig, idloutput.toByteArray());
         } finally {
@@ -372,7 +373,7 @@ public class WSDLToIDLGenerationTest extends Assert {
             idlgen.generateIDL(null);
 
             InputStream origstream = getClass().getResourceAsStream("/idlgen/expected_fixed.idl");
-            byte orig[] = inputStreamToBytes(origstream);
+            byte[] orig = inputStreamToBytes(origstream);
 
             checkIDLStrings(orig, idloutput.toByteArray());
         } finally {
@@ -393,7 +394,7 @@ public class WSDLToIDLGenerationTest extends Assert {
             idlgen.generateIDL(null);
 
             InputStream origstream = getClass().getResourceAsStream("/idlgen/expected_anonfixed.idl");
-            byte orig[] = inputStreamToBytes(origstream);
+            byte[] orig = inputStreamToBytes(origstream);
 
             checkIDLStrings(orig, idloutput.toByteArray());
         } finally {
@@ -414,7 +415,7 @@ public class WSDLToIDLGenerationTest extends Assert {
             idlgen.generateIDL(null);
 
             InputStream origstream = getClass().getResourceAsStream("/idlgen/expected_any.idl");
-            byte orig[] = inputStreamToBytes(origstream);
+            byte[] orig = inputStreamToBytes(origstream);
 
             checkIDLStrings(orig, idloutput.toByteArray());
         } finally {
@@ -436,7 +437,7 @@ public class WSDLToIDLGenerationTest extends Assert {
             idlgen.generateIDL(null);
 
             InputStream origstream = getClass().getResourceAsStream("/idlgen/expected_typeInheritance.idl");
-            byte orig[] = inputStreamToBytes(origstream);
+            byte[] orig = inputStreamToBytes(origstream);
 
             checkIDLStrings(orig, idloutput.toByteArray());
         } finally {
@@ -457,7 +458,7 @@ public class WSDLToIDLGenerationTest extends Assert {
             idlgen.generateIDL(null);
 
             InputStream origstream = getClass().getResourceAsStream("/idlgen/expected_nillable.idl");
-            byte orig[] = inputStreamToBytes(origstream);
+            byte[] orig = inputStreamToBytes(origstream);
 
             checkIDLStrings(orig, idloutput.toByteArray());
         } finally {
@@ -478,7 +479,7 @@ public class WSDLToIDLGenerationTest extends Assert {
             idlgen.generateIDL(null);
 
             InputStream origstream = getClass().getResourceAsStream("/idlgen/expected_typedef.idl");
-            byte orig[] = inputStreamToBytes(origstream);
+            byte[] orig = inputStreamToBytes(origstream);
 
             checkIDLStrings(orig, idloutput.toByteArray());
         } finally {
@@ -499,7 +500,7 @@ public class WSDLToIDLGenerationTest extends Assert {
             idlgen.generateIDL(null);
 
             InputStream origstream = getClass().getResourceAsStream("/idlgen/expected_nested.idl");
-            byte orig[] = inputStreamToBytes(origstream);
+            byte[] orig = inputStreamToBytes(origstream);
 
             checkIDLStrings(orig, idloutput.toByteArray());
         } finally {
@@ -521,7 +522,7 @@ public class WSDLToIDLGenerationTest extends Assert {
 
             InputStream origstream =
                 getClass().getResourceAsStream("/idlgen/expected_nested-derivedtypes.idl");
-            byte orig[] = inputStreamToBytes(origstream);
+            byte[] orig = inputStreamToBytes(origstream);
 
             checkIDLStrings(orig, idloutput.toByteArray());
         } finally {
@@ -543,7 +544,7 @@ public class WSDLToIDLGenerationTest extends Assert {
 
             InputStream origstream =
                 getClass().getResourceAsStream("/idlgen/expected_nested_complex.idl");
-            byte orig[] = inputStreamToBytes(origstream);
+            byte[] orig = inputStreamToBytes(origstream);
 
             checkIDLStrings(orig, idloutput.toByteArray());
         } finally {
@@ -565,7 +566,7 @@ public class WSDLToIDLGenerationTest extends Assert {
 
             InputStream origstream =
                 getClass().getResourceAsStream("/idlgen/expected_nested_interfaces.idl");
-            byte orig[] = inputStreamToBytes(origstream);
+            byte[] orig = inputStreamToBytes(origstream);
 
             checkIDLStrings(orig, idloutput.toByteArray());
         } finally {
@@ -587,7 +588,7 @@ public class WSDLToIDLGenerationTest extends Assert {
 
             InputStream origstream =
                 getClass().getResourceAsStream("/idlgen/expected_datetime.idl");
-            byte orig[] = inputStreamToBytes(origstream);
+            byte[] orig = inputStreamToBytes(origstream);
 
             checkIDLStrings(orig, idloutput.toByteArray());
         } finally {
@@ -609,7 +610,7 @@ public class WSDLToIDLGenerationTest extends Assert {
 
             InputStream origstream =
                 getClass().getResourceAsStream("/idlgen/expected_wsaddressing_server.idl");
-            byte orig[] = inputStreamToBytes(origstream);
+            byte[] orig = inputStreamToBytes(origstream);
 
             checkIDLStrings(orig, idloutput.toByteArray());
         } finally {
@@ -631,7 +632,7 @@ public class WSDLToIDLGenerationTest extends Assert {
 
             InputStream origstream =
                 getClass().getResourceAsStream("/idlgen/expected_wsaddressing_account.idl");
-            byte orig[] = inputStreamToBytes(origstream);
+            byte[] orig = inputStreamToBytes(origstream);
 
             checkIDLStrings(orig, idloutput.toByteArray());
         } finally {
@@ -653,7 +654,7 @@ public class WSDLToIDLGenerationTest extends Assert {
 
             InputStream origstream =
                 getClass().getResourceAsStream("/idlgen/expected_wsaddressing_bank.idl");
-            byte orig[] = inputStreamToBytes(origstream);
+            byte[] orig = inputStreamToBytes(origstream);
 
             checkIDLStrings(orig, idloutput.toByteArray());
         } finally {
@@ -674,7 +675,7 @@ public class WSDLToIDLGenerationTest extends Assert {
             idlgen.generateIDL(null);
 
             InputStream origstream = getClass().getResourceAsStream("/idlgen/expected_multiplebinding.idl");
-            byte orig[] = inputStreamToBytes(origstream);
+            byte[] orig = inputStreamToBytes(origstream);
 
             try {
                 checkIDLStrings(orig, idloutput.toByteArray());
@@ -703,7 +704,7 @@ public class WSDLToIDLGenerationTest extends Assert {
             idlgen.generateIDL(null);
 
             InputStream origstream = getClass().getResourceAsStream("/idlgen/expected_complex_types.idl");
-            byte orig[] = inputStreamToBytes(origstream);
+            byte[] orig = inputStreamToBytes(origstream);
 
             checkIDLStrings(orig, idloutput.toByteArray());
         } finally {
@@ -725,7 +726,7 @@ public class WSDLToIDLGenerationTest extends Assert {
             idlgen.generateIDL(null);
 
             InputStream origstream = getClass().getResourceAsStream("/idlgen/expected_databaseService.idl");
-            byte orig[] = inputStreamToBytes(origstream);
+            byte[] orig = inputStreamToBytes(origstream);
 
             checkIDLStrings(orig, idloutput.toByteArray());
         } finally {
@@ -747,7 +748,7 @@ public class WSDLToIDLGenerationTest extends Assert {
 
             InputStream origstream =
                 getClass().getResourceAsStream("/idlgen/expected_recursivestruct.idl");
-            byte orig[] = inputStreamToBytes(origstream);
+            byte[] orig = inputStreamToBytes(origstream);
 
             checkIDLStrings(orig, idloutput.toByteArray());
         } finally {
@@ -768,7 +769,7 @@ public class WSDLToIDLGenerationTest extends Assert {
             idlgen.generateIDL(null);
 
             InputStream origstream = getClass().getResourceAsStream("/idlgen/expected_recursiveunion.idl");
-            byte orig[] = inputStreamToBytes(origstream);
+            byte[] orig = inputStreamToBytes(origstream);
 
             checkIDLStrings(orig, idloutput.toByteArray());
         } finally {

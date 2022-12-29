@@ -20,6 +20,7 @@
 package org.apache.cxf.jaxrs.utils;
 
 import java.io.File;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.lang.annotation.Annotation;
@@ -46,40 +47,36 @@ import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import javax.annotation.PostConstruct;
-import javax.annotation.PreDestroy;
-import javax.ws.rs.ApplicationPath;
-import javax.ws.rs.BeanParam;
-import javax.ws.rs.CookieParam;
-import javax.ws.rs.Encoded;
-import javax.ws.rs.FormParam;
-import javax.ws.rs.HeaderParam;
-import javax.ws.rs.MatrixParam;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.QueryParam;
-import javax.ws.rs.container.AsyncResponse;
-import javax.ws.rs.container.Suspended;
-import javax.ws.rs.core.Application;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.MultivaluedMap;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.ext.MessageBodyWriter;
-import javax.ws.rs.ext.Provider;
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.JAXBElement;
-import javax.xml.bind.JAXBException;
 import javax.xml.namespace.QName;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
+import jakarta.annotation.PostConstruct;
+import jakarta.annotation.PreDestroy;
+import jakarta.ws.rs.ApplicationPath;
+import jakarta.ws.rs.BeanParam;
+import jakarta.ws.rs.CookieParam;
+import jakarta.ws.rs.Encoded;
+import jakarta.ws.rs.FormParam;
+import jakarta.ws.rs.HeaderParam;
+import jakarta.ws.rs.MatrixParam;
+import jakarta.ws.rs.Path;
+import jakarta.ws.rs.PathParam;
+import jakarta.ws.rs.QueryParam;
+import jakarta.ws.rs.container.AsyncResponse;
+import jakarta.ws.rs.container.Suspended;
+import jakarta.ws.rs.core.Application;
+import jakarta.ws.rs.core.Context;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.MultivaluedMap;
+import jakarta.ws.rs.core.Response;
+import jakarta.ws.rs.ext.MessageBodyWriter;
+import jakarta.ws.rs.ext.Provider;
 import org.apache.cxf.Bus;
 import org.apache.cxf.BusFactory;
 import org.apache.cxf.common.classloader.ClassLoaderUtils;
 import org.apache.cxf.common.i18n.BundleUtils;
-import org.apache.cxf.common.jaxb.JAXBUtils;
 import org.apache.cxf.common.logging.LogUtils;
 import org.apache.cxf.common.util.StringUtils;
 import org.apache.cxf.feature.Feature;
@@ -118,17 +115,17 @@ public final class ResourceUtils {
     private static final Set<String> SERVER_PROVIDER_CLASS_NAMES;
     static {
         SERVER_PROVIDER_CLASS_NAMES = new HashSet<>();
-        SERVER_PROVIDER_CLASS_NAMES.add("javax.ws.rs.ext.MessageBodyWriter");
-        SERVER_PROVIDER_CLASS_NAMES.add("javax.ws.rs.ext.MessageBodyReader");
-        SERVER_PROVIDER_CLASS_NAMES.add("javax.ws.rs.ext.ExceptionMapper");
-        SERVER_PROVIDER_CLASS_NAMES.add("javax.ws.rs.ext.ContextResolver");
-        SERVER_PROVIDER_CLASS_NAMES.add("javax.ws.rs.ext.ReaderInterceptor");
-        SERVER_PROVIDER_CLASS_NAMES.add("javax.ws.rs.ext.WriterInterceptor");
-        SERVER_PROVIDER_CLASS_NAMES.add("javax.ws.rs.ext.ParamConverterProvider");
-        SERVER_PROVIDER_CLASS_NAMES.add("javax.ws.rs.container.ContainerRequestFilter");
-        SERVER_PROVIDER_CLASS_NAMES.add("javax.ws.rs.container.ContainerResponseFilter");
-        SERVER_PROVIDER_CLASS_NAMES.add("javax.ws.rs.container.DynamicFeature");
-        SERVER_PROVIDER_CLASS_NAMES.add("javax.ws.rs.core.Feature");
+        SERVER_PROVIDER_CLASS_NAMES.add("jakarta.ws.rs.ext.MessageBodyWriter");
+        SERVER_PROVIDER_CLASS_NAMES.add("jakarta.ws.rs.ext.MessageBodyReader");
+        SERVER_PROVIDER_CLASS_NAMES.add("jakarta.ws.rs.ext.ExceptionMapper");
+        SERVER_PROVIDER_CLASS_NAMES.add("jakarta.ws.rs.ext.ContextResolver");
+        SERVER_PROVIDER_CLASS_NAMES.add("jakarta.ws.rs.ext.ReaderInterceptor");
+        SERVER_PROVIDER_CLASS_NAMES.add("jakarta.ws.rs.ext.WriterInterceptor");
+        SERVER_PROVIDER_CLASS_NAMES.add("jakarta.ws.rs.ext.ParamConverterProvider");
+        SERVER_PROVIDER_CLASS_NAMES.add("jakarta.ws.rs.container.ContainerRequestFilter");
+        SERVER_PROVIDER_CLASS_NAMES.add("jakarta.ws.rs.container.ContainerResponseFilter");
+        SERVER_PROVIDER_CLASS_NAMES.add("jakarta.ws.rs.container.DynamicFeature");
+        SERVER_PROVIDER_CLASS_NAMES.add("jakarta.ws.rs.core.Feature");
         SERVER_PROVIDER_CLASS_NAMES.add("org.apache.cxf.jaxrs.ext.ContextProvider");
 
     }
@@ -295,7 +292,21 @@ public final class ResourceUtils {
                                                             boolean root,
                                                             boolean enableStatic,
                                                             Bus bus) {
-        ClassResourceInfo cri = new ClassResourceInfo(rClass, sClass, root, enableStatic, bus);
+        return createClassResourceInfo(rClass, sClass, parent, root, enableStatic, bus, null, null);
+    }
+
+    //CHECKSTYLE:OFF
+    public static ClassResourceInfo createClassResourceInfo(final Class<?> rClass,
+                                                            final Class<?> sClass,
+                                                            ClassResourceInfo parent,
+                                                            boolean root,
+                                                            boolean enableStatic,
+                                                            Bus bus,
+                                                            List<MediaType> defaultConsumes,
+                                                            List<MediaType> defaultProduces) {
+    //CHECKSTYLE:ON
+        ClassResourceInfo cri = new ClassResourceInfo(rClass, sClass, root, enableStatic, bus,
+                                                      defaultConsumes, defaultProduces);
         cri.setParent(parent);
 
         if (root) {
@@ -311,15 +322,15 @@ public final class ResourceUtils {
         MethodDispatcher md = new MethodDispatcher();
         Class<?> serviceClass = cri.getServiceClass();
 
-        final Set<Method> annotatedMethods = new HashSet<>();
+        final Map<Method, Method> annotatedMethods = new HashMap<>();
 
         for (Method m : serviceClass.getMethods()) {
             if (!m.isBridge() && !m.isSynthetic()) {
                 //do real methods first
                 Method annotatedMethod = AnnotationUtils.getAnnotatedMethod(serviceClass, m);
-                if (!annotatedMethods.contains(annotatedMethod)) {
+                if (!annotatedMethods.containsKey(annotatedMethod)) {
                     evaluateResourceMethod(cri, enableStatic, md, m, annotatedMethod);
-                    annotatedMethods.add(annotatedMethod);
+                    annotatedMethods.put(annotatedMethod, m);
                 }
             }
         }
@@ -327,13 +338,25 @@ public final class ResourceUtils {
             if (m.isBridge() || m.isSynthetic()) {
                 //if a bridge/synthetic method isn't already mapped to something, go ahead and do it
                 Method annotatedMethod = AnnotationUtils.getAnnotatedMethod(serviceClass, m);
-                if (!annotatedMethods.contains(annotatedMethod)) {
+                if (!annotatedMethods.containsKey(annotatedMethod)) {
                     evaluateResourceMethod(cri, enableStatic, md, m, annotatedMethod);
-                    annotatedMethods.add(annotatedMethod);
+                    annotatedMethods.put(annotatedMethod, m);
+                } else {
+                    // Certain synthetic / bridge methods could be quite useful to handle
+                    // methods with co-variant return types, especially when used with client proxies,
+                    // see please: https://blogs.oracle.com/sundararajan/covariant-return-types-in-java
+                    bindResourceMethod(md, m, annotatedMethods.get(annotatedMethod));
                 }
             }
         }
         cri.setMethodDispatcher(md);
+    }
+    
+    private static void bindResourceMethod(MethodDispatcher md, Method m, Method bound) {
+        final OperationResourceInfo ori = md.getOperationResourceInfo(bound);
+        if (ori != null && !ori.getMethodToInvoke().equals(m)) {
+            md.bind(ori, bound, m);
+        }
     }
 
     private static void evaluateResourceMethod(ClassResourceInfo cri, boolean enableStatic, MethodDispatcher md,
@@ -410,7 +433,7 @@ public final class ResourceUtils {
     }
 
     public static Constructor<?> findResourceConstructor(Class<?> resourceClass, boolean perRequest) {
-        List<Constructor<?>> cs = new LinkedList<Constructor<?>>();
+        List<Constructor<?>> cs = new LinkedList<>();
         for (Constructor<?> c : resourceClass.getConstructors()) {
             Class<?>[] params = c.getParameterTypes();
             Annotation[][] anns = c.getParameterAnnotations();
@@ -537,8 +560,7 @@ public final class ResourceUtils {
 
 
     public static List<UserResource> getUserResources(String loc, Bus bus) {
-        try {
-            InputStream is = ResourceUtils.getResourceStream(loc, bus);
+        try (InputStream is = ResourceUtils.getResourceStream(loc, bus)) {
             if (is == null) {
                 return null;
             }
@@ -550,13 +572,13 @@ public final class ResourceUtils {
         return null;
     }
 
-    public static InputStream getResourceStream(String loc, Bus bus) throws Exception {
+    public static InputStream getResourceStream(String loc, Bus bus) throws IOException {
         URL url = getResourceURL(loc, bus);
         return url == null ? null : url.openStream();
     }
 
-    public static URL getResourceURL(String loc, Bus bus) throws Exception {
-        URL url = null;
+    public static URL getResourceURL(String loc, Bus bus) throws IOException {
+        URL url;
         if (loc.startsWith(CLASSPATH_PREFIX)) {
             String path = loc.substring(CLASSPATH_PREFIX.length());
             url = ResourceUtils.getClasspathResourceURL(path, ResourceUtils.class, bus);
@@ -600,10 +622,11 @@ public final class ResourceUtils {
         return null;
     }
 
-    public static Properties loadProperties(String propertiesLocation, Bus bus) throws Exception {
+    public static Properties loadProperties(String propertiesLocation, Bus bus) throws IOException {
         Properties props = new Properties();
-        InputStream is = getResourceStream(propertiesLocation, bus);
-        props.load(is);
+        try (InputStream is = getResourceStream(propertiesLocation, bus)) {
+            props.load(is);
+        }
         return props;
     }
 
@@ -658,6 +681,13 @@ public final class ResourceUtils {
                                                ResourceTypes types,
                                                boolean jaxbOnly,
                                                MessageBodyWriter<?> jaxbWriter) {
+        Class<?> jaxbElement = null;
+        try {
+            jaxbElement = ClassLoaderUtils.loadClass("jakarta.xml.bind.JAXBElement", ResourceUtils.class);
+        } catch (final ClassNotFoundException e) {
+            // no-op
+        }
+
         for (OperationResourceInfo ori : resource.getMethodDispatcher().getOperationResourceInfos()) {
             Method method = ori.getAnnotatedMethod() == null ? ori.getMethodToInvoke() : ori.getAnnotatedMethod();
             Class<?> realReturnType = method.getReturnType();
@@ -668,7 +698,7 @@ public final class ResourceUtils {
             Type type = method.getGenericReturnType();
             if (jaxbOnly) {
                 checkJaxbType(resource.getServiceClass(), cls, realReturnType == Response.class || ori.isAsync()
-                    ? cls : type, types, method.getAnnotations(), jaxbWriter);
+                    ? cls : type, types, method.getAnnotations(), jaxbWriter, jaxbElement);
             } else {
                 types.getAllTypes().put(cls, type);
             }
@@ -680,7 +710,7 @@ public final class ResourceUtils {
                         Type paramType = method.getGenericParameterTypes()[pm.getIndex()];
                         if (jaxbOnly) {
                             checkJaxbType(resource.getServiceClass(), inType, paramType, types,
-                                          method.getParameterAnnotations()[pm.getIndex()], jaxbWriter);
+                                          method.getParameterAnnotations()[pm.getIndex()], jaxbWriter, jaxbElement);
                         } else {
                             types.getAllTypes().put(inType, paramType);
                         }
@@ -712,7 +742,8 @@ public final class ResourceUtils {
                                       Type genericType,
                                       ResourceTypes types,
                                       Annotation[] anns,
-                                      MessageBodyWriter<?> jaxbWriter) {
+                                      MessageBodyWriter<?> jaxbWriter,
+                                      Class<?> jaxbElement) {
         boolean isCollection = false;
         if (InjectionUtils.isSupportedCollectionOrArray(type)) {
             type = InjectionUtils.getActualType(genericType);
@@ -727,7 +758,7 @@ public final class ResourceUtils {
         }
         if (type == null
             || InjectionUtils.isPrimitive(type)
-            || JAXBElement.class.isAssignableFrom(type)
+            || (jaxbElement != null && jaxbElement.isAssignableFrom(type))
             || Response.class.isAssignableFrom(type)
             || type.isInterface()) {
             return;
@@ -735,7 +766,7 @@ public final class ResourceUtils {
 
         MessageBodyWriter<?> writer = jaxbWriter;
         if (writer == null) {
-            JAXBElementProvider<Object> defaultWriter = new JAXBElementProvider<Object>();
+            JAXBElementProvider<Object> defaultWriter = new JAXBElementProvider<>();
             defaultWriter.setMarshallAsJaxbElement(true);
             defaultWriter.setXmlTypeAsJaxbElementOnly(true);
             writer = defaultWriter;
@@ -816,14 +847,25 @@ public final class ResourceUtils {
                                                       Message m,
                                                       boolean perRequest,
                                                       Map<Class<?>, Object> contextValues) {
-        if (m == null) {
-            m = new MessageImpl();
-        }
         Class<?>[] params = c.getParameterTypes();
         Annotation[][] anns = c.getParameterAnnotations();
         Type[] genericTypes = c.getGenericParameterTypes();
+        return createConstructorArguments(c, m, perRequest, contextValues, params, anns, genericTypes);
+    }
+
+    public static Object[] createConstructorArguments(Constructor<?> c,
+                                                      Message m,
+                                                      boolean perRequest,
+                                                      Map<Class<?>,
+                                                      Object> contextValues,
+                                                      Class<?>[] params,
+                                                      Annotation[][] anns,
+                                                      Type[] genericTypes) {
+        if (m == null) {
+            m = new MessageImpl();
+        }
         @SuppressWarnings("unchecked")
-        MultivaluedMap<String, String> templateValues = 
+        MultivaluedMap<String, String> templateValues =
             (MultivaluedMap<String, String>)m.get(URITemplate.TEMPLATE_PARAMETERS);
         Object[] values = new Object[params.length];
         for (int i = 0; i < params.length; i++) {
@@ -848,18 +890,18 @@ public final class ResourceUtils {
         }
         return values;
     }
-    
+
     @SuppressWarnings("unchecked")
-    public static JAXRSServerFactoryBean createApplication(Application app, 
+    public static JAXRSServerFactoryBean createApplication(Application app,
                                                            boolean ignoreAppPath,
-                                                           boolean staticSubresourceResolution, 
+                                                           boolean staticSubresourceResolution,
                                                            boolean useSingletonResourceProvider,
                                                            Bus bus) {
 
         Set<Object> singletons = app.getSingletons();
         verifySingletons(singletons);
 
-        List<Class<?>> resourceClasses = new ArrayList<Class<?>>();
+        List<Class<?>> resourceClasses = new ArrayList<>();
         List<Object> providers = new ArrayList<>();
         List<Feature> features = new ArrayList<>();
         Map<Class<?>, ResourceProvider> map = new HashMap<>();
@@ -914,7 +956,7 @@ public final class ResourceUtils {
         bean.setStaticSubresourceResolution(staticSubresourceResolution);
         bean.setResourceClasses(resourceClasses);
         bean.setProviders(providers);
-        bean.setFeatures(features);
+        bean.getFeatures().addAll(features);
         for (Map.Entry<Class<?>, ResourceProvider> entry : map.entrySet()) {
             bean.setResourceProvider(entry.getKey(), entry.getValue());
         }
@@ -1009,25 +1051,6 @@ public final class ResourceUtils {
             }
         }
         return true;
-    }
-
-    //TODO : consider moving JAXBDataBinding.createContext to JAXBUtils
-    public static JAXBContext createJaxbContext(Set<Class<?>> classes, Class<?>[] extraClass,
-                                          Map<String, Object> contextProperties) {
-        if (classes == null || classes.isEmpty()) {
-            return null;
-        }
-        JAXBUtils.scanPackages(classes, extraClass, null);
-
-        JAXBContext ctx;
-        try {
-            ctx = JAXBContext.newInstance(classes.toArray(new Class[classes.size()]),
-                                          contextProperties);
-            return ctx;
-        } catch (JAXBException ex) {
-            LOG.log(Level.SEVERE, "No JAXB context can be created", ex);
-        }
-        return null;
     }
 
 }

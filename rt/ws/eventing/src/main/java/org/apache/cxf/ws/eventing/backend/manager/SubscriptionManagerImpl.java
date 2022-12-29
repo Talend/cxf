@@ -25,12 +25,12 @@ import java.util.List;
 import java.util.UUID;
 import java.util.logging.Logger;
 
-import javax.xml.bind.JAXBElement;
 import javax.xml.datatype.DatatypeConfigurationException;
 import javax.xml.datatype.DatatypeFactory;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import jakarta.xml.bind.JAXBElement;
 import org.apache.cxf.binding.soap.SoapFault;
 import org.apache.cxf.common.logging.LogUtils;
 import org.apache.cxf.ws.addressing.AttributedURIType;
@@ -211,9 +211,7 @@ public class SubscriptionManagerImpl implements SubscriptionManager {
             if (!EPRInspectionTool.containsUsableEPR(notifyTo.getValue())) {
                 throw new NoDeliveryMechanismEstablished();
             }
-        } catch (NullPointerException npe) {
-            throw new NoDeliveryMechanismEstablished();
-        } catch (IndexOutOfBoundsException ioobe) {
+        } catch (NullPointerException | IndexOutOfBoundsException npe) {
             throw new NoDeliveryMechanismEstablished();
         }
         ticket.setDelivery(request);
@@ -226,7 +224,7 @@ public class SubscriptionManagerImpl implements SubscriptionManager {
         // generate a ID for this subscription
         UUID uuid = UUID.randomUUID();
         JAXBElement<String> idqn
-            = new JAXBElement<String>(new QName(subscriptionIdNamespace, subscriptionIdElementName),
+            = new JAXBElement<>(new QName(subscriptionIdNamespace, subscriptionIdElementName),
                     String.class,
                     uuid.toString());
         subscriptionManagerReference.setReferenceParameters(new ReferenceParametersType());

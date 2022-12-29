@@ -41,6 +41,8 @@ import org.apache.xml.security.stax.ext.XMLSecurityConstants;
 
 import org.junit.Test;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
 
 /**
  * A test for streaming WS-Security with the Crypto Coverage Checker installed
@@ -71,8 +73,8 @@ public class StaxCryptoCoverageCheckerTest extends AbstractSecurityTest {
         client.getOutInterceptors().add(new LoggingOutInterceptor());
 
         WSSSecurityProperties properties = new WSSSecurityProperties();
-        List<WSSConstants.Action> actions = new ArrayList<WSSConstants.Action>();
-        actions.add(XMLSecurityConstants.ENCRYPT);
+        List<WSSConstants.Action> actions = new ArrayList<>();
+        actions.add(XMLSecurityConstants.ENCRYPTION);
         properties.setActions(actions);
         properties.setEncryptionUser("myalias");
         properties.setEncryptionSymAlgorithm(XMLSecurityConstants.NS_XENC_AES128);
@@ -87,7 +89,7 @@ public class StaxCryptoCoverageCheckerTest extends AbstractSecurityTest {
         try {
             echo.echo("test");
             fail("Failure expected as SOAP Body isn't signed");
-        } catch (javax.xml.ws.soap.SOAPFaultException ex) {
+        } catch (jakarta.xml.ws.soap.SOAPFaultException ex) {
             // expected
         }
 
@@ -121,7 +123,7 @@ public class StaxCryptoCoverageCheckerTest extends AbstractSecurityTest {
         client.getOutInterceptors().add(new LoggingOutInterceptor());
 
         WSSSecurityProperties properties = new WSSSecurityProperties();
-        List<WSSConstants.Action> actions = new ArrayList<WSSConstants.Action>();
+        List<WSSConstants.Action> actions = new ArrayList<>();
         actions.add(WSSConstants.USERNAMETOKEN);
         properties.setActions(actions);
         properties.setUsernameTokenPasswordType(WSSConstants.UsernameTokenPasswordType.PASSWORD_TEXT);
@@ -133,7 +135,7 @@ public class StaxCryptoCoverageCheckerTest extends AbstractSecurityTest {
         try {
             echo.echo("test");
             fail("Failure expected as UsernameToken isn't encrypted");
-        } catch (javax.xml.ws.soap.SOAPFaultException ex) {
+        } catch (jakarta.xml.ws.soap.SOAPFaultException ex) {
             // expected
         }
 
@@ -167,9 +169,9 @@ public class StaxCryptoCoverageCheckerTest extends AbstractSecurityTest {
         client.getOutInterceptors().add(new LoggingOutInterceptor());
 
         WSSSecurityProperties properties = new WSSSecurityProperties();
-        List<WSSConstants.Action> actions = new ArrayList<WSSConstants.Action>();
+        List<WSSConstants.Action> actions = new ArrayList<>();
         actions.add(WSSConstants.USERNAMETOKEN);
-        actions.add(XMLSecurityConstants.ENCRYPT);
+        actions.add(XMLSecurityConstants.ENCRYPTION);
         properties.setActions(actions);
         properties.addEncryptionPart(
             new SecurePart(new QName(WSSConstants.NS_WSSE10, "UsernameToken"), SecurePart.Modifier.Element)
@@ -191,7 +193,7 @@ public class StaxCryptoCoverageCheckerTest extends AbstractSecurityTest {
         try {
             echo.echo("test");
             fail("Failure expected as UsernameToken isn't signed");
-        } catch (javax.xml.ws.soap.SOAPFaultException ex) {
+        } catch (jakarta.xml.ws.soap.SOAPFaultException ex) {
             // expected
         }
     }
@@ -222,7 +224,7 @@ public class StaxCryptoCoverageCheckerTest extends AbstractSecurityTest {
         client.getOutInterceptors().add(new LoggingOutInterceptor());
 
         WSSSecurityProperties properties = new WSSSecurityProperties();
-        List<WSSConstants.Action> actions = new ArrayList<WSSConstants.Action>();
+        List<WSSConstants.Action> actions = new ArrayList<>();
         actions.add(WSSConstants.USERNAMETOKEN);
         actions.add(XMLSecurityConstants.SIGNATURE);
         properties.setActions(actions);
@@ -251,7 +253,7 @@ public class StaxCryptoCoverageCheckerTest extends AbstractSecurityTest {
         try {
             echo.echo("test");
             fail("Failure expected as UsernameToken isn't encrypted");
-        } catch (javax.xml.ws.soap.SOAPFaultException ex) {
+        } catch (jakarta.xml.ws.soap.SOAPFaultException ex) {
             // expected
         }
     }
@@ -283,7 +285,7 @@ public class StaxCryptoCoverageCheckerTest extends AbstractSecurityTest {
         client.getOutInterceptors().add(new LoggingOutInterceptor());
 
         WSSSecurityProperties properties = new WSSSecurityProperties();
-        List<WSSConstants.Action> actions = new ArrayList<WSSConstants.Action>();
+        List<WSSConstants.Action> actions = new ArrayList<>();
         actions.add(XMLSecurityConstants.SIGNATURE);
         properties.setActions(actions);
         properties.setSignatureUser("myalias");
@@ -301,7 +303,7 @@ public class StaxCryptoCoverageCheckerTest extends AbstractSecurityTest {
         try {
             echo.echo("test");
             fail("Failure expected as SOAP Body isn't encrypted");
-        } catch (javax.xml.ws.soap.SOAPFaultException ex) {
+        } catch (jakarta.xml.ws.soap.SOAPFaultException ex) {
             // expected
         }
     }
@@ -327,7 +329,7 @@ public class StaxCryptoCoverageCheckerTest extends AbstractSecurityTest {
         client.getOutInterceptors().add(new LoggingOutInterceptor());
 
         WSSSecurityProperties properties = new WSSSecurityProperties();
-        List<WSSConstants.Action> actions = new ArrayList<WSSConstants.Action>();
+        List<WSSConstants.Action> actions = new ArrayList<>();
         actions.add(WSSConstants.TIMESTAMP);
         properties.setActions(actions);
 
@@ -337,7 +339,7 @@ public class StaxCryptoCoverageCheckerTest extends AbstractSecurityTest {
         try {
             echo.echo("test");
             fail("Failure expected as Timestamp isn't signed");
-        } catch (javax.xml.ws.soap.SOAPFaultException ex) {
+        } catch (jakarta.xml.ws.soap.SOAPFaultException ex) {
             // expected
         }
 
@@ -369,7 +371,7 @@ public class StaxCryptoCoverageCheckerTest extends AbstractSecurityTest {
         client.getOutInterceptors().add(new LoggingOutInterceptor());
 
         WSSSecurityProperties properties = new WSSSecurityProperties();
-        List<WSSConstants.Action> actions = new ArrayList<WSSConstants.Action>();
+        List<WSSConstants.Action> actions = new ArrayList<>();
         actions.add(WSSConstants.TIMESTAMP);
         actions.add(XMLSecurityConstants.SIGNATURE);
         properties.setActions(actions);
@@ -416,8 +418,8 @@ public class StaxCryptoCoverageCheckerTest extends AbstractSecurityTest {
         client.getOutInterceptors().add(new LoggingOutInterceptor());
 
         WSSSecurityProperties properties = new WSSSecurityProperties();
-        List<WSSConstants.Action> actions = new ArrayList<WSSConstants.Action>();
-        actions.add(XMLSecurityConstants.ENCRYPT);
+        List<WSSConstants.Action> actions = new ArrayList<>();
+        actions.add(XMLSecurityConstants.ENCRYPTION);
         actions.add(XMLSecurityConstants.SIGNATURE);
         properties.setActions(actions);
         properties.setEncryptionUser("myalias");

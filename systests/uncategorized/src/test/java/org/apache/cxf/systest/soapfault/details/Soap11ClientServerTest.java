@@ -22,8 +22,7 @@ package org.apache.cxf.systest.soapfault.details;
 
 import java.net.MalformedURLException;
 
-import javax.xml.ws.soap.SOAPFaultException;
-
+import jakarta.xml.ws.soap.SOAPFaultException;
 import org.apache.cxf.greeter_control.Greeter;
 import org.apache.cxf.greeter_control.GreeterService;
 import org.apache.cxf.greeter_control.PingMeFault;
@@ -32,6 +31,11 @@ import org.apache.cxf.testutil.common.AbstractBusClientServerTestBase;
 
 import org.junit.BeforeClass;
 import org.junit.Test;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 public class Soap11ClientServerTest extends AbstractBusClientServerTestBase {
     static final String PORT = allocatePort(Server11.class);

@@ -28,8 +28,7 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArraySet;
 
-import javax.annotation.Resource;
-
+import jakarta.annotation.Resource;
 import org.apache.cxf.Bus;
 import org.apache.cxf.BusException;
 import org.apache.cxf.binding.AbstractBindingFactory;
@@ -47,15 +46,15 @@ public final class BindingFactoryManagerImpl implements BindingFactoryManager {
     private static final ResourceBundle BUNDLE = BundleUtils.getBundle(BindingFactoryManagerImpl.class);
 
     Map<String, BindingFactory> bindingFactories;
-    Set<String> failed = new CopyOnWriteArraySet<String>();
-    Set<String> loaded = new CopyOnWriteArraySet<String>();
+    Set<String> failed = new CopyOnWriteArraySet<>();
+    Set<String> loaded = new CopyOnWriteArraySet<>();
     Bus bus;
 
     public BindingFactoryManagerImpl() {
-        bindingFactories = new ConcurrentHashMap<String, BindingFactory>(8, 0.75f, 4);
+        bindingFactories = new ConcurrentHashMap<>(8, 0.75f, 4);
     }
     public BindingFactoryManagerImpl(Bus b) {
-        bindingFactories = new ConcurrentHashMap<String, BindingFactory>(8, 0.75f, 4);
+        bindingFactories = new ConcurrentHashMap<>(8, 0.75f, 4);
         setBus(b);
     }
 

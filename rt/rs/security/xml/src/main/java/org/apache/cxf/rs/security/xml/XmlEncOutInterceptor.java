@@ -20,7 +20,6 @@ package org.apache.cxf.rs.security.xml;
 
 import java.security.cert.CertificateEncodingException;
 import java.security.cert.X509Certificate;
-import java.util.Base64;
 import java.util.logging.Logger;
 
 import javax.crypto.BadPaddingException;
@@ -110,7 +109,7 @@ public class XmlEncOutInterceptor extends AbstractXmlSecOutInterceptor {
         Document encryptedDataDoc = DOMUtils.createDocument();
         Element encryptedDataElement = createEncryptedDataElement(encryptedDataDoc, symEncAlgo);
         if (encryptSymmetricKey) {
-            X509Certificate receiverCert = null;
+            X509Certificate receiverCert;
 
             String userName =
                 (String)SecurityUtils.getSecurityPropertyValue(SecurityConstants.ENCRYPT_USERNAME, message);
@@ -203,7 +202,7 @@ public class XmlEncOutInterceptor extends AbstractXmlSecOutInterceptor {
                 new Object[] {message}
             );
         }
-        byte[] encryptedEphemeralKey = null;
+        final byte[] encryptedEphemeralKey;
         try {
             encryptedEphemeralKey = cipher.doFinal(keyBytes);
         } catch (IllegalStateException | IllegalBlockSizeException | BadPaddingException ex) {
@@ -223,7 +222,7 @@ public class XmlEncOutInterceptor extends AbstractXmlSecOutInterceptor {
 
         Document doc = encryptedDataElement.getOwnerDocument();
 
-        String encodedKey = Base64.getMimeEncoder().encodeToString(encryptedKey);
+        String encodedKey = org.apache.xml.security.utils.XMLUtils.encodeToString(encryptedKey);
         Element encryptedKeyElement = createEncryptedKeyElement(doc, keyEncAlgo, digestAlgo);
         String encKeyId = IDGenerator.generateID("EK-");
         encryptedKeyElement.setAttributeNS(null, "Id", encKeyId);
@@ -265,9 +264,9 @@ public class XmlEncOutInterceptor extends AbstractXmlSecOutInterceptor {
         String keyIdType = encProps.getEncryptionKeyIdType() == null
             ? RSSecurityUtils.X509_CERT : encProps.getEncryptionKeyIdType();
 
-        Node keyIdentifierNode = null;
+        final Node keyIdentifierNode;
         if (keyIdType.equals(RSSecurityUtils.X509_CERT)) {
-            byte data[] = null;
+            final byte[] data;
             try {
                 data = remoteCert.getEncoded();
             } catch (CertificateEncodingException e) {
@@ -275,7 +274,7 @@ public class XmlEncOutInterceptor extends AbstractXmlSecOutInterceptor {
                     WSSecurityException.ErrorCode.SECURITY_TOKEN_UNAVAILABLE, e, "encodeError"
                 );
             }
-            Text text = encryptedDataDoc.createTextNode(Base64.getMimeEncoder().encodeToString(data));
+            Text text = encryptedDataDoc.createTextNode(org.apache.xml.security.utils.XMLUtils.encodeToString(data));
             Element cert = encryptedDataDoc.createElementNS(SIG_NS, SIG_PREFIX + ":X509Certificate");
             cert.appendChild(text);
             Element x509Data = encryptedDataDoc.createElementNS(SIG_NS, SIG_PREFIX + ":X509Data");

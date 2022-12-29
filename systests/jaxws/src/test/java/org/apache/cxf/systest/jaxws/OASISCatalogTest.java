@@ -28,9 +28,9 @@ import javax.wsdl.WSDLException;
 import javax.wsdl.factory.WSDLFactory;
 import javax.wsdl.xml.WSDLReader;
 import javax.xml.namespace.QName;
-import javax.xml.ws.Endpoint;
-import javax.xml.ws.WebServiceException;
 
+import jakarta.xml.ws.Endpoint;
+import jakarta.xml.ws.WebServiceException;
 import org.apache.cxf.Bus;
 import org.apache.cxf.BusFactory;
 import org.apache.cxf.catalog.OASISCatalogManager;
@@ -43,10 +43,14 @@ import org.apache.hello_world.Greeter;
 import org.apache.hello_world.GreeterImpl;
 import org.apache.hello_world.services.SOAPService;
 
-import org.junit.Assert;
 import org.junit.Test;
 
-public class OASISCatalogTest extends Assert {
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+
+public class OASISCatalogTest {
     static final String PORT = TestUtil.getPortNumber(OASISCatalogTest.class);
 
     private final QName serviceName =
@@ -56,6 +60,33 @@ public class OASISCatalogTest extends Assert {
     private final QName portName =
         new QName("http://apache.org/hello_world/services",
                   "SoapPort");
+
+    @Test
+    public void testWSDLPublishSamePath() throws Exception {
+        Endpoint ep = Endpoint.publish("http://localhost:" + PORT + "/SoapContext/SoapPort",
+                                       new GreeterImpl());
+
+        try {
+            String result = readUrl("http://localhost:" + PORT + "/SoapContext/SoapPort?"
+                    + "wsdl=http://apache.org/hello_world/types2/hello_world_messages_catalog.wsdl");
+            assertTrue(result, result.contains("xsd=http://apache.org/hello_world/types2/d/shared.xsd"));
+
+            result = readUrl("http://localhost:" + PORT + "/SoapContext/SoapPort?"
+                    + "xsd=http://apache.org/hello_world/types2/d/shared.xsd");
+            assertTrue(result, result.contains("xsd=http://apache.org/hello_world/types2/common.xsd"));
+            assertTrue(result, result.contains("xsd=http://apache.org/hello_world/types2/d/common.xsd"));
+
+            result = readUrl("http://localhost:" + PORT + "/SoapContext/SoapPort?"
+                    + "xsd=http://apache.org/hello_world/types2/common.xsd");
+            assertFalse(result, result.contains("schemaLocation"));
+
+            result = readUrl("http://localhost:" + PORT + "/SoapContext/SoapPort?"
+                    + "xsd=http://apache.org/hello_world/types2/d/common.xsd");
+            assertTrue(result, result.contains("xsd=http://apache.org/hello_world/types2/common.xsd"));
+        } finally {
+            ep.stop();
+        }
+    }
 
     @Test
     public void testWSDLPublishWithCatalogs() throws Exception {
@@ -99,7 +130,7 @@ public class OASISCatalogTest extends Assert {
      *
      */
     @Test
-    public void testWSDLPublishWithCatalogsRewritePaths() {
+    public void testWSDLPublishWithCatalogsRewritePaths() throws Exception {
         Endpoint ep = Endpoint.publish("http://localhost:" + PORT + "/SoapContext/SoapPort",
                 new GreeterImpl());
         try {
@@ -249,17 +280,10 @@ public class OASISCatalogTest extends Assert {
         }
     }
 
-    private String readUrl(String address) {
-        String content = null;
-        try {
-            URL url = new URL(address);
-            assertNotNull(url.getContent());
-            content = IOUtils.toString((InputStream) url.getContent());
-        } catch (IOException e) {
-            e.printStackTrace(System.err);
-            Assert.fail("Couldn't read URL: " + e.getMessage());
+    private static String readUrl(String address) throws IOException {
+        try (InputStream is = new URL(address).openStream()) {
+            return IOUtils.toString(is);
         }
-        return content;
     }
 
 }

@@ -21,8 +21,7 @@ package org.apache.cxf.systest.ws.rm;
 
 import java.util.logging.Logger;
 
-import javax.xml.ws.Endpoint;
-
+import jakarta.xml.ws.Endpoint;
 import org.apache.cxf.Bus;
 import org.apache.cxf.BusFactory;
 import org.apache.cxf.bus.spring.SpringBusFactory;
@@ -40,6 +39,8 @@ import org.apache.cxf.ws.rm.RMManager;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
+
+import static org.junit.Assert.assertTrue;
 
 /**
  * Tests the WS-RM processing with the cached out message (using temporary files).
@@ -108,7 +109,7 @@ public class CachedOutMessageTest extends AbstractBusClientServerTestBase {
         MessageLossSimulator mls = new MessageLossSimulator();
         bus.getOutInterceptors().add(mls);
         RMManager manager = bus.getExtension(RMManager.class);
-        manager.getConfiguration().setBaseRetransmissionInterval(new Long(2000));
+        manager.getConfiguration().setBaseRetransmissionInterval(Long.valueOf(2000));
 
         bus.getOutFaultInterceptors().add(out);
 

@@ -149,7 +149,7 @@ public class ClientFaultConverter extends AbstractInDatabindingInterceptor {
         Service s = msg.getExchange().getService();
         DataBinding dataBinding = s.getDataBinding();
 
-        Object e = null;
+        Object e;
         if (isDOMSupported(dataBinding)) {
             DataReader<Node> reader = this.getNodeDataReader(msg);
             reader.setProperty(DataReader.FAULT, fault);
@@ -207,7 +207,7 @@ public class ClientFaultConverter extends AbstractInDatabindingInterceptor {
 
     private Constructor<?> getConstructor(Class<?> faultClass, Object e) throws NoSuchMethodException {
         Class<?> beanClass = e.getClass();
-        Constructor<?> cons[] = faultClass.getConstructors();
+        Constructor<?>[] cons = faultClass.getConstructors();
         for (Constructor<?> c : cons) {
             if (c.getParameterTypes().length == 2
                 && String.class.equals(c.getParameterTypes()[0])
@@ -279,14 +279,14 @@ public class ClientFaultConverter extends AbstractInDatabindingInterceptor {
     private Throwable getCause(Iterator<String> linesIterator, String firstLine) {
         // The actual exception class of the cause might be unavailable at the
         // client -> use a standard throwable to represent the cause.
-        firstLine = firstLine.substring(firstLine.indexOf(":") + 1).trim();
+        firstLine = firstLine.substring(firstLine.indexOf(':') + 1).trim();
         Throwable res = null;
-        if (firstLine.indexOf(":") != -1) {
-            String cn = firstLine.substring(0, firstLine.indexOf(":")).trim();
+        if (firstLine.indexOf(':') != -1) {
+            String cn = firstLine.substring(0, firstLine.indexOf(':')).trim();
             if (cn.startsWith("java.lang")) {
                 try {
                     res = (Throwable)Class.forName(cn).getConstructor(String.class)
-                            .newInstance(firstLine.substring(firstLine.indexOf(":") + 2));
+                            .newInstance(firstLine.substring(firstLine.indexOf(':') + 2));
                 } catch (Throwable t) {
                     //ignore, use the default
                 }
@@ -352,7 +352,7 @@ public class ClientFaultConverter extends AbstractInDatabindingInterceptor {
             }
         }
         //also use/try public getter/setter methods
-        Method meth[] = faultBean.getClass().getMethods();
+        Method[] meth = faultBean.getClass().getMethods();
         for (Method m : meth) {
             if (m.getParameterTypes().length == 0
                 && (m.getName().startsWith("get")

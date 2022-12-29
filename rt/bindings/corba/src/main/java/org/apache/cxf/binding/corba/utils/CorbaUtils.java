@@ -89,7 +89,7 @@ public final class CorbaUtils {
         }
     }
     private static final ThreadLocal<LastExport> LAST_EXPORT_CACHE =
-        new ThreadLocal<LastExport>();
+        new ThreadLocal<>();
 
     private CorbaUtils() {
         //utility class
@@ -101,7 +101,7 @@ public final class CorbaUtils {
     }
 
     public static TypeCode getTypeCode(ORB orb, QName type, CorbaTypeMap typeMap) {
-        Stack<QName> seenTypes = new Stack<QName>();
+        Stack<QName> seenTypes = new Stack<>();
         return getTypeCode(orb, type, null, typeMap, seenTypes);
     }
 
@@ -116,7 +116,7 @@ public final class CorbaUtils {
                                        QName type,
                                        CorbaType obj,
                                        CorbaTypeMap typeMap) {
-        Stack<QName> seenTypes = new Stack<QName>();
+        Stack<QName> seenTypes = new Stack<>();
         return getTypeCode(orb, type, obj, typeMap, seenTypes);
     }
 
@@ -131,9 +131,8 @@ public final class CorbaUtils {
                     + (seenTypes.empty() ? "" : ", Enclosing type: " + seenTypes.elementAt(0)));
         }
 
-        TypeCode tc = null;
         // first see if it is a primitive
-        tc = getPrimitiveTypeCode(orb, type);
+        TypeCode tc = getPrimitiveTypeCode(orb, type);
         if (tc == null && type.equals(CorbaConstants.NT_CORBA_ANY)) {
             // Anys are handled in a special way
             tc = orb.get_primitive_tc(TCKind.from_int(TCKind._tk_any));
@@ -230,7 +229,7 @@ public final class CorbaUtils {
             } else if (obj instanceof org.apache.cxf.binding.corba.wsdl.Object) {
                 org.apache.cxf.binding.corba.wsdl.Object objType =
                     (org.apache.cxf.binding.corba.wsdl.Object)obj;
-                if (objType.getName().equals("CORBA.Object")) {
+                if ("CORBA.Object".equals(objType.getName())) {
                     tc = orb.create_interface_tc(objType.getRepositoryID(), "Object");
                 } else {
                     tc = orb.create_interface_tc(objType.getRepositoryID(),
@@ -305,7 +304,7 @@ public final class CorbaUtils {
         seenTypes.push(new QName(unionType.getName()));
 
         TypeCode discTC = getTypeCode(orb, unionType.getDiscriminator(), typeMap, seenTypes);
-        Map<String, UnionMember> members = new LinkedHashMap<String, UnionMember>();
+        Map<String, UnionMember> members = new LinkedHashMap<>();
         List<Unionbranch> branches = unionType.getUnionbranch();
         for (Iterator<Unionbranch> branchIter = branches.iterator(); branchIter.hasNext();) {
             Unionbranch branch = branchIter.next();
@@ -383,7 +382,7 @@ public final class CorbaUtils {
     }
 
     public static String getTypeCodeName(String name) {
-        int pos = name.lastIndexOf(".");
+        int pos = name.lastIndexOf('.');
         if (pos != -1) {
             name = name.substring(pos + 1);
         }
@@ -436,7 +435,7 @@ public final class CorbaUtils {
                 // There can be some instances where a prefix is added to the name by the tool
                 // (e.g. Object Reference Names).  Since the name is read as a string, this
                 // prefix is added to the types name.  Remove this as it is not needed.
-                int pos = name.lastIndexOf(":");
+                int pos = name.lastIndexOf(':');
                 if (pos != -1) {
                     name = name.substring(pos + 1);
                     corbaType.setName(name);
@@ -521,13 +520,11 @@ public final class CorbaUtils {
                                                                      String url) {
         org.omg.CORBA.Object result;
 
-        java.io.BufferedReader reader = null;
-        try {
-            java.io.File file = new java.io.File(url);
-            if (!file.exists()) {
-                throw new RuntimeException("Could not find file " + url + " to read the object reference");
-            }
-            reader = new java.io.BufferedReader(new java.io.FileReader(file));
+        java.io.File file = new java.io.File(url);
+        if (!file.exists()) {
+            throw new RuntimeException("Could not find file " + url + " to read the object reference");
+        }
+        try (java.io.BufferedReader reader = new java.io.BufferedReader(new java.io.FileReader(file))) {
             String ior = reader.readLine();
             if (ior == null) {
                 throw new RuntimeException("Invalid object reference found in file " + url);
@@ -535,14 +532,6 @@ public final class CorbaUtils {
             result = orb.string_to_object(ior.trim());
         } catch (java.io.IOException ex) {
             throw new RuntimeException(ex);
-        } finally {
-            if (reader != null) {
-                try {
-                    reader.close();
-                } catch (java.io.IOException ex) {
-                    throw new RuntimeException(ex);
-                }
-            }
         }
         return result;
     }
@@ -621,21 +610,21 @@ public final class CorbaUtils {
     public static QName processQName(QName qname, ServiceInfo serviceInfo) {
         QName result = qname;
         if ((qname.getNamespaceURI() != null)
-            && (!qname.getNamespaceURI().equals(""))
-            && (!isElementFormQualified(serviceInfo, qname.getNamespaceURI()))) {
+            && !qname.getNamespaceURI().isEmpty()
+            && !isElementFormQualified(serviceInfo, qname.getNamespaceURI())) {
             result = new QName("", qname.getLocalPart());
         }
         return result;
     }
 
     public static NVList nvListFromStreamables(ORB orb, CorbaStreamable[] streamables) {
-        NVList list = null;
+        final NVList list;
         if (streamables != null && streamables.length > 0) {
             list = orb.create_list(streamables.length);
-            for (int i = 0; i < streamables.length; ++i) {
+            for (CorbaStreamable streamable : streamables) {
                 Any value = orb.create_any();
-                value.insert_Streamable(streamables[i]);
-                list.add_value(streamables[i].getName(), value, streamables[i].getMode());
+                value.insert_Streamable(streamable);
+                list.add_value(streamable.getName(), value, streamable.getMode());
             }
         } else {
             list = orb.create_list(0);

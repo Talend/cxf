@@ -23,16 +23,17 @@ import org.apache.cxf.jaxrs.ext.search.SearchCondition;
 import org.apache.cxf.jaxrs.ext.search.SearchParseException;
 import org.apache.cxf.jaxrs.ext.search.fiql.FiqlParser;
 
-import org.junit.Assert;
 import org.junit.Test;
+
+import static org.junit.Assert.assertEquals;
 //userName eq "admin@amarkevich.talend.com" and entitlements sw "TDP_"
 
-public class SQLHierarchicalQueryTest extends Assert {
+public class SQLHierarchicalQueryTest {
     @Test
     public void testSimpleHierarchicalQuery() throws SearchParseException {
-        FiqlParser<SearchBean> parser = new FiqlParser<SearchBean>(SearchBean.class);
+        FiqlParser<SearchBean> parser = new FiqlParser<>(SearchBean.class);
         SearchCondition<SearchBean> filter = parser.parse("cartridges.colour==blue");
-        SQLPrinterVisitor<SearchBean> visitor = new SQLPrinterVisitor<SearchBean>("printers");
+        SQLPrinterVisitor<SearchBean> visitor = new SQLPrinterVisitor<>("printers");
         filter.accept(visitor.visitor());
         String sql = visitor.getQuery();
 
@@ -44,9 +45,9 @@ public class SQLHierarchicalQueryTest extends Assert {
     
     @Test
     public void testAndHierarchicalQuery() throws SearchParseException {
-        FiqlParser<SearchBean> parser = new FiqlParser<SearchBean>(SearchBean.class);
+        FiqlParser<SearchBean> parser = new FiqlParser<>(SearchBean.class);
         SearchCondition<SearchBean> filter = parser.parse("name==Epson;cartridges.colour==blue");
-        SQLPrinterVisitor<SearchBean> visitor = new SQLPrinterVisitor<SearchBean>("printers");
+        SQLPrinterVisitor<SearchBean> visitor = new SQLPrinterVisitor<>("printers");
         filter.accept(visitor.visitor());
         String sql = visitor.getQuery();
 
@@ -58,17 +59,17 @@ public class SQLHierarchicalQueryTest extends Assert {
     
     @Test(expected = SearchParseException.class)
     public void testLongHierarchicalQuery() {
-        FiqlParser<SearchBean> parser = new FiqlParser<SearchBean>(SearchBean.class);
+        FiqlParser<SearchBean> parser = new FiqlParser<>(SearchBean.class);
         SearchCondition<SearchBean> filter = parser.parse("cartridges.producer.location==Japan");
-        SQLPrinterVisitor<SearchBean> visitor = new SQLPrinterVisitor<SearchBean>("printers");
+        SQLPrinterVisitor<SearchBean> visitor = new SQLPrinterVisitor<>("printers");
         filter.accept(visitor.visitor());
     }
     
     @Test(expected = SearchParseException.class)
     public void testTooManyJoins() {
-        FiqlParser<SearchBean> parser = new FiqlParser<SearchBean>(SearchBean.class);
+        FiqlParser<SearchBean> parser = new FiqlParser<>(SearchBean.class);
         SearchCondition<SearchBean> filter = parser.parse("cartridges.colour==blue;cartridges.location==Japan");
-        SQLPrinterVisitor<SearchBean> visitor = new SQLPrinterVisitor<SearchBean>("printers");
+        SQLPrinterVisitor<SearchBean> visitor = new SQLPrinterVisitor<>("printers");
         filter.accept(visitor.visitor());
     }
 }

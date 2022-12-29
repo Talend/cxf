@@ -24,16 +24,16 @@ import java.util.HashSet;
 import java.util.Set;
 
 import javax.xml.namespace.QName;
-import javax.xml.soap.SOAPException;
-import javax.xml.soap.SOAPMessage;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
 import javax.xml.transform.dom.DOMSource;
-import javax.xml.ws.Binding;
-import javax.xml.ws.handler.Handler;
-import javax.xml.ws.handler.MessageContext;
-import javax.xml.ws.handler.soap.SOAPHandler;
 
+import jakarta.xml.soap.SOAPException;
+import jakarta.xml.soap.SOAPMessage;
+import jakarta.xml.ws.Binding;
+import jakarta.xml.ws.handler.Handler;
+import jakarta.xml.ws.handler.MessageContext;
+import jakarta.xml.ws.handler.soap.SOAPHandler;
 import org.apache.cxf.binding.soap.HeaderUtil;
 import org.apache.cxf.binding.soap.SoapMessage;
 import org.apache.cxf.binding.soap.interceptor.SoapInterceptor;
@@ -141,9 +141,7 @@ public class SOAPHandlerFaultInInterceptor extends
             xmlReader = StaxUtils.createXMLStreamReader(bodySource);
             xmlReader.nextTag();
             xmlReader.nextTag(); // move past body tag
-        } catch (SOAPException e) {
-            e.printStackTrace();
-        } catch (XMLStreamException e) {
+        } catch (SOAPException | XMLStreamException e) {
             e.printStackTrace();
         }
         return xmlReader;

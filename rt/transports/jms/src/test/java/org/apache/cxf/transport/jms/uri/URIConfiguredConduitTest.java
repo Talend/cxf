@@ -18,9 +18,9 @@
  */
 package org.apache.cxf.transport.jms.uri;
 
-import javax.jms.ConnectionFactory;
-
-import org.apache.activemq.ActiveMQConnectionFactory;
+import jakarta.jms.ConnectionFactory;
+import org.apache.activemq.artemis.jms.client.ActiveMQConnectionFactory;
+import org.apache.activemq.artemis.junit.EmbeddedActiveMQResource;
 import org.apache.cxf.Bus;
 import org.apache.cxf.BusFactory;
 import org.apache.cxf.message.Exchange;
@@ -36,9 +36,12 @@ import org.apache.cxf.transport.jms.JMSMessageHeadersType;
 import org.apache.cxf.transport.jms.util.TestReceiver;
 import org.apache.cxf.ws.addressing.EndpointReferenceType;
 
-import org.junit.Assert;
 import org.junit.BeforeClass;
+import org.junit.Rule;
 import org.junit.Test;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 
 /**
  * Checks if a CXF client works correlates requests and responses correctly if the server sets the message id
@@ -47,13 +50,15 @@ import org.junit.Test;
 public class URIConfiguredConduitTest {
     private static final String SERVICE_QUEUE = "test";
     private static final String BROKER_URI 
-        = "vm://URIConfiguredConduitTest?broker.persistent=false&broker.useJmx=false";
+        = "vm://0?broker.persistent=false&broker.useJmx=false";
     private static ConnectionFactory cf;
 
     private enum SyncType {
         sync,
         async
     };
+
+    @Rule public EmbeddedActiveMQResource server = new EmbeddedActiveMQResource(0);
 
     @BeforeClass
     public static void initConnectionFactory() {
@@ -65,7 +70,7 @@ public class URIConfiguredConduitTest {
         sendAndReceive(SyncType.sync,
                        "jms:jndi:dynamicQueues/"
                            + SERVICE_QUEUE
-                           + "?jndiInitialContextFactory=org.apache.activemq.jndi.ActiveMQInitialContextFactory"
+                           + "?jndiInitialContextFactory=org.apache.activemq.artemis.jndi.ActiveMQInitialContextFactory"
                            + "&useConduitIdSelector=false"
                            + "&replyToName=dynamicQueues/testreply"
                            + "&messageType=text"
@@ -102,20 +107,16 @@ public class URIConfiguredConduitTest {
 
         waitForAsyncReply(exchange);
         receiver.close();
-        if (exchange.getInMessage() == null) {
-            throw new RuntimeException("No reply received within 2 seconds");
-        }
+        assertNotNull("No reply received within 2 seconds", exchange.getInMessage());
         JMSMessageHeadersType inHeaders = (JMSMessageHeadersType)exchange.getInMessage()
             .get(JMSConstants.JMS_CLIENT_RESPONSE_HEADERS);
-        Assert.assertEquals(receiver.getRequestMessageId(), inHeaders.getJMSCorrelationID());
+        assertEquals(receiver.getRequestMessageId(), inHeaders.getJMSCorrelationID());
         conduit.close();
     }
 
-    private void waitForAsyncReply(Exchange exchange) throws InterruptedException {
-        int count = 0;
-        while (exchange.getInMessage() == null && count <= 20) {
-            Thread.sleep(100);
-            count++;
+    private static void waitForAsyncReply(Exchange exchange) throws InterruptedException {
+        for (int count = 0; exchange.getInMessage() == null && count <= 20; count++) {
+            Thread.sleep(100L);
         }
     }
 

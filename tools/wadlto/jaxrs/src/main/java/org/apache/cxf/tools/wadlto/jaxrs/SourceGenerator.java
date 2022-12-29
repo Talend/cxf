@@ -18,18 +18,15 @@
  */
 package org.apache.cxf.tools.wadlto.jaxrs;
 
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.io.OutputStreamWriter;
 import java.io.Reader;
-import java.io.StringReader;
 import java.io.Writer;
 import java.net.URI;
 import java.net.URL;
+import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.ArrayList;
@@ -38,7 +35,6 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -46,33 +42,10 @@ import java.util.TreeSet;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import javax.ws.rs.Consumes;
-import javax.ws.rs.DELETE;
-import javax.ws.rs.DefaultValue;
-import javax.ws.rs.FormParam;
-import javax.ws.rs.GET;
-import javax.ws.rs.HEAD;
-import javax.ws.rs.HeaderParam;
-import javax.ws.rs.MatrixParam;
-import javax.ws.rs.OPTIONS;
-import javax.ws.rs.POST;
-import javax.ws.rs.PUT;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
-import javax.ws.rs.QueryParam;
-import javax.ws.rs.container.AsyncResponse;
-import javax.ws.rs.container.Suspended;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.MultivaluedMap;
-import javax.ws.rs.core.PathSegment;
-import javax.ws.rs.core.Response;
 import javax.xml.namespace.QName;
 import javax.xml.transform.Source;
 import javax.xml.transform.dom.DOMSource;
-import javax.xml.transform.stream.StreamSource;
 import javax.xml.validation.Schema;
-import javax.xml.validation.SchemaFactory;
 import javax.xml.validation.Validator;
 
 import org.w3c.dom.Element;
@@ -84,6 +57,28 @@ import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 import org.xml.sax.SAXParseException;
 
+import jakarta.ws.rs.Consumes;
+import jakarta.ws.rs.DELETE;
+import jakarta.ws.rs.DefaultValue;
+import jakarta.ws.rs.FormParam;
+import jakarta.ws.rs.GET;
+import jakarta.ws.rs.HEAD;
+import jakarta.ws.rs.HeaderParam;
+import jakarta.ws.rs.MatrixParam;
+import jakarta.ws.rs.OPTIONS;
+import jakarta.ws.rs.PATCH;
+import jakarta.ws.rs.POST;
+import jakarta.ws.rs.PUT;
+import jakarta.ws.rs.Path;
+import jakarta.ws.rs.PathParam;
+import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.QueryParam;
+import jakarta.ws.rs.container.AsyncResponse;
+import jakarta.ws.rs.container.Suspended;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.MultivaluedMap;
+import jakarta.ws.rs.core.PathSegment;
+import jakarta.ws.rs.core.Response;
 import org.apache.cxf.Bus;
 import org.apache.cxf.catalog.OASISCatalogManager;
 import org.apache.cxf.catalog.OASISCatalogManagerHelper;
@@ -97,7 +92,6 @@ import org.apache.cxf.common.util.ReflectionInvokationHandler;
 import org.apache.cxf.common.util.StringUtils;
 import org.apache.cxf.common.util.SystemPropertyAction;
 import org.apache.cxf.common.xmlschema.SchemaCollection;
-import org.apache.cxf.helpers.CastUtils;
 import org.apache.cxf.helpers.DOMUtils;
 import org.apache.cxf.helpers.JavaUtils;
 import org.apache.cxf.jaxrs.ext.Oneway;
@@ -106,6 +100,7 @@ import org.apache.cxf.jaxrs.ext.multipart.MultipartBody;
 import org.apache.cxf.jaxrs.model.wadl.WadlGenerator;
 import org.apache.cxf.jaxrs.utils.JAXRSUtils;
 import org.apache.cxf.jaxrs.utils.ResourceUtils;
+import org.apache.cxf.jaxrs.utils.schemas.SchemaHandler;
 import org.apache.cxf.service.model.SchemaInfo;
 import org.apache.cxf.staxutils.StaxUtils;
 import org.apache.ws.commons.schema.XmlSchema;
@@ -116,7 +111,6 @@ public class SourceGenerator {
     public static final String CODE_TYPE_PROXY = "proxy";
     public static final String CODE_TYPE_WEB = "web";
     public static final String LINE_SEP_PROPERTY = "line.separator";
-    public static final String FILE_SEP_PROPERTY = "file.separator";
 
     private static final Logger LOG = LogUtils.getL7dLogger(SourceGenerator.class);
 
@@ -124,43 +118,34 @@ public class SourceGenerator {
     private static final String DEFAULT_RESOURCE_NAME = "Resource";
     private static final String TAB = "    ";
 
-    private static final List<String> HTTP_OK_STATUSES =
-        Arrays.asList(new String[] {"200", "201", "202", "203", "204"});
+    private static final Set<String> HTTP_OK_STATUSES =
+        new HashSet<>(Arrays.asList("200", "201", "202", "203", "204"));
 
     private static final Set<Class<?>> OPTIONAL_PARAMS =
-        new HashSet<Class<?>>(Arrays.<Class<?>>asList(QueryParam.class,
-                                                      HeaderParam.class,
-                                                      MatrixParam.class,
-                                                      FormParam.class));
-    private static final Map<String, Class<?>> HTTP_METHOD_ANNOTATIONS;
-    private static final Map<String, Class<?>> PARAM_ANNOTATIONS;
+        new HashSet<>(Arrays.asList(QueryParam.class, HeaderParam.class, MatrixParam.class, FormParam.class));
+    private static final Map<String, Class<?>> HTTP_METHOD_ANNOTATIONS = new HashMap<>();
+    private static final Map<String, Class<?>> PARAM_ANNOTATIONS = new HashMap<>();
     private static final String PLAIN_PARAM_STYLE = "plain";
     private static final String BEAN_VALID_SIMPLE_NAME = "Valid";
-    private static final String BEAN_VALID_FULL_NAME = "javax.validation." + BEAN_VALID_SIMPLE_NAME;
-    private static final Set<String> RESOURCE_LEVEL_PARAMS;
-    private static final Map<String, String> AUTOBOXED_PRIMITIVES_MAP;
-    private static final Map<String, String> XSD_SPECIFIC_TYPE_MAP;
+    private static final String BEAN_VALID_FULL_NAME = "jakarta.validation." + BEAN_VALID_SIMPLE_NAME;
+    private static final Set<String> RESOURCE_LEVEL_PARAMS = new HashSet<>(Arrays.asList("template", "matrix"));
+    private static final Map<String, String> AUTOBOXED_PRIMITIVES_MAP = new HashMap<>();
+    private static final Map<String, String> XSD_SPECIFIC_TYPE_MAP = new HashMap<>();
 
     static {
-        HTTP_METHOD_ANNOTATIONS = new HashMap<>();
         HTTP_METHOD_ANNOTATIONS.put("get", GET.class);
         HTTP_METHOD_ANNOTATIONS.put("put", PUT.class);
         HTTP_METHOD_ANNOTATIONS.put("post", POST.class);
         HTTP_METHOD_ANNOTATIONS.put("delete", DELETE.class);
         HTTP_METHOD_ANNOTATIONS.put("head", HEAD.class);
         HTTP_METHOD_ANNOTATIONS.put("options", OPTIONS.class);
+        HTTP_METHOD_ANNOTATIONS.put("patch", PATCH.class);
 
-        PARAM_ANNOTATIONS = new HashMap<>();
         PARAM_ANNOTATIONS.put("template", PathParam.class);
         PARAM_ANNOTATIONS.put("header", HeaderParam.class);
         PARAM_ANNOTATIONS.put("query", QueryParam.class);
         PARAM_ANNOTATIONS.put("matrix", MatrixParam.class);
 
-        RESOURCE_LEVEL_PARAMS = new HashSet<>();
-        RESOURCE_LEVEL_PARAMS.add("template");
-        RESOURCE_LEVEL_PARAMS.add("matrix");
-
-        AUTOBOXED_PRIMITIVES_MAP = new HashMap<>();
         AUTOBOXED_PRIMITIVES_MAP.put(byte.class.getSimpleName(), Byte.class.getSimpleName());
         AUTOBOXED_PRIMITIVES_MAP.put(short.class.getSimpleName(), Short.class.getSimpleName());
         AUTOBOXED_PRIMITIVES_MAP.put(int.class.getSimpleName(), Integer.class.getSimpleName());
@@ -169,7 +154,6 @@ public class SourceGenerator {
         AUTOBOXED_PRIMITIVES_MAP.put(double.class.getSimpleName(), Double.class.getSimpleName());
         AUTOBOXED_PRIMITIVES_MAP.put(boolean.class.getSimpleName(), Boolean.class.getSimpleName());
 
-        XSD_SPECIFIC_TYPE_MAP = new HashMap<>();
         XSD_SPECIFIC_TYPE_MAP.put("string", "String");
         XSD_SPECIFIC_TYPE_MAP.put("integer", "long");
         XSD_SPECIFIC_TYPE_MAP.put("float", "float");
@@ -207,7 +191,7 @@ public class SourceGenerator {
     private boolean useVoidForEmptyResponses = true;
     private boolean generateResponseIfHeadersSet;
 
-    private Map<String, String> properties;
+    private final String lineSeparator;
 
     private List<String> generatedServiceClasses = new ArrayList<>();
     private List<String> generatedTypeClasses = new ArrayList<>();
@@ -230,13 +214,17 @@ public class SourceGenerator {
     private String authentication;
     private boolean createJavaDocs;
     private String jaxbClassNameSuffix;
+    private String rx;
+    private ResponseWrapper responseWrapper;
 
     public SourceGenerator() {
-        this(Collections.<String, String>emptyMap());
+        this(Collections.emptyMap());
     }
 
     public SourceGenerator(Map<String, String> properties) {
-        this.properties = properties;
+        String value = properties.get(LINE_SEP_PROPERTY);
+        lineSeparator = value == null ? SystemPropertyAction.getProperty(LINE_SEP_PROPERTY) : value;
+        responseWrapper = ResponseWrapper.create(rx);
     }
 
     public void setSupportMultipleXmlReps(boolean support) {
@@ -282,25 +270,15 @@ public class SourceGenerator {
     private String getClassPackageName(String wadlPackageName) {
         if (resourcePackageName != null) {
             return resourcePackageName;
-        } else if (wadlPackageName != null && wadlPackageName.length() > 0) {
+        } else if (wadlPackageName != null && !wadlPackageName.isEmpty()) {
             return wadlPackageName;
         } else {
             return DEFAULT_PACKAGE_NAME;
         }
     }
 
-    private String getLineSep() {
-        String value = properties.get(LINE_SEP_PROPERTY);
-        return value == null ? SystemPropertyAction.getProperty(LINE_SEP_PROPERTY) : value;
-    }
-
-    private String getFileSep() {
-        String value = properties.get(FILE_SEP_PROPERTY);
-        return value == null ? SystemPropertyAction.getProperty(FILE_SEP_PROPERTY) : value;
-    }
-
-    public void generateSource(String wadl, File srcDir, String codeType) {
-        Application app = readWadl(wadl, wadlPath);
+    public void generateSource(File srcDir, String codeType) {
+        Application app = readWadl();
         Set<String> typeClassNames = new HashSet<>();
         GrammarInfo gInfo = generateSchemaCodeAndInfo(app, typeClassNames, srcDir);
         if (!CODE_TYPE_GRAMMAR.equals(codeType)) {
@@ -358,7 +336,7 @@ public class SourceGenerator {
     private Element getResourceElement(Application app, Element resElement,
                                        GrammarInfo gInfo, Set<String> typeClassNames,
                                        String type, File srcDir) {
-        if (type.length() > 0) {
+        if (!type.isEmpty()) {
             if (type.startsWith("#")) {
                 Element resourceType = resolveLocalReference(app.getAppElement(), "resource_type", type);
                 if (resourceType != null) {
@@ -371,8 +349,7 @@ public class SourceGenerator {
                 URI wadlRef = URI.create(type);
                 String wadlRefPath = app.getWadlPath() != null
                     ? getBaseWadlPath(app.getWadlPath()) + wadlRef.getPath() : wadlRef.getPath();
-                Application refApp = new Application(readIncludedDocument(wadlRefPath),
-                                                     wadlRefPath);
+                Application refApp = new Application(readDocument(wadlRefPath), wadlRefPath);
                 GrammarInfo gInfoBase = generateSchemaCodeAndInfo(refApp, typeClassNames, srcDir);
                 if (gInfoBase != null) {
                     gInfo.getElementTypeMap().putAll(gInfoBase.getElementTypeMap());
@@ -388,7 +365,7 @@ public class SourceGenerator {
 
     private Element getWadlElement(Element wadlEl) {
         String href = wadlEl.getAttribute("href");
-        if (href.length() > 0 && href.startsWith("#")) {
+        if (href.startsWith("#")) {
             return resolveLocalReference(wadlEl.getOwnerDocument().getDocumentElement(),
                                          wadlEl.getLocalName(), href);
         }
@@ -437,17 +414,17 @@ public class SourceGenerator {
                                                                 Constants.URI_2001_SCHEMA_XSD, "element");
         for (Element el : elementEls) {
             String type = el.getAttribute("type");
-            if (type.length() > 0) {
+            if (!type.isEmpty()) {
                 elementTypeMap.put(el.getAttribute("name"), type);
             }
         }
         Element includeEl = DOMUtils.getFirstChildWithName(schemaEl,
                                                            Constants.URI_2001_SCHEMA_XSD, "include");
         if (includeEl != null) {
-            int ind = systemId.lastIndexOf("/");
+            int ind = systemId.lastIndexOf('/');
             if (ind != -1) {
                 String schemaURI = systemId.substring(0, ind + 1) + includeEl.getAttribute("schemaLocation");
-                populateElementTypeMap(app, readIncludedDocument(schemaURI), schemaURI, elementTypeMap);
+                populateElementTypeMap(app, readDocument(schemaURI), schemaURI, elementTypeMap);
             }
         }
     }
@@ -461,23 +438,24 @@ public class SourceGenerator {
                                     boolean isRoot) {
         String resourceId = resourceName != null
             ? resourceName : rElement.getAttribute("id");
-        if (resourceId.length() == 0) {
+        if (resourceId.isEmpty()) {
             String path = rElement.getAttribute("path");
-            if (path.length() > 0) {
-                path = path.replaceAll("[\\{\\}_]*", "");
+            if (!path.isEmpty()) {
+                path = path.replaceAll("[-\\{\\}_]*", "");
                 String[] split = path.split("/");
                 StringBuilder builder = new StringBuilder(resourceId);
                 for (int i = 0; i < split.length; i++) {
-                    if (split[i].length() > 0) {
-                        builder.append(split[i].toUpperCase().charAt(0) + split[i].substring(1));
+                    if (!split[i].isEmpty()) {
+                        builder.append(StringUtils.capitalize(split[i]));
                     }
                 }
                 resourceId = builder.toString();
+                
             }
             resourceId += DEFAULT_RESOURCE_NAME;
         }
 
-        boolean expandedQName = resourceId.startsWith("{") ? true : false;
+        boolean expandedQName = resourceId.startsWith("{");
         QName qname = convertToQName(resourceId, expandedQName);
         String namespaceURI = possiblyConvertNamespaceURI(qname.getNamespaceURI(), expandedQName);
 
@@ -486,45 +464,40 @@ public class SourceGenerator {
             return;
         }
 
-
         final String className = getClassName(qname.getLocalPart(),
-                info.isInterfaceGenerated(), info.getTypeClassNames());
+                info.isInterfaceGenerated(), info.getTypeClassNames()).replaceFirst("^[- 0-9]*", "");
         if (info.getResourceClassNames().contains(className)) {
             return;
         }
         info.getResourceClassNames().add(className);
-        final String classPackage = getClassPackageName(namespaceURI);
+        final String classPackage = getClassPackageName(namespaceURI.replaceFirst("^[- 0-9]*", ""));
 
-        StringBuilder sbImports = new StringBuilder();
         StringBuilder sbCode = new StringBuilder();
         Set<String> imports = createImports();
 
 
-        sbImports.append(getClassComment()).append(getLineSep());
-        sbImports.append("package " + classPackage)
-            .append(";").append(getLineSep()).append(getLineSep());
         boolean doCreateJavaDocs = isJavaDocNeeded(info);
         if (doCreateJavaDocs) {
             writeClassDocs(rElement, sbCode);
         }
         if (isRoot && writeAnnotations(info.isInterfaceGenerated())) {
             String path = rElement.getAttribute("path");
-            writeAnnotation(sbCode, imports, Path.class, path, true, false);
+            writeAnnotation(sbCode, imports, Path.class, path)
+                .append(lineSeparator);
         }
 
-        sbCode.append("public " + getClassType(info.interfaceIsGenerated) + " " + className);
+        sbCode.append("public ").append(getClassType(info.interfaceIsGenerated)).append(' ').append(className);
         writeImplementsInterface(sbCode, qname.getLocalPart(), info.isInterfaceGenerated());
-        sbCode.append(" {" + getLineSep() + getLineSep());
+        sbCode.append(" {").append(lineSeparator).append(lineSeparator);
 
         Map<String, Integer> methodNameMap = new HashMap<>();
         writeMethods(rElement, classPackage, imports, sbCode,
                      info, resourceId, isRoot, "",
                      methodNameMap);
 
-        sbCode.append("}");
-        writeImports(sbImports, imports, classPackage);
+        sbCode.append('}');
 
-        createJavaSourceFile(info.getSrcDir(), new QName(classPackage, className), sbCode, sbImports, true);
+        createJavaSourceFile(info.getSrcDir(), classPackage, className, sbCode, imports, true);
 
         writeSubresourceClasses(rElement, info, isRoot, resourceId);
     }
@@ -535,7 +508,7 @@ public class SourceGenerator {
         List<Element> childEls = getWadlElements(rElement, "resource");
         for (Element subEl : childEls) {
             String id = subEl.getAttribute("id");
-            if (id.length() > 0 && !resourceId.equals(id) && !id.startsWith("{java")
+            if (!id.isEmpty() && !resourceId.equals(id) && !id.startsWith("{java")
                 && !id.startsWith("java")) {
                 Element subElement = getResourceElement(info.getApp(), subEl, info.getGrammarInfo(),
                     info.getTypeClassNames(), subEl.getAttribute("type"), info.getSrcDir());
@@ -545,12 +518,12 @@ public class SourceGenerator {
         }
     }
 
-    private QName convertToQName(String resourceId, boolean expandedQName) {
-        QName qname = null;
+    private static QName convertToQName(String resourceId, boolean expandedQName) {
+        final QName qname;
         if (expandedQName) {
             qname = JAXRSUtils.convertStringToQName(resourceId);
         } else {
-            int lastIndex = resourceId.lastIndexOf(".");
+            int lastIndex = resourceId.lastIndexOf('.');
             qname = lastIndex == -1 ? new QName(resourceId)
                                     : new QName(resourceId.substring(0, lastIndex),
                                                 resourceId.substring(lastIndex + 1));
@@ -563,33 +536,18 @@ public class SourceGenerator {
     }
 
     private String getClassName(String clsName, boolean interfaceIsGenerated, Set<String> typeClassNames) {
-        String name = null;
+        String name;
         if (interfaceIsGenerated) {
             name = clsName;
         } else {
             name = generateInterfaces ? clsName + "Impl" : clsName;
         }
-        name = firstCharToUpperCase(name);
+        name = StringUtils.capitalize(name);
         for (String typeName : typeClassNames) {
-            String localName = typeName.contains(".")
-                ? typeName.substring(typeName.lastIndexOf('.') + 1) : typeName;
+            String localName = typeName.substring(typeName.lastIndexOf('.') + 1);
             if (name.equalsIgnoreCase(localName)) {
                 name += "Resource";
             }
-        }
-        return name;
-    }
-
-    private String firstCharToUpperCase(String name) {
-        if (name.length() > 0 && Character.isLowerCase(name.charAt(0))) {
-            return StringUtils.capitalize(name);
-        }
-        return name;
-    }
-
-    private String firstCharToLowerCase(String name) {
-        if (name.length() > 0 && Character.isUpperCase(name.charAt(0))) {
-            return StringUtils.uncapitalize(name);
         }
         return name;
     }
@@ -604,16 +562,16 @@ public class SourceGenerator {
     private void writeImplementsInterface(StringBuilder sb, String clsName,
                                              boolean interfaceIsGenerated) {
         if (generateInterfaces && !interfaceIsGenerated) {
-            sb.append(" implements " + StringUtils.capitalize(clsName));
+            sb.append(" implements ").append(StringUtils.capitalize(clsName));
         }
     }
 
     private String getClassComment() {
         return "/**"
-            + getLineSep() + " * Created by Apache CXF WadlToJava code generator"
-            + getLineSep() + "**/";
+            + lineSeparator + " * Created by Apache CXF WadlToJava code generator"
+            + lineSeparator + "**/";
     }
-    //CHECKSTYLE:OFF
+    //CHECKSTYLE:OFF: ParameterNumber
     private void writeMethods(Element rElement,
                               String classPackage,
                               Set<String> imports,
@@ -623,11 +581,11 @@ public class SourceGenerator {
                               boolean isRoot,
                               String currentPath,
                               Map<String, Integer> methodNameMap) {
-    //CHECKSTYLE:ON
+    //CHECKSTYLE:ON: ParameterNumber
         List<Element> methodEls = getWadlElements(rElement, "method");
 
         List<Element> currentInheritedParams = inheritResourceParams
-            ? new LinkedList<Element>(info.getInheritedParams()) : Collections.<Element>emptyList();
+            ? new ArrayList<Element>(info.getInheritedParams()) : Collections.emptyList();
         for (Element methodEl : methodEls) {
             writeResourceMethod(methodEl, classPackage, imports, sbCode, info, isRoot, currentPath, methodNameMap);
         }
@@ -643,7 +601,7 @@ public class SourceGenerator {
             }
             String newPath = currentPath + path.replace("//", "/");
             String id = childEl.getAttribute("id");
-            if (id.length() == 0) {
+            if (id.isEmpty()) {
                 writeMethods(childEl, classPackage, imports, sbCode, info, id, false, newPath, methodNameMap);
             } else {
                 writeResourceMethod(childEl, classPackage, imports, sbCode, info, false, newPath, methodNameMap);
@@ -653,44 +611,25 @@ public class SourceGenerator {
         info.getInheritedParams().addAll(currentInheritedParams);
     }
 
-    private void writeAnnotation(StringBuilder sbCode, Set<String> imports,
-                                 Class<?> cls, String value, boolean nextLine, boolean addTab) {
-        if (value != null && value.length() == 0) {
-            return;
-        }
-        addImport(imports, cls.getName());
-        sbCode.append("@").append(cls.getSimpleName());
-        if (value != null) {
-            sbCode.append("(\"" + value + "\")");
-        }
-        if (nextLine) {
-            sbCode.append(getLineSep());
-            if (addTab) {
-                sbCode.append(TAB);
+    private StringBuilder writeAnnotation(StringBuilder sbCode, Set<String> imports, Class<?> cls, String value) {
+        if (value == null || !value.isEmpty()) {
+            addImport(imports, cls.getName());
+            sbCode.append('@').append(cls.getSimpleName());
+            if (value != null) {
+                sbCode.append("(\"").append(value).append("\")");
             }
         }
+        return sbCode;
     }
 
     private void addImport(Set<String> imports, String clsName) {
         if (imports == null || clsName.startsWith("java.lang") || !clsName.contains(".")) {
             return;
         }
-        if (!imports.contains(clsName)) {
-            imports.add(clsName);
-        }
+        imports.add(clsName);
     }
 
-    private void writeImports(StringBuilder sbImports, Set<String> imports, String classPackage) {
-        for (String clsName : imports) {
-            int index = clsName.lastIndexOf(".");
-            if (index != -1 && clsName.substring(0, index).equals(classPackage)) {
-                continue;
-            }
-            sbImports.append("import " + clsName).append(";").append(getLineSep());
-        }
-    }
-
-    //CHECKSTYLE:OFF
+    //CHECKSTYLE:OFF: ParameterNumber
     private void writeResourceMethod(Element methodEl,
                                      String classPackage,
                                      Set<String> imports,
@@ -699,7 +638,7 @@ public class SourceGenerator {
                                      boolean isRoot,
                                      String currentPath,
                                      Map<String, Integer> methodNameMap) {
-    //CHECKSTYLE:ON
+    //CHECKSTYLE:ON: ParameterNumber
         StringBuilder sbMethodCode = sbCode;
         StringBuilder sbMethodDocs = null;
         StringBuilder sbMethodRespDocs = null;
@@ -716,9 +655,9 @@ public class SourceGenerator {
 
         List<Element> responseEls = getWadlElements(methodEl, "response");
         List<Element> requestEls = getWadlElements(methodEl, "request");
-        Element firstRequestEl = requestEls.size() >= 1 ? requestEls.get(0) : null;
+        Element firstRequestEl = !requestEls.isEmpty() ? requestEls.get(0) : null;
         List<Element> allRequestReps = getWadlElements(firstRequestEl, "representation");
-        List<Element> requestRepsWithElements = new LinkedList<Element>();
+        List<Element> requestRepsWithElements = new ArrayList<>();
         boolean duplicatesAvailable =
             getRepsWithElements(allRequestReps, requestRepsWithElements, info.getGrammarInfo());
 
@@ -726,10 +665,10 @@ public class SourceGenerator {
         final String methodNameLowerCase = methodName.toLowerCase();
         String idAttribute = methodEl.getAttribute("id");
         final String id = idAttribute.isEmpty() ? methodNameLowerCase : idAttribute;
-        
+
         final boolean responseRequired = isMethodMatched(responseMethods, methodNameLowerCase, id);
-        final boolean suspendedAsync = responseRequired ? false
-            : isMethodMatched(suspendedAsyncMethods, methodNameLowerCase, id);
+        final boolean suspendedAsync = !responseRequired
+            && isMethodMatched(suspendedAsyncMethods, methodNameLowerCase, id);
         final boolean oneway = isMethodMatched(onewayMethods, methodNameLowerCase, id);
 
         boolean jaxpSourceRequired = requestRepsWithElements.size() > 1 && !supportMultipleRepsWithElements;
@@ -744,13 +683,13 @@ public class SourceGenerator {
             if (supportMultipleRepsWithElements && requestRepWithElement != null
                 && requestRepsWithElements.size() > 1) {
                 String elementRef = requestRepWithElement.getAttribute("element");
-                int index = elementRef.indexOf(":");
+                int index = elementRef.indexOf(':');
                 suffixName = elementRef.substring(index + 1).replace("-", "");
                 if (duplicatesAvailable) {
                     String mediaType = requestRepWithElement.getAttribute("mediaType");
                     if (!StringUtils.isEmpty(mediaType)) {
                         String subType = MediaType.valueOf(mediaType).getSubtype();
-                        String[] parts = StringUtils.split(subType, "\\+");
+                        String[] parts = subType.split("\\+");
                         if (parts.length == 2) {
                             suffixName += StringUtils.capitalize(parts[1]);
                         } else {
@@ -763,10 +702,10 @@ public class SourceGenerator {
             if (writeAnnotations(info.isInterfaceGenerated())) {
                 sbMethodCode.append(TAB);
 
-                if (methodNameLowerCase.length() > 0) {
+                if (!methodNameLowerCase.isEmpty()) {
                     if (HTTP_METHOD_ANNOTATIONS.containsKey(methodNameLowerCase)) {
-                        writeAnnotation(sbMethodCode, imports,
-                                        HTTP_METHOD_ANNOTATIONS.get(methodNameLowerCase), null, true, true);
+                        writeAnnotation(sbMethodCode, imports, HTTP_METHOD_ANNOTATIONS.get(methodNameLowerCase), null)
+                            .append(lineSeparator).append(TAB);
                     } else {
                         writeCustomHttpMethod(info, classPackage, methodName, sbMethodCode, imports);
                     }
@@ -777,18 +716,19 @@ public class SourceGenerator {
                     if (supportBeanValidation && !responseRequired
                         && isRepWithElementAvailable(responseReps, info.getGrammarInfo())) {
                         addImport(imports, BEAN_VALID_FULL_NAME);
-                        sbMethodCode.append("@").append(BEAN_VALID_SIMPLE_NAME).append(getLineSep()).append(TAB);
+                        sbMethodCode.append('@').append(BEAN_VALID_SIMPLE_NAME).append(lineSeparator).append(TAB);
                     }
                     if (oneway) {
-                        addImport(imports, Oneway.class.getName());
-                        sbMethodCode.append("@").append(Oneway.class.getSimpleName()).append(getLineSep()).append(TAB);
+                        writeAnnotation(sbMethodCode, imports, Oneway.class, null)
+                            .append(lineSeparator).append(TAB);
                     }
                 }
                 if (!isRoot && !"/".equals(currentPath)) {
-                    writeAnnotation(sbMethodCode, imports, Path.class, currentPath, true, true);
+                    writeAnnotation(sbMethodCode, imports, Path.class, currentPath)
+                        .append(lineSeparator).append(TAB);
                 }
             } else {
-                sbMethodCode.append(getLineSep()).append(TAB);
+                sbMethodCode.append(lineSeparator).append(TAB);
             }
 
             if (!info.isInterfaceGenerated()) {
@@ -796,7 +736,7 @@ public class SourceGenerator {
             }
             boolean responseTypeAvailable = true;
 
-            if (methodNameLowerCase.length() > 0) {
+            if (!methodNameLowerCase.isEmpty()) {
                 responseTypeAvailable = writeResponseType(responseEls,
                                                           requestRepWithElement,
                                                           sbMethodCode,
@@ -812,13 +752,13 @@ public class SourceGenerator {
                     StringBuilder sb = new StringBuilder();
                     for (PathSegment ps : segments) {
                         String pathSeg = ps.getPath().replaceAll("\\{", "").replaceAll("\\}", "");
-                        int index = pathSeg.indexOf(":");
+                        int index = pathSeg.indexOf(':');
                         if (index > 0) {
                             pathSeg = pathSeg.substring(0, index);
                         }
                         sb.append(pathSeg);
                     }
-                    genMethodName += firstCharToUpperCase(sb.toString());
+                    genMethodName += StringUtils.capitalize(sb.toString());
                 }
                 genMethodName = genMethodName.replace("-", "");
 
@@ -836,21 +776,24 @@ public class SourceGenerator {
                 writeSubresourceMethod(resourceEl, imports, sbMethodCode, info, id, suffixName);
             }
 
-            sbMethodCode.append("(");
+            sbMethodCode.append('(');
 
             List<Element> inParamElements = getParameters(resourceEl, info.getInheritedParams(),
-                        !isRoot && !isResourceElement && resourceEl.getAttribute("id").length() > 0);
+                        !isRoot && !isResourceElement && !resourceEl.getAttribute("id").isEmpty());
 
             Element repElement = getActualRepElement(allRequestReps, requestRepWithElement);
             writeRequestTypes(firstRequestEl, classPackage, repElement, inParamElements,
                     jaxpSourceRequired, sbMethodCode, sbMethodDocs, imports, info, suspendedAsync);
-            sbMethodCode.append(")");
+            sbMethodCode.append(')');
+
+            writeThrows(responseEls, sbMethodCode, sbMethodDocs, imports, info);
+
             if (info.isInterfaceGenerated()) {
-                sbMethodCode.append(";");
+                sbMethodCode.append(';');
             } else {
                 generateEmptyMethodBody(sbMethodCode, responseTypeAvailable);
             }
-            sbMethodCode.append(getLineSep()).append(getLineSep());
+            sbMethodCode.append(lineSeparator).append(lineSeparator);
         }
         finalizeMethodDocs(doCreateJavaDocs, sbCode, sbMethodDocs, sbMethodRespDocs, sbMethodCode);
 
@@ -879,20 +822,20 @@ public class SourceGenerator {
         if (tab) {
             sbDoc.append(TAB);
         }
-        sbDoc.append("/**").append(getLineSep());
+        sbDoc.append("/**").append(lineSeparator);
         if (tab) {
             sbDoc.append(TAB);
         }
     }
 
     private void closeJavaDocs(StringBuilder sbDoc) {
-        sbDoc.append(" */").append(getLineSep());
+        sbDoc.append(" */").append(lineSeparator);
     }
     private void writeClassDocs(Element resourceEl, StringBuilder sbDoc) {
         String text = getDocText(resourceEl);
         if (text != null) {
             openJavaDocs(sbDoc, false);
-            sbDoc.append(" * ").append(text).append(getLineSep());
+            sbDoc.append(" * ").append(text).append(lineSeparator);
             closeJavaDocs(sbDoc);
         }
     }
@@ -900,7 +843,7 @@ public class SourceGenerator {
         StringBuilder sbDoc = new StringBuilder();
         String text = getDocText(methodEl);
         if (text != null) {
-            sbDoc.append(" * ").append(text).append(getLineSep()).append(TAB);
+            sbDoc.append(" * ").append(text).append(lineSeparator).append(TAB);
         }
         return sbDoc;
     }
@@ -908,15 +851,22 @@ public class SourceGenerator {
     private void writeMethodParamDocs(Element paramEl, String name, StringBuilder sbDoc) {
         String text = getDocText(paramEl);
         if (text != null) {
-            sbDoc.append(" * @param ").append(name).append(" ").append(text)
-                .append(getLineSep()).append(TAB);
+            sbDoc.append(" * @param ").append(name).append(' ').append(text)
+                .append(lineSeparator).append(TAB);
+        }
+    }
+
+    private void writeMethodThrowsDocs(Element paramEl, String name, StringBuilder sbDoc) {
+        String text = getDocText(paramEl);
+        if (text != null) {
+            sbDoc.append(" * @throws ").append(name).append(' ').append(text).append(lineSeparator).append(TAB);
         }
     }
 
     private void writeMethodResponseDocs(Element responseEl, StringBuilder sbDoc) {
         String text = getDocText(responseEl);
         if (text != null) {
-            sbDoc.append(" * @return ").append(text).append(getLineSep()).append(TAB);
+            sbDoc.append(" * @return ").append(text).append(lineSeparator).append(TAB);
         }
     }
 
@@ -934,8 +884,8 @@ public class SourceGenerator {
                                        StringBuilder mainCode,
                                        Set<String> mainImports) {
 
-        mainCode.append("@").append(methodName);
-        mainCode.append(getLineSep());
+        mainCode.append('@').append(methodName);
+        mainCode.append(lineSeparator);
         mainCode.append(TAB);
 
         final String className = methodName;
@@ -944,27 +894,16 @@ public class SourceGenerator {
         }
         info.getResourceClassNames().add(className);
 
-
-        StringBuilder sbMethodClassImports = new StringBuilder();
-        sbMethodClassImports.append(getClassComment()).append(getLineSep());
-        sbMethodClassImports.append("package " + classPackage)
-            .append(";").append(getLineSep()).append(getLineSep());
-
-        sbMethodClassImports.append("import java.lang.annotation.ElementType;").append(getLineSep());
-        sbMethodClassImports.append("import java.lang.annotation.Retention;").append(getLineSep());
-        sbMethodClassImports.append("import java.lang.annotation.RetentionPolicy;").append(getLineSep());
-        sbMethodClassImports.append("import java.lang.annotation.Target;").append(getLineSep());
-        sbMethodClassImports.append("import javax.ws.rs.HttpMethod;").append(getLineSep());
-
-        StringBuilder sbMethodClassCode = new StringBuilder();
-        sbMethodClassCode.append("@Target({ElementType.METHOD })").append(getLineSep());
-        sbMethodClassCode.append("@Retention(RetentionPolicy.RUNTIME)").append(getLineSep());
-        sbMethodClassCode.append("@HttpMethod(\"" + methodName + "\")").append(getLineSep());
-        sbMethodClassCode.append("public @interface " + methodName);
-        sbMethodClassCode.append(" {" + getLineSep() + getLineSep());
-        sbMethodClassCode.append("}");
-        createJavaSourceFile(info.getSrcDir(), new QName(classPackage, className),
-                             sbMethodClassCode, sbMethodClassImports, true);
+        StringBuilder sbMethodClassCode = new StringBuilder(256)
+            .append("@java.lang.annotation.Target({java.lang.annotation.ElementType.METHOD})").append(lineSeparator)
+            .append("@java.lang.annotation.Retention(java.lang.annotation.RetentionPolicy.RUNTIME)")
+            .append(lineSeparator)
+            .append("@jakarta.ws.rs.HttpMethod(\"").append(methodName).append("\")").append(lineSeparator)
+            .append("public @interface ").append(methodName)
+            .append(" {").append(lineSeparator).append(lineSeparator)
+            .append('}');
+        createJavaSourceFile(info.getSrcDir(), classPackage, className,
+                             sbMethodClassCode, Collections.emptySet(), true);
     }
 
     private void writeSubresourceMethod(Element resourceEl,
@@ -979,7 +918,7 @@ public class SourceGenerator {
 
         String clsFullName = getSchemaClassName(packageName, info.getGrammarInfo(),
                 qname.getLocalPart(), info.getTypeClassNames());
-        int lastDotIndex = clsFullName == null ? -1 : clsFullName.lastIndexOf(".");
+        int lastDotIndex = clsFullName == null ? -1 : clsFullName.lastIndexOf('.');
         String localName = clsFullName == null
             ? getClassName(qname.getLocalPart(), true, info.getTypeClassNames())
             : clsFullName.substring(lastDotIndex + 1);
@@ -992,7 +931,7 @@ public class SourceGenerator {
         writeSubResponseType(id.equals(parentId), subResponseNs, localName,
                 sbCode, imports);
 
-        sbCode.append("get" + localName + suffixName);
+        sbCode.append("get").append(localName).append(suffixName);
     }
 
     private static boolean isMethodMatched(Set<String> methodNames, String methodNameLowerCase, String id) {
@@ -1000,7 +939,7 @@ public class SourceGenerator {
             return false;
         }
         return methodNames.contains(methodNameLowerCase)
-            || methodNameLowerCase != id && methodNames.contains(id.toLowerCase())
+            || !methodNameLowerCase.equals(id) && methodNames.contains(id.toLowerCase())
             || methodNames.size() == 1 && "*".equals(methodNames.iterator().next());
     }
 
@@ -1011,7 +950,7 @@ public class SourceGenerator {
         Set<String> elementRefs = new HashSet<>();
         for (Element el : repElements) {
             String value = el.getAttribute("element");
-            if (value.length() > 0
+            if (!value.isEmpty()
                 && (value.contains(":") || gInfo.isSchemaWithoutTargetNamespace())) {
                 requestRepsWithElements.add(el);
                 if (!elementRefs.add(value)) {
@@ -1029,7 +968,7 @@ public class SourceGenerator {
                                               GrammarInfo gInfo) {
         for (Element el : repElements) {
             String value = el.getAttribute("element");
-            if (value.length() > 0
+            if (!value.isEmpty()
                 && (value.contains(":") || gInfo.isSchemaWithoutTargetNamespace())) {
                 return true;
             }
@@ -1039,10 +978,9 @@ public class SourceGenerator {
 
     private List<Element> getParameters(Element resourceEl, List<Element> inheritedParams,
                                         boolean isSubresourceMethod) {
-        List<Element> inParamElements = new LinkedList<Element>();
+        List<Element> inParamElements = new ArrayList<>();
         List<Element> allParamElements = getWadlElements(resourceEl, "param");
-        List<Element> newInheritedParams = inheritResourceParams ? new LinkedList<Element>()
-            : Collections.<Element>emptyList();
+        List<Element> newInheritedParams = inheritResourceParams ? new ArrayList<>() : Collections.emptyList();
         for (Element el : allParamElements) {
             boolean isResourceLevelParam = RESOURCE_LEVEL_PARAMS.contains(el.getAttribute("style"));
             if (isSubresourceMethod && isResourceLevelParam) {
@@ -1091,12 +1029,12 @@ public class SourceGenerator {
 
     private void generateEmptyMethodBody(StringBuilder sbCode, boolean responseTypeAvailable) {
         sbCode.append(" {");
-        sbCode.append(getLineSep()).append(TAB).append(TAB);
-        sbCode.append("//TODO: implement").append(getLineSep()).append(TAB);
+        sbCode.append(lineSeparator).append(TAB).append(TAB);
+        sbCode.append("//TODO: implement").append(lineSeparator).append(TAB);
         if (responseTypeAvailable) {
-            sbCode.append(TAB).append("return null;").append(getLineSep()).append(TAB);
+            sbCode.append(TAB).append("return null;").append(lineSeparator).append(TAB);
         }
-        sbCode.append("}");
+        sbCode.append('}');
     }
 
     private boolean addFormParameters(List<Element> inParamElements,
@@ -1126,7 +1064,7 @@ public class SourceGenerator {
         }
         return repElements.isEmpty() ? null : repElements.get(0);
     }
-    //CHECKSTYLE:OFF
+    //CHECKSTYLE:OFF: ParameterNumber
     private boolean writeResponseType(List<Element> responseEls,
                                       Element requestRepWithElement,
                                       StringBuilder sbCode,
@@ -1135,21 +1073,21 @@ public class SourceGenerator {
                                       ContextInfo info,
                                       boolean responseRequired,
                                       boolean suspendedAsync) {
-    //CHECKSTYLE:ON
+    //CHECKSTYLE:ON: ParameterNumber
         Element okResponse = !suspendedAsync ? getOKResponse(responseEls) : null;
 
-        List<Element> repElements = null;
+        final List<Element> repElements;
         if (okResponse != null) {
             if (sbRespDocs != null) {
                 writeMethodResponseDocs(okResponse, sbRespDocs);
             }
             repElements = getWadlElements(okResponse, "representation");
         } else {
-            repElements = CastUtils.cast(Collections.emptyList(), Element.class);
+            repElements = Collections.emptyList();
         }
         if (!suspendedAsync && !responseRequired && responseEls.size() == 1 && generateResponseIfHeadersSet) {
             List<Element> outResponseParamElements =
-                getParameters(responseEls.get(0), Collections.<Element>emptyList(), false);
+                getParameters(responseEls.get(0), Collections.emptyList(), false);
             if (!outResponseParamElements.isEmpty()) {
                 writeJaxrResponse(sbCode, imports);
                 return true;
@@ -1165,7 +1103,7 @@ public class SourceGenerator {
         }
         String elementType = null;
         if (!responseRequired) {
-            List<Element> responseRepWithElements = new LinkedList<Element>();
+            List<Element> responseRepWithElements = new ArrayList<>();
             getRepsWithElements(repElements, responseRepWithElements, info.getGrammarInfo());
 
             Element responseRepWithElement = null;
@@ -1191,7 +1129,7 @@ public class SourceGenerator {
                                info, imports, true);
         }
         if (elementType != null) {
-            sbCode.append(elementType + " ");
+            sbCode.append(responseWrapper.wrap(elementType, imports)).append(' ');
         } else {
             writeJaxrResponse(sbCode, imports);
         }
@@ -1200,34 +1138,48 @@ public class SourceGenerator {
 
     private void writeJaxrResponse(StringBuilder sbCode, Set<String> imports) {
         addImport(imports, Response.class.getName());
-        sbCode.append(Response.class.getSimpleName()).append(" ");
+        sbCode.append(responseWrapper.wrap(Response.class, imports)).append(' ');
     }
 
-    private Element getOKResponse(List<Element> responseEls) {
-        for (int i = 0; i < responseEls.size(); i++) {
-            String statusValue = responseEls.get(i).getAttribute("status");
-            if (statusValue.length() == 0) {
-                return responseEls.get(i);
+    private static Element getOKResponse(List<Element> responseEls) {
+        for (Element responseEl : responseEls) {
+            String statusValue = responseEl.getAttribute("status");
+            if (statusValue.isEmpty()) {
+                return responseEl;
             }
-            String[] statuses = statusValue.split("\\s");
-            for (String status : statuses) {
+            for (String status : statusValue.split("\\s")) {
                 if (HTTP_OK_STATUSES.contains(status)) {
-                    return responseEls.get(i);
+                    return responseEl;
                 }
             }
         }
         return null;
     }
 
+    private static List<Element> getErrorResponses(List<Element> responseEls) {
+        final List<Element> result = new ArrayList<>();
+        for (Element responseEl : responseEls) {
+            if (responseEl.hasAttribute("status")) {
+                for (String statusValue : responseEl.getAttribute("status").split("\\s")) {
+                    if (400 <= Integer.parseInt(statusValue)) {
+                        result.add(responseEl);
+                        break;
+                    }
+                }
+            }
+        }
+        return result;
+    }
+
     private void writeSubResponseType(boolean recursive, String ns, String localName,
                                       StringBuilder sbCode, Set<String> imports) {
-        if (!recursive && ns.length() > 0) {
-            addImport(imports, ns + "." + localName);
+        if (!recursive && !ns.isEmpty()) {
+            addImport(imports, ns + '.' + localName);
         }
-        sbCode.append(localName).append(" ");
+        sbCode.append(localName).append(' ');
     }
-    //CHECKSTYLE:OFF
-    private void writeRequestTypes(Element requestEl,
+    //CHECKSTYLE:OFF: ParameterNumber
+    private void writeRequestTypes(Element requestEl, //NOPMD
                                    String classPackage,
                                    Element repElement,
                                    List<Element> inParamEls,
@@ -1237,7 +1189,7 @@ public class SourceGenerator {
                                    Set<String> imports,
                                    ContextInfo info,
                                    boolean suspendedAsync) {
-    //CHECKSTYLE:ON
+    //CHECKSTYLE:ON: ParameterNumber
         boolean form = false;
         boolean multipart = false;
         boolean formOrMultipartParamsAvailable = false;
@@ -1277,16 +1229,16 @@ public class SourceGenerator {
             if (writeAnnotations) {
                 String required = paramEl.getAttribute("required");
                 if (Multipart.class.equals(paramAnn) && "false".equals(required)) {
-                    writeAnnotation(sbCode, imports, paramAnn, null, false, false);
-                    sbCode.append("(value = \"").append(name).append("\", required = false").append(')');
+                    writeAnnotation(sbCode, imports, paramAnn, null)
+                        .append("(value = \"").append(name).append("\", required = false").append(')');
                 } else {
-                    writeAnnotation(sbCode, imports, paramAnn, name, false, false);
+                    writeAnnotation(sbCode, imports, paramAnn, name);
                 }
-                sbCode.append(" ");
+                sbCode.append(' ');
                 String defaultVal = paramEl.getAttribute("default");
-                if (defaultVal.length() > 0) {
-                    writeAnnotation(sbCode, imports, DefaultValue.class, defaultVal, false, false);
-                    sbCode.append(" ");
+                if (!defaultVal.isEmpty()) {
+                    writeAnnotation(sbCode, imports, DefaultValue.class, defaultVal)
+                        .append(' ');
                 }
             }
             boolean isRepeating = isRepeatingParam(paramEl);
@@ -1304,12 +1256,12 @@ public class SourceGenerator {
             } else {
                 paramName = name.replaceAll("[:\\.\\-]", "_");
             }
-            String javaParamName = firstCharToLowerCase(paramName);
-            sbCode.append(type).append(" ").append(javaParamName);
+            String javaParamName = StringUtils.uncapitalize(paramName);
+            sbCode.append(type).append(' ').append(javaParamName);
             if (i + 1 < inParamEls.size()) {
                 sbCode.append(", ");
                 if (i + 1 >= 4 && ((i + 1) % 4) == 0) {
-                    sbCode.append(getLineSep()).append(TAB).append(TAB).append(TAB).append(TAB);
+                    sbCode.append(lineSeparator).append(TAB).append(TAB).append(TAB).append(TAB);
                 }
             }
             if (sbMethodDocs != null) {
@@ -1359,10 +1311,10 @@ public class SourceGenerator {
             }
             if (writeBeanValidation) {
                 addImport(imports, BEAN_VALID_FULL_NAME);
-                sbCode.append("@").append(BEAN_VALID_SIMPLE_NAME).append(" ");
+                sbCode.append('@').append(BEAN_VALID_SIMPLE_NAME).append(' ');
             }
 
-            sbCode.append(elementParamType).append(" ").append(elementParamName);
+            sbCode.append(elementParamType).append(' ').append(elementParamName);
         }
         if (sbMethodDocs != null && repElement != null) {
             writeMethodParamDocs(repElement, elementParamName, sbMethodDocs);
@@ -1372,11 +1324,11 @@ public class SourceGenerator {
                 sbCode.append(", ");
             }
             if (writeAnnotations) {
-                addImport(imports, Suspended.class.getName());
-                sbCode.append("@").append(Suspended.class.getSimpleName()).append(" ");
+                writeAnnotation(sbCode, imports, Suspended.class, null)
+                    .append(' ');
             }
             addImport(imports, AsyncResponse.class.getName());
-            sbCode.append(AsyncResponse.class.getSimpleName()).append(" ").append("async");
+            sbCode.append(AsyncResponse.class.getSimpleName()).append(' ').append("async");
         }
     }
 
@@ -1405,13 +1357,8 @@ public class SourceGenerator {
     }
 
     private void generateEnumClass(String clsName, List<Element> options, File src, String classPackage) {
-        StringBuilder sbImports = new StringBuilder();
-        StringBuilder sbCode = new StringBuilder();
-        sbImports.append(getClassComment()).append(getLineSep());
-        sbImports.append("package " + classPackage)
-            .append(";").append(getLineSep()).append(getLineSep());
-
-        sbCode.append("public enum " + clsName);
+        StringBuilder sbCode = new StringBuilder(512);
+        sbCode.append("public enum ").append(clsName);
         openBlock(sbCode);
 
         for (int i = 0; i < options.size(); i++) {
@@ -1419,17 +1366,17 @@ public class SourceGenerator {
             sbCode.append(TAB).append(value.toUpperCase().replaceAll("[\\,\\-]", "_"))
                 .append("(\"").append(value).append("\")");
             if (i + 1 < options.size()) {
-                sbCode.append(",");
+                sbCode.append(',');
             } else {
-                sbCode.append(";");
+                sbCode.append(';');
             }
-            sbCode.append(getLineSep());
+            sbCode.append(lineSeparator);
         }
 
-        sbCode.append(TAB).append("private String value;").append(getLineSep());
+        sbCode.append(TAB).append("private String value;").append(lineSeparator);
         sbCode.append(TAB).append("private ").append(clsName).append("(String v)");
         openBlock(sbCode);
-        tab(sbCode, 2).append("this.value = v;").append(getLineSep());
+        tab(sbCode, 2).append("this.value = v;").append(lineSeparator);
         tabCloseBlock(sbCode, 1);
 
         sbCode.append(TAB).append("public static ")
@@ -1446,15 +1393,15 @@ public class SourceGenerator {
         sbCode.append("if (value.equalsIgnoreCase(v.value))");
         openBlock(sbCode);
         tab(sbCode, 5);
-        sbCode.append("return v;").append(getLineSep());
+        sbCode.append("return v;").append(lineSeparator);
         tabCloseBlock(sbCode, 4);
         tabCloseBlock(sbCode, 3);
         tabCloseBlock(sbCode, 2);
         tab(sbCode, 2);
-        sbCode.append("throw new IllegalArgumentException();").append(getLineSep());
+        sbCode.append("throw new IllegalArgumentException();").append(lineSeparator);
         tabCloseBlock(sbCode, 1);
-        sbCode.append("}");
-        createJavaSourceFile(src, new QName(classPackage, clsName), sbCode, sbImports, false);
+        sbCode.append('}');
+        createJavaSourceFile(src, classPackage, clsName, sbCode, Collections.emptySet(), false);
     }
 
     private static StringBuilder tab(StringBuilder sb, int count) {
@@ -1465,16 +1412,16 @@ public class SourceGenerator {
     }
 
     private StringBuilder tabCloseBlock(StringBuilder sb, int count) {
-        tab(sb, count).append("}").append(getLineSep());
+        tab(sb, count).append('}').append(lineSeparator);
         return sb;
     }
 
     private StringBuilder openBlock(StringBuilder sb) {
-        sb.append(" {").append(getLineSep());
+        sb.append(" {").append(lineSeparator);
         return sb;
     }
 
-    private String getTypicalClassName(String name) {
+    private static String getTypicalClassName(String name) {
         String theName = name.toUpperCase();
         if (theName.length() == 1) {
             return theName;
@@ -1486,7 +1433,7 @@ public class SourceGenerator {
     private List<Element> getWadlElements(Element parent, String name) {
         List<Element> elements = parent != null
             ? DOMUtils.getChildrenWithName(parent, getWadlNamespace(), name)
-            : CastUtils.cast(Collections.emptyList(), Element.class);
+            : Collections.emptyList();
         if (!"resource".equals(name)) {
             for (int i = 0; i < elements.size(); i++) {
                 Element el = elements.get(i);
@@ -1502,7 +1449,7 @@ public class SourceGenerator {
     private String getPrimitiveType(Element paramEl, ContextInfo info, Set<String> imports) {
         final String defaultValue = "String";
         String type = paramEl.getAttribute("type");
-        if (type.length() == 0) {
+        if (type.isEmpty()) {
             return defaultValue;
         }
 
@@ -1558,7 +1505,7 @@ public class SourceGenerator {
             clsName = clsName.substring(0, typeIndex);
         }
         addImport(imports, clsName);
-        int index = clsName.lastIndexOf(".");
+        int index = clsName.lastIndexOf('.');
 
         if (index != -1) {
             clsName = clsName.substring(index + 1);
@@ -1591,7 +1538,7 @@ public class SourceGenerator {
         }
         String elementRef = repElement.getAttribute("element");
 
-        if (elementRef.length() > 0) {
+        if (!elementRef.isEmpty()) {
             String[] pair = elementRef.split(":");
             if (pair.length == 2
                 || pair.length == 1 && info.getGrammarInfo().isSchemaWithoutTargetNamespace()) {
@@ -1626,14 +1573,14 @@ public class SourceGenerator {
                 String elementTypeName = pair.length == 2 ? pair[1] : pair[0];
                 clsName = matchClassName(typeClassNames, packageName, elementTypeName);
                 if (clsName == null && jaxbClassNameSuffix != null) {
-                    clsName = matchClassName(typeClassNames, packageName, 
+                    clsName = matchClassName(typeClassNames, packageName,
                                              elementTypeName + jaxbClassNameSuffix);
                 }
                 if (clsName == null && elementTypeName.contains("_")) {
                     String elementTypeNameWithoutUnderscore = elementTypeName.replaceAll("_", "");
                     clsName = matchClassName(typeClassNames, packageName, elementTypeNameWithoutUnderscore);
                     if (clsName == null && jaxbClassNameSuffix != null) {
-                        clsName = matchClassName(typeClassNames, packageName, 
+                        clsName = matchClassName(typeClassNames, packageName,
                                                  elementTypeNameWithoutUnderscore + jaxbClassNameSuffix);
                     }
                 }
@@ -1642,12 +1589,12 @@ public class SourceGenerator {
                     if (namespace != null) {
                         packageName = getPackageFromNamespace(namespace);
                         clsName = matchClassName(typeClassNames, packageName, elementTypeName);
-                        //CHECKSTYLE:OFF
+                        //CHECKSTYLE:OFF: NestedIfDepth
                         if (clsName == null && jaxbClassNameSuffix != null) {
-                            clsName = matchClassName(typeClassNames, packageName, 
+                            clsName = matchClassName(typeClassNames, packageName,
                                                      elementTypeName + jaxbClassNameSuffix);
                         }
-                        //CHECKSTYLE:ON
+                        //CHECKSTYLE:ON: NestedIfDepth
                     }
                 }
 
@@ -1665,14 +1612,12 @@ public class SourceGenerator {
         }
         String clsName = packageName + "." + localName.toLowerCase();
         for (String type : typeClassNames) {
-            if (type.toLowerCase().equals(clsName)) {
+            if (type.equalsIgnoreCase(clsName)) {
                 return type;
             }
         }
         return null;
     }
-
-
 
     private void writeFormatAnnotations(List<Element> repElements, StringBuilder sbCode,
                                         Set<String> imports,
@@ -1683,9 +1628,9 @@ public class SourceGenerator {
         }
         Class<?> cls = inRep ? Consumes.class : Produces.class;
         addImport(imports, cls.getName());
-        sbCode.append("@").append(cls.getSimpleName()).append("(");
+        sbCode.append('@').append(cls.getSimpleName()).append('(');
         if (repElements.size() > 1) {
-            sbCode.append("{");
+            sbCode.append('{');
         }
         boolean first = true;
         StringBuilder mediaTypes = new StringBuilder("");
@@ -1704,79 +1649,102 @@ public class SourceGenerator {
                     mediaTypes.append(", ");
                 }
                 first = false;
-                mediaTypes.append("\"" + mediaType + "\"");
+                mediaTypes.append('"').append(mediaType).append('"');
             }
         }
         sbCode.append(mediaTypes.toString());
         if (repElements.size() > 1) {
             sbCode.append(" }");
         }
-        sbCode.append(")");
-        sbCode.append(getLineSep()).append(TAB);
+        sbCode.append(')');
+        sbCode.append(lineSeparator).append(TAB);
     }
 
-    private void createJavaSourceFile(File src, QName qname, StringBuilder sbCode, StringBuilder sbImports,
-                                      boolean serviceClass) {
-        String content = sbImports.toString() + getLineSep() + sbCode.toString();
-
-        String namespace = qname.getNamespaceURI();
-        if (serviceClass) {
-            generatedServiceClasses.add(namespace + "." + qname.getLocalPart());
-        }
-
-        namespace = namespace.replace(".", getFileSep());
-
-        File currentDir = new File(src.getAbsolutePath(), namespace);
-        currentDir.mkdirs();
-        File file = new File(currentDir.getAbsolutePath(), qname.getLocalPart() + ".java");
-
-        try {
-            file.createNewFile();
-            try (Writer writer = new OutputStreamWriter(Files.newOutputStream(file.toPath()),
-                                                encoding == null ? StandardCharsets.UTF_8.name() : encoding)) {
-                writer.write(content);
-                writer.flush();
+    private void writeThrows(List<Element> responseEls, StringBuilder sbCode, StringBuilder sbMethodDocs,
+            Set<String> imports, ContextInfo info) {
+        final List<Element> throwsParamEls = new ArrayList<>();
+        for (Element errorResp : getErrorResponses(responseEls)) {
+            for (Element errorRep : getWadlElements(errorResp, "representation")) {
+                throwsParamEls.addAll(getWadlElements(errorRep, "param"));
             }
-        } catch (FileNotFoundException ex) {
-            LOG.warning(file.getAbsolutePath() + " is not found");
-        } catch (IOException ex) {
-            LOG.warning("Problem writing into " + file.getAbsolutePath());
         }
-    }
-
-    private Application readWadl(String wadl, String docPath) {
-        Element wadlElement = readXmlDocument(new StringReader(wadl));
-        try {
-            if (validateWadl) {
-                SchemaFactory factory = SchemaFactory.newInstance(Constants.URI_2001_SCHEMA_XSD);
-                URL schemaURL = ResourceUtils.getResourceURL("classpath:/schemas/wadl/wadl.xsd", bus);
-                Reader r = new BufferedReader(new InputStreamReader(schemaURL.openStream(), StandardCharsets.UTF_8));
-                StreamSource source = new StreamSource(r);
-                source.setSystemId(schemaURL.toString());
-                Schema s = factory.newSchema(new Source[]{source});
-                DOMSource wadlDoc = new DOMSource(wadlElement);
-                Validator v = s.newValidator();
-                WadlValidationErrorHandler errorHandler = new WadlValidationErrorHandler();
-                v.setErrorHandler(errorHandler);
-                v.validate(wadlDoc);
-                if (errorHandler.isValidationFailed()) {
-                    throw new ValidationException("WADL document is not valid.");
+        if (!throwsParamEls.isEmpty()) {
+            sbCode.append(" throws ");
+            boolean comma = false;
+            for (Element paramEl : throwsParamEls) {
+                if (!comma) {
+                    comma = true;
+                } else {
+                    sbCode.append(", ");
+                }
+                final String javaThrowsName = getPrimitiveType(paramEl, info, imports);
+                sbCode.append(javaThrowsName);
+                if (sbMethodDocs != null) {
+                    writeMethodThrowsDocs(paramEl, javaThrowsName, sbMethodDocs);
                 }
             }
-        } catch (ValidationException ex) {
-            throw ex;
-        } catch (Exception ex) {
-            throw new ValidationException("WADL document can not be validated", ex);
         }
-        return new Application(wadlElement, docPath);
     }
 
-    private Element readXmlDocument(Reader reader) {
-        try {
-            return StaxUtils.read(new InputSource(reader)).getDocumentElement();
-        } catch (Exception ex) {
-            throw new IllegalStateException("Unable to read wadl", ex);
+    private void createJavaSourceFile(File src, String classPackage, String className, StringBuilder sbCode,
+        Set<String> imports, boolean serviceClass) {
+        if (serviceClass) {
+            generatedServiceClasses.add(classPackage + '.' + className);
         }
+
+        java.nio.file.Path currentDir = src.toPath().resolve(classPackage.replace('.', File.separatorChar));
+        try (Writer writer = Files.newBufferedWriter(
+            Files.createDirectories(currentDir).resolve(className + ".java"),
+            encoding == null ? StandardCharsets.UTF_8 : Charset.forName(encoding))) {
+
+            writer.write(getClassComment());
+            writer.write(lineSeparator);
+
+            writer.write("package ");
+            writer.write(classPackage);
+            writer.write(';');
+            writer.write(lineSeparator);
+            writer.write(lineSeparator);
+
+            for (String clsName : imports) {
+                int index = clsName.lastIndexOf('.');
+                if (index != -1 && clsName.substring(0, index).equals(classPackage)) {
+                    continue;
+                }
+                writer.write("import ");
+                writer.write(clsName);
+                writer.write(';');
+                writer.write(lineSeparator);
+            }
+            writer.write(lineSeparator);
+
+            writer.write(sbCode.toString());
+        } catch (java.nio.file.NoSuchFileException ex) {
+            LOG.warning(ex.getMessage() + " is not found");
+        } catch (IOException ex) {
+            LOG.warning("Problem writing into " + ex.getMessage());
+        }
+    }
+
+    private Application readWadl() {
+        Element wadlElement = readDocument(wadlPath);
+        if (validateWadl) {
+            final WadlValidationErrorHandler errorHandler = new WadlValidationErrorHandler();
+            try {
+                Schema s = SchemaHandler.createSchema(
+                        Arrays.asList("classpath:/schemas/wsdl/xml.xsd", "classpath:/schemas/wadl/wadl.xsd"), null,
+                        bus);
+                Validator v = s.newValidator();
+                v.setErrorHandler(errorHandler);
+                v.validate(new DOMSource(wadlElement));
+            } catch (Exception ex) {
+                throw new ValidationException("WADL document can not be validated", ex);
+            }
+            if (errorHandler.isValidationFailed()) {
+                throw new ValidationException("WADL document is not valid.");
+            }
+        }
+        return new Application(wadlElement, wadlPath);
     }
 
     private void generateClassesFromSchema(JCodeModel codeModel, File src) {
@@ -1828,14 +1796,13 @@ public class SourceGenerator {
                     schemaURI = href;
                 }
             }
-            schemas.add(createSchemaInfo(readIncludedDocument(schemaURI),
-                                            schemaURI));
+            schemas.add(createSchemaInfo(readDocument(schemaURI), schemaURI));
         }
         return schemas;
     }
 
     private static String getBaseWadlPath(String docPath) {
-        int lastSep = docPath.lastIndexOf("/");
+        int lastSep = docPath.lastIndexOf('/');
         return lastSep != -1 ? docPath.substring(0, lastSep + 1) : docPath;
     }
 
@@ -1871,22 +1838,23 @@ public class SourceGenerator {
         return null;
     }
 
-    private Element readIncludedDocument(String href) {
-
+    private Element readDocument(String href) {
         try {
             InputStream is = null;
             if (!href.startsWith("http")) {
                 is = ResourceUtils.getResourceStream(href, bus);
-            } 
+            }
             if (is == null) {
-                URL url = URI.create(href).toURL();
+                URL url = new URL(href);
                 if (href.startsWith("https") && authentication != null) {
                     is = SecureConnectionHelper.getStreamFromSecureConnection(url, authentication);
                 } else {
                     is = url.openStream();
                 }
             }
-            return readXmlDocument(new InputStreamReader(is, StandardCharsets.UTF_8));
+            try (Reader reader = new InputStreamReader(is, StandardCharsets.UTF_8)) {
+                return StaxUtils.read(new InputSource(reader)).getDocumentElement();
+            }
         } catch (Exception ex) {
             throw new RuntimeException("Resource " + href + " can not be read");
         }
@@ -1903,7 +1871,7 @@ public class SourceGenerator {
                                        .getEntityResolver());
         if (!compilerArgs.isEmpty()) {
             compiler.getOptions().addGrammar(new InputSource("null"));
-            compiler.getOptions().parseArguments(compilerArgs.toArray(new String[compilerArgs.size()]));
+            compiler.getOptions().parseArguments(compilerArgs.toArray(new String[0]));
         }
         addSchemas(schemaElements, compiler);
         for (InputSource is : bindingFiles) {
@@ -1962,8 +1930,7 @@ public class SourceGenerator {
     }
 
     private Set<String> createImports() {
-        return importsComparator == null ? new TreeSet<String>(new DefaultImportsComparator())
-            : new TreeSet<String>(importsComparator);
+        return new TreeSet<String>(importsComparator == null ? new DefaultImportsComparator() : importsComparator);
     }
 
     public void setGenerateInterfaces(boolean generateInterfaces) {
@@ -2058,6 +2025,11 @@ public class SourceGenerator {
         this.jaxbClassNameSuffix = jaxbClassNameSuffix;
     }
 
+    public void setRx(String rx) {
+        this.rx = rx;
+        this.responseWrapper = ResponseWrapper.create(rx);
+    }
+
     private static class GrammarInfo {
         private Map<String, String> nsMap = new HashMap<>();
         private Map<String, String> elementTypeMap = new HashMap<>();
@@ -2124,7 +2096,7 @@ public class SourceGenerator {
         }
     }
 
-    private class Application {
+    private static class Application {
         private Element appElement;
         private String wadlPath;
         Application(Element appElement, String wadlPath) {
@@ -2148,7 +2120,7 @@ public class SourceGenerator {
         private Set<String> resourceClassNames = new HashSet<>();
         private Application rootApp;
         private File srcDir;
-        private List<Element> inheritedParams = new LinkedList<Element>();
+        private List<Element> inheritedParams = new ArrayList<>();
 
         ContextInfo(Application rootApp,
                     File srcDir,

@@ -18,25 +18,24 @@
  */
 package org.apache.cxf.transport.jms.util;
 
-import java.util.Enumeration;
-
-import javax.jms.BytesMessage;
-import javax.jms.Connection;
-import javax.jms.Destination;
-import javax.jms.JMSException;
-import javax.jms.Message;
-import javax.jms.MessageConsumer;
-import javax.jms.ObjectMessage;
-import javax.jms.Queue;
-import javax.jms.QueueBrowser;
-import javax.jms.Session;
-
+import jakarta.jms.BytesMessage;
+import jakarta.jms.Connection;
+import jakarta.jms.Destination;
+import jakarta.jms.JMSException;
+import jakarta.jms.Message;
+import jakarta.jms.MessageConsumer;
+import jakarta.jms.ObjectMessage;
+import jakarta.jms.Queue;
+import jakarta.jms.Session;
+import jakarta.jms.XAConnection;
+import org.apache.cxf.common.util.StringUtils;
+import org.apache.cxf.message.Exchange;
 import org.apache.cxf.transport.jms.JMSConstants;
 
 public final class JMSUtil {
-    private static final char[] CORRELATTION_ID_PADDING = {
-        '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0', '0'
-    };
+
+    public static final String JMS_MESSAGE_CONSUMER = "jms_message_consumer";
+    public static final String JMS_IGNORE_TIMEOUT = "jms_ignore_timeout";
 
     private JMSUtil() {
     }
@@ -50,10 +49,39 @@ public final class JMSUtil {
             String messageSelector = correlationId == null ? null : "JMSCorrelationID = '" + correlationId + "'";
             MessageConsumer consumer = closer.register(session.createConsumer(replyToDestination, messageSelector,
                                                  pubSubNoLocal));
-            javax.jms.Message replyMessage = consumer.receive(receiveTimeout);
+            jakarta.jms.Message replyMessage = consumer.receive(receiveTimeout);
             if (replyMessage == null) {
                 throw new RuntimeException("Timeout receiving message with correlationId "
                                            + correlationId);
+            }
+            return replyMessage;
+        } catch (JMSException e) {
+            throw convertJmsException(e);
+        }
+    }
+
+    public static Message receive(Session session,
+                                  Destination replyToDestination,
+                                  String correlationId,
+                                  long receiveTimeout,
+                                  boolean pubSubNoLocal,
+                                  Exchange exchange) {
+        try (ResourceCloser closer = new ResourceCloser()) {
+            String messageSelector = correlationId == null ? null : "JMSCorrelationID = '" + correlationId + "'";
+            MessageConsumer consumer = closer.register(session.createConsumer(replyToDestination, messageSelector,
+                                                 pubSubNoLocal));
+            if (exchange != null) {
+                exchange.put(JMS_MESSAGE_CONSUMER, consumer);
+            }
+            jakarta.jms.Message replyMessage = consumer.receive(receiveTimeout);
+            if (replyMessage == null) {
+                if ((boolean)exchange.get(JMSUtil.JMS_IGNORE_TIMEOUT)) {
+                    throw new RuntimeException("Timeout receiving message with correlationId "
+                                           + correlationId);
+                } else {
+                    throw new JMSException("Timeout receiving message with correlationId "
+                        + correlationId);
+                }
             }
             return replyMessage;
         } catch (JMSException e) {
@@ -65,12 +93,8 @@ public final class JMSUtil {
         return new RuntimeException(e.getMessage(), e);
     }
 
-    public static String createCorrelationId(final String prefix, long sequenceNUm) {
-        String index = Long.toHexString(sequenceNUm);
-        StringBuilder id = new StringBuilder(prefix);
-        id.append(CORRELATTION_ID_PADDING, 0, 16 - index.length());
-        id.append(index);
-        return id.toString();
+    public static String createCorrelationId(final String prefix, long sequenceNum) {
+        return prefix + StringUtils.toHexString(java.nio.ByteBuffer.allocate(Long.BYTES).putLong(sequenceNum).array());
     }
 
     /**
@@ -79,12 +103,12 @@ public final class JMSUtil {
      * @param payload the message payload, expected to be either of type String or byte[] depending on payload
      *            type
      * @param session the JMS session
-     * @param replyTo the ReplyTo destination if any
+     * @param messageType the JMS message type
      * @return a JMS of the appropriate type populated with the given payload
      */
     public static Message createAndSetPayload(Object payload, Session session, String messageType)
         throws JMSException {
-        Message message = null;
+        final Message message;
         if (JMSConstants.TEXT_MESSAGE_TYPE.equals(messageType)) {
             message = session.createTextMessage((String)payload);
         } else if (JMSConstants.BYTE_MESSAGE_TYPE.equals(messageType)) {
@@ -98,27 +122,15 @@ public final class JMSUtil {
     }
 
     public static Queue createQueue(Connection connection, String name) throws JMSException {
-        Session session = null;
-        try {
-            session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
-            return session.createQueue(name);
-        } finally {
-            if (session != null) {
-                session.close();
+        if (connection instanceof XAConnection) { 
+            try (Session session = ((XAConnection)connection).createXASession()) {
+                return session.createQueue(name);
+            }
+        } else {
+            try (Session session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE)) {
+                return session.createQueue(name);
             }
         }
     }
 
-    public static int getNumMessages(Connection connection, Queue queue) throws JMSException {
-        Session session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
-        QueueBrowser browser = session.createBrowser(queue);
-        @SuppressWarnings("unchecked")
-        Enumeration<Message> messages = browser.getEnumeration();
-        int actualNum = 0;
-        while (messages.hasMoreElements()) {
-            actualNum++;
-            messages.nextElement();
-        }
-        return actualNum;
-    }
 }

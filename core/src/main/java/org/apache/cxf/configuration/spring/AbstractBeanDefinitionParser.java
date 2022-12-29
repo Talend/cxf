@@ -25,20 +25,19 @@ import java.util.Set;
 import java.util.StringTokenizer;
 import java.util.logging.Logger;
 
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.JAXBElement;
-import javax.xml.bind.JAXBException;
-import javax.xml.bind.Unmarshaller;
 import javax.xml.namespace.QName;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
-import javax.xml.stream.XMLStreamWriter;
 
 import org.w3c.dom.Attr;
 import org.w3c.dom.Element;
 import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 
+import jakarta.xml.bind.JAXBContext;
+import jakarta.xml.bind.JAXBElement;
+import jakarta.xml.bind.JAXBException;
+import jakarta.xml.bind.Unmarshaller;
 import org.apache.cxf.common.jaxb.JAXBContextCache;
 import org.apache.cxf.common.jaxb.JAXBContextCache.CachedContextAndSchemas;
 import org.apache.cxf.common.jaxb.JAXBUtils;
@@ -46,7 +45,6 @@ import org.apache.cxf.common.logging.LogUtils;
 import org.apache.cxf.common.util.StringUtils;
 import org.apache.cxf.helpers.DOMUtils;
 import org.apache.cxf.staxutils.StaxUtils;
-import org.springframework.beans.factory.BeanDefinitionStoreException;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.BeanDefinitionHolder;
 import org.springframework.beans.factory.support.AbstractBeanDefinition;
@@ -179,19 +177,18 @@ public abstract class AbstractBeanDefinitionParser
     }
 
     @Override
-    protected String resolveId(Element elem, AbstractBeanDefinition definition,
-                               ParserContext ctx) throws BeanDefinitionStoreException {
+    protected String resolveId(Element elem, AbstractBeanDefinition definition, ParserContext ctx) {
 
         // REVISIT: use getAttributeNS instead
 
         String id = getIdOrName(elem);
         String createdFromAPI = elem.getAttribute("createdFromAPI");
 
-        if (null == id || "".equals(id)) {
+        if (null == id || id.isEmpty()) {
             return super.resolveId(elem, definition, ctx);
         }
 
-        if (createdFromAPI != null && "true".equals(createdFromAPI.toLowerCase())) {
+        if (createdFromAPI != null && Boolean.parseBoolean(createdFromAPI)) {
             return id + getSuffix();
         }
         return id;
@@ -257,10 +254,8 @@ public abstract class AbstractBeanDefinitionParser
         LOG.fine("Adding " + WIRE_BUS_ATTRIBUTE + " attribute " + type + " to bean " + bean);
         bean.getRawBeanDefinition().setAttribute(WIRE_BUS_ATTRIBUTE, type);
         if (!StringUtils.isEmpty(busName)) {
-            if (busName.charAt(0) == '#') {
-                busName = busName.substring(1);
-            }
-            bean.getRawBeanDefinition().setAttribute(WIRE_BUS_NAME, busName);
+            bean.getRawBeanDefinition().setAttribute(WIRE_BUS_NAME,
+                    busName.charAt(0) == '#' ? busName.substring(1) : busName);
         }
 
         if (ctx != null
@@ -304,7 +299,7 @@ public abstract class AbstractBeanDefinitionParser
     private synchronized JAXBContext getContext(Class<?> cls) {
         if (context == null || classes == null || !classes.contains(cls)) {
             try {
-                Set<Class<?>> tmp = new HashSet<Class<?>>();
+                Set<Class<?>> tmp = new HashSet<>();
                 if (classes != null) {
                     tmp.addAll(classes);
                 }
@@ -341,13 +336,10 @@ public abstract class AbstractBeanDefinitionParser
                                             String propertyName,
                                             Class<?> c) {
         try {
-            XMLStreamWriter xmlWriter = null;
             Unmarshaller u = null;
             try {
-                StringWriter writer = new StringWriter();
-                xmlWriter = StaxUtils.createXMLStreamWriter(writer);
-                StaxUtils.copy(data, xmlWriter);
-                xmlWriter.flush();
+                final StringWriter writer = new StringWriter();
+                StaxUtils.writeTo(data, writer);
 
                 BeanDefinitionBuilder jaxbbean
                     = BeanDefinitionBuilder.rootBeanDefinition(JAXBBeanFactory.class);
@@ -373,7 +365,6 @@ public abstract class AbstractBeanDefinitionParser
                     bean.addPropertyValue(propertyName, obj);
                 }
             } finally {
-                StaxUtils.close(xmlWriter);
                 JAXBUtils.closeUnmarshaller(u);
             }
         } catch (JAXBException e) {
@@ -407,15 +398,11 @@ public abstract class AbstractBeanDefinitionParser
                                                       Class<?> jaxbClass,
                                                       String method,
                                                       Object ... args) {
-        StringWriter writer = new StringWriter();
-        XMLStreamWriter xmlWriter = StaxUtils.createXMLStreamWriter(writer);
+        final StringWriter writer = new StringWriter();
         try {
-            StaxUtils.copy(data, xmlWriter);
-            xmlWriter.flush();
+            StaxUtils.writeTo(data, writer);
         } catch (XMLStreamException e) {
             throw new RuntimeException(e);
-        } finally {
-            StaxUtils.close(xmlWriter);
         }
 
         BeanDefinitionBuilder jaxbbean
@@ -480,20 +467,18 @@ public abstract class AbstractBeanDefinitionParser
     }
 
     protected QName parseQName(Element element, String t) {
-        String ns = null;
-        String pre = null;
-        String local = null;
-
         if (t.startsWith("{")) {
             int i = t.indexOf('}');
             if (i == -1) {
                 throw new RuntimeException("Namespace bracket '{' must having a closing bracket '}'.");
             }
 
-            ns = t.substring(1, i);
             t = t.substring(i + 1);
         }
 
+        final String local;
+        final String pre;
+        final String ns;
         int colIdx = t.indexOf(':');
         if (colIdx == -1) {
             local = t;

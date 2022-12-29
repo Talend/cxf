@@ -43,7 +43,16 @@ public final class TransformUtils {
     }
 
     public static XMLStreamWriter createNewWriterIfNeeded(XMLStreamWriter writer, OutputStream os) {
-        return writer == null ? StaxUtils.createXMLStreamWriter(os) : writer;
+        return createNewWriterIfNeeded(writer, os, null);
+    }
+
+    public static XMLStreamWriter createNewWriterIfNeeded(XMLStreamWriter writer, OutputStream os, String encoding) {
+        if (writer != null) {
+            return writer;
+        } else if (encoding != null) {
+            return StaxUtils.createXMLStreamWriter(os, encoding);
+        }
+        return StaxUtils.createXMLStreamWriter(os);
     }
 
     public static XMLStreamWriter createTransformWriterIfNeeded(XMLStreamWriter writer,
@@ -55,8 +64,7 @@ public final class TransformUtils {
                                                                 String defaultNamespace) {
         if (outElementsMap != null || outDropElements != null
             || outAppendMap != null || attributesToElements) {
-            writer = createNewWriterIfNeeded(writer, os);
-            writer = new OutTransformWriter(writer, outElementsMap, outAppendMap,
+            writer = new OutTransformWriter(createNewWriterIfNeeded(writer, os), outElementsMap, outAppendMap,
                                             outDropElements, null, attributesToElements, defaultNamespace);
         }
         return writer;
@@ -70,11 +78,11 @@ public final class TransformUtils {
                                                                 Map<String, String> outAppendMap,
                                                                 Map<String, String> outAttributesMap,
                                                                 boolean attributesToElements,
-                                                                String defaultNamespace) {
+                                                                String defaultNamespace,
+                                                                String encoding) {
         if (outElementsMap != null || outDropElements != null
             || outAppendMap != null || attributesToElements) {
-            writer = createNewWriterIfNeeded(writer, os);
-            writer = new OutTransformWriter(writer, outElementsMap, outAppendMap,
+            writer = new OutTransformWriter(createNewWriterIfNeeded(writer, os, encoding), outElementsMap, outAppendMap,
                                             outDropElements, outAttributesMap, attributesToElements, defaultNamespace);
         }
         return writer;
@@ -166,7 +174,7 @@ public final class TransformUtils {
     }
 
     static boolean isEmptyQName(QName qname) {
-        return XMLConstants.NULL_NS_URI.equals(qname.getNamespaceURI()) && "".equals(qname.getLocalPart());
+        return XMLConstants.NULL_NS_URI.equals(qname.getNamespaceURI()) && qname.getLocalPart().isEmpty();
     }
 
     static ParsingEvent createStartElementEvent(QName name) {

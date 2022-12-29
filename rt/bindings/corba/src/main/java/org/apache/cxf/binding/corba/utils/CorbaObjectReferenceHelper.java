@@ -30,9 +30,9 @@ import javax.wsdl.Definition;
 import javax.wsdl.Import;
 import javax.wsdl.Port;
 import javax.wsdl.Service;
-import javax.xml.bind.DatatypeConverter;
 import javax.xml.namespace.QName;
 
+import jakarta.xml.bind.DatatypeConverter;
 import org.apache.cxf.binding.corba.wsdl.BindingType;
 import org.apache.cxf.common.logging.LogUtils;
 import org.apache.cxf.helpers.CastUtils;
@@ -149,10 +149,10 @@ public final class CorbaObjectReferenceHelper {
 
     public static String extractTypeIdFromIOR(String url) {
         String ret = "";
-        byte data[] = DatatypeConverter.parseHexBinary(url.substring(4));
+        byte[] data = DatatypeConverter.parseHexBinary(url.substring(4));
         if (data.length > 0) {
             // parse out type_id from IOR CDR encapsulation
-            boolean bigIndian = !(data[0] > 0);
+            boolean bigIndian = data[0] <= 0;
             int typeIdStringSize = readIntFromAlignedCDREncaps(data, 4, bigIndian);
             if (typeIdStringSize > 1) {
                 ret = readStringFromAlignedCDREncaps(data, 8, typeIdStringSize - 1);

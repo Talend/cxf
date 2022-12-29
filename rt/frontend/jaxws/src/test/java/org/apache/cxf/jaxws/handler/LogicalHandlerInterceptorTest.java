@@ -23,13 +23,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.TreeSet;
 
-import javax.xml.ws.Binding;
-import javax.xml.ws.LogicalMessage;
-import javax.xml.ws.handler.Handler;
-import javax.xml.ws.handler.LogicalHandler;
-import javax.xml.ws.handler.LogicalMessageContext;
-import javax.xml.ws.handler.MessageContext;
-
+import jakarta.xml.ws.Binding;
+import jakarta.xml.ws.LogicalMessage;
+import jakarta.xml.ws.handler.Handler;
+import jakarta.xml.ws.handler.LogicalHandler;
+import jakarta.xml.ws.handler.LogicalMessageContext;
+import jakarta.xml.ws.handler.MessageContext;
 import org.apache.cxf.helpers.CastUtils;
 import org.apache.cxf.interceptor.InterceptorChain;
 import org.apache.cxf.jaxws.handler.logical.LogicalHandlerInInterceptor;
@@ -42,7 +41,6 @@ import org.apache.handlers.types.AddNumbersResponse;
 import org.easymock.EasyMock;
 import org.easymock.IMocksControl;
 import org.junit.After;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -50,8 +48,9 @@ import static org.easymock.EasyMock.createNiceControl;
 import static org.easymock.EasyMock.eq;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.isA;
+import static org.junit.Assert.assertEquals;
 
-public class LogicalHandlerInterceptorTest extends Assert {
+public class LogicalHandlerInterceptorTest {
 
     private IMocksControl control;
     private Binding binding;
@@ -74,7 +73,7 @@ public class LogicalHandlerInterceptorTest extends Assert {
 
     @Test
     public void testInterceptSuccess() {
-        List<LogicalHandler<?>> list = new ArrayList<LogicalHandler<?>>();
+        List<LogicalHandler<?>> list = new ArrayList<>();
         list.add(new LogicalHandler<LogicalMessageContext>() {
             public void close(MessageContext arg0) {
             }

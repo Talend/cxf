@@ -25,8 +25,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import javax.ws.rs.core.MultivaluedMap;
-
+import jakarta.ws.rs.core.MultivaluedMap;
 import org.apache.cxf.common.util.Base64Exception;
 import org.apache.cxf.common.util.Base64Utility;
 import org.apache.cxf.jaxrs.ext.MessageContext;
@@ -62,7 +61,7 @@ public abstract class AbstractHawkAccessTokenValidator implements AccessTokenVal
         String macAlgo = atv.getExtraProps().get(OAuthConstants.HAWK_TOKEN_ALGORITHM);
 
 
-        HttpRequestProperties httpProps = null;
+        final HttpRequestProperties httpProps;
         if (extraProps != null && extraProps.containsKey(HTTP_VERB) && extraProps.containsKey(HTTP_URI)) {
             httpProps = new HttpRequestProperties(URI.create(extraProps.getFirst(HTTP_URI)),
                                                   extraProps.getFirst(HTTP_VERB));

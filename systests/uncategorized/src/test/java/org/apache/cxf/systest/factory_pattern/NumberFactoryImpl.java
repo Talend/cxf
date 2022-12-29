@@ -22,11 +22,11 @@ package org.apache.cxf.systest.factory_pattern;
 import java.util.LinkedList;
 import java.util.List;
 
-import javax.jws.WebService;
 import javax.xml.namespace.QName;
 import javax.xml.transform.Source;
-import javax.xml.ws.wsaddressing.W3CEndpointReference;
 
+import jakarta.jws.WebService;
+import jakarta.xml.ws.wsaddressing.W3CEndpointReference;
 import org.apache.cxf.Bus;
 import org.apache.cxf.ext.logging.LoggingInInterceptor;
 import org.apache.cxf.ext.logging.LoggingOutInterceptor;
@@ -52,7 +52,7 @@ public class NumberFactoryImpl implements NumberFactory {
     protected NumberImpl servant;
     protected Bus bus;
     protected String port;
-    protected List<AutoCloseable> endpoints = new LinkedList<AutoCloseable>();
+    protected List<AutoCloseable> endpoints = new LinkedList<>();
 
     public NumberFactoryImpl(Bus b, String p) {
         bus = b;
@@ -95,7 +95,7 @@ public class NumberFactoryImpl implements NumberFactory {
     protected void initDefaultServant() {
 
         servant = new NumberImpl();
-        String wsdlLocation = "testutils/factory_pattern.wsdl";
+        String wsdlLocation = "wsdl/factory_pattern.wsdl";
         String bindingId = null;
 
         EndpointImpl ep = new EndpointImpl(bus,

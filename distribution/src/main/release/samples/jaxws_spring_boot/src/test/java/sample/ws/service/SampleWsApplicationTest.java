@@ -29,16 +29,15 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import org.springframework.boot.context.embedded.LocalServerPort;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
-import org.springframework.boot.test.rule.OutputCapture;
+import org.springframework.boot.test.system.OutputCaptureRule;
+import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.ws.client.core.WebServiceTemplate;
 
-
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsString;
-import static org.junit.Assert.assertThat;
 
 import sample.ws.SampleWsApplication;
 
@@ -49,7 +48,7 @@ public class SampleWsApplicationTest {
 
     //CHECKSTYLE:OFF
     @Rule
-    public OutputCapture output = new OutputCapture(); // SUPPRESS CHECKSTYLE
+    public OutputCaptureRule output = new OutputCaptureRule(); // SUPPRESS CHECKSTYLE
     //CHECKSTYLE:ON
 
     private WebServiceTemplate webServiceTemplate = new WebServiceTemplate();

@@ -23,19 +23,15 @@
     <packaging>bundle</packaging>
     <name>Apache CXF Runtime JAXB DataBinding</name>
     <description>Apache CXF Runtime JAXB DataBinding</description>
-    <url>http://cxf.apache.org</url>
+    <url>https://cxf.apache.org</url>
     <parent>
         <groupId>org.apache.cxf</groupId>
         <artifactId>cxf-parent</artifactId>
-        <version>3.2.5-SNAPSHOT</version>
+        <version>4.0.1-SNAPSHOT</version>
         <relativePath>../../../parent/pom.xml</relativePath>
     </parent>
     <properties>
-        <cxf.osgi.import>
-            javax.activation;version="${cxf.osgi.javax.activation.version}",
-            javax.xml.bind*;version="${cxf.osgi.javax.bind.version}",
-            javax.xml.stream*;version="${cxf.osgi.javax.stream.version}"
-        </cxf.osgi.import>
+        <cxf.module.name>org.apache.cxf.databinding.jaxb</cxf.module.name>
     </properties>
     <build>
         <plugins>
@@ -84,6 +80,11 @@
         </plugins>
     </build>
     <dependencies>
+        <dependency>
+            <groupId>jakarta.xml.ws</groupId>
+            <artifactId>jakarta.xml.ws-api</artifactId>
+            <scope>test</scope>
+        </dependency>
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>

@@ -23,12 +23,12 @@ import java.net.URI;
 import java.util.HashSet;
 import java.util.Set;
 
-import javax.activation.DataHandler;
-import javax.mail.util.ByteArrayDataSource;
 import javax.xml.namespace.QName;
 import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLStreamReader;
 
+import jakarta.activation.DataHandler;
+import jakarta.mail.util.ByteArrayDataSource;
 import org.apache.cxf.Bus;
 import org.apache.cxf.BusFactory;
 import org.apache.cxf.attachment.AttachmentImpl;
@@ -45,6 +45,9 @@ import org.apache.cxf.service.model.ServiceInfo;
 
 import org.junit.Before;
 import org.junit.Test;
+
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 public class MustUnderstandInterceptorTest extends TestBase {
 
@@ -84,9 +87,8 @@ public class MustUnderstandInterceptorTest extends TestBase {
         dsi.getUnderstoodHeaders().add(PASSENGER);
 
         soapMessage.getInterceptorChain().doIntercept(soapMessage);
-        assertEquals("DummaySoapInterceptor getRoles has been called!", true, dsi.isCalledGetRoles());
-        assertEquals("DummaySoapInterceptor getUnderstood has been called!", true, dsi
-            .isCalledGetUnderstood());
+        assertTrue("DummaySoapInterceptor getRoles has been called!", dsi.isCalledGetRoles());
+        assertTrue("DummaySoapInterceptor getUnderstood has been called!", dsi.isCalledGetUnderstood());
     }
 
     @Test
@@ -97,9 +99,8 @@ public class MustUnderstandInterceptorTest extends TestBase {
 
         soapMessage.getInterceptorChain().doIntercept(soapMessage);
 
-        assertEquals("DummaySoapInterceptor getRoles has been called!", true, dsi.isCalledGetRoles());
-        assertEquals("DummaySoapInterceptor getUnderstood has been called!", true, dsi
-            .isCalledGetUnderstood());
+        assertTrue("DummaySoapInterceptor getRoles has been called!", dsi.isCalledGetRoles());
+        assertTrue("DummaySoapInterceptor getUnderstood has been called!", dsi.isCalledGetUnderstood());
 
         Set<QName> ie = CastUtils.cast((Set<?>)soapMessage.get(MustUnderstandInterceptor.UNKNOWNS));
         if (ie == null) {
@@ -124,9 +125,8 @@ public class MustUnderstandInterceptorTest extends TestBase {
         soapMessage.getExchange().put(BindingOperationInfo.class, bop);
 
         soapMessage.getInterceptorChain().doIntercept(soapMessage);
-        assertEquals("DummaySoapInterceptor getRoles has been called!", true, dsi.isCalledGetRoles());
-        assertEquals("DummaySoapInterceptor getUnderstood has been called!", true, dsi
-            .isCalledGetUnderstood());
+        assertTrue("DummaySoapInterceptor getRoles has been called!", dsi.isCalledGetRoles());
+        assertTrue("DummaySoapInterceptor getUnderstood has been called!", dsi.isCalledGetUnderstood());
     }
 
     @Test
@@ -143,9 +143,8 @@ public class MustUnderstandInterceptorTest extends TestBase {
         soapMessage.getExchange().put(BindingOperationInfo.class, bop);
 
         soapMessage.getInterceptorChain().doIntercept(soapMessage);
-        assertEquals("DummaySoapInterceptor getRoles has been called!", true, dsi.isCalledGetRoles());
-        assertEquals("DummaySoapInterceptor getUnderstood has been called!", true, dsi
-            .isCalledGetUnderstood());
+        assertTrue("DummaySoapInterceptor getRoles has been called!", dsi.isCalledGetRoles());
+        assertTrue("DummaySoapInterceptor getUnderstood has been called!", dsi.isCalledGetUnderstood());
     }
 
     private void prepareSoapMessage(String payloadFileName) throws Exception {

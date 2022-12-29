@@ -128,7 +128,6 @@ public class WSDLToJavaContainer extends AbstractCXFToolContainer {
         boolean isWsdlList = context.optionSet(ToolConstants.CFG_WSDLLIST);
 
         if (isWsdlList) {
-            BufferedReader reader = null;
             try {
                 ToolContext initialContextState = context.makeCopy();
                 String wsdlURL = (String)context.get(ToolConstants.CFG_WSDLURL);
@@ -136,29 +135,22 @@ public class WSDLToJavaContainer extends AbstractCXFToolContainer {
 
                 URL url = new URL(wsdlURL);
                 InputStream is = (InputStream)url.getContent();
-                reader = new BufferedReader(new InputStreamReader(is));
-                String tempLine = null;
-                while ((tempLine = reader.readLine()) != null) {
-                    ToolContext freshContext = initialContextState.makeCopy();
-                    freshContext.put(ToolConstants.CFG_WSDLURL, tempLine);
-                    setContext(freshContext);
-                    buildToolContext();
+                try (BufferedReader reader = new BufferedReader(new InputStreamReader(is))) {
+                    String tempLine;
+                    while ((tempLine = reader.readLine()) != null) {
+                        ToolContext freshContext = initialContextState.makeCopy();
+                        freshContext.put(ToolConstants.CFG_WSDLURL, tempLine);
+                        setContext(freshContext);
+                        buildToolContext();
 
-                    processWsdl();
-                }
-                if (context.getErrorListener().getErrorCount() > 0) {
-                    context.getErrorListener().throwToolException();
+                        processWsdl();
+                    }
+                    if (context.getErrorListener().getErrorCount() > 0) {
+                        context.getErrorListener().throwToolException();
+                    }
                 }
             } catch (IOException e) {
                 throw new ToolException(e);
-            } finally {
-                try {
-                    if (reader != null) {
-                        reader.close();
-                    }
-                } catch (IOException e) {
-                    throw new ToolException(e);
-                }
             }
         } else {
             processWsdl();
@@ -236,7 +228,7 @@ public class WSDLToJavaContainer extends AbstractCXFToolContainer {
         }
         context.put(ToolConstants.SERVICE_LIST, serviceList);
 
-        Map<String, InterfaceInfo> interfaces = new LinkedHashMap<String, InterfaceInfo>();
+        Map<String, InterfaceInfo> interfaces = new LinkedHashMap<>();
 
         ServiceInfo service0 = serviceList.get(0);
         SchemaCollection schemaCollection = service0.getXmlSchemaCollection();
@@ -319,8 +311,8 @@ public class WSDLToJavaContainer extends AbstractCXFToolContainer {
         String wsdlURL = (String)context.get(ToolConstants.CFG_WSDLURL);
         @SuppressWarnings("unchecked")
         List<ServiceInfo> serviceList = (List<ServiceInfo>)context.get(ToolConstants.SERVICE_LIST);
-        int slashIndex = wsdlURL.lastIndexOf("/");
-        int dotIndex = wsdlURL.indexOf(".", slashIndex);
+        int slashIndex = wsdlURL.lastIndexOf('/');
+        int dotIndex = wsdlURL.indexOf('.', slashIndex);
         String wsdlLocation = null;
         if (slashIndex > -1 && dotIndex > -1) {
             wsdlLocation = wsdlURL.substring(slashIndex + 1, dotIndex) + ".wsdl";
@@ -350,11 +342,9 @@ public class WSDLToJavaContainer extends AbstractCXFToolContainer {
 
         File clientJarFile = new File((String)context.get(ToolConstants.CFG_OUTPUTDIR),
                                       (String)context.get(ToolConstants.CFG_CLIENT_JAR));
-        JarOutputStream jarout = null;
-        try {
-            jarout = new JarOutputStream(Files.newOutputStream(clientJarFile.toPath()), new Manifest());
+        try (JarOutputStream jarout = new JarOutputStream(
+            Files.newOutputStream(clientJarFile.toPath()), new Manifest())) {
             createClientJar(tmpDir, jarout);
-            jarout.close();
         } catch (Exception e) {
             LOG.log(Level.SEVERE, "FAILED_TO_CREAT_CLIENTJAR", e);
             Message msg = new Message("FAILED_TO_CREAT_CLIENTJAR", LOG);
@@ -439,7 +429,7 @@ public class WSDLToJavaContainer extends AbstractCXFToolContainer {
             if (serviceName != null) {
                 for (Iterator<QName> ite = definition.getServices().keySet().iterator(); ite.hasNext();) {
                     QName qn = ite.next();
-                    if (qn.getLocalPart().equalsIgnoreCase(serviceName.toLowerCase())) {
+                    if (qn.getLocalPart().equalsIgnoreCase(serviceName)) {
                         return qn;
                     }
                 }
@@ -464,16 +454,15 @@ public class WSDLToJavaContainer extends AbstractCXFToolContainer {
 
     public void setExcludePackageAndNamespaces(ToolContext env) {
         if (env.get(ToolConstants.CFG_NEXCLUDE) != null) {
-            String[] pns = null;
+            String[] pns;
             try {
                 pns = (String[])env.get(ToolConstants.CFG_NEXCLUDE);
             } catch (ClassCastException e) {
-                pns = new String[1];
-                pns[0] = (String)env.get(ToolConstants.CFG_NEXCLUDE);
+                pns = new String[] {(String)env.get(ToolConstants.CFG_NEXCLUDE)};
             }
 
             for (int j = 0; j < pns.length; j++) {
-                int pos = pns[j].indexOf("=");
+                int pos = pns[j].indexOf('=');
                 if (pos != -1) {
                     String ns = pns[j].substring(0, pos);
                     if (ns.equals(ToolConstants.WSA_NAMESPACE_URI)) {
@@ -491,15 +480,14 @@ public class WSDLToJavaContainer extends AbstractCXFToolContainer {
 
     public void setPackageAndNamespaces(ToolContext env) {
         if (env.get(ToolConstants.CFG_PACKAGENAME) != null) {
-            String[] pns = null;
+            String[] pns;
             try {
                 pns = (String[])env.get(ToolConstants.CFG_PACKAGENAME);
             } catch (ClassCastException e) {
-                pns = new String[1];
-                pns[0] = (String)env.get(ToolConstants.CFG_PACKAGENAME);
+                pns = new String[] {(String)env.get(ToolConstants.CFG_PACKAGENAME)};
             }
             for (int j = 0; j < pns.length; j++) {
-                int pos = pns[j].indexOf("=");
+                int pos = pns[j].indexOf('=');
                 String packagename = pns[j];
                 if (pos != -1) {
                     String ns = pns[j].substring(0, pos);
@@ -569,7 +557,7 @@ public class WSDLToJavaContainer extends AbstractCXFToolContainer {
             }
 
             if (assumeFileURI) {
-                if (wsdl.indexOf(":") != -1 && !wsdl.startsWith("/")) {
+                if (wsdl.indexOf(':') != -1 && !wsdl.startsWith("/")) {
                     wsdl = "file:/" + wsdl;
                 } else {
                     wsdl = "file:" + wsdl;
@@ -740,7 +728,7 @@ public class WSDLToJavaContainer extends AbstractCXFToolContainer {
     public List<ServiceValidator> getServiceValidators() {
         List<ServiceValidator> validators = new ArrayList<>();
 
-        Properties initialExtensions = null;
+        final Properties initialExtensions;
         try {
             initialExtensions = PropertiesLoaderUtils.loadAllProperties(SERVICE_VALIDATOR, Thread
                 .currentThread().getContextClassLoader());
@@ -759,7 +747,7 @@ public class WSDLToJavaContainer extends AbstractCXFToolContainer {
                                                                              true,
                                                                              Thread.currentThread()
                                                                                  .getContextClassLoader())
-                    .newInstance();
+                    .getDeclaredConstructor().newInstance();
                 validators.add(validator);
             } catch (Exception ex) {
                 LOG.log(Level.WARNING, "EXTENSION_ADD_FAILED_MSG", ex);
@@ -781,7 +769,8 @@ public class WSDLToJavaContainer extends AbstractCXFToolContainer {
             for (XmlSchema imp : schemas.getXmlSchemas()) {
                 if (imp.getSourceURI() != null && !imp.getSourceURI().contains(".wsdl#")) {
                     String schemaFileName = "schema" + (++xsdCount) + ".xsd";
-                    sourceMap.put(imp.getTargetNamespace(), schemaFileName);
+                    File sourceFile = new File(imp.getSourceURI());
+                    sourceMap.put(createSchemaFileKey(imp.getTargetNamespace(), sourceFile.getName()), schemaFileName);
                 }
             }
 
@@ -790,7 +779,7 @@ public class WSDLToJavaContainer extends AbstractCXFToolContainer {
             List<Definition> defs = (List<Definition>)context.get(ToolConstants.IMPORTED_DEFINITION);
             Map<String, String> importWSDLMap = new HashMap<>();
             for (Definition importDef : defs) {
-                File importedWsdlFile = null;
+                File importedWsdlFile;
                 if (!StringUtils.isEmpty(importDef.getDocumentBaseURI())) {
                     importedWsdlFile = new File(importDef.getDocumentBaseURI());
                 } else {
@@ -802,63 +791,64 @@ public class WSDLToJavaContainer extends AbstractCXFToolContainer {
                 importWSDLMap.put(importDef.getTargetNamespace(), importedWsdlFile.getName());
             }
 
-            OutputStreamCreator outputStreamCreator = null;
+            final OutputStreamCreator outputStreamCreator;
             if (context.get(OutputStreamCreator.class) != null) {
                 outputStreamCreator = context.get(OutputStreamCreator.class);
             } else {
                 outputStreamCreator = new OutputStreamCreator();
                 context.put(OutputStreamCreator.class, outputStreamCreator);
             }
-            Writer os = null;
-
-
 
             for (XmlSchema imp : schemas.getXmlSchemas()) {
                 if (imp.getSourceURI() != null && !imp.getSourceURI().contains(".wsdl#")) {
-                    String schemaFileName = sourceMap.get(imp.getTargetNamespace());
+                    File sourceFile = new File(imp.getSourceURI());
+                    String schemaKey = createSchemaFileKey(imp.getTargetNamespace(), sourceFile.getName());
+                    String schemaFileName = sourceMap.get(schemaKey);
                     File impfile = new File(wsdlFile.getParentFile(), schemaFileName);
                     Element el = imp.getSchemaDocument().getDocumentElement();
                     updateImports(el, sourceMap);
-                    os = new FileWriterUtil(impfile.getParent(), context.get(OutputStreamCreator.class))
-                        .getWriter(impfile, StandardCharsets.UTF_8.name());
-                    StaxUtils.writeTo(el, os, 2);
-                    os.close();
+                    updateIncludes(el, sourceMap);
+                    try (Writer os = new FileWriterUtil(impfile.getParent(), outputStreamCreator)
+                        .getWriter(impfile, StandardCharsets.UTF_8.name())) {
+                        StaxUtils.writeTo(el, os, 2);
+                    }
                 }
             }
 
-            //change the import location in wsdl file
-            OutputStream wsdloutput = new BufferedOutputStream(Files.newOutputStream(wsdlFile.toPath()));
             WSDLWriter wsdlWriter = WSDLFactory.newInstance().newWSDLWriter();
-            LoadingByteArrayOutputStream bout = new LoadingByteArrayOutputStream();
-            wsdlWriter.writeWSDL(def, bout);
-            Element defEle = StaxUtils.read(bout.createInputStream()).getDocumentElement();
-            List<Element> xsdElements = DOMUtils.findAllElementsByTagNameNS(defEle,
-                                                                            WSDLConstants.NS_SCHEMA_XSD,
-                                                                            "schema");
-            for (Element xsdEle : xsdElements) {
-                updateImports(xsdEle, sourceMap);
-            }
-            updateWSDLImports(defEle, importWSDLMap);
-            StaxUtils.writeTo(defEle, wsdloutput);
-            wsdloutput.close();
 
+            //change the import location in wsdl file
+            try (OutputStream wsdloutput = new BufferedOutputStream(Files.newOutputStream(wsdlFile.toPath()))) {
+                LoadingByteArrayOutputStream bout = new LoadingByteArrayOutputStream();
+                wsdlWriter.writeWSDL(def, bout);
+                Element defEle = StaxUtils.read(bout.createInputStream()).getDocumentElement();
+                List<Element> xsdElements = DOMUtils.findAllElementsByTagNameNS(defEle,
+                                                                                WSDLConstants.NS_SCHEMA_XSD,
+                                                                                "schema");
+                for (Element xsdEle : xsdElements) {
+                    updateImports(xsdEle, sourceMap);
+                    updateIncludes(xsdEle, sourceMap);
+                }
+                updateWSDLImports(defEle, importWSDLMap);
+                StaxUtils.writeTo(defEle, wsdloutput);
+            }
 
             for (Definition importDef : defs) {
                 File importWsdlFile = new File(outputdir, importWSDLMap.get(importDef.getTargetNamespace()));
-                OutputStream wsdlOs = new BufferedOutputStream(Files.newOutputStream(importWsdlFile.toPath()));
-                bout = new LoadingByteArrayOutputStream();
-                wsdlWriter.writeWSDL(importDef, bout);
-                Element importEle = StaxUtils.read(bout.createInputStream()).getDocumentElement();
+                try (OutputStream wsdlOs = new BufferedOutputStream(Files.newOutputStream(importWsdlFile.toPath()))) {
+                    LoadingByteArrayOutputStream bout = new LoadingByteArrayOutputStream();
+                    wsdlWriter.writeWSDL(importDef, bout);
+                    Element importEle = StaxUtils.read(bout.createInputStream()).getDocumentElement();
 
-                xsdElements = DOMUtils.findAllElementsByTagNameNS(importEle, WSDLConstants.NS_SCHEMA_XSD,
-                                                                  "schema");
-                for (Element xsdEle : xsdElements) {
-                    updateImports(xsdEle, sourceMap);
+                    List<Element> xsdElements = DOMUtils.findAllElementsByTagNameNS(importEle,
+                        WSDLConstants.NS_SCHEMA_XSD, "schema");
+                    for (Element xsdEle : xsdElements) {
+                        updateImports(xsdEle, sourceMap);
+                        updateIncludes(xsdEle, sourceMap);
+                    }
+                    updateWSDLImports(importEle, importWSDLMap);
+                    StaxUtils.writeTo(importEle, wsdlOs);
                 }
-                updateWSDLImports(importEle, importWSDLMap);
-                StaxUtils.writeTo(importEle, wsdlOs);
-                wsdlOs.close();
-
             }
         } catch (Exception ex) {
             LOG.log(Level.SEVERE, "FAILED_TO_GEN_LOCAL_WSDL", ex);
@@ -867,15 +857,34 @@ public class WSDLToJavaContainer extends AbstractCXFToolContainer {
         }
     }
 
+    private static String createSchemaFileKey(String targetNamespace, String fileName) {
+        return targetNamespace + "_" + fileName;
+    }
+
     private void updateImports(Element el, Map<String, String> sourceMap) {
         List<Element> imps = DOMUtils.getChildrenWithName(el,
                                                           WSDLConstants.NS_SCHEMA_XSD,
                                                           "import");
         for (Element e : imps) {
             String ns = e.getAttribute("namespace");
-            e.setAttribute("schemaLocation", sourceMap.get(ns));
-
+            updateSchemaLocation(sourceMap, ns, e);
         }
+    }
+
+    private void updateIncludes(Element el, Map<String, String> sourceMap) {
+        List<Element> imps = DOMUtils.getChildrenWithName(el,
+                                                        WSDLConstants.NS_SCHEMA_XSD,
+                                                        "include");
+        String ns =  el.getAttribute("targetNamespace");
+        for (Element e : imps) {
+            updateSchemaLocation(sourceMap, ns, e);
+        }
+    }
+
+    private static void updateSchemaLocation(Map<String, String> sourceMap, String namespace, Element e) {
+        File sourceFile = new File(e.getAttribute("schemaLocation"));
+        String schemaKey = createSchemaFileKey(namespace, sourceFile.getName());
+        e.setAttribute("schemaLocation", sourceMap.get(schemaKey));
     }
 
     private void updateWSDLImports(Element el, Map<String, String> wsdlSourceMap) {

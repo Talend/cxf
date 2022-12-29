@@ -34,10 +34,16 @@ import org.apache.cxf.rs.security.jose.jwk.JsonWebKey;
 import org.apache.cxf.rs.security.jose.jwk.JsonWebKeys;
 import org.apache.cxf.rs.security.jose.jwk.KeyType;
 
-import org.junit.Assert;
 import org.junit.Test;
 
-public class JwsUtilsTest extends Assert {
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+
+public class JwsUtilsTest {
 
     @Test
     public void testSignatureAlgorithm() {
@@ -80,13 +86,18 @@ public class JwsUtilsTest extends Assert {
         assertNotNull(jws);
     }
     @Test
+    public void testLoadSignatureVerifierFromProperties() throws Exception {
+        JwsSignatureVerifier jws = JwsUtils.loadSignatureVerifier("classpath:/jws/signature.properties", null);
+        assertEquals(SignatureAlgorithm.NONE, jws.getAlgorithm());
+    }
+    @Test
     public void testLoadVerificationKey() throws Exception {
         Properties p = new Properties();
         p.put(JoseConstants.RSSEC_KEY_STORE_FILE,
             "org/apache/cxf/rs/security/jose/jws/alice.jks");
         p.put(JoseConstants.RSSEC_KEY_STORE_PSWD, "password");
         p.put(JoseConstants.RSSEC_KEY_STORE_ALIAS, "alice");
-        JsonWebKeys keySet = JwsUtils.loadPublicVerificationKeys(createMessage(), p);
+        JsonWebKeys keySet = JwsUtils.loadPublicVerificationKeys(createMessage(), p, true);
         assertEquals(1, keySet.asMap().size());
         List<JsonWebKey> keys = keySet.getRsaKeys();
         assertEquals(1, keys.size());
@@ -106,7 +117,7 @@ public class JwsUtilsTest extends Assert {
         p.put(JoseConstants.RSSEC_KEY_STORE_PSWD, "password");
         p.put(JoseConstants.RSSEC_KEY_STORE_ALIAS, "alice");
         p.put(JoseConstants.RSSEC_SIGNATURE_INCLUDE_CERT, true);
-        JsonWebKeys keySet = JwsUtils.loadPublicVerificationKeys(createMessage(), p);
+        JsonWebKeys keySet = JwsUtils.loadPublicVerificationKeys(createMessage(), p, true);
         assertEquals(1, keySet.asMap().size());
         List<JsonWebKey> keys = keySet.getRsaKeys();
         assertEquals(1, keys.size());
@@ -121,7 +132,7 @@ public class JwsUtilsTest extends Assert {
         assertEquals(2, chain.size());
     }
 
-    private Message createMessage() {
+    private static Message createMessage() {
         Message m = new MessageImpl();
         Exchange e = new ExchangeImpl();
         e.put(Bus.class, BusFactory.getThreadDefaultBus());

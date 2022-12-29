@@ -25,10 +25,9 @@ import java.io.SequenceInputStream;
 import java.lang.annotation.Annotation;
 import java.nio.charset.StandardCharsets;
 
-import javax.ws.rs.core.Application;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.ext.Providers;
-
+import jakarta.ws.rs.core.Application;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.ext.Providers;
 import org.apache.cxf.common.util.StringUtils;
 import org.apache.cxf.endpoint.Endpoint;
 import org.apache.cxf.jaxrs.impl.MetadataMap;
@@ -42,10 +41,13 @@ import org.apache.cxf.message.Message;
 import org.apache.cxf.message.MessageImpl;
 
 import org.easymock.EasyMock;
-import org.junit.Assert;
 import org.junit.Test;
 
-public class DOM4JProviderTest extends Assert {
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+
+public class DOM4JProviderTest {
 
 
     @Test
@@ -188,7 +190,7 @@ public class DOM4JProviderTest extends Assert {
         DOM4JProvider p = new DOM4JProvider();
 
         ProviderFactory factory = ServerProviderFactory.getInstance();
-        JSONProvider<Object> provider = new JSONProvider<Object>();
+        JSONProvider<Object> provider = new JSONProvider<>();
         provider.setSerializeAsArray(true);
         provider.setDropRootElement(true);
         provider.setDropElementsInXmlStream(false);
@@ -230,7 +232,7 @@ public class DOM4JProviderTest extends Assert {
 
     private Message createMessageWithJSONProvider() {
         ProviderFactory factory = ServerProviderFactory.getInstance();
-        JSONProvider<Object> provider = new JSONProvider<Object>();
+        JSONProvider<Object> provider = new JSONProvider<>();
         provider.setDropRootElement(true);
         provider.setIgnoreNamespaces(true);
         factory.registerUserProvider(provider);

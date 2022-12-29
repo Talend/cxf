@@ -20,19 +20,22 @@ package org.apache.cxf.jaxrs.client.spec;
 
 import java.io.IOException;
 
-import javax.ws.rs.client.Client;
-import javax.ws.rs.client.ClientBuilder;
-import javax.ws.rs.client.ClientRequestContext;
-import javax.ws.rs.client.ClientRequestFilter;
-import javax.ws.rs.client.Invocation.Builder;
-import javax.ws.rs.core.MultivaluedHashMap;
-import javax.ws.rs.core.MultivaluedMap;
-import javax.ws.rs.core.Response;
+import jakarta.ws.rs.client.Client;
+import jakarta.ws.rs.client.ClientBuilder;
+import jakarta.ws.rs.client.ClientRequestContext;
+import jakarta.ws.rs.client.ClientRequestFilter;
+import jakarta.ws.rs.client.Invocation.Builder;
+import jakarta.ws.rs.core.MultivaluedHashMap;
+import jakarta.ws.rs.core.MultivaluedMap;
+import jakarta.ws.rs.core.Response;
 
-import org.junit.Assert;
 import org.junit.Test;
 
-public class InvocationBuilderImplTest extends Assert {
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+
+public class InvocationBuilderImplTest {
 
     public static class TestFilter implements ClientRequestFilter {
 
@@ -42,7 +45,7 @@ public class InvocationBuilderImplTest extends Assert {
             MultivaluedMap<String, Object> headers = context.getHeaders();
             StringBuilder entity = new StringBuilder();
             for (String key : headers.keySet()) {
-                entity.append(key).append("=").append(headers.getFirst(key)).append(";");
+                entity.append(key).append('=').append(headers.getFirst(key)).append(';');
             }
             context.abortWith(Response.ok(entity.toString()).build());
         }
@@ -65,6 +68,15 @@ public class InvocationBuilderImplTest extends Assert {
         String sentHeaders = response.readEntity(String.class);
         assertTrue(sentHeaders.contains("Header1=b"));
         assertFalse(sentHeaders.contains("UnexpectedHeader"));
+
+        // If value is null then all current headers of the same name 
+        // should be removed.
+        builder.header("Header1", null);
+        builder.header("Header2", "b");
+        response = builder.get();
+        sentHeaders = response.readEntity(String.class);
+        assertTrue(sentHeaders.contains("Header2=b"));
+        assertFalse(sentHeaders.contains("Header1"));
         
         // null headers map should clear all headers
         builder.headers(null);

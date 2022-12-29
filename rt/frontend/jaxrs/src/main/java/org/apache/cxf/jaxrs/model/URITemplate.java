@@ -29,10 +29,9 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import javax.ws.rs.Path;
-import javax.ws.rs.core.MultivaluedMap;
-import javax.ws.rs.core.PathSegment;
-
+import jakarta.ws.rs.Path;
+import jakarta.ws.rs.core.MultivaluedMap;
+import jakarta.ws.rs.core.PathSegment;
 import org.apache.cxf.common.util.SystemPropertyAction;
 import org.apache.cxf.jaxrs.utils.HttpUtils;
 import org.apache.cxf.jaxrs.utils.JAXRSUtils;
@@ -40,6 +39,7 @@ import org.apache.cxf.jaxrs.utils.JAXRSUtils;
 public final class URITemplate {
 
     public static final String TEMPLATE_PARAMETERS = "jaxrs.template.parameters";
+    public static final String URI_TEMPLATE = "jaxrs.template.uri";
     public static final String LIMITED_REGEX_SUFFIX = "(/.*)?";
     public static final String FINAL_MATCH_GROUP = "FINAL_MATCH_GROUP";
     private static final String DEFAULT_PATH_VARIABLE_REGEX = "([^/]+?)";
@@ -75,11 +75,20 @@ public final class URITemplate {
             } else if (chunk instanceof Variable) {
                 Variable var = (Variable)chunk;
                 variables.add(var.getName());
-                if (var.getPattern() != null) {
+                String pattern = var.getPattern();
+                if (pattern != null) {
                     customVariables.add(var.getName());
-                    patternBuilder.append('(');
-                    patternBuilder.append(var.getPattern());
-                    patternBuilder.append(')');
+                    // Add parenthesis to the pattern to identify a regex in the pattern, 
+                    // however do not add them if they already exist since that will cause the Matcher
+                    // to create extraneous values.  Parens identify a group so multiple parens would
+                    // indicate multiple groups.
+                    if (pattern.startsWith("(") && pattern.endsWith(")") && !pattern.startsWith("(?")) {
+                        patternBuilder.append(pattern);
+                    } else {
+                        patternBuilder.append('(');
+                        patternBuilder.append(pattern);
+                        patternBuilder.append(')');
+                    }
                 } else {
                     patternBuilder.append(DEFAULT_PATH_VARIABLE_REGEX);
                 }
@@ -88,7 +97,7 @@ public final class URITemplate {
         literals = literalChars.toString();
 
         int endPos = patternBuilder.length() - 1;
-        boolean endsWithSlash = (endPos >= 0) ? patternBuilder.charAt(endPos) == '/' : false;
+        boolean endsWithSlash = (endPos >= 0) && patternBuilder.charAt(endPos) == '/';
         if (endsWithSlash) {
             patternBuilder.deleteCharAt(endPos);
         }
@@ -130,10 +139,34 @@ public final class URITemplate {
 
     private static String escapeCharacters(String expression) {
 
-        StringBuilder sb = new StringBuilder();
-        for (int i = 0; i < expression.length(); i++) {
-            char ch = expression.charAt(i);
-            sb.append(isReservedCharacter(ch) ? "\\" + ch : ch);
+        int length = expression.length();
+        int i = 0;
+        char ch = ' ';
+        for (; i < length; ++i) {
+            ch = expression.charAt(i);
+            if (isReservedCharacter(ch)) {
+                break;
+            }
+        }
+
+        if (i == length) {
+            return expression;
+        }
+
+        // Allows for up to 8 escaped characters before we start creating more
+        // StringBuilders. 8 is an arbitrary limit, but it seems to be
+        // sufficient in most cases.
+        StringBuilder sb = new StringBuilder(length + 8);
+        sb.append(expression, 0, i);
+        sb.append('\\');
+        sb.append(ch);
+        ++i;
+        for (; i < length; ++i) {
+            ch = expression.charAt(i);
+            if (isReservedCharacter(ch)) {
+                sb.append('\\');
+            }
+            sb.append(ch);
         }
         return sb.toString();
     }
@@ -145,7 +178,7 @@ public final class URITemplate {
     public boolean match(String uri, MultivaluedMap<String, String> templateVariableToValue) {
 
         if (uri == null) {
-            return (templateRegexPattern == null) ? true : false;
+            return templateRegexPattern == null;
         }
 
         if (templateRegexPattern == null) {
@@ -162,19 +195,19 @@ public final class URITemplate {
                 List<PathSegment> uList = JAXRSUtils.getPathSegments(uri, false);
                 StringBuilder sb = new StringBuilder();
                 for (int i = 0; i < uList.size(); i++) {
-                    String segment = null;
+                    final String segment;
                     if (pList.size() > i && pList.get(i).getPath().indexOf('{') == -1) {
                         segment = uList.get(i).getPath();
                     } else {
                         segment = HttpUtils.fromPathSegment(uList.get(i));
                     }
-                    if (segment.length() > 0) {
+                    if (!segment.isEmpty()) {
                         sb.append(SLASH);
                     }
                     sb.append(segment);
                 }
                 uri = sb.toString();
-                if (uri.length() == 0) {
+                if (uri.isEmpty()) {
                     uri = SLASH;
                 }
                 m = templateRegexPattern.matcher(uri);
@@ -353,27 +386,23 @@ public final class URITemplate {
     }
     
     public static int compareTemplates(URITemplate t1, URITemplate t2) {
-        String l1 = t1.getLiteralChars();
-        String l2 = t2.getLiteralChars();
-        if (!l1.equals(l2)) {
-            // descending order
-            return l1.length() < l2.length() ? 1 : -1;
-        }
-
-        int g1 = t1.getVariables().size();
-        int g2 = t2.getVariables().size();
+        int l1 = t1.getLiteralChars().length();
+        int l2 = t2.getLiteralChars().length();
         // descending order
-        int result = g1 < g2 ? 1 : g1 > g2 ? -1 : 0;
+        int result = l1 < l2 ? 1 : l1 > l2 ? -1 : 0;
         if (result == 0) {
-            int gCustom1 = t1.getCustomVariables().size();
-            int gCustom2 = t2.getCustomVariables().size();
-            if (gCustom1 != gCustom2) {
-                // descending order
-                return gCustom1 < gCustom2 ? 1 : -1;
+            int g1 = t1.getVariables().size();
+            int g2 = t2.getVariables().size();
+            // descending order
+            result = g1 < g2 ? 1 : g1 > g2 ? -1 : 0;
+            if (result == 0) {
+                int gCustom1 = t1.getCustomVariables().size();
+                int gCustom2 = t2.getCustomVariables().size();
+                result = gCustom1 < gCustom2 ? 1 : gCustom1 > gCustom2 ? -1 : 0;
+                if (result == 0) {
+                    result = t1.getPatternValue().compareTo(t2.getPatternValue());
+                }
             }
-        }
-        if (result == 0) {
-            result = t1.getPatternValue().compareTo(t2.getPatternValue());
         }
 
         return result;

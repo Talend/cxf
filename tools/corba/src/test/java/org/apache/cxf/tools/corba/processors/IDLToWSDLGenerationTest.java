@@ -46,6 +46,8 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
+import static org.junit.Assert.assertEquals;
+
 public class IDLToWSDLGenerationTest extends ProcessorTestBase {
     public static final List<String> SCHEMA_IGNORE_ATTR = Arrays.asList(new String[]{"attributeFormDefault",
                                                                                      "elementFormDefault",
@@ -105,7 +107,6 @@ public class IDLToWSDLGenerationTest extends ProcessorTestBase {
         URL orig = getClass().getResource(expectedWsdlFilename);
         InputStream actualStream = new ByteArrayInputStream(out.toString().getBytes());
 
-        System.out.println(out.toString());
         assertWsdlEquals(orig.openStream(), actualStream, DEFAULT_IGNORE_ATTR, DEFAULT_IGNORE_TAG);
     }
 

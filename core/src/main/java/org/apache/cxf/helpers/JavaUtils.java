@@ -23,11 +23,13 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 
+import org.apache.cxf.common.util.SystemPropertyAction;
+
 public final class JavaUtils {
 
     /** Use this character as suffix */
     static final char KEYWORD_PREFIX = '_';
-   
+
     /**
      * These are java keywords as specified at the following URL.
      * http://java.sun.com/docs/books/jls/third_edition/html/lexical.html#3.9
@@ -46,15 +48,31 @@ public final class JavaUtils {
         "void", "volatile", "while"
     ));
 
+    private static boolean isJava11Compatible;
     private static boolean isJava9Compatible;
-    
+    private static boolean isJava8Before161;
+    private static Integer javaMajorVersion;
+
     static {
-        String version = System.getProperty("java.version");
-        if (version.indexOf(".") > 0) {
-            version = version.substring(0, version.indexOf("."));
+        String version = SystemPropertyAction.getProperty("java.version");
+        try {
+            isJava8Before161 = version.startsWith("1.8.0_")
+                && Integer.parseInt(version.substring(6)) < 161;
+        } catch (NumberFormatException ex) {
+            isJava8Before161 = false;
         }
-        
-        setJava9Compatible(Integer.valueOf(version) >= 9);
+
+        if (version.indexOf('.') > 0) {
+            version = version.substring(0, version.indexOf('.'));
+        }            
+        if (version.indexOf('-') > 0) {
+            version = version.substring(0, version.indexOf('-'));
+        }
+
+        final Integer javaVersion = Integer.valueOf(version);
+        setJava9Compatible(javaVersion >= 9);
+        setJava11Compatible(javaVersion >= 11);
+        setJavaMajorVersion(javaVersion);
     }
 
     private JavaUtils() {
@@ -80,8 +98,28 @@ public final class JavaUtils {
     public static boolean isJava9Compatible() {
         return isJava9Compatible;
     }
-
+    
+    public static boolean isJava11Compatible() {
+        return isJava11Compatible;
+    }
+    
     private static void setJava9Compatible(boolean java9Compatible) {
         JavaUtils.isJava9Compatible = java9Compatible;
+    }
+    
+    private static void setJava11Compatible(boolean java11Compatible) {
+        JavaUtils.isJava11Compatible = java11Compatible;
+    }
+
+    public static boolean isJava8Before161() {
+        return isJava8Before161;
+    }
+
+    public static void setJavaMajorVersion(Integer javaMajorVersion) {
+        JavaUtils.javaMajorVersion = javaMajorVersion;
+    }
+    
+    public static Integer getJavaMajorVersion() {
+        return javaMajorVersion;
     }
 }

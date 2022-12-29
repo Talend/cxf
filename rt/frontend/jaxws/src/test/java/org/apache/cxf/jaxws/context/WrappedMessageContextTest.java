@@ -20,26 +20,30 @@
 package org.apache.cxf.jaxws.context;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import javax.activation.DataHandler;
-import javax.mail.util.ByteArrayDataSource;
-import javax.xml.ws.handler.MessageContext;
-import javax.xml.ws.handler.MessageContext.Scope;
-
+import jakarta.activation.DataHandler;
+import jakarta.mail.util.ByteArrayDataSource;
+import jakarta.xml.ws.handler.MessageContext;
+import jakarta.xml.ws.handler.MessageContext.Scope;
 import org.apache.cxf.attachment.AttachmentImpl;
 import org.apache.cxf.helpers.CastUtils;
 import org.apache.cxf.message.Attachment;
 import org.apache.cxf.message.Message;
 
-import org.junit.Assert;
 import org.junit.Test;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 /**
  *
  */
-public class WrappedMessageContextTest extends Assert {
+public class WrappedMessageContextTest {
     @Test
     public void testPutAndGetJaxwsAttachments() throws Exception {
         WrappedMessageContext context =
@@ -80,5 +84,19 @@ public class WrappedMessageContextTest extends Assert {
                 fail("unknown attachment");
             }
         }
+    }
+    
+    
+    @Test
+    public void testContainsKey() throws Exception {
+        WrappedMessageContext context =
+            new WrappedMessageContext(new HashMap<String, Object>(), null, Scope.APPLICATION);
+
+        Map<String, List<String>> headers = new HashMap<>();
+        context.put(MessageContext.HTTP_REQUEST_HEADERS, headers);
+
+        assertNotNull(context.get(MessageContext.HTTP_REQUEST_HEADERS));
+
+        assertTrue(context.containsKey(MessageContext.HTTP_REQUEST_HEADERS));
     }
 }

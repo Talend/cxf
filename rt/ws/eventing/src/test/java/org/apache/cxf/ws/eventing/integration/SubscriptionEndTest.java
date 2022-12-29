@@ -23,11 +23,11 @@ package org.apache.cxf.ws.eventing.integration;
 import java.io.IOException;
 import java.util.UUID;
 
-import javax.xml.bind.JAXBElement;
 import javax.xml.namespace.QName;
 
 import org.w3c.dom.Element;
 
+import jakarta.xml.bind.JAXBElement;
 import org.apache.cxf.endpoint.Server;
 import org.apache.cxf.ws.addressing.AttributedURIType;
 import org.apache.cxf.ws.addressing.EndpointReferenceType;
@@ -64,7 +64,7 @@ public class SubscriptionEndTest extends SimpleEventingIntegrationTest {
         subscribe.getDelivery().getContent().add(new ObjectFactory().createNotifyTo(eventSinkERT));
 
         JAXBElement<String> idqn
-            = new JAXBElement<String>(new QName("http://www.example.org", "MyReferenceParameter"),
+            = new JAXBElement<>(new QName("http://www.example.org", "MyReferenceParameter"),
                 String.class,
                 "380");
         ReferenceParametersType myParams = new ReferenceParametersType();

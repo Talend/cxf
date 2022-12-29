@@ -25,9 +25,9 @@ import java.net.URL;
 import java.util.logging.Logger;
 
 import javax.xml.namespace.QName;
-import javax.xml.ws.Endpoint;
-import javax.xml.ws.WebServiceException;
 
+import jakarta.xml.ws.Endpoint;
+import jakarta.xml.ws.WebServiceException;
 import org.apache.cxf.Bus;
 import org.apache.cxf.BusFactory;
 import org.apache.cxf.bus.spring.SpringBusFactory;
@@ -46,6 +46,10 @@ import org.apache.cxf.ws.policy.PolicyException;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 /**
  * Tests the use of the WS-Policy Framework to determine the behaviour of the HTTP client

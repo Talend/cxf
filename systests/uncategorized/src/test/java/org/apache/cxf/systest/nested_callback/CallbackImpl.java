@@ -22,11 +22,11 @@ package org.apache.cxf.systest.nested_callback;
 import org.apache.callback.CallbackPortType;
 
 
-@javax.jws.WebService(serviceName = "CallbackService",
+@jakarta.jws.WebService(serviceName = "CallbackService",
                       portName = "CallbackPort",
                       endpointInterface = "org.apache.callback.CallbackPortType",
                       targetNamespace = "http://apache.org/nested_callback",
-                      wsdlLocation = "testutils/nested_callback.wsdl")
+                      wsdlLocation = "wsdl/nested_callback.wsdl")
 
 public class CallbackImpl implements CallbackPortType  {
 

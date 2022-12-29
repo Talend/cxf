@@ -24,8 +24,8 @@ import java.util.Arrays;
 import java.util.Collection;
 
 import javax.xml.namespace.QName;
-import javax.xml.ws.Service;
 
+import jakarta.xml.ws.Service;
 import org.apache.cxf.Bus;
 import org.apache.cxf.BusFactory;
 import org.apache.cxf.bus.spring.SpringBusFactory;
@@ -37,6 +37,10 @@ import org.example.contract.doubleit.DoubleItPortType;
 import org.junit.BeforeClass;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized.Parameters;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 /**
  * A set of (negative) tests for Username Tokens policies over the Transport Binding.
@@ -72,18 +76,17 @@ public class UsernameTokenPolicyTest extends AbstractBusClientServerTestBase {
     }
 
     @Parameters(name = "{0}")
-    public static Collection<TestParam[]> data() {
+    public static Collection<TestParam> data() {
 
-        return Arrays.asList(new TestParam[][] {{new TestParam(PORT, false)},
-                                                {new TestParam(PORT, true)},
-                                                {new TestParam(STAX_PORT, false)},
-                                                {new TestParam(STAX_PORT, true)},
+        return Arrays.asList(new TestParam[] {new TestParam(PORT, false),
+                                              new TestParam(PORT, true),
+                                              new TestParam(STAX_PORT, false),
+                                              new TestParam(STAX_PORT, true),
         });
     }
 
     @org.junit.AfterClass
     public static void cleanup() throws Exception {
-        SecurityTestUtil.cleanup();
         stopAllServers();
     }
 
@@ -122,7 +125,7 @@ public class UsernameTokenPolicyTest extends AbstractBusClientServerTestBase {
         try {
             port.doubleIt(25);
             fail("Failure expected on not sending a UsernameToken Supporting Token");
-        } catch (javax.xml.ws.soap.SOAPFaultException ex) {
+        } catch (jakarta.xml.ws.soap.SOAPFaultException ex) {
             String error = "These policy alternatives can not be satisfied";
             assertTrue(ex.getMessage().contains(error)
                        || ex.getMessage().contains("UsernameToken not satisfied"));
@@ -167,7 +170,7 @@ public class UsernameTokenPolicyTest extends AbstractBusClientServerTestBase {
         try {
             port.doubleIt(25);
             fail("Failure expected on a hashed password");
-        } catch (javax.xml.ws.soap.SOAPFaultException ex) {
+        } catch (jakarta.xml.ws.soap.SOAPFaultException ex) {
             String error = "These policy alternatives can not be satisfied";
             assertTrue(ex.getMessage().contains(error)
                        || ex.getMessage().contains("password must not be hashed"));
@@ -185,7 +188,7 @@ public class UsernameTokenPolicyTest extends AbstractBusClientServerTestBase {
         try {
             port.doubleIt(25);
             fail("Failure expected on not sending a password");
-        } catch (javax.xml.ws.soap.SOAPFaultException ex) {
+        } catch (jakarta.xml.ws.soap.SOAPFaultException ex) {
             // expected
         }
 
@@ -228,7 +231,7 @@ public class UsernameTokenPolicyTest extends AbstractBusClientServerTestBase {
         try {
             port.doubleIt(25);
             fail("Failure expected on a plaintext password");
-        } catch (javax.xml.ws.soap.SOAPFaultException ex) {
+        } catch (jakarta.xml.ws.soap.SOAPFaultException ex) {
             String error = "These policy alternatives can not be satisfied";
             assertTrue(ex.getMessage().contains(error)
                        || ex.getMessage().contains("UsernameToken does not contain a hashed password"));
@@ -246,7 +249,7 @@ public class UsernameTokenPolicyTest extends AbstractBusClientServerTestBase {
         try {
             port.doubleIt(25);
             fail("Failure expected on not sending a password");
-        } catch (javax.xml.ws.soap.SOAPFaultException ex) {
+        } catch (jakarta.xml.ws.soap.SOAPFaultException ex) {
             // expected
         }
 
@@ -289,7 +292,7 @@ public class UsernameTokenPolicyTest extends AbstractBusClientServerTestBase {
         try {
             port.doubleIt(25);
             fail("Failure expected on not sending a Created element");
-        } catch (javax.xml.ws.soap.SOAPFaultException ex) {
+        } catch (jakarta.xml.ws.soap.SOAPFaultException ex) {
             String error = "These policy alternatives can not be satisfied";
             assertTrue(ex.getMessage().contains(error)
                        || ex.getMessage().contains("UsernameToken does not contain a created"));
@@ -334,7 +337,7 @@ public class UsernameTokenPolicyTest extends AbstractBusClientServerTestBase {
         try {
             port.doubleIt(25);
             fail("Failure expected on not sending a Nonce element");
-        } catch (javax.xml.ws.soap.SOAPFaultException ex) {
+        } catch (jakarta.xml.ws.soap.SOAPFaultException ex) {
             String error = "These policy alternatives can not be satisfied";
             assertTrue(ex.getMessage().contains(error)
                        || ex.getMessage().contains("UsernameToken does not contain a nonce"));

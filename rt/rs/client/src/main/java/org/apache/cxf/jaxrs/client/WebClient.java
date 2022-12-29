@@ -31,29 +31,28 @@ import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 
-import javax.ws.rs.HttpMethod;
-import javax.ws.rs.ProcessingException;
-import javax.ws.rs.WebApplicationException;
-import javax.ws.rs.client.AsyncInvoker;
-import javax.ws.rs.client.CompletionStageRxInvoker;
-import javax.ws.rs.client.Entity;
-import javax.ws.rs.client.InvocationCallback;
-import javax.ws.rs.client.RxInvoker;
-import javax.ws.rs.client.RxInvokerProvider;
-import javax.ws.rs.client.SyncInvoker;
-import javax.ws.rs.core.Cookie;
-import javax.ws.rs.core.EntityTag;
-import javax.ws.rs.core.Form;
-import javax.ws.rs.core.GenericEntity;
-import javax.ws.rs.core.GenericType;
-import javax.ws.rs.core.HttpHeaders;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.MultivaluedMap;
-import javax.ws.rs.core.PathSegment;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.ResponseBuilder;
-import javax.ws.rs.core.UriBuilder;
-
+import jakarta.ws.rs.HttpMethod;
+import jakarta.ws.rs.ProcessingException;
+import jakarta.ws.rs.WebApplicationException;
+import jakarta.ws.rs.client.AsyncInvoker;
+import jakarta.ws.rs.client.CompletionStageRxInvoker;
+import jakarta.ws.rs.client.Entity;
+import jakarta.ws.rs.client.InvocationCallback;
+import jakarta.ws.rs.client.RxInvoker;
+import jakarta.ws.rs.client.RxInvokerProvider;
+import jakarta.ws.rs.client.SyncInvoker;
+import jakarta.ws.rs.core.Cookie;
+import jakarta.ws.rs.core.EntityTag;
+import jakarta.ws.rs.core.Form;
+import jakarta.ws.rs.core.GenericEntity;
+import jakarta.ws.rs.core.GenericType;
+import jakarta.ws.rs.core.HttpHeaders;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.MultivaluedMap;
+import jakarta.ws.rs.core.PathSegment;
+import jakarta.ws.rs.core.Response;
+import jakarta.ws.rs.core.Response.ResponseBuilder;
+import jakarta.ws.rs.core.UriBuilder;
 import org.apache.cxf.Bus;
 import org.apache.cxf.BusFactory;
 import org.apache.cxf.bus.spring.SpringBusFactory;
@@ -90,11 +89,19 @@ public class WebClient extends AbstractClient {
     private static final String WEB_CLIENT_OPERATION_REPORTING = "enable.webclient.operation.reporting";
     private BodyWriter bodyWriter = new BodyWriter();
     protected WebClient(String baseAddress) {
-        this(convertStringToURI(baseAddress));
+        this(convertStringToURI(baseAddress), Collections.emptyMap());
+    }
+    
+    protected WebClient(String baseAddress, Map<String, Object> properties) {
+        this(convertStringToURI(baseAddress), properties);
     }
 
     protected WebClient(URI baseURI) {
-        this(new LocalClientState(baseURI));
+        this(baseURI, Collections.emptyMap());
+    }
+
+    protected WebClient(URI baseURI, Map<String, Object> properties) {
+        this(new LocalClientState(baseURI, properties));
     }
 
     protected WebClient(ClientState state) {
@@ -110,8 +117,17 @@ public class WebClient extends AbstractClient {
      * @param baseAddress baseAddress
      */
     public static WebClient create(String baseAddress) {
+        return create(baseAddress, Collections.emptyMap());
+    }
+
+    /**
+     * Creates WebClient
+     * @param baseAddress baseAddress
+     */
+    public static WebClient create(String baseAddress, Map<String, Object> properties) {
         JAXRSClientFactoryBean bean = new JAXRSClientFactoryBean();
         bean.setAddress(baseAddress);
+        bean.setProperties(properties);
         return bean.createWebClient();
     }
 
@@ -147,10 +163,23 @@ public class WebClient extends AbstractClient {
      * @param threadSafe if true ThreadLocalClientState is used
      */
     public static WebClient create(String baseAddress, List<?> providers, boolean threadSafe) {
+        return create(baseAddress, providers, Collections.emptyMap(), threadSafe);
+    }
+    
+    /**
+     * Creates WebClient
+     * @param baseAddress baseURI
+     * @param providers list of providers
+     * @param threadSafe if true ThreadLocalClientState is used
+     * @param properties additional properties
+     */
+    public static WebClient create(String baseAddress, List<?> providers, 
+            Map<String, Object> properties, boolean threadSafe) {
         JAXRSClientFactoryBean bean = getBean(baseAddress, null);
         bean.setProviders(providers);
+        bean.setProperties(properties);
         if (threadSafe) {
-            bean.setInitialState(new ThreadLocalClientState(baseAddress));
+            bean.setInitialState(new ThreadLocalClientState(baseAddress, properties));
         }
         return bean.createWebClient();
     }
@@ -272,7 +301,7 @@ public class WebClient extends AbstractClient {
      */
     public static WebClient fromClient(Client client, boolean inheritHeaders) {
 
-        WebClient webClient = null;
+        final WebClient webClient;
 
         ClientState clientState = getClientState(client);
         if (clientState == null) {
@@ -737,7 +766,7 @@ public class WebClient extends AbstractClient {
         if (path == null) {
             return back(true);
         }
-        back(path.startsWith("/") ? true : false);
+        back(path.startsWith("/"));
         return path(path);
     }
 
@@ -843,6 +872,11 @@ public class WebClient extends AbstractClient {
     }
 
     @Override
+    public WebClient authorization(Object auth) {
+        return (WebClient)super.authorization(auth);
+    }
+
+    @Override
     public WebClient header(String name, Object... values) {
         return (WebClient)super.header(name, values);
     }
@@ -892,15 +926,16 @@ public class WebClient extends AbstractClient {
         }
         MultivaluedMap<String, String> headers = prepareHeaders(responseClass, body);
         resetResponse();
-        Response r = null;
+        final Response r;
         try {
             r = doChainedInvocation(httpMethod, headers, body, requestClass, inGenericType,
                                              inAnns, responseClass, outGenericType, null, null);
         } finally {
             resetResponseStateImmediatelyIfNeeded();
         }
-        
-        if (r.getStatus() >= 300 && responseClass != Response.class) {
+
+        int status = r.getStatus();
+        if (status != 304 && status >= 300 && responseClass != Response.class) {
             throw convertToWebApplicationException(r);
         }
         return r;
@@ -924,7 +959,7 @@ public class WebClient extends AbstractClient {
                                           Class<?> respClass,
                                           Type outType,
                                           InvocationCallback<T> callback) {
-        JaxrsClientCallback<T> cb = new JaxrsClientCallback<T>(callback, respClass, outType);
+        JaxrsClientCallback<T> cb = new JaxrsClientCallback<>(callback, respClass, outType);
         prepareAsyncClient(httpMethod, body, requestClass, inType, respClass, outType, cb);
         return cb.createFuture();
     }
@@ -1026,7 +1061,7 @@ public class WebClient extends AbstractClient {
                                    inAnns, respClass, outType, exchange, invContext);
     }
     //CHECKSTYLE:OFF
-    protected Response doChainedInvocation(String httpMethod,
+    protected Response doChainedInvocation(String httpMethod, //NOPMD
                                            MultivaluedMap<String, String> headers,
                                            Object body,
                                            Class<?> requestClass,
@@ -1060,7 +1095,7 @@ public class WebClient extends AbstractClient {
     }
 
     //CHECKSTYLE:OFF
-    private Message finalizeMessage(String httpMethod,
+    private Message finalizeMessage(String httpMethod, //NOPMD
                                    MultivaluedMap<String, String> headers,
                                    Object body,
                                    Class<?> requestClass,
@@ -1115,11 +1150,10 @@ public class WebClient extends AbstractClient {
             if (results != null && results.length == 1) {
                 return (Response)results[0];
             }
+        } catch (WebApplicationException | ProcessingException ex) {
+            throw ex;
         } catch (Exception ex) {
-            throw ex instanceof WebApplicationException
-                ? (WebApplicationException)ex
-                : ex instanceof ProcessingException
-                ? (ProcessingException)ex : new ProcessingException(ex);
+            throw new ProcessingException(ex);
         }
 
         try {
@@ -1153,9 +1187,10 @@ public class WebClient extends AbstractClient {
             getState().setResponse(r);
             ((ResponseImpl)r).setOutMessage(outMessage);
             return r;
+        } catch (ProcessingException ex) {
+            throw ex;
         } catch (Throwable ex) {
-            throw (ex instanceof ProcessingException) ? (ProcessingException)ex
-                                                  : new ProcessingException(ex);
+            throw new ProcessingException(ex);
         } finally {
             ClientProviderFactory.getInstance(outMessage).clearThreadLocalProxies();
         }
@@ -1262,7 +1297,7 @@ public class WebClient extends AbstractClient {
     public CompletionStageRxInvoker rx() {
         return rx(lookUpExecutorService());
     }
-    
+
     public CompletionStageRxInvoker rx(ExecutorService ex) {
         return new CompletionStageRxInvokerImpl(this, ex);
     }
@@ -1273,7 +1308,7 @@ public class WebClient extends AbstractClient {
     }
 
     @SuppressWarnings({
-     "rawtypes", "unchecked"
+        "rawtypes", "unchecked"
     })
     public <T extends RxInvoker> T rx(Class<T> rxCls, ExecutorService executorService) {
         if (CompletionStageRxInvoker.class.isAssignableFrom(rxCls)) {
@@ -1303,7 +1338,7 @@ public class WebClient extends AbstractClient {
             javax.naming.InitialContext ic = new javax.naming.InitialContext();
             Object execService = ic.lookup("java:comp/DefaultManagedExecutorService");
             if (execService != null) {
-                return (ExecutorService)execService; 
+                return (ExecutorService)execService;
             }
         } catch (Throwable ex) {
             // ignore

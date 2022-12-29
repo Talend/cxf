@@ -21,19 +21,19 @@ package org.apache.cxf.binding.soap.saaj;
 import java.util.Iterator;
 
 import javax.xml.namespace.QName;
-import javax.xml.soap.SOAPBody;
-import javax.xml.soap.SOAPElement;
-import javax.xml.soap.SOAPEnvelope;
-import javax.xml.soap.SOAPException;
-import javax.xml.soap.SOAPFault;
-import javax.xml.soap.SOAPHeader;
-import javax.xml.soap.SOAPPart;
 import javax.xml.stream.XMLStreamException;
 
 import org.w3c.dom.DocumentFragment;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
+import jakarta.xml.soap.SOAPBody;
+import jakarta.xml.soap.SOAPElement;
+import jakarta.xml.soap.SOAPEnvelope;
+import jakarta.xml.soap.SOAPException;
+import jakarta.xml.soap.SOAPFault;
+import jakarta.xml.soap.SOAPHeader;
+import jakarta.xml.soap.SOAPPart;
 import org.apache.cxf.common.util.StringUtils;
 import org.apache.cxf.staxutils.OverlayW3CDOMStreamWriter;
 import org.apache.cxf.staxutils.W3CNamespaceContext;
@@ -133,8 +133,13 @@ public final class SAAJStreamWriter extends OverlayW3CDOMStreamWriter {
                     setChild(adjustPrefix(getEnvelope(), prefix), false);
                     adjustPrefix(getEnvelope().getHeader(), prefix);
                     adjustPrefix(getEnvelope().getBody(), prefix);
-                    getEnvelope().removeChild(getEnvelope().getHeader());
-                    getEnvelope().removeChild(getEnvelope().getBody());
+                    if (getEnvelope().getHeader() != null) {
+                        getEnvelope().removeChild(getEnvelope().getHeader());
+                    }
+                    if (getEnvelope().getBody() != null) {
+                        getEnvelope().removeChild(getEnvelope().getBody());
+                    }
+
                     return;
                 } else if ("Body".equals(local)) {
                     if (getEnvelope().getBody() == null) {
@@ -213,7 +218,7 @@ public final class SAAJStreamWriter extends OverlayW3CDOMStreamWriter {
             }
         } else if (cur instanceof SOAPElement) {
             try {
-                Element el = null;
+                final Element el;
                 if (StringUtils.isEmpty(pfx) && StringUtils.isEmpty(ns)) {
                     el = ((SOAPElement)cur).addChildElement(local, "", "");
                 } else {

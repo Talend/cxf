@@ -21,10 +21,9 @@ package org.apache.cxf.jaxws.handler.logical;
 
 import java.util.Map;
 
-import javax.xml.ws.LogicalMessage;
-import javax.xml.ws.handler.LogicalMessageContext;
-import javax.xml.ws.handler.MessageContext;
-
+import jakarta.xml.ws.LogicalMessage;
+import jakarta.xml.ws.handler.LogicalMessageContext;
+import jakarta.xml.ws.handler.MessageContext;
 import org.apache.cxf.jaxws.context.WrappedMessageContext;
 import org.apache.cxf.message.Message;
 
@@ -47,10 +46,10 @@ public class LogicalMessageContextImpl extends WrappedMessageContext implements 
             if (((Map<?, ?>)o).isEmpty()) {
                 return null;
             }
-            if (!isResponse() && MessageContext.HTTP_RESPONSE_HEADERS.equals(key)) {
+            if (!isResponse() && isOutbound() && MessageContext.HTTP_RESPONSE_HEADERS.equals(key)) {
                 return null;
             }
-            if (isRequestor() && MessageContext.HTTP_REQUEST_HEADERS.equals(key)) {
+            if (isRequestor() && !isOutbound() && MessageContext.HTTP_REQUEST_HEADERS.equals(key)) {
                 return null;
             }
         }

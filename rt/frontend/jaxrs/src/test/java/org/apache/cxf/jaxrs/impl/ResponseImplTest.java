@@ -20,28 +20,20 @@
 package org.apache.cxf.jaxrs.impl;
 
 import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.Reader;
+import java.lang.annotation.Annotation;
+import java.lang.reflect.Type;
+import java.net.URI;
+import java.nio.CharBuffer;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
-import javax.ws.rs.core.Application;
-import javax.ws.rs.core.GenericEntity;
-import javax.ws.rs.core.HttpHeaders;
-import javax.ws.rs.core.Link;
-import javax.ws.rs.core.Link.Builder;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.MultivaluedMap;
-import javax.ws.rs.core.NewCookie;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.ResponseBuilder;
-import javax.ws.rs.core.Response.Status;
-import javax.ws.rs.core.Response.StatusType;
-import javax.ws.rs.core.UriBuilder;
-import javax.ws.rs.core.Variant;
-import javax.ws.rs.core.Variant.VariantListBuilder;
-import javax.ws.rs.ext.RuntimeDelegate;
-import javax.ws.rs.ext.RuntimeDelegate.HeaderDelegate;
 import javax.xml.transform.Source;
 import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerFactory;
@@ -49,7 +41,32 @@ import javax.xml.transform.dom.DOMResult;
 
 import org.w3c.dom.Document;
 
+import jakarta.activation.DataSource;
+import jakarta.ws.rs.Consumes;
+import jakarta.ws.rs.WebApplicationException;
+import jakarta.ws.rs.client.ResponseProcessingException;
+import jakarta.ws.rs.core.Application;
+import jakarta.ws.rs.core.EntityTag;
+import jakarta.ws.rs.core.GenericEntity;
+import jakarta.ws.rs.core.HttpHeaders;
+import jakarta.ws.rs.core.Link;
+import jakarta.ws.rs.core.Link.Builder;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.MultivaluedMap;
+import jakarta.ws.rs.core.NewCookie;
+import jakarta.ws.rs.core.Response;
+import jakarta.ws.rs.core.Response.ResponseBuilder;
+import jakarta.ws.rs.core.Response.Status;
+import jakarta.ws.rs.core.Response.StatusType;
+import jakarta.ws.rs.core.UriBuilder;
+import jakarta.ws.rs.core.Variant;
+import jakarta.ws.rs.core.Variant.VariantListBuilder;
+import jakarta.ws.rs.ext.MessageBodyReader;
+import jakarta.ws.rs.ext.Provider;
+import jakarta.ws.rs.ext.RuntimeDelegate;
+import jakarta.ws.rs.ext.RuntimeDelegate.HeaderDelegate;
 import org.apache.cxf.endpoint.Endpoint;
+import org.apache.cxf.helpers.IOUtils;
 import org.apache.cxf.jaxrs.provider.ProviderFactory;
 import org.apache.cxf.jaxrs.provider.ServerProviderFactory;
 import org.apache.cxf.jaxrs.resources.Book;
@@ -61,12 +78,19 @@ import org.apache.cxf.message.MessageImpl;
 import org.apache.cxf.staxutils.StaxUtils;
 
 import org.easymock.EasyMock;
-import org.junit.Assert;
 import org.junit.Test;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertSame;
+import static org.junit.Assert.assertThrows;
+import static org.junit.Assert.assertTrue;
 
 
 @SuppressWarnings("resource") // Responses built in this test don't need to be closed
-public class ResponseImplTest extends Assert {
+public class ResponseImplTest {
 
     @Test
     public void testReadEntityWithNullOutMessage() {
@@ -75,7 +99,7 @@ public class ResponseImplTest extends Assert {
         Response response = Response.status(Response.Status.INTERNAL_SERVER_ERROR)
                   .entity(str)
                   .build();
-        Assert.assertEquals(str, response.readEntity(String.class));
+        assertEquals(str, response.readEntity(String.class));
     }
 
     @Test
@@ -107,7 +131,7 @@ public class ResponseImplTest extends Assert {
             + " Value=\"urn:oasis:names:tc:xacml:1.0:status:ok\"/></Status></Result></Response>";
 
 
-        MultivaluedMap<String, Object> headers = new MetadataMap<String, Object>();
+        MultivaluedMap<String, Object> headers = new MetadataMap<>();
         headers.putSingle("Content-Type", "text/xml");
         r.addMetadata(headers);
         r.setEntity(new ByteArrayInputStream(content.getBytes()), null);
@@ -125,16 +149,11 @@ public class ResponseImplTest extends Assert {
         e.setInMessage(m);
         e.setOutMessage(new MessageImpl());
         Endpoint endpoint = EasyMock.createMock(Endpoint.class);
-        endpoint.getEndpointInfo();
-        EasyMock.expectLastCall().andReturn(null).anyTimes();
-        endpoint.get(Application.class.getName());
-        EasyMock.expectLastCall().andReturn(null);
-        endpoint.size();
-        EasyMock.expectLastCall().andReturn(0).anyTimes();
-        endpoint.isEmpty();
-        EasyMock.expectLastCall().andReturn(true).anyTimes();
-        endpoint.get(ServerProviderFactory.class.getName());
-        EasyMock.expectLastCall().andReturn(factory).anyTimes();
+        EasyMock.expect(endpoint.getEndpointInfo()).andReturn(null).anyTimes();
+        EasyMock.expect(endpoint.get(Application.class.getName())).andReturn(null);
+        EasyMock.expect(endpoint.size()).andReturn(0).anyTimes();
+        EasyMock.expect(endpoint.isEmpty()).andReturn(true).anyTimes();
+        EasyMock.expect(endpoint.get(ServerProviderFactory.class.getName())).andReturn(factory).anyTimes();
         EasyMock.replay(endpoint);
         e.put(Endpoint.class, endpoint);
         return m;
@@ -147,7 +166,7 @@ public class ResponseImplTest extends Assert {
         assertEquals("Wrong status", ri.getStatus(), 200);
         assertSame("Wrong entity", entity, ri.getEntity());
 
-        MetadataMap<String, Object> meta = new MetadataMap<String, Object>();
+        MetadataMap<String, Object> meta = new MetadataMap<>();
         ri.addMetadata(meta);
         ri.getMetadata();
         assertSame("Wrong metadata", meta, ri.getMetadata());
@@ -173,6 +192,62 @@ public class ResponseImplTest extends Assert {
     public void testHasEntity() {
         assertTrue(new ResponseImpl(200, "").hasEntity());
         assertFalse(new ResponseImpl(200).hasEntity());
+    }
+
+    @Test
+    public void testHasEntityWithEmptyStreamThatIsMarkSupported() throws Exception {
+        InputStream entityStream = EasyMock.createStrictMock(InputStream.class);
+        EasyMock.expect(entityStream.markSupported()).andReturn(true);
+        entityStream.mark(1);
+        EasyMock.expect(entityStream.read()).andReturn(-1);
+        entityStream.reset();
+        EasyMock.replay(entityStream);
+        assertFalse(new ResponseImpl(200, entityStream).hasEntity());
+        EasyMock.verify(entityStream);
+    }
+
+    @Test
+    public void testHasEntityWithNonEmptyStreamThatIsMarkSupported() throws Exception {
+        InputStream entityStream = EasyMock.createStrictMock(InputStream.class);
+        EasyMock.expect(entityStream.markSupported()).andReturn(true);
+        entityStream.mark(1);
+        EasyMock.expect(entityStream.read()).andReturn(0);
+        entityStream.reset();
+        EasyMock.replay(entityStream);
+        assertTrue(new ResponseImpl(200, entityStream).hasEntity());
+        EasyMock.verify(entityStream);
+    }
+
+    @Test
+    public void testHasEntityWithEmptyStreamThatIsNotMarkSupported() throws Exception {
+        InputStream entityStream = EasyMock.createStrictMock(InputStream.class);
+        EasyMock.expect(entityStream.markSupported()).andReturn(false);
+        EasyMock.expect(entityStream.available()).andReturn(0);
+        EasyMock.expect(entityStream.read()).andReturn(-1);
+        EasyMock.replay(entityStream);
+        assertFalse(new ResponseImpl(200, entityStream).hasEntity());
+        EasyMock.verify(entityStream);
+    }
+
+    @Test
+    public void testHasEntityWithNonEmptyStreamThatIsNotMarkSupportedButIsAvailableSupported() throws Exception {
+        InputStream entityStream = EasyMock.createStrictMock(InputStream.class);
+        EasyMock.expect(entityStream.markSupported()).andReturn(false);
+        EasyMock.expect(entityStream.available()).andReturn(10);
+        EasyMock.replay(entityStream);
+        assertTrue(new ResponseImpl(200, entityStream).hasEntity());
+        EasyMock.verify(entityStream);
+    }
+
+    @Test
+    public void testHasEntityWithnNonEmptyStreamThatIsNotMarkSupportedNorAvailableSupported() throws Exception {
+        InputStream entityStream = EasyMock.createStrictMock(InputStream.class);
+        EasyMock.expect(entityStream.markSupported()).andReturn(false).once();
+        EasyMock.expect(entityStream.available()).andReturn(0).once();
+        EasyMock.expect(entityStream.read()).andReturn(0).once();
+        EasyMock.replay(entityStream);
+        assertTrue(new ResponseImpl(200, entityStream).hasEntity());
+        EasyMock.verify(entityStream);
     }
 
     @Test
@@ -255,7 +330,7 @@ public class ResponseImplTest extends Assert {
     @Test
     public void testGetHeaderString() {
         ResponseImpl ri = new ResponseImpl(200);
-        MetadataMap<String, Object> meta = new MetadataMap<String, Object>();
+        MetadataMap<String, Object> meta = new MetadataMap<>();
         ri.addMetadata(meta);
         assertNull(ri.getHeaderString("a"));
         meta.putSingle("a", "aValue");
@@ -267,7 +342,7 @@ public class ResponseImplTest extends Assert {
     @Test
     public void testGetHeaderStrings() {
         ResponseImpl ri = new ResponseImpl(200);
-        MetadataMap<String, Object> meta = new MetadataMap<String, Object>();
+        MetadataMap<String, Object> meta = new MetadataMap<>();
         meta.add("Set-Cookie", NewCookie.valueOf("a=b"));
         ri.addMetadata(meta);
         MultivaluedMap<String, String> headers = ri.getStringHeaders();
@@ -276,9 +351,24 @@ public class ResponseImplTest extends Assert {
     }
 
     @Test
+    public void testGetCookiesWithEmptyValues() {
+        ResponseImpl ri = new ResponseImpl(200);
+        MetadataMap<String, Object> meta = new MetadataMap<>();
+        meta.add("Set-Cookie", NewCookie.valueOf("a="));
+        meta.add("Set-Cookie", NewCookie.valueOf("c=\"\""));
+        ri.addMetadata(meta);
+        Map<String, NewCookie> cookies = ri.getCookies();
+        assertEquals(2, cookies.size());
+        assertEquals("a=\"\";Version=1", cookies.get("a").toString());
+        assertEquals("c=\"\";Version=1", cookies.get("c").toString());
+        assertEquals("", cookies.get("a").getValue());
+        assertEquals("", cookies.get("c").getValue());
+    }
+    
+    @Test
     public void testGetCookies() {
         ResponseImpl ri = new ResponseImpl(200);
-        MetadataMap<String, Object> meta = new MetadataMap<String, Object>();
+        MetadataMap<String, Object> meta = new MetadataMap<>();
         meta.add("Set-Cookie", NewCookie.valueOf("a=b"));
         meta.add("Set-Cookie", NewCookie.valueOf("c=d"));
         ri.addMetadata(meta);
@@ -291,7 +381,7 @@ public class ResponseImplTest extends Assert {
     @Test
     public void testGetContentLength() {
         ResponseImpl ri = new ResponseImpl(200);
-        MetadataMap<String, Object> meta = new MetadataMap<String, Object>();
+        MetadataMap<String, Object> meta = new MetadataMap<>();
         ri.addMetadata(meta);
         assertEquals(-1, ri.getLength());
         meta.add("Content-Length", "10");
@@ -311,7 +401,7 @@ public class ResponseImplTest extends Assert {
     public void doTestDate(String dateHeader) {
         boolean date = HttpHeaders.DATE.equals(dateHeader);
         ResponseImpl ri = new ResponseImpl(200);
-        MetadataMap<String, Object> meta = new MetadataMap<String, Object>();
+        MetadataMap<String, Object> meta = new MetadataMap<>();
         meta.add(dateHeader, "Tue, 21 Oct 2008 17:00:00 GMT");
         ri.addMetadata(meta);
         assertEquals(HttpUtils.getHttpDate("Tue, 21 Oct 2008 17:00:00 GMT"),
@@ -321,37 +411,37 @@ public class ResponseImplTest extends Assert {
     @Test
     public void testEntityTag() {
         ResponseImpl ri = new ResponseImpl(200);
-        MetadataMap<String, Object> meta = new MetadataMap<String, Object>();
+        MetadataMap<String, Object> meta = new MetadataMap<>();
         meta.add(HttpHeaders.ETAG, "1234");
         ri.addMetadata(meta);
-        assertEquals("\"1234\"", ri.getEntityTag().toString());
+        assertEquals(EntityTag.valueOf("\"1234\""), ri.getEntityTag());
     }
 
     @Test
     public void testLocation() {
         ResponseImpl ri = new ResponseImpl(200);
-        MetadataMap<String, Object> meta = new MetadataMap<String, Object>();
+        MetadataMap<String, Object> meta = new MetadataMap<>();
         meta.add(HttpHeaders.LOCATION, "http://localhost:8080");
         ri.addMetadata(meta);
-        assertEquals("http://localhost:8080", ri.getLocation().toString());
+        assertEquals(URI.create("http://localhost:8080"), ri.getLocation());
     }
 
     @Test
     public void testGetLanguage() {
         ResponseImpl ri = new ResponseImpl(200);
-        MetadataMap<String, Object> meta = new MetadataMap<String, Object>();
+        MetadataMap<String, Object> meta = new MetadataMap<>();
         meta.add(HttpHeaders.CONTENT_LANGUAGE, "en-US");
         ri.addMetadata(meta);
-        assertEquals("en_US", ri.getLanguage().toString());
+        assertEquals(Locale.US, ri.getLanguage());
     }
 
     @Test
     public void testGetMediaType() {
         ResponseImpl ri = new ResponseImpl(200);
-        MetadataMap<String, Object> meta = new MetadataMap<String, Object>();
-        meta.add(HttpHeaders.CONTENT_TYPE, "text/xml");
+        MetadataMap<String, Object> meta = new MetadataMap<>();
+        meta.add(HttpHeaders.CONTENT_TYPE, MediaType.TEXT_XML);
         ri.addMetadata(meta);
-        assertEquals("text/xml", ri.getMediaType().toString());
+        assertEquals(MediaType.TEXT_XML_TYPE, ri.getMediaType());
     }
 
     @Test
@@ -374,7 +464,7 @@ public class ResponseImplTest extends Assert {
     @Test
     public void testGetLinks() {
         ResponseImpl ri = new ResponseImpl(200);
-        MetadataMap<String, Object> meta = new MetadataMap<String, Object>();
+        MetadataMap<String, Object> meta = new MetadataMap<>();
         ri.addMetadata(meta);
         assertFalse(ri.hasLink("next"));
         assertNull(ri.getLink("next"));
@@ -404,7 +494,7 @@ public class ResponseImplTest extends Assert {
     @Test
     public void testGetLinksNoRel() {
         try (ResponseImpl ri = new ResponseImpl(200)) {
-            MetadataMap<String, Object> meta = new MetadataMap<String, Object>();
+            MetadataMap<String, Object> meta = new MetadataMap<>();
             ri.addMetadata(meta);
     
             Set<Link> links = ri.getLinks();
@@ -426,6 +516,255 @@ public class ResponseImplTest extends Assert {
         }
     }
 
+    @Test
+    public void testGetLinksMultiple() {
+        try (ResponseImpl ri = new ResponseImpl(200)) {
+            MetadataMap<String, Object> meta = new MetadataMap<>();
+            ri.addMetadata(meta);
+
+            Set<Link> links = ri.getLinks();
+            assertTrue(links.isEmpty());
+
+            meta.add(HttpHeaders.LINK, "<http://next>;rel=\"next\",<http://prev>;rel=\"prev\"");
+
+            assertTrue(ri.hasLink("next"));
+            Link next = ri.getLink("next");
+            assertNotNull(next);
+            assertTrue(ri.hasLink("prev"));
+            Link prev = ri.getLink("prev");
+            assertNotNull(prev);
+
+            links = ri.getLinks();
+            assertTrue(links.contains(Link.fromUri("http://next").rel("next").build()));
+            assertTrue(links.contains(Link.fromUri("http://prev").rel("prev").build()));
+        }
+    }
+    
+
+    @Test
+    public void testGetMultipleWithSingleLink() {
+        try (ResponseImpl ri = new ResponseImpl(200)) {
+            MetadataMap<String, Object> meta = new MetadataMap<>();
+            ri.addMetadata(meta);
+
+            Set<Link> links = ri.getLinks();
+            assertTrue(links.isEmpty());
+
+            meta.add(HttpHeaders.LINK, "<http://next>;rel=\"next\",");
+
+            assertTrue(ri.hasLink("next"));
+            Link next = ri.getLink("next");
+            assertNotNull(next);
+
+            links = ri.getLinks();
+            assertTrue(links.contains(Link.fromUri("http://next").rel("next").build()));
+        }
+    }
+
+    @Test
+    public void testGetLink() {
+        try (ResponseImpl ri = new ResponseImpl(200)) {
+            MetadataMap<String, Object> meta = new MetadataMap<>();
+            ri.addMetadata(meta);
+
+            Set<Link> links = ri.getLinks();
+            assertTrue(links.isEmpty());
+
+            meta.add(HttpHeaders.LINK, "<http://next>;rel=\"next\"");
+
+            assertTrue(ri.hasLink("next"));
+            Link next = ri.getLink("next");
+            assertNotNull(next);
+
+            links = ri.getLinks();
+            assertTrue(links.contains(Link.fromUri("http://next").rel("next").build()));
+        }
+    }
+
+    @Test
+    public void testGetLinksMultipleMultiline() {
+        try (ResponseImpl ri = new ResponseImpl(200)) {
+            MetadataMap<String, Object> meta = new MetadataMap<>();
+            ri.addMetadata(meta);
+            
+            final Message outMessage = createMessage();
+            outMessage.put(Message.REQUEST_URI, "http://localhost");
+            ri.setOutMessage(outMessage);
+
+            Set<Link> links = ri.getLinks();
+            assertTrue(links.isEmpty());
+
+            meta.add(HttpHeaders.LINK, 
+                "</TheBook/chapter2>;\n"
+                + "         rel=\"prev\", \n"
+                + "         </TheBook/chapter4>;\n"
+                + "         rel=\"next\";");
+
+            assertTrue(ri.hasLink("next"));
+            Link next = ri.getLink("next");
+            assertNotNull(next);
+            assertTrue(ri.hasLink("prev"));
+            Link prev = ri.getLink("prev");
+            assertNotNull(prev);
+
+            links = ri.getLinks();
+            assertTrue(links.contains(Link.fromUri("http://localhost/TheBook/chapter4").rel("next").build()));
+            assertTrue(links.contains(Link.fromUri("http://localhost/TheBook/chapter2").rel("prev").build()));
+        }
+    }
+
+    @Test
+    public void testReadEntityAndGetEntityAfter() {
+        final String str = "ouch";
+
+        final ResponseImpl response = new ResponseImpl(500, str);
+        final Message outMessage = createMessage();
+        outMessage.put(Message.REQUEST_URI, "http://localhost");
+        response.setOutMessage(outMessage);
+
+        final MultivaluedMap<String, Object> headers = new MetadataMap<>();
+        headers.putSingle("Content-Type", "text/xml");
+        response.addMetadata(headers);
+
+        assertEquals(str, response.readEntity(String.class));
+        assertThrows(IllegalStateException.class, () -> response.getEntity());
+    }
+    
+    @Test
+    public void testReadInputStream() {
+        final String str = "ouch";
+
+        final ResponseImpl response = new ResponseImpl(500, str);
+        final Message outMessage = createMessage();
+        outMessage.put(Message.REQUEST_URI, "http://localhost");
+        response.setOutMessage(outMessage);
+
+        final MultivaluedMap<String, Object> headers = new MetadataMap<>();
+        headers.putSingle("Content-Type", "text/xml");
+        response.addMetadata(headers);
+
+        assertNotNull(response.readEntity(InputStream.class));
+        assertNotNull(response.getEntity());
+        
+        response.close();
+    }
+
+    @Test
+    public void testReadDataSource() throws IOException {
+        final String str = "ouch";
+        final ResponseImpl response = new ResponseImpl(500, str);
+        final Message outMessage = createMessage();
+        outMessage.put(Message.REQUEST_URI, "http://localhost");
+        response.setOutMessage(outMessage);
+
+        final MultivaluedMap<String, Object> headers = new MetadataMap<>();
+        headers.putSingle("Content-Type", "text/xml");
+        response.addMetadata(headers);
+
+        final DataSource ds = response.readEntity(DataSource.class);
+        assertNotNull(ds);
+        try (Reader reader = new InputStreamReader(ds.getInputStream(), StandardCharsets.UTF_8)) {
+            final CharBuffer buffer = CharBuffer.allocate(str.length());
+            reader.read(buffer);
+            assertEquals(str, buffer.flip().toString());
+        }
+        
+        response.close();
+    }
+    
+    @Test
+    public void testReadEntityWithAnnotations() {
+        final String str = "ouch";
+
+        final ResponseImpl response = new ResponseImpl(500, str);
+        final Message outMessage = createMessage();
+        outMessage.put(Message.REQUEST_URI, "http://localhost");
+        response.setOutMessage(outMessage);
+
+        final MultivaluedMap<String, Object> headers = new MetadataMap<>();
+        headers.putSingle("Content-Type", "text/xml");
+        response.addMetadata(headers);
+
+        final Annotation[] annotations = String.class.getAnnotations();
+        assertEquals(str, response.readEntity(String.class, annotations));
+        assertThrows(IllegalStateException.class, 
+            () -> response.readEntity(Reader.class, annotations));
+    }
+
+    @Test
+    public void testBufferAndReadInputStream() throws IOException {
+        final String str = "ouch";
+
+        try (ByteArrayInputStream out = new ByteArrayInputStream(str.getBytes())) {
+            final ResponseImpl response = new ResponseImpl(500, out);
+            final Message outMessage = createMessage();
+            outMessage.put(Message.REQUEST_URI, "http://localhost");
+            response.setOutMessage(outMessage);
+
+            final MultivaluedMap<String, Object> headers = new MetadataMap<>();
+            headers.putSingle("Content-Type", "text/rdf");
+            response.addMetadata(headers);
+            
+            assertTrue(response.bufferEntity());
+            assertNotNull(response.readEntity(InputStream.class));
+            assertNotNull(response.getEntity());
+            assertTrue(response.hasEntity());
+    
+            assertNotNull(response.readEntity(InputStream.class));
+            assertNotNull(response.getEntity());
+            assertTrue(response.hasEntity());
+    
+            response.close();
+        }
+    }
+    
+    @Test
+    public void testBufferAndReadInputStreamWithException() throws IOException {
+        final String str = "ouch";
+
+        try (ByteArrayInputStream out = new ByteArrayInputStream(str.getBytes())) {
+            final ResponseImpl response = new ResponseImpl(500, out);
+            final Message outMessage = createMessage();
+            outMessage.put(Message.REQUEST_URI, "http://localhost");
+            response.setOutMessage(outMessage);
+
+            ProviderFactory factory = ProviderFactory.getInstance(outMessage);
+            factory.registerUserProvider(new FaultyMessageBodyReader<InputStream>());
+
+            final MultivaluedMap<String, Object> headers = new MetadataMap<>();
+            headers.putSingle("Content-Type", "text/rdf");
+            response.addMetadata(headers);
+            
+            assertTrue(response.bufferEntity());
+            assertThrows(ResponseProcessingException.class, () -> response.readEntity(InputStream.class));
+            assertNotNull(response.getEntity());
+            assertTrue(response.hasEntity());
+    
+            assertThrows(ResponseProcessingException.class, () -> response.readEntity(InputStream.class));
+            assertNotNull(response.getEntity());
+            assertTrue(response.hasEntity());
+    
+            response.close();
+        }
+    }
+    
+    @Provider
+    @Consumes("text/rdf")
+    public static class FaultyMessageBodyReader<T> implements MessageBodyReader<T> {
+        @Override
+        public boolean isReadable(Class<?> type, Type genericType, Annotation[] annotations, MediaType mediaType) {
+            return true;
+        }
+        
+        @Override
+        public T readFrom(Class<T> type, Type genericType, Annotation[] annotations, MediaType mediaType,
+                MultivaluedMap<String, String> httpHeaders, InputStream entityStream) 
+                    throws IOException, WebApplicationException {
+            IOUtils.consume(entityStream);
+            throw new IOException();
+        }
+    }
+    
     public static class StringBean {
         private String header;
 

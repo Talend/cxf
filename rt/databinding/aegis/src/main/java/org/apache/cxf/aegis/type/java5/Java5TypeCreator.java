@@ -40,8 +40,8 @@ import org.apache.cxf.aegis.type.TypeClassInfo;
 import org.apache.cxf.aegis.type.TypeUtil;
 import org.apache.cxf.aegis.type.basic.BeanType;
 import org.apache.cxf.aegis.util.NamespaceHelper;
-import org.apache.cxf.aegis.util.ServiceUtils;
 import org.apache.cxf.common.logging.LogUtils;
+import org.apache.cxf.helpers.ServiceUtils;
 
 public class Java5TypeCreator extends AbstractTypeCreator {
     private static final Logger LOG = LogUtils.getL7dLogger(Java5TypeCreator.class);
@@ -233,7 +233,7 @@ public class Java5TypeCreator extends AbstractTypeCreator {
         }
         if (cls instanceof ParameterizedType) {
             ParameterizedType pt = (ParameterizedType)cls;
-            Type types[] = pt.getActualTypeArguments();
+            Type[] types = pt.getActualTypeArguments();
             TypeVariable<?>[] params = ((Class<?>)pt.getRawType()).getTypeParameters();
             for (int x = 0; x < types.length; x++) {
                 Type type = types[x];

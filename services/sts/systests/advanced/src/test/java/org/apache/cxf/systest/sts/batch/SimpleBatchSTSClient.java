@@ -41,6 +41,8 @@ import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamWriter;
 import javax.xml.transform.dom.DOMSource;
 
+import org.apache.xml.security.exceptions.XMLSecurityException;
+import org.apache.xml.security.stax.ext.XMLSecurityConstants;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -106,7 +108,6 @@ import org.apache.wss4j.dom.engine.WSSConfig;
 import org.apache.wss4j.dom.engine.WSSecurityEngineResult;
 import org.apache.wss4j.dom.handler.RequestData;
 import org.apache.wss4j.dom.processor.EncryptedKeyProcessor;
-import org.apache.wss4j.dom.util.WSSecurityUtil;
 import org.apache.wss4j.dom.util.X509Util;
 import org.apache.wss4j.policy.model.AbstractBinding;
 import org.apache.wss4j.policy.model.AlgorithmSuite;
@@ -163,13 +164,13 @@ public class SimpleBatchSTSClient implements Configurable, InterceptorProvider {
     protected Map<String, Object> ctx = new HashMap<>();
 
     protected List<Interceptor<? extends Message>> in
-        = new ModCountCopyOnWriteArrayList<Interceptor<? extends Message>>();
+        = new ModCountCopyOnWriteArrayList<>();
     protected List<Interceptor<? extends Message>> out
-        = new ModCountCopyOnWriteArrayList<Interceptor<? extends Message>>();
+        = new ModCountCopyOnWriteArrayList<>();
     protected List<Interceptor<? extends Message>> outFault
-        = new ModCountCopyOnWriteArrayList<Interceptor<? extends Message>>();
+        = new ModCountCopyOnWriteArrayList<>();
     protected List<Interceptor<? extends Message>> inFault
-        = new ModCountCopyOnWriteArrayList<Interceptor<? extends Message>>();
+        = new ModCountCopyOnWriteArrayList<>();
     protected List<AbstractFeature> features;
 
     public SimpleBatchSTSClient(Bus b) {
@@ -451,7 +452,7 @@ public class SimpleBatchSTSClient implements Configurable, InterceptorProvider {
     protected String findMEXLocation(Element ref) {
         Element el = DOMUtils.getFirstElement(ref);
         while (el != null) {
-            if (el.getLocalName().equals("Address")
+            if ("Address".equals(el.getLocalName())
                 && VersionTransformer.isSupported(el.getNamespaceURI())
                 && "MetadataReference".equals(ref.getLocalName())) {
                 return DOMUtils.getContent(el);
@@ -559,7 +560,7 @@ public class SimpleBatchSTSClient implements Configurable, InterceptorProvider {
         }
         writer.writeEndElement();
 
-        Object obj[] = client.invoke(boi, new DOMSource(writer.getDocument().getDocumentElement()));
+        Object[] obj = client.invoke(boi, new DOMSource(writer.getDocument().getDocumentElement()));
 
         Element responseCollection = getDocumentElement((DOMSource)obj[0]);
         Node child = responseCollection.getFirstChild();
@@ -609,7 +610,7 @@ public class SimpleBatchSTSClient implements Configurable, InterceptorProvider {
         }
         writer.writeEndElement();
 
-        Object obj[] = client.invoke(boi, new DOMSource(writer.getDocument().getDocumentElement()));
+        Object[] obj = client.invoke(boi, new DOMSource(writer.getDocument().getDocumentElement()));
 
         Element responseCollection = getDocumentElement((DOMSource)obj[0]);
         Node child = responseCollection.getFirstChild();
@@ -658,13 +659,18 @@ public class SimpleBatchSTSClient implements Configurable, InterceptorProvider {
             writer.writeStartElement("wst", "Entropy", namespace);
             writer.writeStartElement("wst", "BinarySecret", namespace);
             writer.writeAttribute("Type", namespace + "/Nonce");
-            if (algorithmSuite == null) {
-                requestorEntropy = WSSecurityUtil.generateNonce(keySize / 8);
-            } else {
-                AlgorithmSuiteType algType = algorithmSuite.getAlgorithmSuiteType();
-                requestorEntropy = WSSecurityUtil
-                    .generateNonce(algType.getMaximumSymmetricKeyLength() / 8);
+
+            try {
+                if (algorithmSuite == null) {
+                    requestorEntropy = XMLSecurityConstants.generateBytes(keySize / 8);
+                } else {
+                    AlgorithmSuiteType algType = algorithmSuite.getAlgorithmSuiteType();
+                    requestorEntropy = XMLSecurityConstants.generateBytes(algType.getMaximumSymmetricKeyLength() / 8);
+                }
+            } catch (XMLSecurityException e) {
+                throw new WSSecurityException(WSSecurityException.ErrorCode.FAILURE, e);
             }
+
             writer.writeCharacters(Base64.getMimeEncoder().encodeToString(requestorEntropy));
 
             writer.writeEndElement();
@@ -788,7 +794,7 @@ public class SimpleBatchSTSClient implements Configurable, InterceptorProvider {
         CryptoType cryptoType = new CryptoType(CryptoType.TYPE.ALIAS);
         cryptoType.setAlias(alias);
 
-        X509Certificate certs[] = crypto.getX509Certificates(cryptoType);
+        X509Certificate[] certs = crypto.getX509Certificates(cryptoType);
         if (certs == null || certs.length == 0) {
             throw new Fault("Could not get X509Certificate for alias " + alias, LOG);
         }
@@ -989,7 +995,7 @@ public class SimpleBatchSTSClient implements Configurable, InterceptorProvider {
         if (o instanceof String) {
             try {
                 Class<?> cls = ClassLoaderUtils.loadClass((String)o, this.getClass());
-                o = cls.newInstance();
+                o = cls.getDeclaredConstructor().newInstance();
             } catch (Exception e) {
                 throw new Fault(e);
             }

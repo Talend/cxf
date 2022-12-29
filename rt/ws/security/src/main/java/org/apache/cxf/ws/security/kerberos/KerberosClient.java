@@ -19,14 +19,12 @@
 
 package org.apache.cxf.ws.security.kerberos;
 
-import java.util.Base64;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javax.crypto.SecretKey;
 import javax.security.auth.callback.CallbackHandler;
 
-import org.apache.cxf.Bus;
 import org.apache.cxf.common.logging.LogUtils;
 import org.apache.cxf.configuration.Configurable;
 import org.apache.cxf.helpers.DOMUtils;
@@ -37,6 +35,7 @@ import org.apache.cxf.ws.security.tokenstore.SecurityToken;
 import org.apache.wss4j.common.util.KeyUtils;
 import org.apache.wss4j.dom.engine.WSSConfig;
 import org.apache.wss4j.dom.message.token.KerberosSecurity;
+import org.apache.xml.security.utils.XMLUtils;
 import org.ietf.jgss.GSSCredential;
 
 /**
@@ -54,10 +53,6 @@ public class KerberosClient implements Configurable {
     private boolean requestCredentialDelegation;
     private boolean isUsernameServiceNameForm;
     private boolean useDelegatedCredential;
-
-    @Deprecated
-    public KerberosClient(Bus b) {
-    }
 
     public KerberosClient() {
     }
@@ -80,24 +75,6 @@ public class KerberosClient implements Configurable {
      */
     public void setContextName(String contextName) {
         this.contextName = contextName;
-    }
-
-    /**
-     * @deprecated
-     * Get the JAAS Login module name to use.
-     * @return the JAAS Login module name to use
-     */
-    public String getJaasLoginModuleName() {
-        return contextName;
-    }
-
-    /**
-     * @deprecated
-     * Set the JAAS Login module name to use.
-     * @param jaasLoginModuleName the JAAS Login module name to use
-     */
-    public void setJaasLoginModuleName(String jaasLoginModuleName) {
-        this.contextName = jaasLoginModuleName;
     }
 
     /**
@@ -153,17 +130,17 @@ public class KerberosClient implements Configurable {
                                   delegatedCredential);
         bst.addWSUNamespace();
         bst.setID(wssConfig.getIdAllocator().createSecureId("BST-", bst));
+        bst.addWSUNamespace();
 
         SecurityToken token = new SecurityToken(bst.getID());
         token.setToken(bst.getElement());
         token.setWsuId(bst.getID());
-        token.setData(bst.getToken());
         SecretKey secretKey = bst.getSecretKey();
         if (secretKey != null) {
             token.setKey(secretKey);
             token.setSecret(secretKey.getEncoded());
         }
-        String sha1 = Base64.getMimeEncoder().encodeToString(KeyUtils.generateDigest(bst.getToken()));
+        String sha1 = XMLUtils.encodeToString(KeyUtils.generateDigest(bst.getToken()));
         token.setSHA1(sha1);
         token.setTokenType(bst.getValueType());
 

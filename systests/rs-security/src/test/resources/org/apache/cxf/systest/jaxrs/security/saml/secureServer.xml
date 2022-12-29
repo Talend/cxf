@@ -17,8 +17,16 @@ KIND, either express or implied. See the License for the
 specific language governing permissions and limitations
 under the License.
 -->
-<beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:http="http://cxf.apache.org/transports/http/configuration" xmlns:httpj="http://cxf.apache.org/transports/http-jetty/configuration" xmlns:sec="http://cxf.apache.org/configuration/security" xmlns:cxf="http://cxf.apache.org/core" xmlns:jaxrs="http://cxf.apache.org/jaxrs" xmlns:util="http://www.springframework.org/schema/util" xsi:schemaLocation="         http://www.springframework.org/schema/util          http://www.springframework.org/schema/util/spring-util-4.2.xsd         http://cxf.apache.org/jaxrs http://cxf.apache.org/schemas/jaxrs.xsd         http://cxf.apache.org/core http://cxf.apache.org/schemas/core.xsd         http://www.springframework.org/schema/beans                 http://www.springframework.org/schema/beans/spring-beans-4.2.xsd         http://cxf.apache.org/transports/http/configuration         http://cxf.apache.org/schemas/configuration/http-conf.xsd         http://cxf.apache.org/transports/http-jetty/configuration   http://cxf.apache.org/schemas/configuration/http-jetty.xsd         http://cxf.apache.org/configuration/security                http://cxf.apache.org/schemas/configuration/security.xsd         ">
-    <bean class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer"/>
+<beans xmlns="http://www.springframework.org/schema/beans"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:http="http://cxf.apache.org/transports/http/configuration"
+    xmlns:httpj="http://cxf.apache.org/transports/http-jetty/configuration"
+    xmlns:sec="http://cxf.apache.org/configuration/security"
+    xmlns:cxf="http://cxf.apache.org/core"
+    xmlns:jaxrs="http://cxf.apache.org/jaxrs"
+    xmlns:util="http://www.springframework.org/schema/util"
+    xsi:schemaLocation="http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-4.2.xsd http://cxf.apache.org/jaxrs http://cxf.apache.org/schemas/jaxrs.xsd http://cxf.apache.org/core http://cxf.apache.org/schemas/core.xsd http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd http://cxf.apache.org/transports/http/configuration http://cxf.apache.org/schemas/configuration/http-conf.xsd http://cxf.apache.org/transports/http-jetty/configuration http://cxf.apache.org/schemas/configuration/http-jetty.xsd http://cxf.apache.org/configuration/security http://cxf.apache.org/schemas/configuration/security.xsd">
+    <bean class="org.springframework.context.support.PropertySourcesPlaceholderConfigurer"/>
     <cxf:bus>
         <cxf:features>
             <cxf:logging/>
@@ -40,8 +48,11 @@ under the License.
     <bean id="serviceBean" class="org.apache.cxf.systest.jaxrs.security.saml.SecureBookStore"/>
     <bean id="serviceBeanClaims" class="org.apache.cxf.systest.jaxrs.security.saml.SecureClaimBookStore"/>
     <bean id="samlEnvHandler" class="org.apache.cxf.rs.security.saml.SamlEnvelopedInHandler"/>
-    <bean id="claimsHandler" class="org.apache.cxf.rs.security.saml.authorization.ClaimsAuthorizingFilter">
+    <bean id="claimsInterceptor" class="org.apache.cxf.rt.security.claims.interceptor.ClaimsAuthorizingInterceptor">
         <property name="securedObject" ref="serviceBeanClaims"/>
+    </bean>
+    <bean id="claimsHandler" class="org.apache.cxf.jaxrs.security.ClaimsAuthorizingFilter">
+        <constructor-arg ref="claimsInterceptor"/>
     </bean>
     <bean id="authorizationInterceptor" class="org.apache.cxf.interceptor.security.SecureAnnotationsInterceptor">
         <property name="securedObject" ref="serviceBean"/>

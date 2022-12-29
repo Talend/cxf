@@ -21,12 +21,12 @@ package org.apache.cxf.jaxrs.ext.search.jpa;
 import java.util.LinkedList;
 import java.util.List;
 
-import javax.persistence.ElementCollection;
-import javax.persistence.Embedded;
-import javax.persistence.Entity;
-import javax.persistence.Id;
-import javax.persistence.ManyToOne;
-import javax.persistence.OneToMany;
+import jakarta.persistence.ElementCollection;
+import jakarta.persistence.Embedded;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
 
 @Entity(name = "Book")
 public class Book {
@@ -35,8 +35,8 @@ public class Book {
     private OwnerAddress address;
     private OwnerInfo ownerInfo;
     private Library library;
-    private List<BookReview> reviews = new LinkedList<BookReview>();
-    private List<String> authors = new LinkedList<String>();
+    private List<BookReview> reviews = new LinkedList<>();
+    private List<String> authors = new LinkedList<>();
 
     @Id
     public int getId() {

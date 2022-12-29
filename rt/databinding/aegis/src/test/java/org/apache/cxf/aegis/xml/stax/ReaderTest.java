@@ -30,6 +30,10 @@ import org.apache.cxf.test.AbstractCXFTest;
 
 import org.junit.Test;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+
 public class ReaderTest extends AbstractCXFTest {
     @Test
     public void testLiteralReader() throws Exception {
@@ -57,7 +61,7 @@ public class ReaderTest extends AbstractCXFTest {
     }
 
     public void testReading(MessageReader reader) {
-        assertTrue(reader.getLocalName().equals("Envelope"));
+        assertEquals("Envelope", reader.getLocalName());
 
         // make sure we can repeat this
         assertTrue(reader.hasMoreElementReaders());

@@ -26,10 +26,15 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import javax.ws.rs.core.MultivaluedMap;
-
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.MultivaluedMap;
+import jakarta.ws.rs.core.Response;
+import jakarta.ws.rs.core.Response.Status;
 import org.apache.cxf.common.util.Base64UrlUtility;
 import org.apache.cxf.common.util.StringUtils;
+import org.apache.cxf.jaxrs.client.WebClient;
+import org.apache.cxf.jaxrs.json.basic.JsonMapObjectReaderWriter;
+import org.apache.cxf.jaxrs.utils.ExceptionUtils;
 import org.apache.cxf.rs.security.jose.jwa.SignatureAlgorithm;
 import org.apache.cxf.rs.security.jose.jws.JwsException;
 import org.apache.cxf.rs.security.jose.jwt.JwtToken;
@@ -38,6 +43,7 @@ import org.apache.cxf.rs.security.oauth2.common.OAuthRedirectionState;
 import org.apache.cxf.rs.security.oauth2.provider.OAuthServiceException;
 import org.apache.cxf.rs.security.oidc.common.AbstractUserInfo;
 import org.apache.cxf.rs.security.oidc.common.IdToken;
+import org.apache.cxf.rs.security.oidc.idp.OidcProviderMetadata;
 import org.apache.cxf.rt.security.crypto.MessageDigestUtils;
 
 public final class OidcUtils {
@@ -142,14 +148,7 @@ public final class OidcUtils {
     }
 
     private static String getScope(String... scopes) {
-        StringBuilder sb = new StringBuilder();
-        for (String scope : scopes) {
-            if (sb.length() > 0) {
-                sb.append(" ");
-            }
-            sb.append(scope);
-        }
-        return sb.toString();
+        return String.join(" ", scopes);
     }
     public static void validateAccessTokenHash(ClientAccessToken at, JwtToken jwt) {
         validateAccessTokenHash(at, jwt, true);
@@ -158,7 +157,11 @@ public final class OidcUtils {
         validateAccessTokenHash(at.getTokenKey(), jwt, required);
     }
     public static void validateAccessTokenHash(String accessToken, JwtToken jwt, boolean required) {
-        if (required) {
+        String hashClaim = (String)jwt.getClaims().getClaim(IdToken.ACCESS_TOKEN_HASH_CLAIM);
+        if (hashClaim == null && required) {
+            throw new OAuthServiceException("Invalid hash");
+        }
+        if (hashClaim != null) {
             validateHash(accessToken,
                          (String)jwt.getClaims().getClaim(IdToken.ACCESS_TOKEN_HASH_CLAIM),
                          jwt.getJwsHeaders().getSignatureAlgorithm());
@@ -168,7 +171,11 @@ public final class OidcUtils {
         validateCodeHash(code, jwt, true);
     }
     public static void validateCodeHash(String code, JwtToken jwt, boolean required) {
-        if (required) {
+        String hashClaim = (String)jwt.getClaims().getClaim(IdToken.AUTH_CODE_HASH_CLAIM);
+        if (hashClaim == null && required) {
+            throw new OAuthServiceException("Invalid hash");
+        }
+        if (hashClaim != null) {
             validateHash(code,
                          (String)jwt.getClaims().getClaim(IdToken.AUTH_CODE_HASH_CLAIM),
                          jwt.getJwsHeaders().getSignatureAlgorithm());
@@ -209,4 +216,14 @@ public final class OidcUtils {
             state.getExtraProperties().put(OidcUtils.CLAIMS_PARAM, claims);
         }
     }
+
+    public static OidcProviderMetadata getOidcProviderMetadata(String issuerURL) {
+        Response response = WebClient.create(issuerURL).path("/.well-known/openid-configuration")
+            .accept(MediaType.APPLICATION_JSON).get();
+        if (Status.OK.getStatusCode() != response.getStatus()) {
+            throw ExceptionUtils.toWebApplicationException(response);
+        }
+        return new OidcProviderMetadata(new JsonMapObjectReaderWriter().fromJson(response.readEntity(String.class)));
+    }
+
 }

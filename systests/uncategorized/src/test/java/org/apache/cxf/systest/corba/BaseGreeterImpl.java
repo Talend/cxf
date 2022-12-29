@@ -26,7 +26,8 @@ import org.apache.cxf.hello_world_corba.PingMeFault;
 import org.apache.cxf.hello_world_corba.types.FaultDetail;
 import org.apache.cxf.interceptor.Fault;
 
-import org.junit.Assert;
+
+import static org.junit.Assert.assertEquals;
 
 /**
  * Licensed to the Apache Software Foundation (ASF) under one
@@ -47,13 +48,13 @@ import org.junit.Assert;
  * under the License.
  */
 
-@javax.jws.WebService(portName = "GreeterCORBAPort",
+@jakarta.jws.WebService(portName = "GreeterCORBAPort",
         serviceName = "GreeterCORBAService",
         targetNamespace = "http://cxf.apache.org/hello_world_corba",
         wsdlLocation = "classpath:/wsdl_systest/hello_world_corba.wsdl",
         endpointInterface = "org.apache.cxf.hello_world_corba.Greeter")
 
-public class BaseGreeterImpl extends Assert implements Greeter {
+public class BaseGreeterImpl implements Greeter {
     public static final String GREETME_IN = "test in";
     public static final String GREETME_OUT = "test out";
     static final String EX_STRING = "CXF RUNTIME EXCEPTION";

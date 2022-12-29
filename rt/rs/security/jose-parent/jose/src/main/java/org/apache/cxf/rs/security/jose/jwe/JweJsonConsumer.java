@@ -37,9 +37,9 @@ public class JweJsonConsumer {
     private String protectedHeaderJson;
     private JweHeaders protectedHeaderJwe;
     private JweHeaders sharedUnprotectedHeader;
-    private List<JweJsonEncryptionEntry> recipients = new LinkedList<JweJsonEncryptionEntry>();
+    private List<JweJsonEncryptionEntry> recipients = new LinkedList<>();
     private Map<JweJsonEncryptionEntry, JweHeaders> recipientsMap =
-        new LinkedHashMap<JweJsonEncryptionEntry, JweHeaders>();
+        new LinkedHashMap<>();
     private byte[] aad;
     private byte[] iv;
     private byte[] cipherBytes;
@@ -60,12 +60,12 @@ public class JweJsonConsumer {
         return decryptWith(jwe, entry);
     }
     public JweDecryptionOutput decryptWith(JweDecryptionProvider jwe, JweJsonEncryptionEntry entry) {
-        JweDecryptionInput jweDecryptionInput = getJweDecryptionInput(jwe, entry);
+        JweDecryptionInput jweDecryptionInput = getJweDecryptionInput(entry);
         byte[] content = jwe.decrypt(jweDecryptionInput);
         return new JweDecryptionOutput(jweDecryptionInput.getJweHeaders(), content);
     }
 
-    private JweDecryptionInput getJweDecryptionInput(JweDecryptionProvider jwe, JweJsonEncryptionEntry entry) {
+    private JweDecryptionInput getJweDecryptionInput(JweJsonEncryptionEntry entry) {
         if (entry == null) {
             LOG.warning("JWE JSON Entry is not available");
             throw new JweException(JweException.Error.INVALID_JSON_JWE);
@@ -93,7 +93,7 @@ public class JweJsonConsumer {
         for (Map.Entry<JweJsonEncryptionEntry, JweHeaders> entry : recipientsMap.entrySet()) {
             KeyAlgorithm keyAlgo = entry.getValue().getKeyEncryptionAlgorithm();
             if (keyAlgo != null && keyAlgo.equals(jwe.getKeyAlgorithm())
-                || keyAlgo == null 
+                || keyAlgo == null
                     && (jwe.getKeyAlgorithm() == null || KeyAlgorithm.DIRECT.equals(jwe.getKeyAlgorithm()))) {
                 if (recipientProps != null
                     && !entry.getValue().asMap().entrySet().containsAll(recipientProps.entrySet())) {
@@ -189,6 +189,37 @@ public class JweJsonConsumer {
         }
         return new String(aad, StandardCharsets.UTF_8);
     }
+
+    public byte[] getIvBytes() {
+        return iv;
+    }
+    public String getIvText() {
+        if (iv == null) {
+            return null;
+        }
+        return new String(iv, StandardCharsets.UTF_8);
+    }
+
+    public byte[] getCipherBytes() {
+        return cipherBytes;
+    }
+    public String getCipherText() {
+        if (cipherBytes == null) {
+            return null;
+        }
+        return new String(cipherBytes, StandardCharsets.UTF_8);
+    }
+
+    public byte[] getAuthTagBytes() {
+        return authTag;
+    }
+    public String getAuthTagText() {
+        if (authTag == null) {
+            return null;
+        }
+        return new String(authTag, StandardCharsets.UTF_8);
+    }
+
     public List<JweJsonEncryptionEntry> getRecipients() {
         return recipients;
     }

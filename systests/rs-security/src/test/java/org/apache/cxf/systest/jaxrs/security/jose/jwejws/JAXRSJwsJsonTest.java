@@ -29,10 +29,9 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
-import javax.ws.rs.BadRequestException;
+import com.fasterxml.jackson.jakarta.rs.json.JacksonJsonProvider;
 
-import com.fasterxml.jackson.jaxrs.json.JacksonJsonProvider;
-
+import jakarta.ws.rs.BadRequestException;
 import org.apache.cxf.Bus;
 import org.apache.cxf.bus.spring.SpringBusFactory;
 import org.apache.cxf.jaxrs.client.JAXRSClientFactoryBean;
@@ -50,6 +49,10 @@ import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 public class JAXRSJwsJsonTest extends AbstractBusClientServerTestBase {
     public static final String PORT = BookServerJwsJson.PORT;
@@ -188,7 +191,7 @@ public class JAXRSJwsJsonTest extends AbstractBusClientServerTestBase {
         bean.setBus(springBus);
         bean.setServiceClass(BookStore.class);
         bean.setAddress(address);
-        List<Object> providers = new LinkedList<Object>();
+        List<Object> providers = new LinkedList<>();
         JwsJsonWriterInterceptor writer = new JwsJsonWriterInterceptor();
         writer.setUseJwsJsonOutputStream(true);
         writer.setEncodePayload(encodePayload);

@@ -21,8 +21,7 @@ package org.apache.cxf.jaxws.service;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.jws.WebService;
-
+import jakarta.jws.WebService;
 import org.apache.cxf.endpoint.Server;
 import org.apache.cxf.feature.Feature;
 import org.apache.cxf.feature.Features;
@@ -38,6 +37,9 @@ import org.apache.cxf.message.Message;
 
 import org.junit.Before;
 import org.junit.Test;
+
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 public class AnnotationInterceptorTest extends AbstractJaxWsTest {
 

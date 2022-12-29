@@ -28,19 +28,18 @@ import java.util.WeakHashMap;
 
 import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.SSLContext;
-import javax.ws.rs.ProcessingException;
-import javax.ws.rs.client.Client;
-import javax.ws.rs.client.Invocation.Builder;
-import javax.ws.rs.client.WebTarget;
-import javax.ws.rs.core.Configurable;
-import javax.ws.rs.core.Configuration;
-import javax.ws.rs.core.Feature;
-import javax.ws.rs.core.Link;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.UriBuilder;
 
+import jakarta.ws.rs.ProcessingException;
+import jakarta.ws.rs.client.Client;
+import jakarta.ws.rs.client.Invocation.Builder;
+import jakarta.ws.rs.client.WebTarget;
+import jakarta.ws.rs.core.Configurable;
+import jakarta.ws.rs.core.Configuration;
+import jakarta.ws.rs.core.Feature;
+import jakarta.ws.rs.core.Link;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.UriBuilder;
 import org.apache.cxf.common.util.ClassHelper;
-import org.apache.cxf.common.util.SystemPropertyAction;
 import org.apache.cxf.configuration.jsse.TLSClientParameters;
 import org.apache.cxf.jaxrs.client.AbstractClient;
 import org.apache.cxf.jaxrs.client.ClientConfiguration;
@@ -51,41 +50,39 @@ import org.apache.cxf.jaxrs.model.FilterProviderInfo;
 import org.apache.cxf.message.Message;
 import org.apache.cxf.transport.https.SSLUtils;
 
+import static org.apache.cxf.jaxrs.client.ClientProperties.DEFAULT_THREAD_SAFETY_CLIENT_STATUS;
+import static org.apache.cxf.jaxrs.client.ClientProperties.HTTP_AUTOREDIRECT_PROP;
+import static org.apache.cxf.jaxrs.client.ClientProperties.HTTP_CONNECTION_TIMEOUT_PROP;
+import static org.apache.cxf.jaxrs.client.ClientProperties.HTTP_MAINTAIN_SESSION_PROP;
+import static org.apache.cxf.jaxrs.client.ClientProperties.HTTP_PROXY_SERVER_PORT_PROP;
+import static org.apache.cxf.jaxrs.client.ClientProperties.HTTP_PROXY_SERVER_PROP;
+import static org.apache.cxf.jaxrs.client.ClientProperties.HTTP_RECEIVE_TIMEOUT_PROP;
+import static org.apache.cxf.jaxrs.client.ClientProperties.HTTP_RESPONSE_AUTOCLOSE_PROP;
+import static org.apache.cxf.jaxrs.client.ClientProperties.THREAD_SAFE_CLIENT_PROP;
+import static org.apache.cxf.jaxrs.client.ClientProperties.THREAD_SAFE_CLIENT_STATE_CLEANUP_PERIOD;
+import static org.apache.cxf.jaxrs.client.ClientProperties.THREAD_SAFE_CLIENT_STATE_CLEANUP_PROP;
+
 public class ClientImpl implements Client {
-    static final String HTTP_CONNECTION_TIMEOUT_PROP = "http.connection.timeout";
-    static final String HTTP_RECEIVE_TIMEOUT_PROP = "http.receive.timeout";
-    private static final String HTTP_PROXY_SERVER_PROP = "http.proxy.server.uri";
-    private static final String HTTP_PROXY_SERVER_PORT_PROP = "http.proxy.server.port";
-    private static final String HTTP_AUTOREDIRECT_PROP = "http.autoredirect";
-    private static final String HTTP_MAINTAIN_SESSION_PROP = "http.maintain.session";
-    private static final String HTTP_RESPONSE_AUTOCLOSE_PROP = "http.response.stream.auto.close";
-    private static final String THREAD_SAFE_CLIENT_PROP = "thread.safe.client";
-    private static final String THREAD_SAFE_CLIENT_STATE_CLEANUP_PROP = "thread.safe.client.state.cleanup.period";
-    private static final Boolean DEFAULT_THREAD_SAFETY_CLIENT_STATUS;
-    private static final Integer THREAD_SAFE_CLIENT_STATE_CLEANUP_PERIOD;
-    static  {
-        DEFAULT_THREAD_SAFETY_CLIENT_STATUS =
-            Boolean.parseBoolean(SystemPropertyAction.getPropertyOrNull(THREAD_SAFE_CLIENT_PROP));
-        THREAD_SAFE_CLIENT_STATE_CLEANUP_PERIOD =
-            getIntValue(SystemPropertyAction.getPropertyOrNull(THREAD_SAFE_CLIENT_STATE_CLEANUP_PROP));
-    }
 
     private Configurable<Client> configImpl;
     private TLSConfiguration secConfig;
     private boolean closed;
     private Set<WebClient> baseClients =
-        Collections.newSetFromMap(new WeakHashMap<WebClient, Boolean>());
+        Collections.synchronizedSet(Collections.newSetFromMap(new WeakHashMap<WebClient, Boolean>()));
+
     public ClientImpl(Configuration config,
                       TLSConfiguration secConfig) {
-        configImpl = new ClientConfigurableImpl<Client>(this, config);
+        configImpl = new ClientConfigurableImpl<>(this, config);
         this.secConfig = secConfig;
     }
 
     @Override
     public void close() {
         if (!closed) {
-            for (WebClient wc : baseClients) {
-                wc.close();
+            synchronized (baseClients) {
+                for (WebClient wc : baseClients) {
+                    wc.close();
+                }
             }
             baseClients = null;
             closed = true;
@@ -245,7 +242,7 @@ public class ClientImpl implements Client {
         public WebTargetImpl(UriBuilder uriBuilder,
                              Configuration config,
                              WebClient targetClient) {
-            this.configImpl = new ClientConfigurableImpl<WebTarget>(this, config);
+            this.configImpl = new ClientConfigurableImpl<>(this, config);
             this.uriBuilder = uriBuilder.clone();
             this.targetClient = targetClient;
         }
@@ -263,9 +260,9 @@ public class ClientImpl implements Client {
 
             ClientProviderFactory pf =
                 ClientProviderFactory.getInstance(WebClient.getConfig(targetClient).getEndpoint());
-            List<Object> providers = new LinkedList<Object>();
+            List<Object> providers = new LinkedList<>();
             List<org.apache.cxf.feature.Feature> cxfFeatures =
-                new LinkedList<org.apache.cxf.feature.Feature>();
+                new LinkedList<>();
             Configuration cfg = configImpl.getConfiguration();
             for (Object p : cfg.getInstances()) {
                 if (p instanceof org.apache.cxf.feature.Feature) {
@@ -276,7 +273,7 @@ public class ClientImpl implements Client {
                         providers.add(p);
                     } else {
                         final Class<?> providerCls = ClassHelper.getRealClass(pf.getBus(), p);
-                        providers.add(new FilterProviderInfo<Object>(p.getClass(), 
+                        providers.add(new FilterProviderInfo<Object>(p.getClass(),
                             providerCls, p, pf.getBus(), contracts));
                     }
                 }
@@ -348,6 +345,7 @@ public class ClientImpl implements Client {
             if (targetClient == null) {
                 JAXRSClientFactoryBean bean = new JAXRSClientFactoryBean();
                 bean.setAddress(uri.toString());
+                bean.setProperties(configProps);
                 Boolean threadSafe = getBooleanValue(configProps.get(THREAD_SAFE_CLIENT_PROP));
                 if (threadSafe == null) {
                     threadSafe = DEFAULT_THREAD_SAFETY_CLIENT_STATUS;
@@ -553,8 +551,8 @@ public class ClientImpl implements Client {
         }
     }
     private static Long getLongValue(Object o) {
-        return o instanceof Long ? (Long)o 
-            : o instanceof String ? Long.valueOf(o.toString()) 
+        return o instanceof Long ? (Long)o
+            : o instanceof String ? Long.valueOf(o.toString())
             : o instanceof Integer ? ((Integer)o).longValue() : null;
     }
     private static Integer getIntValue(Object o) {

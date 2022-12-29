@@ -18,10 +18,9 @@
  */
 package org.apache.cxf.systest.jaxrs.discovery;
 
-import javax.ws.rs.core.Form;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
-
+import jakarta.ws.rs.core.Form;
+import jakarta.ws.rs.core.Response;
+import jakarta.ws.rs.core.Response.Status;
 import org.apache.cxf.jaxrs.client.JAXRSClientFactory;
 import org.apache.cxf.jaxrs.client.WebClient;
 import org.apache.cxf.jaxrs.model.AbstractResourceInfo;
@@ -33,6 +32,9 @@ import org.apache.cxf.testutil.common.TestUtil;
 import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Test;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 public class JAXRSServerSpringDiscoveryTest extends AbstractJAXRSValidationTest {
     public static final String PORT = TestUtil.getPortNumber("jaxrs-http");

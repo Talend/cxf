@@ -46,6 +46,7 @@ import org.apache.cxf.sts.token.provider.TokenProviderResponse;
 import org.apache.cxf.sts.token.realm.RealmProperties;
 import org.apache.cxf.sts.token.realm.SAMLRealmCodec;
 import org.apache.cxf.ws.security.tokenstore.TokenStore;
+import org.apache.cxf.ws.security.tokenstore.TokenStoreException;
 import org.apache.wss4j.common.WSS4JConstants;
 import org.apache.wss4j.common.crypto.Crypto;
 import org.apache.wss4j.common.crypto.CryptoFactory;
@@ -54,16 +55,20 @@ import org.apache.wss4j.common.principal.CustomTokenPrincipal;
 
 import org.junit.BeforeClass;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
 /**
  * Some unit tests for validating a SAML token with a realm against the cached tokens realm.
  */
-public class SAMLTokenValidatorCachedRealmTest extends org.junit.Assert {
+public class SAMLTokenValidatorCachedRealmTest {
 
     private static TokenStore tokenStore;
 
     @BeforeClass
-    public static void init() {
+    public static void init() throws TokenStoreException {
         tokenStore = new DefaultInMemoryTokenStore();
     }
 
@@ -93,10 +98,10 @@ public class SAMLTokenValidatorCachedRealmTest extends org.junit.Assert {
         ((SAMLTokenValidator)samlTokenValidator).setSamlRealmCodec(samlRealmCodec);
 
         TokenValidatorResponse validatorResponse = samlTokenValidator.validateToken(validatorParameters);
-        assertTrue(validatorResponse != null);
-        assertTrue(validatorResponse.getToken() != null);
+        assertNotNull(validatorResponse);
+        assertNotNull(validatorResponse.getToken());
         assertTrue(validatorResponse.getToken().getState() == STATE.VALID);
-        assertTrue(validatorResponse.getTokenRealm().equals("A"));
+        assertEquals("A", validatorResponse.getTokenRealm());
 
     }
 
@@ -126,8 +131,8 @@ public class SAMLTokenValidatorCachedRealmTest extends org.junit.Assert {
         ((SAMLTokenValidator)samlTokenValidator).setSamlRealmCodec(samlRealmCodec);
 
         TokenValidatorResponse validatorResponse = samlTokenValidator.validateToken(validatorParameters);
-        assertTrue(validatorResponse != null);
-        assertTrue(validatorResponse.getToken() != null);
+        assertNotNull(validatorResponse);
+        assertNotNull(validatorResponse.getToken());
         assertTrue(validatorResponse.getToken().getState() == STATE.INVALID);
         assertNull(validatorResponse.getTokenRealm());
 
@@ -182,7 +187,7 @@ public class SAMLTokenValidatorCachedRealmTest extends org.junit.Assert {
         ((SAMLTokenProvider)samlTokenProvider).setRealmMap(samlRealms);
 
         TokenProviderResponse providerResponse = samlTokenProvider.createToken(providerParameters);
-        assertTrue(providerResponse != null);
+        assertNotNull(providerResponse);
         assertTrue(providerResponse.getToken() != null && providerResponse.getTokenId() != null);
 
         return (Element)providerResponse.getToken();

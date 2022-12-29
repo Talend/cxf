@@ -20,12 +20,6 @@
 package org.apache.cxf.tools.wadlto.jaxrs;
 
 import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.Reader;
-import java.net.URL;
-import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -37,7 +31,6 @@ import org.xml.sax.InputSource;
 
 import org.apache.cxf.common.util.StringUtils;
 import org.apache.cxf.common.util.URIParserUtil;
-import org.apache.cxf.helpers.IOUtils;
 import org.apache.cxf.tools.common.AbstractCXFToolContainer;
 import org.apache.cxf.tools.common.ClassUtils;
 import org.apache.cxf.tools.common.ToolException;
@@ -48,15 +41,10 @@ import org.apache.cxf.tools.wadlto.WadlToolConstants;
 import org.apache.cxf.tools.wadlto.jaxb.CustomizationParser;
 
 public class JAXRSContainer extends AbstractCXFToolContainer {
-    private static final Map<String, String> DEFAULT_JAVA_TYPE_MAP;
     private static final String TOOL_NAME = "wadl2java";
     private static final String EPR_TYPE_KEY = "org.w3._2005._08.addressing.EndpointReference";
-
-    static {
-        DEFAULT_JAVA_TYPE_MAP = Collections.singletonMap(EPR_TYPE_KEY,
-                "javax.xml.ws.wsaddressing.W3CEndpointReference");
-    }
-
+    private static final Map<String, String> DEFAULT_JAVA_TYPE_MAP = Collections.singletonMap(EPR_TYPE_KEY,
+        "jakarta.xml.ws.wsaddressing.W3CEndpointReference");
 
     public JAXRSContainer(ToolSpec toolspec) throws Exception {
         super(TOOL_NAME, toolspec);
@@ -115,7 +103,6 @@ public class JAXRSContainer extends AbstractCXFToolContainer {
         File outDir = new File((String)context.get(WadlToolConstants.CFG_OUTPUTDIR));
         String wadlURL = getAbsoluteWadlURL();
         String authentication = (String)context.get(WadlToolConstants.CFG_AUTHENTICATION);
-        String wadl = readWadl(wadlURL, authentication);
 
         SourceGenerator sg = new SourceGenerator();
         sg.setBus(getBus());
@@ -164,6 +151,7 @@ public class JAXRSContainer extends AbstractCXFToolContainer {
 
         sg.setGenerateEnums(context.optionSet(WadlToolConstants.CFG_GENERATE_ENUMS));
         sg.setValidateWadl(context.optionSet(WadlToolConstants.CFG_VALIDATE_WADL));
+        sg.setRx(context.get(WadlToolConstants.CFG_RX, String.class));
         boolean inheritResourceParams = context.optionSet(WadlToolConstants.CFG_INHERIT_PARAMS);
         sg.setInheritResourceParams(inheritResourceParams);
         if (inheritResourceParams) {
@@ -181,14 +169,14 @@ public class JAXRSContainer extends AbstractCXFToolContainer {
         // generate
         String codeType = context.optionSet(WadlToolConstants.CFG_TYPES)
             ? SourceGenerator.CODE_TYPE_GRAMMAR : SourceGenerator.CODE_TYPE_PROXY;
-        sg.generateSource(wadl, outDir, codeType);
+        sg.generateSource(outDir, codeType);
 
         // compile
         if (context.optionSet(WadlToolConstants.CFG_COMPILE)) {
             ClassCollector collector = createClassCollector();
             List<String> generatedServiceClasses = sg.getGeneratedServiceClasses();
             for (String className : generatedServiceClasses) {
-                int index = className.lastIndexOf(".");
+                int index = className.lastIndexOf('.');
                 collector.addServiceClassName(className.substring(0, index),
                                               className.substring(index + 1),
                                               className);
@@ -196,7 +184,7 @@ public class JAXRSContainer extends AbstractCXFToolContainer {
 
             List<String> generatedTypeClasses = sg.getGeneratedTypeClasses();
             for (String className : generatedTypeClasses) {
-                int index = className.lastIndexOf(".");
+                int index = className.lastIndexOf('.');
                 collector.addTypesClassName(className.substring(0, index),
                                               className.substring(index + 1),
                                               className);
@@ -206,22 +194,6 @@ public class JAXRSContainer extends AbstractCXFToolContainer {
             new ClassUtils().compile(context);
         }
 
-    }
-
-    protected String readWadl(String wadlURI, String authentication) {
-        try {
-            URL url = new URL(wadlURI);
-            InputStream is = null;
-            if (wadlURI.startsWith("https") && authentication != null) {
-                is = SecureConnectionHelper.getStreamFromSecureConnection(url, authentication);
-            } else {
-                is = url.openStream();
-            }
-            Reader reader = new InputStreamReader(is, StandardCharsets.UTF_8);
-            return IOUtils.toString(reader);
-        } catch (IOException e) {
-            throw new ToolException(e);
-        }
     }
 
     protected String getAbsoluteWadlURL() {
@@ -279,7 +251,7 @@ public class JAXRSContainer extends AbstractCXFToolContainer {
                                                    : (String[])value;
         }
         for (int i = 0; i < schemaPackageNamespaces.length; i++) {
-            int pos = schemaPackageNamespaces[i].indexOf("=");
+            int pos = schemaPackageNamespaces[i].indexOf('=');
             String packagename = schemaPackageNamespaces[i];
             if (pos != -1) {
                 String ns = schemaPackageNamespaces[i].substring(0, pos);
@@ -312,7 +284,7 @@ public class JAXRSContainer extends AbstractCXFToolContainer {
         }
         Map<String, String> typeMap = new HashMap<>();
         for (int i = 0; i < typeToClasses.length; i++) {
-            int pos = typeToClasses[i].indexOf("=");
+            int pos = typeToClasses[i].indexOf('=');
             if (pos != -1) {
                 String type = typeToClasses[i].substring(0, pos);
                 if (type.contains("%3D")) {

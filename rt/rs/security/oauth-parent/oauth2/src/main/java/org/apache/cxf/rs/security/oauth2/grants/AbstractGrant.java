@@ -19,8 +19,7 @@
 
 package org.apache.cxf.rs.security.oauth2.grants;
 
-import javax.ws.rs.core.MultivaluedMap;
-
+import jakarta.ws.rs.core.MultivaluedMap;
 import org.apache.cxf.jaxrs.impl.MetadataMap;
 import org.apache.cxf.rs.security.oauth2.common.AccessTokenGrant;
 import org.apache.cxf.rs.security.oauth2.utils.OAuthConstants;
@@ -59,7 +58,7 @@ public abstract class AbstractGrant implements AccessTokenGrant {
     }
 
     public MultivaluedMap<String, String> toMap() {
-        MultivaluedMap<String, String> map = new MetadataMap<String, String>();
+        MultivaluedMap<String, String> map = new MetadataMap<>();
         map.putSingle(OAuthConstants.GRANT_TYPE, getType());
         if (scope != null) {
             map.putSingle(OAuthConstants.SCOPE, scope);

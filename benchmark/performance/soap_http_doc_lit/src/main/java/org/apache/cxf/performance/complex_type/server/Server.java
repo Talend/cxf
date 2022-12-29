@@ -18,7 +18,7 @@
  */
 package org.apache.cxf.performance.complex_type.server;
 
-import javax.xml.ws.Endpoint;
+import jakarta.xml.ws.Endpoint;
 
 import org.apache.cxf.BusFactory;
 import org.apache.cxf.bus.spring.SpringBusFactory;
@@ -35,7 +35,7 @@ public class Server implements Runnable {
         System.out.println("Server published " + address);
     }
 
-    public static void main(String args[]) throws Exception {
+    public static void main(String[] args) throws Exception {
         String host = "localhost";
         String protocol = "http";
         String cfg = null;

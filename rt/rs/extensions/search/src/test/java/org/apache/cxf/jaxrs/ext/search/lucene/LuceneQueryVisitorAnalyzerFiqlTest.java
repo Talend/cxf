@@ -32,11 +32,6 @@ public class LuceneQueryVisitorAnalyzerFiqlTest extends AbstractLuceneQueryVisit
     }
 
     @Test
-    public void testTextContentMatchStopWord() throws Exception {
-        assertNull("No query should be returned for stop words", createTermQueryWithAnalyzer("ct==the"));
-    }
-
-    @Test
     public void testTextAndContentMatch() throws Exception {
         Query query = createTermQueryWithAnalyzer("contents==namE;contents==tExt");
         doTestTextContentMatchWithQuery(query);

@@ -123,24 +123,24 @@ public class MapType extends AegisType {
      */
     @SuppressWarnings("unchecked")
     protected Map<Object, Object> instantiateMap() {
-        Map<Object, Object> map = null;
+        final Map<Object, Object> map;
 
         Class<?> cls = getTypeClass();
         if (cls.equals(Map.class)) {
             map = new HashMap<>();
-        } else if (cls.equals(Hashtable.class)) {
-            map = new Hashtable<Object, Object>();
+        } else if (cls.equals(Hashtable.class)) { //NOPMD
+            map = new Hashtable<>();
         } else if (cls.equals(ConcurrentMap.class)) {
-            map = new ConcurrentHashMap<Object, Object>();
+            map = new ConcurrentHashMap<>();
         } else if (cls.equals(ConcurrentNavigableMap.class)) {
-            map = new ConcurrentSkipListMap<Object, Object>();
+            map = new ConcurrentSkipListMap<>();
         } else if (cls.equals(SortedMap.class) || cls.equals(NavigableMap.class)) {
-            map = new TreeMap<Object, Object>();
+            map = new TreeMap<>();
         } else if (cls.isInterface()) {
             map = new HashMap<>();
         } else {
             try {
-                map = (Map<Object, Object>)cls.newInstance();
+                map = (Map<Object, Object>)cls.getDeclaredConstructor().newInstance();
             } catch (Exception e) {
                 throw new DatabindingException("Could not create map implementation: "
                                                + getTypeClass().getName(), e);

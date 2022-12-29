@@ -44,6 +44,8 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
+import static org.junit.Assert.assertNotNull;
+
 public class ClassTest extends AbstractAegisTest {
     Server server;
 
@@ -75,9 +77,9 @@ public class ClassTest extends AbstractAegisTest {
 
     public static class GenericsService {
 
-        public <T extends Serializable> T createInstance(Class<T> type)
-            throws InstantiationException, IllegalAccessException {
-            return type.newInstance();
+        public <T extends Serializable> T createInstance(Class<T> type) 
+            throws Exception {
+            return type.getDeclaredConstructor().newInstance();
         }
     }
 

@@ -40,7 +40,7 @@ import org.apache.wss4j.stax.ext.WSSSecurityProperties;
 import org.apache.wss4j.stax.securityToken.WSSecurityTokenConstants;
 import org.apache.xml.security.stax.ext.SecurePart;
 
-import demo.wssec.server.UTPasswordCallback;
+import demo.wssec.client.UTPasswordCallback;
 
 /**
  * A StAX-based client
@@ -50,7 +50,7 @@ public final class StaxClient {
     private StaxClient() {
     }
 
-    public static void main(String args[]) throws Exception {
+    public static void main(String[] args) throws Exception {
         try {
 
             SpringBusFactory bf = new SpringBusFactory();
@@ -68,12 +68,12 @@ public final class StaxClient {
             properties.addAction(WSSConstants.USERNAMETOKEN);
             properties.addAction(WSSConstants.TIMESTAMP);
             properties.addAction(WSSConstants.SIGNATURE);
-            properties.addAction(WSSConstants.ENCRYPT);
+            properties.addAction(WSSConstants.ENCRYPTION);
 
             properties.setUsernameTokenPasswordType(WSSConstants.UsernameTokenPasswordType.PASSWORD_DIGEST);
             properties.setTokenUser("abcd");
-            properties.setSignatureUser("clientx509v1");
-            properties.setEncryptionUser("serverx509v1");
+            properties.setSignatureUser("bethal");
+            properties.setEncryptionUser("morpit");
 
             properties.setEncryptionCryptoProperties(encCryptoProperties);
             properties.setEncryptionKeyIdentifier(
@@ -114,7 +114,7 @@ public final class StaxClient {
             inProperties.addAction(WSSConstants.USERNAMETOKEN);
             inProperties.addAction(WSSConstants.TIMESTAMP);
             inProperties.addAction(WSSConstants.SIGNATURE);
-            inProperties.addAction(WSSConstants.ENCRYPT);
+            inProperties.addAction(WSSConstants.ENCRYPTION);
 
             inProperties.setCallbackHandler(new UTPasswordCallback());
             inProperties.setDecryptionCryptoProperties(sigCryptoProperties);

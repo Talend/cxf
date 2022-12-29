@@ -66,8 +66,8 @@ public class WrapperClassInInterceptor extends AbstractPhaseInterceptor<Message>
 
         if (method != null && method.getName().endsWith("Async")) {
             Class<?> retType = method.getReturnType();
-            if (retType.getName().equals("java.util.concurrent.Future")
-                || retType.getName().equals("javax.xml.ws.Response")) {
+            if ("java.util.concurrent.Future".equals(retType.getName())
+                || "jakarta.xml.ws.Response".equals(retType.getName())) {
                 return;
             }
         }
@@ -107,8 +107,7 @@ public class WrapperClassInInterceptor extends AbstractPhaseInterceptor<Message>
             MessagePartInfo wrapperPart = wrappedMessageInfo.getFirstMessagePart();
             Class<?> wrapperClass = wrapperPart.getTypeClass();
             Object wrappedObject = lst.get(wrapperPart.getIndex());
-            if (wrapperClass == null || wrappedObject == null
-                || (wrapperClass != null && !wrapperClass.isInstance(wrappedObject))) {
+            if (wrapperClass == null || wrappedObject == null || !wrapperClass.isInstance(wrappedObject)) {
                 return;
             }
 
@@ -178,7 +177,7 @@ public class WrapperClassInInterceptor extends AbstractPhaseInterceptor<Message>
                                               Class<?> wrapperClass) {
         List<String> partNames = new ArrayList<>();
         List<String> elTypeNames = new ArrayList<>();
-        List<Class<?>> partClasses = new ArrayList<Class<?>>();
+        List<Class<?>> partClasses = new ArrayList<>();
         QName wrapperName = null;
         for (MessagePartInfo p : wrappedMessageInfo.getMessageParts()) {
             if (wrapperClass == p.getTypeClass()) {
@@ -198,7 +197,7 @@ public class WrapperClassInInterceptor extends AbstractPhaseInterceptor<Message>
                     partNames.set(idx, null);
                 }
             } else {
-                String elementType = null;
+                final String elementType;
                 if (p.getTypeQName() == null) {
                     // handling anonymous complex type
                     elementType = null;

@@ -26,18 +26,17 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.Reader;
-import java.nio.charset.Charset;
 import java.util.HashMap;
 import java.util.Map;
 
+import javax.crypto.Cipher;
+import javax.crypto.SecretKey;
+import javax.crypto.spec.SecretKeySpec;
 import javax.wsdl.Definition;
 import javax.wsdl.WSDLException;
 import javax.wsdl.factory.WSDLFactory;
 import javax.wsdl.xml.WSDLWriter;
 import javax.xml.namespace.QName;
-import javax.xml.stream.XMLInputFactory;
-import javax.xml.stream.XMLStreamException;
-import javax.xml.stream.XMLStreamReader;
 
 import org.w3c.dom.Attr;
 import org.w3c.dom.Document;
@@ -60,18 +59,18 @@ import org.apache.cxf.transport.ConduitInitiatorManager;
 import org.apache.cxf.transport.MessageObserver;
 import org.apache.cxf.wsdl11.ServiceWSDLBuilder;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
+
 /**
  * This class provides unit test support for tests that look at generated WSDL
  * contents, as well as some test methods for invoking services.
  */
 public class TestUtilities {
 
-    private static final Charset UTF8 = Charset.forName("utf-8");
     private static String preKeepAlive;
     private static String basedirPath;
     protected Bus bus;
     protected Class<?> classpathAnchor;
-    private XMLInputFactory xmlInputFactory;
 
     /**
      * Namespaces for the XPath expressions.
@@ -88,7 +87,6 @@ public class TestUtilities {
      */
     public TestUtilities(Class<?> classpathReference) {
         classpathAnchor = classpathReference;
-        xmlInputFactory = XMLInputFactory.newInstance();
     }
 
     public static void setKeepAliveSystemProperty(boolean setAlive) {
@@ -229,38 +227,7 @@ public class TestUtilities {
         return obs.getResponseStream().toByteArray();
     }
 
-    public byte[] invokeBytes(String address, String transport, byte[] message) throws Exception {
-        EndpointInfo ei = new EndpointInfo(null, "http://schemas.xmlsoap.org/soap/http");
-        ei.setAddress(address);
-
-        ConduitInitiatorManager conduitMgr = getBus().getExtension(ConduitInitiatorManager.class);
-        ConduitInitiator conduitInit = conduitMgr.getConduitInitiator(transport);
-        Conduit conduit = conduitInit.getConduit(ei, getBus());
-
-        TestMessageObserver obs = new TestMessageObserver();
-        conduit.setMessageObserver(obs);
-
-        Message m = new MessageImpl();
-        conduit.prepare(m);
-
-        OutputStream os = m.getContent(OutputStream.class);
-        os.write(message);
-
-        // TODO: shouldn't have to do this. IO caching needs cleaning
-        // up or possibly removal...
-        os.flush();
-        os.close();
-
-        return obs.getResponseStream().toByteArray();
-    }
-
     public Node invoke(String address, String transport, String message) throws Exception {
-        byte[] bs = invokeBytes(address, transport, message);
-
-        ByteArrayInputStream input = new ByteArrayInputStream(bs);
-        return StaxUtils.read(input);
-    }
-    public Node invoke(String address, String transport, byte[] message) throws Exception {
         byte[] bs = invokeBytes(address, transport, message);
 
         ByteArrayInputStream input = new ByteArrayInputStream(bs);
@@ -272,11 +239,7 @@ public class TestUtilities {
     }
 
     public Reader getResourceAsReader(String resource) {
-        return new InputStreamReader(getResourceAsStream(resource), UTF8);
-    }
-
-    public XMLStreamReader getResourceAsXMLStreamReader(String resource) throws XMLStreamException {
-        return xmlInputFactory.createXMLStreamReader(getResourceAsStream(resource));
+        return new InputStreamReader(getResourceAsStream(resource), UTF_8);
     }
 
     public File getTestFile(String relativePath) {
@@ -354,7 +317,7 @@ public class TestUtilities {
         public ByteArrayOutputStream getResponseStream() throws Exception {
             synchronized (this) {
                 while (!written) {
-                    wait();
+                    wait(10 * 1000);
                 }
             }
             return response;
@@ -419,5 +382,25 @@ public class TestUtilities {
      */
     public void setBus(Bus bus) {
         this.bus = bus;
+    }
+
+    public static boolean checkUnrestrictedPoliciesInstalled() {
+        boolean unrestrictedPoliciesInstalled = false;
+        try {
+            byte[] data = {0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07};
+
+            SecretKey key192 = new SecretKeySpec(
+                new byte[] {0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07,     //NOPMD
+                            0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f,
+                            0x10, 0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17},
+                            "AES");
+            Cipher c = Cipher.getInstance("AES");
+            c.init(Cipher.ENCRYPT_MODE, key192);
+            c.doFinal(data);
+            unrestrictedPoliciesInstalled = true;
+        } catch (Exception e) {
+            return unrestrictedPoliciesInstalled;
+        }
+        return unrestrictedPoliciesInstalled;
     }
 }

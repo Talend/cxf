@@ -19,8 +19,7 @@
 
 package org.apache.cxf.systest.jaxrs.websocket;
 
-import javax.ws.rs.core.HttpHeaders;
-
+import jakarta.ws.rs.core.HttpHeaders;
 import org.apache.cxf.jaxrs.client.Client;
 import org.apache.cxf.jaxrs.client.JAXRSClientFactory;
 import org.apache.cxf.jaxrs.client.WebClient;
@@ -30,6 +29,9 @@ import org.apache.cxf.testutil.common.AbstractBusClientServerTestBase;
 
 import org.junit.BeforeClass;
 import org.junit.Test;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 /**
  *

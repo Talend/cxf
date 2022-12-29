@@ -81,7 +81,7 @@ public class PortTypeVisitor extends VisitorBase {
 
 
         AST identifierNode = node.getFirstChild();
-        if (identifierNode.getText().equals("local")) {
+        if ("local".equals(identifierNode.getText())) {
             identifierNode = identifierNode.getNextSibling();
         }
         // Check if its a forward declaration
@@ -121,7 +121,7 @@ public class PortTypeVisitor extends VisitorBase {
                 specNode = specNode.getNextSibling();
             }
 
-            AST exportNode = null;
+            AST exportNode;
             if (specNode.getType() == IDLTokenTypes.RCURLY) {
                 exportNode = specNode.getNextSibling();
             } else if (specNode.getType() == IDLTokenTypes.COLON) {
@@ -230,7 +230,8 @@ public class PortTypeVisitor extends VisitorBase {
 
 
     public Binding createBinding(String scopedPortTypeName) {
-        StringBuilder bname = new StringBuilder(scopedPortTypeName + "CORBABinding");
+        StringBuilder bname = new StringBuilder();
+        bname.append(scopedPortTypeName).append("CORBABinding");
         QName bqname = new QName(rootDefinition.getTargetNamespace(),
                                  bname.toString());
         int count = 0;
@@ -390,7 +391,7 @@ public class PortTypeVisitor extends VisitorBase {
             interfaceNameNode = interfaceNameNode.getNextSibling();
         }
 
-        if ((!inheritedScopes.isEmpty())
+        if (!inheritedScopes.isEmpty()
             && (wsdlVisitor.getInheritedScopeMap() != null)) {
             wsdlVisitor.getInheritedScopeMap().put(childScope, inheritedScopes);
         }

@@ -23,8 +23,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.logging.Level;
 
-import javax.jws.WebParam;
-
+import jakarta.jws.WebParam;
 import org.apache.cxf.common.jaxb.JAXBUtils;
 import org.apache.cxf.service.model.FaultInfo;
 import org.apache.cxf.service.model.MessageInfo;
@@ -178,7 +177,7 @@ public class OperationProcessor  extends AbstractProcessor {
     }
 
     private boolean checkEnableMime(boolean enableMime, JavaMethod method) {
-        String o[] = context.getArray(ToolConstants.CFG_MIMEMETHODS);
+        String[] o = context.getArray(ToolConstants.CFG_MIMEMETHODS);
         if (checkArray(o, method.getName())) {
             return true;
         }
@@ -186,7 +185,7 @@ public class OperationProcessor  extends AbstractProcessor {
     }
 
     private boolean checkEnableAsync(boolean enableAsync, JavaMethod method) {
-        String o[] = context.getArray(ToolConstants.CFG_ASYNCMETHODS);
+        String[] o = context.getArray(ToolConstants.CFG_ASYNCMETHODS);
         if (checkArray(o, method.getName())) {
             return true;
         }
@@ -194,7 +193,7 @@ public class OperationProcessor  extends AbstractProcessor {
     }
 
     private boolean checkEnableWrapper(boolean enableWrapper, JavaMethod method) {
-        String o[] = context.getArray(ToolConstants.CFG_BAREMETHODS);
+        String[] o = context.getArray(ToolConstants.CFG_BAREMETHODS);
         if (checkArray(o, method.getName())) {
             return false;
         }
@@ -250,9 +249,9 @@ public class OperationProcessor  extends AbstractProcessor {
     private void addAsyncMethod(JavaMethod method) throws ToolException {
         addPollingMethod(method);
         addCallbackMethod(method);
-        method.getInterface().addImport("javax.xml.ws.AsyncHandler");
+        method.getInterface().addImport("jakarta.xml.ws.AsyncHandler");
         method.getInterface().addImport("java.util.concurrent.Future");
-        method.getInterface().addImport("javax.xml.ws.Response");
+        method.getInterface().addImport("jakarta.xml.ws.Response");
     }
 
     private void addCallbackMethod(JavaMethod method) throws ToolException {
@@ -317,7 +316,7 @@ public class OperationProcessor  extends AbstractProcessor {
         asyncHandlerAnnotation.addElement(new JAnnotationElement("targetNamespace", ""));
         asyncHandler.addAnnotation("WebParam", asyncHandlerAnnotation);
 
-        method.getInterface().addImport("javax.jws.WebParam");
+        method.getInterface().addImport("jakarta.jws.WebParam");
         method.getInterface().addMethod(callbackMethod);
     }
 
@@ -387,13 +386,13 @@ public class OperationProcessor  extends AbstractProcessor {
         }
         StringBuilder sb = new StringBuilder();
         sb.append(clzName);
-        sb.append("<");
+        sb.append('<');
         if ("void".equals(response)) {
             sb.append('?');
         } else {
             sb.append(response);
         }
-        sb.append(">");
+        sb.append('>');
         return sb.toString();
     }
 
@@ -405,7 +404,7 @@ public class OperationProcessor  extends AbstractProcessor {
                 counter++;
             }
         }
-        return counter > 1 ? true : false;
+        return counter > 1;
     }
 
 }

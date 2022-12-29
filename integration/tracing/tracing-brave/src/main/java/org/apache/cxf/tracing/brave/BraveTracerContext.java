@@ -23,6 +23,7 @@ import java.util.concurrent.Callable;
 import brave.Span;
 import brave.Tracer;
 import brave.Tracer.SpanInScope;
+import brave.Tracing;
 import brave.http.HttpTracing;
 import org.apache.cxf.tracing.Traceable;
 import org.apache.cxf.tracing.TracerContext;
@@ -57,7 +58,7 @@ public class BraveTracerContext implements TracerContext {
             scope = tracer.withSpanInScope(continuationSpan);
         }
 
-        try {
+        try { //NOPMD
             return traceable.call(new BraveTracerContext(brave));
         } finally {
             if (continuationSpan != null && scope != null) {
@@ -97,6 +98,21 @@ public class BraveTracerContext implements TracerContext {
         final Span current = tracer.currentSpan();
         if (current != null) {
             current.annotate(message);
+        }
+    }
+    
+    @SuppressWarnings("unchecked")
+    @Override
+    public <T> T unwrap(final Class<T> clazz) {
+        if (HttpTracing.class.equals(clazz)) {
+            return (T)brave;
+        } else if (Tracing.class.equals(clazz)) {
+            return (T)brave.tracing();
+        } else if (Tracer.class.equals(clazz)) {
+            return (T)tracer;
+        } else {
+            throw new IllegalArgumentException("The class is '" + clazz
+                  + "'not supported and cannot be unwrapped");
         }
     }
     

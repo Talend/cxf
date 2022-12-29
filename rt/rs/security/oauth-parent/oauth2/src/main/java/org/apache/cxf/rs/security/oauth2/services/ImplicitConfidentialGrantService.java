@@ -19,8 +19,7 @@
 
 package org.apache.cxf.rs.security.oauth2.services;
 
-import javax.ws.rs.Path;
-
+import jakarta.ws.rs.Path;
 import org.apache.cxf.rs.security.oauth2.common.Client;
 import org.apache.cxf.rs.security.oauth2.utils.OAuthConstants;
 
@@ -38,7 +37,7 @@ public class ImplicitConfidentialGrantService extends AbstractImplicitGrantServi
 
     @Override
     protected void processRefreshToken(StringBuilder sb, String refreshToken) {
-        sb.append("&").append(OAuthConstants.REFRESH_TOKEN).append("=").append(refreshToken);
+        sb.append('&').append(OAuthConstants.REFRESH_TOKEN).append('=').append(refreshToken);
     }
     @Override
     protected boolean canSupportPublicClient(Client c) {

@@ -19,7 +19,6 @@
 
 package org.apache.cxf.ws.rm;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.concurrent.CopyOnWriteArrayList;
 
@@ -69,12 +68,12 @@ public class RMProperties {
 
     public void setAcks(Collection<SequenceAcknowledgement> a) {
         // use threadsafe implementation for working copy, to avoid concurrent modifications
-        acks = new CopyOnWriteArrayList<SequenceAcknowledgement>(a);
+        acks = new CopyOnWriteArrayList<>(a);
     }
 
     public void setAcksRequested(Collection<AckRequestedType> ar) {
         // use threadsafe implementation for working copy, to avoid concurrent modifications
-        acksRequested = new CopyOnWriteArrayList<AckRequestedType>(ar);
+        acksRequested = new CopyOnWriteArrayList<>(ar);
     }
 
     public void setCloseSequence(CloseSequenceType cs) {
@@ -97,7 +96,7 @@ public class RMProperties {
 
     public void addAck(DestinationSequence seq) {
         if (null == acks) {
-            acks = new ArrayList<>();
+            acks = new CopyOnWriteArrayList<>();
         }
         SequenceAcknowledgement ack = seq.getAcknowledgment();
         acks.add(ack);

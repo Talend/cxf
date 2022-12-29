@@ -25,18 +25,17 @@ import java.util.Collections;
 import java.util.List;
 import java.util.logging.Logger;
 
-import javax.annotation.Priority;
-import javax.servlet.http.HttpServletRequest;
-import javax.ws.rs.HttpMethod;
-import javax.ws.rs.Priorities;
-import javax.ws.rs.container.ContainerRequestContext;
-import javax.ws.rs.container.ContainerRequestFilter;
-import javax.ws.rs.container.PreMatching;
-import javax.ws.rs.core.Form;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.MultivaluedMap;
-import javax.ws.rs.ext.Provider;
-
+import jakarta.annotation.Priority;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.ws.rs.HttpMethod;
+import jakarta.ws.rs.Priorities;
+import jakarta.ws.rs.container.ContainerRequestContext;
+import jakarta.ws.rs.container.ContainerRequestFilter;
+import jakarta.ws.rs.container.PreMatching;
+import jakarta.ws.rs.core.Form;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.MultivaluedMap;
+import jakarta.ws.rs.ext.Provider;
 import org.apache.cxf.common.logging.LogUtils;
 import org.apache.cxf.common.security.SimplePrincipal;
 import org.apache.cxf.common.util.PropertyUtils;
@@ -121,7 +120,7 @@ public class OAuthRequestFilter extends AbstractAccessTokenValidator
 
         HttpServletRequest req = getMessageContext().getHttpServletRequest();
         for (OAuthPermission perm : permissions) {
-            boolean uriOK = checkRequestURI(req, perm.getUris());
+            boolean uriOK = checkRequestURI(req, perm.getUris(), m);
             boolean verbOK = checkHttpVerb(req, perm.getHttpVerbs());
             boolean scopeOk = checkScopeProperty(perm.getPermission());
             if (uriOK && verbOK && scopeOk) {
@@ -197,12 +196,16 @@ public class OAuthRequestFilter extends AbstractAccessTokenValidator
         return true;
     }
 
-    protected boolean checkRequestURI(HttpServletRequest request, List<String> uris) {
+        
+    protected boolean checkRequestURI(HttpServletRequest request, List<String> uris, Message m) {
 
         if (uris.isEmpty()) {
             return true;
         }
         String servletPath = request.getPathInfo();
+        if (servletPath == null) {
+            servletPath = (String)m.get(Message.PATH_INFO);
+        }
         boolean foundValidScope = false;
         for (String uri : uris) {
             if (OAuthUtils.checkRequestURI(servletPath, uri)) {
@@ -301,7 +304,7 @@ public class OAuthRequestFilter extends AbstractAccessTokenValidator
         if (type != null && MediaType.APPLICATION_FORM_URLENCODED.startsWith(type)
             && method != null && (method.equals(HttpMethod.POST) || method.equals(HttpMethod.PUT))) {
             try {
-                FormEncodingProvider<Form> provider = new FormEncodingProvider<Form>(true);
+                FormEncodingProvider<Form> provider = new FormEncodingProvider<>(true);
                 Form form = FormUtils.readForm(provider, message);
                 MultivaluedMap<String, String> formData = form.asMap();
                 String token = formData.getFirst(OAuthConstants.ACCESS_TOKEN);

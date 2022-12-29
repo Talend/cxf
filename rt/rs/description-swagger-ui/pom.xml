@@ -23,13 +23,16 @@
     <packaging>bundle</packaging>
     <name>Apache CXF JAX-RS Service Description Swagger UI integration</name>
     <description>Apache CXF JAX-RS Service Description Swagger UI integration</description>
-    <url>http://cxf.apache.org</url>
+    <url>https://cxf.apache.org</url>
     <parent>
         <groupId>org.apache.cxf</groupId>
         <artifactId>cxf-parent</artifactId>
-        <version>3.2.5-SNAPSHOT</version>
+        <version>4.0.1-SNAPSHOT</version>
         <relativePath>../../../parent/pom.xml</relativePath>
     </parent>
+    <properties>
+        <cxf.module.name>org.apache.cxf.rs.swagger.ui</cxf.module.name>
+    </properties>
     <dependencies>
         <dependency>
             <groupId>${cxf.servlet-api.group}</groupId>
@@ -43,10 +46,9 @@
             <version>${project.version}</version>
         </dependency>
         <dependency>
-            <groupId>org.osgi</groupId>
-            <artifactId>org.osgi.core</artifactId>
-            <scope>provided</scope>
-            <optional>true</optional>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <scope>test</scope>
         </dependency>
     </dependencies>
 </project>

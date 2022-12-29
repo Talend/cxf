@@ -36,27 +36,26 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
-import javax.servlet.ServletConfig;
-import javax.servlet.ServletContext;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.ws.rs.WebApplicationException;
-import javax.ws.rs.container.ResourceInfo;
-import javax.ws.rs.core.Application;
-import javax.ws.rs.core.Cookie;
-import javax.ws.rs.core.HttpHeaders;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.MultivaluedMap;
-import javax.ws.rs.core.PathSegment;
-import javax.ws.rs.core.Request;
-import javax.ws.rs.core.SecurityContext;
-import javax.ws.rs.core.UriInfo;
-import javax.ws.rs.ext.ContextResolver;
-import javax.ws.rs.ext.ParamConverter;
-import javax.ws.rs.ext.ParamConverterProvider;
-import javax.ws.rs.ext.Providers;
-import javax.xml.bind.JAXBContext;
-
+import jakarta.servlet.ServletConfig;
+import jakarta.servlet.ServletContext;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import jakarta.ws.rs.WebApplicationException;
+import jakarta.ws.rs.container.ResourceInfo;
+import jakarta.ws.rs.core.Application;
+import jakarta.ws.rs.core.Cookie;
+import jakarta.ws.rs.core.HttpHeaders;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.MultivaluedMap;
+import jakarta.ws.rs.core.PathSegment;
+import jakarta.ws.rs.core.Request;
+import jakarta.ws.rs.core.SecurityContext;
+import jakarta.ws.rs.core.UriInfo;
+import jakarta.ws.rs.ext.ContextResolver;
+import jakarta.ws.rs.ext.ParamConverter;
+import jakarta.ws.rs.ext.ParamConverterProvider;
+import jakarta.ws.rs.ext.Providers;
+import jakarta.xml.bind.JAXBContext;
 import org.apache.cxf.endpoint.Endpoint;
 import org.apache.cxf.endpoint.Server;
 import org.apache.cxf.helpers.CastUtils;
@@ -108,11 +107,18 @@ import org.apache.cxf.transport.http.AbstractHTTPDestination;
 
 import org.easymock.EasyMock;
 import org.junit.After;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
-public class JAXRSUtilsTest extends Assert {
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertSame;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+
+public class JAXRSUtilsTest {
 
     @Before
     public void setUp() {
@@ -140,7 +146,7 @@ public class JAXRSUtilsTest extends Assert {
         Message messageImpl = createMessage();
         String body = "p1=" + URLEncoder.encode("\u00E4\u00F6\u00FC", enc) + "&p2=2&p2=3";
         messageImpl.put(Message.REQUEST_URI, "/foo");
-        MultivaluedMap<String, String> headers = new MetadataMap<String, String>();
+        MultivaluedMap<String, String> headers = new MetadataMap<>();
         String ct = MediaType.APPLICATION_FORM_URLENCODED;
         if (setEnc) {
             ct += ";charset=" + enc;
@@ -168,20 +174,16 @@ public class JAXRSUtilsTest extends Assert {
         sf.create();
         List<ClassResourceInfo> resources = ((JAXRSServiceImpl)sf.getService()).getClassResourceInfos();
 
-        ClassResourceInfo bStore = firstResource(JAXRSUtils.selectResourceClass(resources, "/bookstore", null));
-        assertEquals(bStore.getResourceClass(), org.apache.cxf.jaxrs.resources.BookStore.class);
+        assertEquals(org.apache.cxf.jaxrs.resources.BookStore.class, firstResourceClass(resources, "/bookstore"));
 
-        bStore = firstResource(JAXRSUtils.selectResourceClass(resources, "/bookstore/", null));
-        assertEquals(bStore.getResourceClass(),
-                     org.apache.cxf.jaxrs.resources.BookStore.class);
+        assertEquals(org.apache.cxf.jaxrs.resources.BookStore.class, firstResourceClass(resources, "/bookstore/"));
 
-        bStore = firstResource(JAXRSUtils.selectResourceClass(resources, "/bookstore/bar", null));
-        assertEquals(bStore.getResourceClass(),
-                     org.apache.cxf.jaxrs.resources.BookStoreNoSubResource.class);
+        assertEquals(org.apache.cxf.jaxrs.resources.BookStoreNoSubResource.class,
+                firstResourceClass(resources, "/bookstore/bar"));
     }
 
-    private static ClassResourceInfo firstResource(Map<ClassResourceInfo, MultivaluedMap<String, String>> map) {
-        return map == null ? null : map.entrySet().iterator().next().getKey();
+    private static Class<?> firstResourceClass(List<ClassResourceInfo> resources, String path) {
+        return JAXRSUtils.selectResourceClass(resources, path, null).keySet().iterator().next().getResourceClass();
     }
 
     @Test
@@ -279,20 +281,15 @@ public class JAXRSUtilsTest extends Assert {
         sf.create();
         List<ClassResourceInfo> resources = ((JAXRSServiceImpl)sf.getService()).getClassResourceInfos();
 
-        ClassResourceInfo bStore = firstResource(JAXRSUtils.selectResourceClass(resources, "/1", null));
-        assertEquals(bStore.getResourceClass(), org.apache.cxf.jaxrs.resources.TestResourceTemplate1.class);
+        assertEquals(org.apache.cxf.jaxrs.resources.TestResourceTemplate1.class, firstResourceClass(resources, "/1"));
 
-        bStore = firstResource(JAXRSUtils.selectResourceClass(resources, "/1/", null));
-        assertEquals(bStore.getResourceClass(),
-                     org.apache.cxf.jaxrs.resources.TestResourceTemplate1.class);
+        assertEquals(org.apache.cxf.jaxrs.resources.TestResourceTemplate1.class, firstResourceClass(resources, "/1/"));
 
-        bStore = firstResource(JAXRSUtils.selectResourceClass(resources, "/1/foo", null));
-        assertEquals(bStore.getResourceClass(),
-                     org.apache.cxf.jaxrs.resources.TestResourceTemplate2.class);
+        assertEquals(org.apache.cxf.jaxrs.resources.TestResourceTemplate2.class,
+                firstResourceClass(resources, "/1/foo"));
 
-        bStore = firstResource(JAXRSUtils.selectResourceClass(resources, "/1/foo/bar", null));
-        assertEquals(bStore.getResourceClass(),
-                     org.apache.cxf.jaxrs.resources.TestResourceTemplate2.class);
+        assertEquals(org.apache.cxf.jaxrs.resources.TestResourceTemplate2.class,
+                firstResourceClass(resources, "/1/foo/bar"));
     }
 
     @Test
@@ -302,13 +299,10 @@ public class JAXRSUtilsTest extends Assert {
                               org.apache.cxf.jaxrs.resources.TestResourceTemplate3.class);
         sf.create();
         List<ClassResourceInfo> resources = ((JAXRSServiceImpl)sf.getService()).getClassResourceInfos();
-        ClassResourceInfo bStore = firstResource(JAXRSUtils.selectResourceClass(resources, "/", null));
-        assertEquals(bStore.getResourceClass(), org.apache.cxf.jaxrs.resources.TestResourceTemplate3.class);
+        assertEquals(org.apache.cxf.jaxrs.resources.TestResourceTemplate3.class, firstResourceClass(resources, "/"));
 
-        bStore = firstResource(JAXRSUtils.selectResourceClass(resources, "/test", null));
-        assertEquals(bStore.getResourceClass(),
-                     org.apache.cxf.jaxrs.resources.TestResourceTemplate4.class);
-
+        assertEquals(org.apache.cxf.jaxrs.resources.TestResourceTemplate4.class,
+                firstResourceClass(resources, "/test"));
     }
 
     @Test
@@ -322,44 +316,44 @@ public class JAXRSUtilsTest extends Assert {
 
         //If acceptContentTypes does not specify a specific Mime type, the
         //method is declared with a most specific ProduceMime type is selected.
-        OperationResourceInfo ori = findTargetResourceClass(resources, createMessage2(),
+        OperationResourceInfo ori = findTargetResourceClass(resources, createMessage(),
              "/bookstore/1/books/123/", "GET", new MetadataMap<String, String>(), contentTypes,
              getTypes("application/json,application/xml;q=0.9"));
         assertNotNull(ori);
         assertEquals("getBookJSON", ori.getMethodToInvoke().getName());
 
         //test
-        ori = findTargetResourceClass(resources, createMessage2(), "/bookstore/1/books/123",
+        ori = findTargetResourceClass(resources, createMessage(), "/bookstore/1/books/123",
              "GET", new MetadataMap<String, String>(), contentTypes, getTypes("application/json"));
         assertNotNull(ori);
         assertEquals("getBookJSON", ori.getMethodToInvoke().getName());
 
         //test
-        ori = findTargetResourceClass(resources, createMessage2(), "/bookstore/1/books/123",
+        ori = findTargetResourceClass(resources, createMessage(), "/bookstore/1/books/123",
               "GET", new MetadataMap<String, String>(), contentTypes, getTypes("application/xml"));
         assertNotNull(ori);
         assertEquals("getBook", ori.getMethodToInvoke().getName());
 
         //test
-        ori = findTargetResourceClass(resources, createMessage2(), "/bookstore/1/books",
+        ori = findTargetResourceClass(resources, createMessage(), "/bookstore/1/books",
                       "GET", new MetadataMap<String, String>(), contentTypes,
                       getTypes("application/xml"));
         assertNotNull(ori);
         assertEquals("getBooks", ori.getMethodToInvoke().getName());
 
         //test find POST
-        ori = findTargetResourceClass(resources, createMessage2(), "/bookstore/1/books",
+        ori = findTargetResourceClass(resources, createMessage(), "/bookstore/1/books",
                  "POST", new MetadataMap<String, String>(), contentTypes, getTypes("application/xml"));
         assertNotNull(ori);
         assertEquals("addBook", ori.getMethodToInvoke().getName());
 
         //test find PUT
-        ori = findTargetResourceClass(resources, createMessage2(), "/bookstore/1/books",
+        ori = findTargetResourceClass(resources, createMessage(), "/bookstore/1/books",
             "PUT", new MetadataMap<String, String>(), contentTypes, getTypes("application/xml"));
         assertEquals("updateBook", ori.getMethodToInvoke().getName());
 
         //test find DELETE
-        ori = findTargetResourceClass(resources, createMessage2(), "/bookstore/1/books/123",
+        ori = findTargetResourceClass(resources, createMessage(), "/bookstore/1/books/123",
              "DELETE", new MetadataMap<String, String>(), contentTypes, getTypes("application/xml"));
         assertNotNull(ori);
         assertEquals("deleteBook", ori.getMethodToInvoke().getName());
@@ -402,8 +396,8 @@ public class JAXRSUtilsTest extends Assert {
 
         //If acceptContentTypes does not specify a specific Mime type, the
         //method is declared with a most specific ProduceMime type is selected.
-        MetadataMap<String, String> values = new MetadataMap<String, String>();
-        OperationResourceInfo ori = findTargetResourceClass(resources, createMessage2(), "/1/2/",
+        MetadataMap<String, String> values = new MetadataMap<>();
+        OperationResourceInfo ori = findTargetResourceClass(resources, createMessage(), "/1/2/",
              "GET", values, contentTypes, getTypes("*/*"));
         assertNotNull(ori);
         assertEquals("getBooks", ori.getMethodToInvoke().getName());
@@ -414,8 +408,8 @@ public class JAXRSUtilsTest extends Assert {
         assertEquals("First {id} is 1", "1", values.getFirst("id"));
         assertEquals("Second id is 2", "2", values.get("id").get(1));
 
-        values = new MetadataMap<String, String>();
-        ori = findTargetResourceClass(resources, createMessage2(), "/2",
+        values = new MetadataMap<>();
+        ori = findTargetResourceClass(resources, createMessage(), "/2",
              "POST", values, contentTypes, getTypes("*/*"));
         assertNotNull(ori);
         assertEquals("updateBookStoreInfo", ori.getMethodToInvoke().getName());
@@ -425,8 +419,8 @@ public class JAXRSUtilsTest extends Assert {
                      values.get(URITemplate.FINAL_MATCH_GROUP).size());
         assertEquals("Only the first {id} should've been picked up", "2", values.getFirst("id"));
 
-        values = new MetadataMap<String, String>();
-        ori = findTargetResourceClass(resources, createMessage2(), "/3/4",
+        values = new MetadataMap<>();
+        ori = findTargetResourceClass(resources, createMessage(), "/3/4",
              "PUT", values, contentTypes, getTypes("*/*"));
         assertNotNull(ori);
         assertEquals("updateBook", ori.getMethodToInvoke().getName());
@@ -439,29 +433,6 @@ public class JAXRSUtilsTest extends Assert {
         assertEquals("Only the first {id} should've been picked up", "4", values.getFirst("bookId"));
     }
 
-    private Message createMessage2() {
-        ProviderFactory factory = ServerProviderFactory.getInstance();
-        Message m = new MessageImpl();
-        m.put("org.apache.cxf.http.case_insensitive_queries", false);
-        Exchange e = new ExchangeImpl();
-        m.setExchange(e);
-        e.setInMessage(m);
-        Endpoint endpoint = EasyMock.createMock(Endpoint.class);
-        endpoint.getEndpointInfo();
-        EasyMock.expectLastCall().andReturn(null).anyTimes();
-        endpoint.get("org.apache.cxf.jaxrs.comparator");
-        EasyMock.expectLastCall().andReturn(null);
-        endpoint.size();
-        EasyMock.expectLastCall().andReturn(0).anyTimes();
-        endpoint.isEmpty();
-        EasyMock.expectLastCall().andReturn(true).anyTimes();
-        endpoint.get(ServerProviderFactory.class.getName());
-        EasyMock.expectLastCall().andReturn(factory).anyTimes();
-        EasyMock.replay(endpoint);
-        e.put(Endpoint.class, endpoint);
-        return m;
-    }
-
     @Test
     public void testFindTargetResourceClassWithSubResource() throws Exception {
         JAXRSServiceFactoryBean sf = new JAXRSServiceFactoryBean();
@@ -472,28 +443,28 @@ public class JAXRSUtilsTest extends Assert {
         String contentTypes = "*/*";
 
         OperationResourceInfo ori = findTargetResourceClass(resources,
-               createMessage2(), "/bookstore/books/sub/123", "GET", new MetadataMap<String, String>(), contentTypes,
+               createMessage(), "/bookstore/books/sub/123", "GET", new MetadataMap<String, String>(), contentTypes,
                getTypes("*/*"));
         assertNotNull(ori);
         assertEquals("getBook", ori.getMethodToInvoke().getName());
 
-        ori = findTargetResourceClass(resources, createMessage2(),
+        ori = findTargetResourceClass(resources, createMessage(),
             "/bookstore/books/123/true/chapter/1", "GET", new MetadataMap<String, String>(), contentTypes,
             getTypes("*/*"));
         assertNotNull(ori);
         assertEquals("getNewBook", ori.getMethodToInvoke().getName());
 
-        ori = findTargetResourceClass(resources, createMessage2(), "/bookstore/books",
+        ori = findTargetResourceClass(resources, createMessage(), "/bookstore/books",
             "POST", new MetadataMap<String, String>(), contentTypes, getTypes("*/*"));
         assertNotNull(ori);
         assertEquals("addBook", ori.getMethodToInvoke().getName());
 
-        ori = findTargetResourceClass(resources, createMessage2(), "/bookstore/books",
+        ori = findTargetResourceClass(resources, createMessage(), "/bookstore/books",
              "PUT", new MetadataMap<String, String>(), contentTypes, getTypes("*/*"));
         assertNotNull(ori);
         assertEquals("updateBook", ori.getMethodToInvoke().getName());
 
-        ori = findTargetResourceClass(resources, createMessage2(), "/bookstore/books/123",
+        ori = findTargetResourceClass(resources, createMessage(), "/bookstore/books/123",
             "DELETE", new MetadataMap<String, String>(), contentTypes, getTypes("*/*"));
         assertNotNull(ori);
         assertEquals("deleteBook", ori.getMethodToInvoke().getName());
@@ -592,12 +563,11 @@ public class JAXRSUtilsTest extends Assert {
         List<MediaType> methodMimeTypes = new ArrayList<>(
              JAXRSUtils.parseMediaTypes("application/mytype,application/xml,application/json"));
 
-        MediaType acceptContentType = MediaType.valueOf("application/json");
         List <MediaType> candidateList = JAXRSUtils.intersectMimeTypes(methodMimeTypes,
                                                  MediaType.valueOf("application/json"));
 
         assertEquals(1, candidateList.size());
-        assertTrue(candidateList.get(0).toString().equals("application/json"));
+        assertEquals("application/json", candidateList.get(0).toString());
 
         //test basic
         methodMimeTypes = JAXRSUtils.parseMediaTypes(
@@ -606,7 +576,7 @@ public class JAXRSUtilsTest extends Assert {
                                                       MediaType.valueOf("application/json"));
 
         assertEquals(1, candidateList.size());
-        assertTrue(candidateList.get(0).toString().equals("application/json"));
+        assertEquals("application/json", candidateList.get(0).toString());
 
         //test accept wild card */*
         candidateList = JAXRSUtils.intersectMimeTypes(
@@ -616,7 +586,7 @@ public class JAXRSUtilsTest extends Assert {
 
         //test accept wild card application/*
         methodMimeTypes = JAXRSUtils.parseMediaTypes("text/html,text/xml,application/xml");
-        acceptContentType = MediaType.valueOf("text/*");
+        MediaType acceptContentType = MediaType.valueOf("text/*");
         candidateList = JAXRSUtils.intersectMimeTypes(methodMimeTypes, acceptContentType);
 
         assertEquals(2, candidateList.size());
@@ -629,19 +599,19 @@ public class JAXRSUtilsTest extends Assert {
         candidateList = JAXRSUtils.intersectMimeTypes("*/*", "application/json");
 
         assertEquals(1, candidateList.size());
-        assertTrue("application/json".equals(candidateList.get(0).toString()));
+        assertEquals("application/json", candidateList.get(0).toString());
 
         //test produce wild card application/*
         candidateList = JAXRSUtils.intersectMimeTypes("application/*", "application/json");
 
         assertEquals(1, candidateList.size());
-        assertTrue("application/json".equals(candidateList.get(0).toString()));
+        assertEquals("application/json", candidateList.get(0).toString());
 
         //test produce wild card */*, accept wild card */*
         candidateList = JAXRSUtils.intersectMimeTypes("*/*", "*/*");
 
         assertEquals(1, candidateList.size());
-        assertTrue("*/*".equals(candidateList.get(0).toString()));
+        assertEquals("*/*", candidateList.get(0).toString());
     }
 
     @Test
@@ -944,18 +914,18 @@ public class JAXRSUtilsTest extends Assert {
         assertEquals(2, queryList6.size());
         assertEquals(Integer.valueOf(1), queryList6.get(0).get());
         assertEquals(Integer.valueOf(2), queryList6.get(1).get());
-        
-        List<Integer> queryList7 = (List<Integer>)params.get(7);
+
+        List<Long> queryList7 = (List<Long>)params.get(7);
         assertNotNull(queryList7);
         assertEquals(2, queryList7.size());
-        assertEquals(Long.valueOf(1), queryList7.get(0));
-        assertEquals(Long.valueOf(2), queryList7.get(1));
-        
-        List<Integer> queryList8 = (List<Integer>)params.get(8);
+        assertEquals(1L, queryList7.get(0).longValue());
+        assertEquals(2L, queryList7.get(1).longValue());
+
+        List<Double> queryList8 = (List<Double>)params.get(8);
         assertNotNull(queryList8);
         assertEquals(2, queryList8.size());
-        assertEquals(Double.valueOf(1), queryList8.get(0));
-        assertEquals(Double.valueOf(2), queryList8.get(1));
+        assertEquals(1., queryList8.get(0), 0.);
+        assertEquals(2., queryList8.get(1), 0.);
     }
 
     @Test
@@ -963,14 +933,14 @@ public class JAXRSUtilsTest extends Assert {
         Class<?>[] argType = {String.class, Set.class, String.class, Set.class};
         Method m = Customer.class.getMethod("testCookieParam", argType);
         Message messageImpl = createMessage();
-        MultivaluedMap<String, String> headers = new MetadataMap<String, String>();
+        MultivaluedMap<String, String> headers = new MetadataMap<>();
         headers.add("Cookie", "c1=c1Value");
         messageImpl.put(Message.PROTOCOL_HEADERS, headers);
         List<Object> params = JAXRSUtils.processParameters(new OperationResourceInfo(m,
                                                                new ClassResourceInfo(Customer.class)),
                                                            null,
                                                            messageImpl);
-        assertEquals(params.size(), 4);
+        assertEquals(4, params.size());
         assertEquals("c1Value", params.get(0));
         Set<Cookie> set1 = CastUtils.cast((Set<?>)params.get(1));
         assertEquals(1, set1.size());
@@ -987,7 +957,7 @@ public class JAXRSUtilsTest extends Assert {
         Class<?>[] argType = {String.class, String.class, Cookie.class};
         Method m = Customer.class.getMethod("testMultipleCookieParam", argType);
         Message messageImpl = createMessage();
-        MultivaluedMap<String, String> headers = new MetadataMap<String, String>();
+        MultivaluedMap<String, String> headers = new MetadataMap<>();
         headers.add("Cookie", "c1=c1Value; c2=c2Value");
         headers.add("Cookie", "c3=c3Value");
         messageImpl.put(Message.PROTOCOL_HEADERS, headers);
@@ -995,7 +965,7 @@ public class JAXRSUtilsTest extends Assert {
                                                                new ClassResourceInfo(Customer.class)),
                                                            null,
                                                            messageImpl);
-        assertEquals(params.size(), 3);
+        assertEquals(3, params.size());
         assertEquals("c1Value", params.get(0));
         assertEquals("c2Value", params.get(1));
         assertEquals("c3Value", ((Cookie)params.get(2)).getValue());
@@ -1104,6 +1074,26 @@ public class JAXRSUtilsTest extends Assert {
     }
 
     @Test
+    public void testQueryParameterDefaultValue() throws Exception {
+        Message messageImpl = createMessage();
+        ProviderFactory.getInstance(messageImpl).registerUserProvider(
+            new GenericObjectParameterHandler());
+        Class<?>[] argType = {String.class, String.class};
+        Method m = Customer.class.getMethod("testGenericObjectParamDefaultValue", argType);
+
+        messageImpl.put(Message.QUERY_STRING, "p1=thequery&p2");
+        List<Object> params = JAXRSUtils.processParameters(new OperationResourceInfo(m,
+                                                               new ClassResourceInfo(Customer.class)),
+                                                           null,
+                                                           messageImpl);
+        assertEquals(2, params.size());
+        String query = (String)params.get(0);
+        assertEquals("thequery", query);
+        query = (String)params.get(1);
+        assertEquals("thequery", query);
+    }
+
+    @Test
     public void testArrayParamNoProvider() throws Exception {
         Message messageImpl = createMessage();
         Class<?>[] argType = {String[].class};
@@ -1122,7 +1112,7 @@ public class JAXRSUtilsTest extends Assert {
 
     @Test
     public void testWrongType() throws Exception {
-        Class<?>[] argType = {HashMap.class};
+        Class<?>[] argType = {HashMap.class}; //NOPMD
         Method m = Customer.class.getMethod("testWrongType", argType);
         Message messageImpl = createMessage();
         messageImpl.put(Message.QUERY_STRING, "p1=1");
@@ -1226,6 +1216,20 @@ public class JAXRSUtilsTest extends Assert {
         Customer.CustomerBean bean = (Customer.CustomerBean)params.get(0);
         assertEquals("aValue", bean.getA());
     }
+    @Test
+    public void testXmlAdapterString() throws Exception {
+        Method m = Customer.class.getMethod("testXmlAdapter4", String.class);
+        Message messageImpl = createMessage();
+        messageImpl.put(Message.QUERY_STRING, "a=3");
+
+        List<Object> params = JAXRSUtils.processParameters(new OperationResourceInfo(m,
+                                                               new ClassResourceInfo(Customer.class)),
+                                                           null, messageImpl);
+        assertEquals(1, params.size());
+
+        String ret = (String)params.get(0);
+        assertEquals("Val: 3", ret);
+    }
 
 
     @Test
@@ -1233,11 +1237,11 @@ public class JAXRSUtilsTest extends Assert {
         Class<?>[] argType = {Customer.CustomerBean.class};
         Method m = Customer.class.getMethod("testPathBean", argType);
 
-        MultivaluedMap<String, String> pathTemplates = new MetadataMap<String, String>();
+        MultivaluedMap<String, String> pathTemplates = new MetadataMap<>();
         pathTemplates.add("a", "aValue");
         pathTemplates.add("b", "123");
 
-        MultivaluedMap<String, String> complexPathTemplates = new MetadataMap<String, String>();
+        MultivaluedMap<String, String> complexPathTemplates = new MetadataMap<>();
         complexPathTemplates.add("c", "1");
         complexPathTemplates.add("a", "A");
         complexPathTemplates.add("b", "123");
@@ -1308,7 +1312,7 @@ public class JAXRSUtilsTest extends Assert {
         Method m = Customer.class.getMethod("testFormBean", argType);
         Message messageImpl = createMessage();
         messageImpl.put(Message.REQUEST_URI, "/bar");
-        MultivaluedMap<String, String> headers = new MetadataMap<String, String>();
+        MultivaluedMap<String, String> headers = new MetadataMap<>();
         headers.putSingle("Content-Type", MediaType.APPLICATION_FORM_URLENCODED);
         messageImpl.put(Message.PROTOCOL_HEADERS, headers);
         String body = "a=aValue&b=123&cb=true";
@@ -1323,7 +1327,7 @@ public class JAXRSUtilsTest extends Assert {
         assertNotNull(cb);
 
         assertEquals("aValue", cb.getA());
-        assertEquals(new Long(123), cb.getB());
+        assertEquals(Long.valueOf(123), cb.getB());
         assertTrue(cb.isCb());
     }
 
@@ -1333,7 +1337,7 @@ public class JAXRSUtilsTest extends Assert {
         Method m = Customer.class.getMethod("testFormBean", argType);
         Message messageImpl = createMessage();
         messageImpl.put(Message.REQUEST_URI, "/bar");
-        MultivaluedMap<String, String> headers = new MetadataMap<String, String>();
+        MultivaluedMap<String, String> headers = new MetadataMap<>();
         headers.putSingle("Content-Type", MediaType.APPLICATION_FORM_URLENCODED);
         messageImpl.put(Message.PROTOCOL_HEADERS, headers);
         String body = "a=aValue&b=123&cb=true";
@@ -1360,7 +1364,7 @@ public class JAXRSUtilsTest extends Assert {
         Method m = Customer.class.getMethod("testFormBean", argType);
         Message messageImpl = createMessage();
         messageImpl.put(Message.REQUEST_URI, "/bar");
-        MultivaluedMap<String, String> headers = new MetadataMap<String, String>();
+        MultivaluedMap<String, String> headers = new MetadataMap<>();
         headers.putSingle("Content-Type", MediaType.APPLICATION_FORM_URLENCODED);
         messageImpl.put(Message.PROTOCOL_HEADERS, headers);
         String body = "g.b=1&g.b=2";
@@ -1394,7 +1398,7 @@ public class JAXRSUtilsTest extends Assert {
         assertNotNull(cb);
 
         assertEquals("aValue", cb.getA());
-        assertEquals(new Long(123), cb.getB());
+        assertEquals(Long.valueOf(123), cb.getB());
 
         params = JAXRSUtils.processParameters(new OperationResourceInfo(m,
                                                   new ClassResourceInfo(Customer.class)),
@@ -1405,7 +1409,7 @@ public class JAXRSUtilsTest extends Assert {
         assertNotNull(cb1);
 
         assertEquals("A", cb1.getA());
-        assertEquals(new Long(123), cb1.getB());
+        assertEquals(Long.valueOf(123), cb1.getB());
         List<String> list1 = cb1.getC();
         assertEquals(3, list1.size());
         assertEquals("1", list1.get(0));
@@ -1416,7 +1420,7 @@ public class JAXRSUtilsTest extends Assert {
         assertNotNull(cb2);
 
         assertEquals("B", cb2.getA());
-        assertEquals(new Long(456), cb2.getB());
+        assertEquals(Long.valueOf(456), cb2.getB());
         List<String> list2 = cb2.getC();
         assertEquals(3, list2.size());
         assertEquals("4", list2.get(0));
@@ -1431,7 +1435,7 @@ public class JAXRSUtilsTest extends Assert {
             assertNotNull(cb2E);
 
             assertEquals("B" + idx, cb2E.getA());
-            assertEquals(new Long(456 + idx), cb2E.getB());
+            assertEquals(Long.valueOf(456 + idx), cb2E.getB());
             // ensure C was stripped properly since lists within lists are not supported
             assertNull(cb2E.getC());
             assertNull(cb2E.getD());
@@ -1444,7 +1448,7 @@ public class JAXRSUtilsTest extends Assert {
         assertNotNull(cb3);
 
         assertEquals("C", cb3.getA());
-        assertEquals(new Long(789), cb3.getB());
+        assertEquals(Long.valueOf(789), cb3.getB());
         List<String> list3 = cb3.getC();
         assertEquals(3, list3.size());
         assertEquals("7", list3.get(0));
@@ -1459,7 +1463,7 @@ public class JAXRSUtilsTest extends Assert {
             assertNotNull(cb3E);
 
             assertEquals("C" + idx, cb3E.getA());
-            assertEquals(new Long(789 + idx), cb3E.getB());
+            assertEquals(Long.valueOf(789 + idx), cb3E.getB());
             // ensure C was stripped properly since lists within lists are not supported
             assertNull(cb3E.getC());
             assertNull(cb3E.getD());
@@ -1536,7 +1540,7 @@ public class JAXRSUtilsTest extends Assert {
         Method m = Customer.class.getMethod("testPathSegment", argType);
         Message messageImpl = createMessage();
         messageImpl.put(Message.REQUEST_URI, "/bar%20foo;p4=0%201");
-        MultivaluedMap<String, String> values = new MetadataMap<String, String>();
+        MultivaluedMap<String, String> values = new MetadataMap<>();
         values.add("ps", "bar%20foo;p4=0%201");
         List<Object> params = JAXRSUtils.processParameters(new OperationResourceInfo(m,
                                                                new ClassResourceInfo(Customer.class)),
@@ -1566,9 +1570,9 @@ public class JAXRSUtilsTest extends Assert {
         Class<?>[] argType = {String.class, List.class};
         Method m = Customer.class.getMethod("testFormParam", argType);
         Message messageImpl = createMessage();
-        String body = "p1=1&p2=2&p2=3";
+        String body = "p1=hello%2bworld&p2=2&p2=3";
         messageImpl.put(Message.REQUEST_URI, "/foo");
-        MultivaluedMap<String, String> headers = new MetadataMap<String, String>();
+        MultivaluedMap<String, String> headers = new MetadataMap<>();
         if (useMediaType) {
             headers.putSingle("Content-Type", MediaType.APPLICATION_FORM_URLENCODED);
         }
@@ -1580,7 +1584,7 @@ public class JAXRSUtilsTest extends Assert {
         assertEquals("2 form params should've been identified", 2, params.size());
 
         assertEquals("First Form Parameter not matched correctly",
-                     "1", params.get(0));
+                     "hello+world", params.get(0));
         List<String> list = (List<String>)params.get(1);
         assertEquals(2, list.size());
         assertEquals("2", list.get(0));
@@ -1629,9 +1633,26 @@ public class JAXRSUtilsTest extends Assert {
         assertEquals("3", list.get(1));
     }
 
-    private Map<ClassResourceInfo, MultivaluedMap<String, String>> getMap(ClassResourceInfo cri) {
+    @Test
+    public void testEncodedFormParameters() throws Exception {
+        Class<?>[] argType = {String.class, String.class};
+        Method m = Customer.class.getMethod("testEncodedFormParams", argType);
+        final Message messageImpl = createMessage();
+        String body = "p1=yay&p2=%21";
+        messageImpl.put(Message.REQUEST_URI, "/foo");
+        messageImpl.put("Content-Type", MediaType.APPLICATION_FORM_URLENCODED);
+        messageImpl.setContent(InputStream.class, new ByteArrayInputStream(body.getBytes()));
 
-        return Collections.singletonMap(cri, (MultivaluedMap<String, String>)new MetadataMap<String, String>());
+        List<Object> params = JAXRSUtils.processParameters(new OperationResourceInfo(m,
+                                                               new ClassResourceInfo(Customer.class)),
+                                                           new MetadataMap<String, String>(), messageImpl);
+        assertEquals("2 params should've been identified", 2, params.size());
+        assertEquals("yay", (String)params.get(0));
+        assertEquals("%21", (String)params.get(1)); // if decoded, this will return "!" instead of "%21"
+    }
+
+    private static Map<ClassResourceInfo, MultivaluedMap<String, String>> getMap(ClassResourceInfo cri) {
+        return Collections.singletonMap(cri, new MetadataMap<String, String>());
     }
 
     @Test
@@ -1652,22 +1673,22 @@ public class JAXRSUtilsTest extends Assert {
         md.bind(ori2, Customer.class.getMethod("getItPlain", new Class[]{}));
         cri.setMethodDispatcher(md);
 
-        OperationResourceInfo ori = JAXRSUtils.findTargetMethod(getMap(cri), createMessage2(), "GET",
+        OperationResourceInfo ori = JAXRSUtils.findTargetMethod(getMap(cri), createMessage(), "GET",
               new MetadataMap<String, String>(), "*/*", getTypes("text/plain"));
 
         assertSame(ori, ori2);
 
-        ori = JAXRSUtils.findTargetMethod(getMap(cri), createMessage2(), "GET", new MetadataMap<String, String>(),
+        ori = JAXRSUtils.findTargetMethod(getMap(cri), createMessage(), "GET", new MetadataMap<String, String>(),
                                               "*/*", getTypes("text/xml"));
 
         assertSame(ori, ori1);
 
-        ori = JAXRSUtils.findTargetMethod(getMap(cri), createMessage2(), "GET", new MetadataMap<String, String>(),
+        ori = JAXRSUtils.findTargetMethod(getMap(cri), createMessage(), "GET", new MetadataMap<String, String>(),
                                           "*/*",
                                           sortMediaTypes(getTypes("*/*;q=0.1,text/plain,text/xml;q=0.8")));
 
         assertSame(ori, ori2);
-        ori = JAXRSUtils.findTargetMethod(getMap(cri), createMessage2(), "GET", new MetadataMap<String, String>(),
+        ori = JAXRSUtils.findTargetMethod(getMap(cri), createMessage(), "GET", new MetadataMap<String, String>(),
                                           "*/*",
                                           sortMediaTypes(getTypes("*;q=0.1,text/plain,text/xml;q=0.9,x/y")));
 
@@ -1691,7 +1712,7 @@ public class JAXRSUtilsTest extends Assert {
                                                      List.class}),
                 cri);
         ori.setHttpMethod("GET");
-        MultivaluedMap<String, String> headers = new MetadataMap<String, String>();
+        MultivaluedMap<String, String> headers = new MetadataMap<>();
         headers.add("Foo", "bar, baz");
 
         Message m = createMessage();
@@ -1904,7 +1925,7 @@ public class JAXRSUtilsTest extends Assert {
         OperationResourceInfo ori = new OperationResourceInfo(Customer.class.getMethods()[0],
                                                               cri);
         Message m = createMessage();
-        MultivaluedMap<String, String> headers = new MetadataMap<String, String>();
+        MultivaluedMap<String, String> headers = new MetadataMap<>();
         headers.add("AHeader2", "theAHeader2");
         m.put(Message.PROTOCOL_HEADERS, headers);
         m.put(Message.QUERY_STRING, "a_value=aValue&query2=b");
@@ -1922,7 +1943,7 @@ public class JAXRSUtilsTest extends Assert {
                                                               cri);
         Message m = createMessage();
 
-        MultivaluedMap<String, String> headers = new MetadataMap<String, String>();
+        MultivaluedMap<String, String> headers = new MetadataMap<>();
         headers.add("AHeader", "theAHeader");
         m.put(Message.PROTOCOL_HEADERS, headers);
         m.put(Message.QUERY_STRING, "b=bValue");
@@ -2041,7 +2062,7 @@ public class JAXRSUtilsTest extends Assert {
                 cri);
         ori.setHttpMethod("GET");
         ori.setURITemplate(new URITemplate("{id1}/{id2}"));
-        MultivaluedMap<String, String> values = new MetadataMap<String, String>();
+        MultivaluedMap<String, String> values = new MetadataMap<>();
         values.putSingle("id1", "1");
         values.putSingle("id2", "2");
 
@@ -2055,6 +2076,42 @@ public class JAXRSUtilsTest extends Assert {
 
         SimpleFactory sf = (SimpleFactory)params.get(1);
         assertEquals(2, sf.getId());
+    }
+    
+    @Test
+    public void testBeanParamsWithBooleanConverter() throws Exception {
+        Class<?>[] argType = {Customer.CustomerBean.class};
+        Method m = Customer.class.getMethod("testBeanParam", argType);
+        Message messageImpl = createMessage();
+        messageImpl.put(Message.REQUEST_URI, "/bar");
+        
+        // The converter converts any Boolean to null
+        ProviderFactory.getInstance(messageImpl)
+            .registerUserProvider(new MyBoolParamConverterProvider());
+        
+        MultivaluedMap<String, String> headers = new MetadataMap<>();
+        headers.putSingle("Content-Type", MediaType.APPLICATION_FORM_URLENCODED);
+        messageImpl.put(Message.PROTOCOL_HEADERS, headers);
+        String body = "value=true";
+        messageImpl.setContent(InputStream.class, new ByteArrayInputStream(body.getBytes()));
+
+        final ClassResourceInfo cri = new ClassResourceInfo(Customer.class);
+        final MethodDispatcher md = new MethodDispatcher();
+        
+        final OperationResourceInfo ori = new OperationResourceInfo(m, cri);
+        md.bind(ori, m);
+        
+        cri.setMethodDispatcher(md);
+        cri.initBeanParamInfo(ServerProviderFactory.getInstance(messageImpl));
+
+        List<Object> params = JAXRSUtils.processParameters(ori,
+                                                           null,
+                                                           messageImpl);
+        assertEquals("Bean should be created", 1, params.size());
+        Customer.CustomerBean cb = (Customer.CustomerBean)params.get(0);
+        assertNotNull(cb);
+
+        assertNull(cb.getBool());
     }
 
     private static OperationResourceInfo findTargetResourceClass(List<ClassResourceInfo> resources,
@@ -2079,28 +2136,56 @@ public class JAXRSUtilsTest extends Assert {
         return null;
     }
 
-    private Message createMessage() {
-        ProviderFactory factory = ServerProviderFactory.getInstance();
+    private static Message createMessage() {
         Message m = new MessageImpl();
         m.put("org.apache.cxf.http.case_insensitive_queries", false);
         Exchange e = new ExchangeImpl();
         m.setExchange(e);
         e.setInMessage(m);
-        Endpoint endpoint = EasyMock.createMock(Endpoint.class);
-        endpoint.getEndpointInfo();
-        EasyMock.expectLastCall().andReturn(null).anyTimes();
-        endpoint.get(Application.class.getName());
-        EasyMock.expectLastCall().andReturn(null);
-        endpoint.size();
-        EasyMock.expectLastCall().andReturn(0).anyTimes();
-        endpoint.isEmpty();
-        EasyMock.expectLastCall().andReturn(true).anyTimes();
-        endpoint.get(ServerProviderFactory.class.getName());
-        EasyMock.expectLastCall().andReturn(factory).anyTimes();
-        EasyMock.replay(endpoint);
+        Endpoint endpoint = mockEndpoint();
         e.put(Endpoint.class, endpoint);
         return m;
     }
+
+    private static Endpoint mockEndpoint() {
+        Endpoint endpoint = EasyMock.mock(Endpoint.class);
+        EasyMock.expect(endpoint.getEndpointInfo()).andReturn(null).anyTimes();
+        EasyMock.expect(endpoint.get(Application.class.getName())).andReturn(null);
+        EasyMock.expect(endpoint.get("org.apache.cxf.jaxrs.comparator")).andReturn(null);
+        EasyMock.expect(endpoint.size()).andReturn(0).anyTimes();
+        EasyMock.expect(endpoint.isEmpty()).andReturn(true).anyTimes();
+        EasyMock.expect(endpoint.get(ServerProviderFactory.class.getName()))
+                .andReturn(ServerProviderFactory.getInstance()).anyTimes();
+        EasyMock.replay(endpoint);
+        return endpoint;
+    }
+
+    @SuppressWarnings("unchecked")
+    static class MyBoolParamConverterProvider implements ParamConverterProvider {
+        @Override
+        public <T> ParamConverter<T> getConverter(Class<T> rawType, Type genericType, Annotation[] annotations) {
+            if (rawType.isAssignableFrom(Boolean.TYPE) || rawType.isAssignableFrom(Boolean.class)) {
+                return (ParamConverter<T>) new ParamConverter<Boolean>() {
+                    @Override
+                    public Boolean fromString(String value) {
+                        if (rawType.isAssignableFrom(Boolean.TYPE)) {
+                            return true;
+                        }
+                        return null;
+                    }
+        
+                    @Override
+                    public String toString(Boolean value) {
+                        throw new UnsupportedOperationException();
+                    }
+                };
+            }
+            
+            return null;
+        }
+    }
+    
+    
     static class MyTypeParamConverterProvider
         implements ParamConverterProvider, ParamConverter<MyType<Integer>> {
 

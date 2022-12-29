@@ -80,7 +80,7 @@ public class TokenInputStream {
         if (position < 0) {
             return tokens[0];
         }
-        if (position > tokens.length) {
+        if (position >= tokens.length) {
             return tokens[tokens.length - 1];
         }
         return tokens[position];
@@ -112,7 +112,7 @@ public class TokenInputStream {
         for (int i = pos; i < tokens.length; i++) {
             sb.append(tokens[i]);
             if (i < tokens.length - 1) {
-                sb.append(" ");
+                sb.append(' ');
             }
         }
         sb.append(" ]");

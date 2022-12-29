@@ -29,11 +29,10 @@ import java.util.Properties;
 import java.util.ResourceBundle;
 import java.util.logging.Logger;
 
-import javax.resource.ResourceException;
-import javax.resource.spi.BootstrapContext;
-import javax.resource.spi.work.Work;
-import javax.resource.spi.work.WorkManager;
-
+import jakarta.resource.ResourceException;
+import jakarta.resource.spi.BootstrapContext;
+import jakarta.resource.spi.work.Work;
+import jakarta.resource.spi.work.WorkManager;
 import org.apache.cxf.Bus;
 import org.apache.cxf.BusFactory;
 import org.apache.cxf.common.i18n.BundleUtils;
@@ -80,10 +79,9 @@ public class JCABusFactory {
             BusFactory bf = BusFactory.newInstance();
             bus = bf.createBus();
             initializeServants();
+        } catch (ResourceAdapterInternalException ex) {
+            throw ex;
         } catch (Exception ex) {
-            if (ex instanceof ResourceAdapterInternalException) {
-                throw (ResourceException)ex;
-            }
             throw new ResourceAdapterInternalException(
                               new Message("FAIL_TO_INITIALIZE_JCABUSFACTORY", BUNDLE).toString(), ex);
         } finally {
@@ -181,26 +179,15 @@ public class JCABusFactory {
     }
 
     protected Properties loadProperties(URL propsUrl) throws ResourceException {
-        Properties props = null;
-        InputStream istream = null;
+        Properties props = new Properties();
 
         LOG.info("loadProperties, url=" + propsUrl);
 
-        try {
-            istream = propsUrl.openStream();
-            props = new Properties();
+        try (InputStream istream = propsUrl.openStream()) {
             props.load(istream);
         } catch (IOException e) {
             throw new ResourceAdapterInternalException(
                        new Message("FAIL_TO_LOAD_EJB_SERVANT_PROPERTIES", BUNDLE, propsUrl).toString(), e);
-        } finally {
-            if (istream != null) {
-                try {
-                    istream.close();
-                } catch (IOException e) {
-                    //DO Nothing
-                }
-            }
         }
 
         return props;

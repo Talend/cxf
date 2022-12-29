@@ -21,39 +21,21 @@ package org.apache.cxf.tools.java2js.processor;
 
 import java.io.File;
 
+import org.apache.cxf.helpers.JavaUtils;
 import org.apache.cxf.tools.common.ProcessorTestBase;
 import org.apache.cxf.tools.common.ToolConstants;
-import org.apache.cxf.tools.common.ToolContext;
 import org.apache.cxf.tools.java2js.JavaToJS;
 import org.apache.cxf.tools.wsdlto.core.DataBindingProfile;
 import org.apache.cxf.tools.wsdlto.core.FrontEndProfile;
 import org.apache.cxf.tools.wsdlto.core.PluginLoader;
 import org.apache.cxf.tools.wsdlto.frontend.jaxws.JAXWSContainer;
 
-import org.junit.After;
-import org.junit.Before;
 import org.junit.Test;
+
+import static org.junit.Assert.assertTrue;
 
 public class JavaToJSProcessorTest extends ProcessorTestBase {
     JavaToJSProcessor processor = new JavaToJSProcessor();
-    String classPath = "";
-
-    @Before
-    public void startUp() throws Exception {
-        env = new ToolContext();
-        classPath = System.getProperty("java.class.path");
-        System.setProperty("java.class.path", getClassPath());
-        if (System.getProperty("java.version").startsWith("9")) {
-            System.setProperty("org.apache.cxf.common.util.Compiler-fork", "true");
-        }
-    }
-
-    @After
-    public void tearDown() {
-        super.tearDown();
-        System.setProperty("java.class.path", classPath);
-    }
-
 
     @Test
     public void testSimpleClass() throws Exception {
@@ -72,8 +54,14 @@ public class JavaToJSProcessorTest extends ProcessorTestBase {
         File classFile = new java.io.File(output.getCanonicalPath() + "/classes");
         classFile.mkdir();
 
-        System.setProperty("java.class.path", getClassPath() + classFile.getCanonicalPath()
-                           + File.separatorChar);
+        String oldCP = System.getProperty("java.class.path");
+        if (JavaUtils.isJava9Compatible()) {
+            System.setProperty("org.apache.cxf.common.util.Compiler-fork", "true");
+            String java9PlusFolder = output.getParent() + java.io.File.separator + "java9";
+            System.setProperty("java.class.path",
+                oldCP + java.io.File.pathSeparator + java9PlusFolder + java.io.File.separator + "*");
+        }
+
 
         env.put(ToolConstants.CFG_COMPILE, ToolConstants.CFG_COMPILE);
         env.put(ToolConstants.CFG_CLASSDIR, output.getCanonicalPath() + "/classes");
@@ -87,7 +75,7 @@ public class JavaToJSProcessorTest extends ProcessorTestBase {
         w2jProcessor.setContext(env);
         w2jProcessor.execute();
 
-        System.setProperty("java.class.path", "");
+        System.setProperty("java.class.path", oldCP);
 
         //      test flag
         String[] args = new String[] {"-o",

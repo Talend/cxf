@@ -43,6 +43,9 @@ import org.apache.xml.security.stax.ext.XMLSecurityConstants;
 
 import org.junit.Test;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 /**
  * In these test-cases, the client is using DOM and the service is using StaX.
@@ -90,7 +93,7 @@ public class DOMToStaxRoundTripTest extends AbstractSecurityTest {
         try {
             echo.echo("test");
             fail("Failure expected on the wrong password type");
-        } catch (javax.xml.ws.soap.SOAPFaultException ex) {
+        } catch (jakarta.xml.ws.soap.SOAPFaultException ex) {
             // expected
             String error = "The security token could not be authenticated or authorized";
             assertTrue(ex.getMessage().contains(error));
@@ -137,7 +140,7 @@ public class DOMToStaxRoundTripTest extends AbstractSecurityTest {
         try {
             echo.echo("test");
             fail("Failure expected on the wrong password type");
-        } catch (javax.xml.ws.soap.SOAPFaultException ex) {
+        } catch (jakarta.xml.ws.soap.SOAPFaultException ex) {
             // expected
             String error = "The security token could not be authenticated or authorized";
             assertTrue(ex.getMessage().contains(error));
@@ -165,7 +168,7 @@ public class DOMToStaxRoundTripTest extends AbstractSecurityTest {
         client.getOutInterceptors().add(new LoggingOutInterceptor());
 
         Map<String, Object> properties = new HashMap<>();
-        properties.put(ConfigurationConstants.ACTION, ConfigurationConstants.ENCRYPT);
+        properties.put(ConfigurationConstants.ACTION, ConfigurationConstants.ENCRYPTION);
         properties.put(ConfigurationConstants.PW_CALLBACK_REF, new TestPwdCallback());
         properties.put(ConfigurationConstants.ENC_PROP_FILE, "outsecurity.properties");
         properties.put(ConfigurationConstants.USER, "myalias");
@@ -197,7 +200,7 @@ public class DOMToStaxRoundTripTest extends AbstractSecurityTest {
         client.getOutInterceptors().add(new LoggingOutInterceptor());
 
         Map<String, Object> properties = new HashMap<>();
-        properties.put(ConfigurationConstants.ACTION, ConfigurationConstants.ENCRYPT);
+        properties.put(ConfigurationConstants.ACTION, ConfigurationConstants.ENCRYPTION);
         properties.put(ConfigurationConstants.PW_CALLBACK_REF, new TestPwdCallback());
         properties.put(ConfigurationConstants.ENC_PROP_FILE, "outsecurity.properties");
         properties.put(ConfigurationConstants.USER, "myalias");
@@ -210,7 +213,7 @@ public class DOMToStaxRoundTripTest extends AbstractSecurityTest {
         try {
             echo.echo("test");
             fail("Failure expected as RSA v1.5 is not allowed by default");
-        } catch (javax.xml.ws.soap.SOAPFaultException ex) {
+        } catch (jakarta.xml.ws.soap.SOAPFaultException ex) {
             // expected
         }
 
@@ -244,7 +247,7 @@ public class DOMToStaxRoundTripTest extends AbstractSecurityTest {
         Map<String, Object> properties = new HashMap<>();
         properties.put(
             ConfigurationConstants.ACTION,
-            ConfigurationConstants.USERNAME_TOKEN + " " + ConfigurationConstants.ENCRYPT
+            ConfigurationConstants.USERNAME_TOKEN + " " + ConfigurationConstants.ENCRYPTION
         );
         properties.put(ConfigurationConstants.PW_CALLBACK_REF, new TestPwdCallback());
         properties.put(ConfigurationConstants.ENC_PROP_FILE, "outsecurity.properties");
@@ -430,7 +433,7 @@ public class DOMToStaxRoundTripTest extends AbstractSecurityTest {
         try {
             echo.echo("test");
             fail("Failure expected on a wrong namespace");
-        } catch (javax.xml.ws.soap.SOAPFaultException ex) {
+        } catch (jakarta.xml.ws.soap.SOAPFaultException ex) {
             // expected
         }
     }
@@ -493,7 +496,7 @@ public class DOMToStaxRoundTripTest extends AbstractSecurityTest {
         Map<String, Object> properties = new HashMap<>();
         properties.put(
             ConfigurationConstants.ACTION,
-            ConfigurationConstants.SIGNATURE + " " + ConfigurationConstants.ENCRYPT
+            ConfigurationConstants.SIGNATURE + " " + ConfigurationConstants.ENCRYPTION
         );
         properties.put(ConfigurationConstants.PW_CALLBACK_REF, new TestPwdCallback());
         properties.put(ConfigurationConstants.SIG_PROP_FILE, "outsecurity.properties");
@@ -520,7 +523,7 @@ public class DOMToStaxRoundTripTest extends AbstractSecurityTest {
         service.getInInterceptors().add(inhandler);
 
         WSSSecurityProperties outProperties = new WSSSecurityProperties();
-        List<WSSConstants.Action> actions = new ArrayList<WSSConstants.Action>();
+        List<WSSConstants.Action> actions = new ArrayList<>();
         actions.add(XMLSecurityConstants.SIGNATURE);
         actions.add(WSSConstants.SIGNATURE_CONFIRMATION);
         outProperties.setActions(actions);

@@ -62,7 +62,7 @@ import java.nio.charset.CodingErrorAction;
  * in the design of the code. This class is typically used in situations where an existing
  * API only accepts an {@link InputStream}, but where the most natural way to produce the data
  * is as a character stream, i.e. by providing a {@link Reader} instance. An example of a situation
- * where this problem may appear is when implementing the {@link javax.activation.DataSource}
+ * where this problem may appear is when implementing the {@link jakarta.activation.DataSource}
  * interface from the Java Activation Framework.
  * <p>
  * Given the fact that the {@link Reader} class doesn't provide any way to predict whether the next
@@ -71,9 +71,7 @@ import java.nio.charset.CodingErrorAction;
  * will always return 0. Also, this class doesn't support {@link InputStream#mark(int)}.
  * <p>
  * Instances of {@link ReaderInputStream} are not thread safe.
- * 
- * @see org.apache.commons.io.output.WriterOutputStream
- * 
+ *
  * @since 2.0
  */
 public class ReaderInputStream extends InputStream {
@@ -100,7 +98,7 @@ public class ReaderInputStream extends InputStream {
 
     /**
      * Construct a new {@link ReaderInputStream}.
-     * 
+     *
      * @param reader the target {@link Reader}
      * @param encoder the charset encoder
      * @since 2.1
@@ -111,7 +109,7 @@ public class ReaderInputStream extends InputStream {
 
     /**
      * Construct a new {@link ReaderInputStream}.
-     * 
+     *
      * @param reader the target {@link Reader}
      * @param encoder the charset encoder
      * @param bufferSize the size of the input buffer in number of characters
@@ -121,14 +119,14 @@ public class ReaderInputStream extends InputStream {
         this.reader = reader;
         this.encoder = encoder;
         this.encoderIn = CharBuffer.allocate(bufferSize);
-        this.encoderIn.flip();
+        encoderIn.flip();
         this.encoderOut = ByteBuffer.allocate(128);
-        this.encoderOut.flip();
+        encoderOut.flip();
     }
 
     /**
      * Construct a new {@link ReaderInputStream}.
-     * 
+     *
      * @param reader the target {@link Reader}
      * @param charset the charset encoding
      * @param bufferSize the size of the input buffer in number of characters
@@ -144,7 +142,7 @@ public class ReaderInputStream extends InputStream {
     /**
      * Construct a new {@link ReaderInputStream} with a default input buffer size of
      * 1024 characters.
-     * 
+     *
      * @param reader the target {@link Reader}
      * @param charset the charset encoding
      */
@@ -154,7 +152,7 @@ public class ReaderInputStream extends InputStream {
 
     /**
      * Construct a new {@link ReaderInputStream}.
-     * 
+     *
      * @param reader the target {@link Reader}
      * @param charsetName the name of the charset encoding
      * @param bufferSize the size of the input buffer in number of characters
@@ -166,7 +164,7 @@ public class ReaderInputStream extends InputStream {
     /**
      * Construct a new {@link ReaderInputStream} with a default input buffer size of
      * 1024 characters.
-     * 
+     *
      * @param reader the target {@link Reader}
      * @param charsetName the name of the charset encoding
      */
@@ -177,7 +175,7 @@ public class ReaderInputStream extends InputStream {
     /**
      * Construct a new {@link ReaderInputStream} that uses the default character encoding
      * with a default input buffer size of 1024 characters.
-     * 
+     *
      * @param reader the target {@link Reader}
      */
     public ReaderInputStream(Reader reader) {
@@ -186,7 +184,7 @@ public class ReaderInputStream extends InputStream {
 
     /**
      * Fills the internal char buffer from the reader.
-     * 
+     *
      * @throws IOException
      *             If an I/O error occurs
      */
@@ -209,10 +207,10 @@ public class ReaderInputStream extends InputStream {
         lastCoderResult = encoder.encode(encoderIn, encoderOut, endOfInput);
         encoderOut.flip();
     }
-    
+
     /**
      * Read the specified number of bytes into an array.
-     * 
+     *
      * @param b the byte array to read into
      * @param off the offset to start reading bytes into
      * @param len the number of bytes to read
@@ -225,8 +223,8 @@ public class ReaderInputStream extends InputStream {
         if (b == null) {
             throw new NullPointerException("Byte array must not be null");
         }
-        if (len < 0 || off < 0 || (off + len) > b.length) {
-            throw new IndexOutOfBoundsException("Array Size=" + b.length 
+        if (len < 0 || off < 0 || Math.addExact(off, len) > b.length) {
+            throw new IndexOutOfBoundsException("Array Size=" + b.length
                     + ", offset=" + off + ", length=" + len);
         }
         int read = 0;
@@ -252,7 +250,7 @@ public class ReaderInputStream extends InputStream {
 
     /**
      * Read the specified number of bytes into an array.
-     * 
+     *
      * @param b the byte array to read into
      * @return the number of bytes read or <code>-1</code>
      *         if the end of the stream has been reached

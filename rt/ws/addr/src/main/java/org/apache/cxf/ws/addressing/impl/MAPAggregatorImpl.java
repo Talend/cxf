@@ -32,8 +32,8 @@ import java.util.logging.Logger;
 
 import javax.wsdl.extensions.ExtensibilityElement;
 import javax.xml.namespace.QName;
-import javax.xml.ws.WebFault;
 
+import jakarta.xml.ws.WebFault;
 import org.apache.cxf.Bus;
 import org.apache.cxf.binding.soap.Soap12;
 import org.apache.cxf.binding.soap.SoapBinding;
@@ -69,7 +69,6 @@ import org.apache.cxf.transport.Destination;
 import org.apache.cxf.transport.DestinationFactory;
 import org.apache.cxf.transport.DestinationFactoryManager;
 import org.apache.cxf.transport.MessageObserver;
-import org.apache.cxf.transport.Observable;
 import org.apache.cxf.ws.addressing.AddressingProperties;
 import org.apache.cxf.ws.addressing.AttributedURIType;
 import org.apache.cxf.ws.addressing.ContextUtils;
@@ -434,6 +433,10 @@ public class MAPAggregatorImpl extends MAPAggregator {
             }
             AddressingProperties theMaps =
                 ContextUtils.retrieveMAPs(message, false, ContextUtils.isOutbound(message));
+
+            if (isAddressingRequired() && ContextUtils.isRequestor(message)) {
+                theMaps.setRequired(true);
+            }
             if (null != theMaps) {
                 if (ContextUtils.isRequestor(message)) {
                     assertAddressing(message,
@@ -577,8 +580,8 @@ public class MAPAggregatorImpl extends MAPAggregator {
             && isAnonymous) {
             passed = true;
         } else if (WSAddressingFeature.AddressingResponses.NON_ANONYMOUS == addressingResponses
-                   && (!anonReply && (faultTo.getAddress() != null && !anonFault)
-                       || !anonReply && faultTo.getAddress() == null)) {
+                   && (!anonReply && (!anonFault && faultTo.getAddress() != null)
+                       || !anonReply && faultTo == null)) {
             passed = true;
         }
         if (!passed) {
@@ -632,7 +635,6 @@ public class MAPAggregatorImpl extends MAPAggregator {
                 maps.setAction(ContextUtils.getAttributedURI(getActionUri(message, true)));
             }
         }
-
         return maps;
     }
 
@@ -834,10 +836,8 @@ public class MAPAggregatorImpl extends MAPAggregator {
             if (ContextUtils.isGenericAddress(replyTo)) {
                 replyTo = getReplyTo(message, replyTo);
                 if (replyTo == null || (isOneway
-                    && (replyTo == null
-                        || replyTo.getAddress() == null
-                        || !Names.WSA_NONE_ADDRESS.equals(
-                                replyTo.getAddress().getValue())))) {
+                    && (replyTo.getAddress() == null
+                        || !Names.WSA_NONE_ADDRESS.equals(replyTo.getAddress().getValue())))) {
                     AttributedURIType address =
                         ContextUtils.getAttributedURI(isOneway
                                                       ? Names.WSA_NONE_ADDRESS
@@ -984,7 +984,7 @@ public class MAPAggregatorImpl extends MAPAggregator {
             destination = factory.getDestination(ei, bus);
             Conduit conduit = ContextUtils.getConduit(null, message);
             if (conduit != null) {
-                MessageObserver ob = ((Observable)conduit).getMessageObserver();
+                MessageObserver ob = conduit.getMessageObserver();
                 ob = new InterposedMessageObserver(bus, ob);
                 destination.setMessageObserver(ob);
             }
@@ -1061,8 +1061,7 @@ public class MAPAggregatorImpl extends MAPAggregator {
                                              boolean isProviderContext,
                                              boolean isOutbound) {
 
-        AddressingProperties maps = null;
-        maps = ContextUtils.retrieveMAPs(message,
+        AddressingProperties maps = ContextUtils.retrieveMAPs(message,
                                          isProviderContext,
                                          isOutbound);
         LOG.log(Level.FINE, "MAPs retrieved from message {0}", maps);

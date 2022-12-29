@@ -49,8 +49,8 @@ public class InTransformReader extends DepthXMLStreamReader {
     private Map<QName, ElementProperty> inAppendMap = new HashMap<>(5);
     private Set<QName> inDropSet = new HashSet<>(5);
     private Map<String, String> nsMap = new HashMap<>(5);
-    private List<ParsingEvent> pushedBackEvents = new LinkedList<ParsingEvent>();
-    private List<List<ParsingEvent>> pushedAheadEvents = new LinkedList<List<ParsingEvent>>();
+    private List<ParsingEvent> pushedBackEvents = new LinkedList<>();
+    private List<List<ParsingEvent>> pushedAheadEvents = new LinkedList<>();
     private String replaceText;
     private ParsingEvent currentEvent;
     private List<Integer> attributesIndexes = new ArrayList<>();
@@ -124,13 +124,13 @@ public class InTransformReader extends DepthXMLStreamReader {
                 expected = theName;
             } else {
                 String prefix = theName.getPrefix();
-                if (prefix.length() == 0 && theName.getNamespaceURI().length() == 0
-                    && expected.getNamespaceURI().length() > 0) {
+                if (prefix.isEmpty() && theName.getNamespaceURI().isEmpty()
+                    && !expected.getNamespaceURI().isEmpty()) {
                     prefix = namespaceContext.getPrefix(expected.getNamespaceURI());
                     if (prefix == null) {
                         prefix = namespaceContext.findUniquePrefix(expected.getNamespaceURI());
                     }
-                } else if (prefix.length() > 0 && expected.getNamespaceURI().length() == 0) {
+                } else if (!prefix.isEmpty() && expected.getNamespaceURI().isEmpty()) {
                     prefix = "";
                 }
                 expected = new QName(expected.getNamespaceURI(), expected.getLocalPart(), prefix);
@@ -170,7 +170,7 @@ public class InTransformReader extends DepthXMLStreamReader {
 
             namespaceContext.up();
             final boolean dropped = inDropSet.contains(theName);
-            if (!dropped) {
+            if (!dropped && !pushedAheadEvents.isEmpty()) {
                 List<ParsingEvent> pe = pushedAheadEvents.remove(0);
                 if (null != pe) {
                     if (doDebug) {
@@ -261,14 +261,23 @@ public class InTransformReader extends DepthXMLStreamReader {
     }
 
     private void handleDeepDrop() throws XMLStreamException {
-        final int depth = getDepth();
-        while (depth != getDepth() || super.next() != XMLStreamConstants.END_ELEMENT) {
-            // get to the matching end element event
+        int read = 0;
+        while (hasNext()) {
+            // get to the matching end element event (accounting for all inner elements)
+            final int event = super.next();
+            if (event == XMLStreamConstants.START_ELEMENT) {
+                ++read;
+            } else if (event == XMLStreamConstants.END_ELEMENT) {
+                if (read == 0) {
+                    break; 
+                } else {
+                    --read;
+                }
+            }
         }
     }
 
-
-    public Object getProperty(String name) throws IllegalArgumentException {
+    public Object getProperty(String name) {
         if (INTERN_NAMES.equals(name) || INTERN_NS.equals(name)) {
             return Boolean.FALSE;
         }
@@ -290,7 +299,7 @@ public class InTransformReader extends DepthXMLStreamReader {
     public String getPrefix() {
         QName name = readCurrentElement();
         String prefix = name.getPrefix();
-        if (prefix.length() == 0 && getNamespaceURI().length() > 0) {
+        if (prefix.isEmpty() && !getNamespaceURI().isEmpty()) {
             prefix = namespaceContext.getPrefix(getNamespaceURI());
             if (prefix == null) {
                 prefix = "";

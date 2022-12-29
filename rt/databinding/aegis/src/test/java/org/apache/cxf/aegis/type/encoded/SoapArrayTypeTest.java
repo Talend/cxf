@@ -28,7 +28,12 @@ import org.apache.cxf.aegis.type.AegisType;
 import org.apache.cxf.aegis.type.basic.BeanTypeInfo;
 import org.apache.cxf.aegis.xml.stax.ElementReader;
 
+import org.junit.Before;
 import org.junit.Test;
+
+import static org.junit.Assert.assertArrayEquals;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 
 public class SoapArrayTypeTest extends AbstractEncodedTest {
     private static final String[][][] ARRAY_2_3_4 = new String[][][] {
@@ -44,6 +49,7 @@ public class SoapArrayTypeTest extends AbstractEncodedTest {
         },
     };
 
+    @Before
     public void setUp() throws Exception {
         super.setUp();
 
@@ -133,7 +139,7 @@ public class SoapArrayTypeTest extends AbstractEncodedTest {
         Object[] objects;
         // round trip tests
         objects = readWriteReadRef("arrayUrType1.xml", Object[].class);
-        assertArrayEquals(new Object[]{42, new Float(42.42f), "Forty Two"}, objects);
+        assertArrayEquals(new Object[]{42, Float.valueOf(42.42f), "Forty Two"}, objects);
     }
 
     @Test

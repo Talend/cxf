@@ -19,35 +19,59 @@
 
 package org.apache.cxf.systest.ws.x509;
 
+import java.io.StringReader;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
+import javax.xml.XMLConstants;
 import javax.xml.namespace.QName;
-import javax.xml.ws.BindingProvider;
-import javax.xml.ws.Service;
+import javax.xml.transform.Source;
+import javax.xml.transform.stream.StreamSource;
+import javax.xml.xpath.XPathConstants;
 
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+
+import jakarta.xml.soap.MessageFactory;
+import jakarta.xml.soap.SOAPMessage;
+import jakarta.xml.ws.BindingProvider;
+import jakarta.xml.ws.Dispatch;
+import jakarta.xml.ws.Service;
+import jakarta.xml.ws.Service.Mode;
+import jakarta.xml.ws.handler.MessageContext;
 import org.apache.cxf.Bus;
 import org.apache.cxf.BusFactory;
 import org.apache.cxf.bus.spring.SpringBusFactory;
 import org.apache.cxf.endpoint.Client;
 import org.apache.cxf.frontend.ClientProxy;
 import org.apache.cxf.headers.Header;
+import org.apache.cxf.helpers.DOMUtils;
+import org.apache.cxf.helpers.XPathUtils;
 import org.apache.cxf.jaxb.JAXBDataBinding;
+import org.apache.cxf.staxutils.StaxUtils;
 import org.apache.cxf.systest.ws.common.SecurityTestUtil;
 import org.apache.cxf.systest.ws.common.TestParam;
 import org.apache.cxf.systest.ws.ut.SecurityHeaderCacheInterceptor;
+import org.apache.cxf.test.TestUtilities;
 import org.apache.cxf.testutil.common.AbstractBusClientServerTestBase;
 import org.apache.cxf.ws.security.SecurityConstants;
 import org.apache.wss4j.common.ext.WSSecurityException;
+import org.example.contract.doubleit.DoubleItOneWayPortType;
 import org.example.contract.doubleit.DoubleItPortType;
 import org.example.contract.doubleit.DoubleItPortType2;
 
 import org.junit.BeforeClass;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized.Parameters;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 /**
  * A set of tests for X.509 Tokens.
@@ -64,7 +88,7 @@ public class X509TokenTest extends AbstractBusClientServerTestBase {
     private static final QName SERVICE_QNAME = new QName(NAMESPACE, "DoubleItService");
 
     private static boolean unrestrictedPoliciesInstalled =
-        SecurityTestUtil.checkUnrestrictedPoliciesInstalled();
+        TestUtilities.checkUnrestrictedPoliciesInstalled();
 
     final TestParam test;
 
@@ -95,18 +119,17 @@ public class X509TokenTest extends AbstractBusClientServerTestBase {
     }
 
     @Parameters(name = "{0}")
-    public static Collection<TestParam[]> data() {
+    public static Collection<TestParam> data() {
 
-        return Arrays.asList(new TestParam[][] {{new TestParam(PORT, false)},
-                                                {new TestParam(PORT, true)},
-                                                {new TestParam(STAX_PORT, false)},
-                                                {new TestParam(STAX_PORT, true)},
+        return Arrays.asList(new TestParam[] {new TestParam(PORT, false),
+                                              new TestParam(PORT, true),
+                                              new TestParam(STAX_PORT, false),
+                                              new TestParam(STAX_PORT, true),
         });
     }
 
     @org.junit.AfterClass
     public static void cleanup() throws Exception {
-        SecurityTestUtil.cleanup();
         stopAllServers();
     }
 
@@ -134,7 +157,7 @@ public class X509TokenTest extends AbstractBusClientServerTestBase {
         try {
             x509Port.doubleIt(25);
             fail("Failure expected on an incorrect key");
-        } catch (javax.xml.ws.soap.SOAPFaultException ex) {
+        } catch (jakarta.xml.ws.soap.SOAPFaultException ex) {
             String error = "No certificates were found for decryption";
             if (STAX_PORT.equals(test.getPort())) {
                 error = "Referenced security token could not be retrieved";
@@ -523,6 +546,106 @@ public class X509TokenTest extends AbstractBusClientServerTestBase {
         ((java.io.Closeable)x509Port).close();
         bus.shutdown(true);
     }
+
+    @org.junit.Test
+    public void testAsymmetricIssuerSerialDispatch() throws Exception {
+
+        SpringBusFactory bf = new SpringBusFactory();
+        URL busFile = X509TokenTest.class.getResource("client.xml");
+
+        Bus bus = bf.createBus(busFile.toString());
+        BusFactory.setDefaultBus(bus);
+        BusFactory.setThreadDefaultBus(bus);
+
+        URL wsdl = X509TokenTest.class.getResource("DoubleItX509.wsdl");
+        Service service = Service.create(wsdl, SERVICE_QNAME);
+        QName portQName = new QName(NAMESPACE, "DoubleItAsymmetricIssuerSerialOperationPort");
+
+        Dispatch<Source> disp = service.createDispatch(portQName, Source.class, Mode.PAYLOAD);
+        updateAddressPort(disp, test.getPort());
+
+        if (test.isStreaming()) {
+            SecurityTestUtil.enableStreaming(disp);
+        }
+
+        // We need to set the wsdl operation name here, or otherwise the policy layer won't pick
+        // up the security policy attached at the operation level
+        QName wsdlOperationQName = new QName(NAMESPACE, "DoubleIt");
+        disp.getRequestContext().put(MessageContext.WSDL_OPERATION, wsdlOperationQName);
+
+        String req = "<ns2:DoubleIt xmlns:ns2=\"http://www.example.org/schema/DoubleIt\">"
+            + "<numberToDouble>25</numberToDouble></ns2:DoubleIt>";
+        Source source = new StreamSource(new StringReader(req));
+        source = disp.invoke(source);
+
+        Node nd = StaxUtils.read(source);
+        if (nd instanceof Document) {
+            nd = ((Document)nd).getDocumentElement();
+        }
+        XPathUtils xp = new XPathUtils(Collections.singletonMap("ns2", "http://www.example.org/schema/DoubleIt"));
+        Object o = xp.getValue("//ns2:DoubleItResponse/doubledNumber", nd, XPathConstants.STRING);
+        assertEquals(StaxUtils.toString(nd), "50", o);
+
+        bus.shutdown(true);
+    }
+
+    @org.junit.Test
+    public void testAsymmetricIssuerSerialDispatchMessage() throws Exception {
+
+        SpringBusFactory bf = new SpringBusFactory();
+        URL busFile = X509TokenTest.class.getResource("client.xml");
+
+        Bus bus = bf.createBus(busFile.toString());
+        BusFactory.setDefaultBus(bus);
+        BusFactory.setThreadDefaultBus(bus);
+
+        URL wsdl = X509TokenTest.class.getResource("DoubleItX509.wsdl");
+        Service service = Service.create(wsdl, SERVICE_QNAME);
+        QName portQName = new QName(NAMESPACE, "DoubleItAsymmetricIssuerSerialOperationPort");
+
+        Dispatch<SOAPMessage> disp = service.createDispatch(portQName, SOAPMessage.class, Mode.MESSAGE);
+        updateAddressPort(disp, test.getPort());
+
+        if (test.isStreaming()) {
+            SecurityTestUtil.enableStreaming(disp);
+        }
+
+        Document xmlDocument = DOMUtils.newDocument();
+
+        final String ns = "http://www.example.org/schema/DoubleIt";
+        Element requestElement = xmlDocument.createElementNS(ns, "tns:DoubleIt");
+        requestElement.setAttributeNS(XMLConstants.XMLNS_ATTRIBUTE_NS_URI, "xmlns:tns", ns);
+        Element dataElement = xmlDocument.createElementNS(null, "numberToDouble");
+        dataElement.appendChild(xmlDocument.createTextNode("25"));
+        requestElement.appendChild(dataElement);
+        xmlDocument.appendChild(requestElement);
+
+        MessageFactory factory = MessageFactory.newInstance();
+        SOAPMessage request = factory.createMessage();
+        request.getSOAPBody().appendChild(request.getSOAPPart().adoptNode(requestElement));
+
+        // We need to set the wsdl operation name here, or otherwise the policy layer won't pick
+        // up the security policy attached at the operation level
+        // this can be done in one of three ways:
+        // 1) set the WSDL_OPERATION context property
+        //    QName wsdlOperationQName = new QName(NAMESPACE, "DoubleIt");
+        //    disp.getRequestContext().put(MessageContext.WSDL_OPERATION, wsdlOperationQName);
+        // 2) Set the "find.dispatch.operation" to TRUE to have  CXF explicitly try and determine it from the payload
+        disp.getRequestContext().put("find.dispatch.operation", Boolean.TRUE);
+        // 3) Turn on WS-Addressing as that will force #2
+        //    TODO - add code for this, really is adding WS-Addressing feature to the createDispatch call above
+
+        SOAPMessage resp = disp.invoke(request);
+        Node nd = resp.getSOAPBody().getFirstChild();
+
+        XPathUtils xp = new XPathUtils(Collections.singletonMap("ns2", ns));
+        Object o = xp.getValue("//ns2:DoubleItResponse/doubledNumber", 
+                               DOMUtils.getDomElement(nd), XPathConstants.STRING);
+        assertEquals(StaxUtils.toString(nd), "50", o);
+
+        bus.shutdown(true);
+    }
+
 
     @org.junit.Test
     public void testAsymmetricSHA512() throws Exception {
@@ -1259,7 +1382,7 @@ public class X509TokenTest extends AbstractBusClientServerTestBase {
         try {
             x509Port.doubleIt(25);
             fail("Failure expected on a replayed Timestamp");
-        } catch (javax.xml.ws.soap.SOAPFaultException ex) {
+        } catch (jakarta.xml.ws.soap.SOAPFaultException ex) {
             assertTrue(ex.getMessage().contains(WSSecurityException.UNIFIED_SECURITY_ERR));
         }
 
@@ -1447,7 +1570,7 @@ public class X509TokenTest extends AbstractBusClientServerTestBase {
         try {
             port.doubleIt(25);
             fail("Failure expected on not sending an X.509 Supporting Token");
-        } catch (javax.xml.ws.soap.SOAPFaultException ex) {
+        } catch (jakarta.xml.ws.soap.SOAPFaultException ex) {
             String error = "These policy alternatives can not be satisfied";
             assertTrue(ex.getMessage().contains(error));
         }
@@ -1460,7 +1583,7 @@ public class X509TokenTest extends AbstractBusClientServerTestBase {
         try {
             port.doubleIt(25);
             fail("Failure expected on not sending a PKI token");
-        } catch (javax.xml.ws.soap.SOAPFaultException ex) {
+        } catch (jakarta.xml.ws.soap.SOAPFaultException ex) {
             String error = "These policy alternatives can not be satisfied";
             assertTrue(ex.getMessage().contains(error));
         }
@@ -1509,7 +1632,7 @@ public class X509TokenTest extends AbstractBusClientServerTestBase {
         try {
             x509Port.doubleIt(25);
             fail("Failure expected on not endorsing the token");
-        } catch (javax.xml.ws.soap.SOAPFaultException ex) {
+        } catch (jakarta.xml.ws.soap.SOAPFaultException ex) {
             String error = "These policy alternatives can not be satisfied";
             assertTrue(ex.getMessage().contains(error)
                        || ex.getMessage().contains("X509Token not satisfied"));
@@ -1599,4 +1722,32 @@ public class X509TokenTest extends AbstractBusClientServerTestBase {
         ((java.io.Closeable)x509Port).close();
         bus.shutdown(true);
     }
+
+    @org.junit.Test
+    public void testSymmetricAddressingOneWay() throws Exception {
+
+        SpringBusFactory bf = new SpringBusFactory();
+        URL busFile = X509TokenTest.class.getResource("client.xml");
+
+        Bus bus = bf.createBus(busFile.toString());
+        BusFactory.setDefaultBus(bus);
+        BusFactory.setThreadDefaultBus(bus);
+
+        URL wsdl = X509TokenTest.class.getResource("DoubleItX509.wsdl");
+        Service service = Service.create(wsdl, SERVICE_QNAME);
+        QName portQName = new QName(NAMESPACE, "DoubleItSymmetricAddressingOneWayPort");
+        DoubleItOneWayPortType port =
+                service.getPort(portQName, DoubleItOneWayPortType.class);
+        updateAddressPort(port, test.getPort());
+
+        if (test.isStreaming()) {
+            SecurityTestUtil.enableStreaming((BindingProvider)port);
+        }
+
+        port.doubleIt(30);
+
+        ((java.io.Closeable)port).close();
+        bus.shutdown(true);
+    }
+
 }

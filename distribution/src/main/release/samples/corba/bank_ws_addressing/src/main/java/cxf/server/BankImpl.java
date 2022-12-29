@@ -22,12 +22,12 @@ package cxf.server;
 import java.util.HashMap;
 import java.util.Map;
 
-import javax.xml.ws.Endpoint;
-import javax.xml.ws.wsaddressing.W3CEndpointReference;
+import jakarta.xml.ws.Endpoint;
+import jakarta.xml.ws.wsaddressing.W3CEndpointReference;
 
 import cxf.common.Bank;
 
-@javax.jws.WebService(portName = "BankCORBAPort",
+@jakarta.jws.WebService(portName = "BankCORBAPort",
                       serviceName = "BankCORBAService",
                       targetNamespace = "http://cxf.apache.org/schemas/cxf/idl/Bank",
                       wsdlLocation = "classpath:/wsdl/BankWS-corba.wsdl",
@@ -35,8 +35,7 @@ import cxf.common.Bank;
 
 public class BankImpl implements Bank {
 
-    private Map<String, W3CEndpointReference> accountList =
-        new HashMap<String, W3CEndpointReference>();
+    private Map<String, W3CEndpointReference> accountList = new HashMap<>();
     private Map<String, Endpoint> endpointList = new HashMap<>();
 
     public BankImpl() {
@@ -81,7 +80,7 @@ public class BankImpl implements Bank {
     }
 
     // TODO: What is the correct implementation for this operation?
-    public void findAccount(javax.xml.ws.Holder<java.lang.Object> accountDetails) {
+    public void findAccount(jakarta.xml.ws.Holder<java.lang.Object> accountDetails) {
     }
 
     public void removeAccount(String accountName) {

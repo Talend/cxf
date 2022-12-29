@@ -31,7 +31,6 @@ import javax.xml.stream.XMLStreamException;
 import org.apache.cxf.staxutils.AbstractDOMStreamReader;
 import org.apache.cxf.staxutils.FastStack;
 import org.jdom.Attribute;
-import org.jdom.CDATA;
 import org.jdom.Comment;
 import org.jdom.Content;
 import org.jdom.Document;
@@ -47,8 +46,7 @@ public class JDOMStreamReader extends AbstractDOMStreamReader<Element, Integer> 
 
     private Content content;
 
-    private FastStack<Map<String, Namespace>> namespaceStack
-        = new FastStack<Map<String, Namespace>>();
+    private FastStack<Map<String, Namespace>> namespaceStack = new FastStack<>();
 
     private List<Namespace> namespaces = new ArrayList<>();
 
@@ -209,8 +207,6 @@ public class JDOMStreamReader extends AbstractDOMStreamReader<Element, Integer> 
         } else if (content instanceof Element) {
             setupNamespaces((Element)content);
             return START_ELEMENT;
-        } else if (content instanceof CDATA) {
-            return CHARACTERS;
         } else if (content instanceof Comment) {
             return CHARACTERS;
         } else if (content instanceof EntityRef) {

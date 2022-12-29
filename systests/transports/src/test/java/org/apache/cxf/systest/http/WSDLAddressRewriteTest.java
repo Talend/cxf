@@ -25,14 +25,15 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.Socket;
 
-import javax.xml.ws.Endpoint;
-
+import jakarta.xml.ws.Endpoint;
 import org.apache.cxf.jaxws.EndpointImpl;
 import org.apache.cxf.service.model.EndpointInfo;
 import org.apache.cxf.testutil.common.AbstractBusClientServerTestBase;
 
 import org.junit.Before;
 import org.junit.Test;
+
+import static org.junit.Assert.assertTrue;
 
 public class WSDLAddressRewriteTest extends AbstractBusClientServerTestBase {
     public static final String PORT = allocatePort(WSDLAddressRewriteTest.class);

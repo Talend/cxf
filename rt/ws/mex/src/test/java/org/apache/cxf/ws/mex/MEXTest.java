@@ -19,9 +19,8 @@
 
 package org.apache.cxf.ws.mex;
 
-import javax.jws.WebMethod;
-import javax.jws.WebService;
-
+import jakarta.jws.WebMethod;
+import jakarta.jws.WebService;
 import org.apache.cxf.endpoint.Server;
 import org.apache.cxf.ext.logging.LoggingFeature;
 import org.apache.cxf.jaxws.JaxWsProxyFactoryBean;
@@ -30,15 +29,16 @@ import org.apache.cxf.transport.local.LocalTransportFactory;
 import org.apache.cxf.ws.mex.model._2004_09.Metadata;
 
 import org.junit.AfterClass;
-import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
+
+import static org.junit.Assert.assertNotNull;
 
 
 /**
  *
  */
-public class MEXTest extends Assert {
+public class MEXTest {
     static Server server;
     static Server mexServer;
 

@@ -19,17 +19,16 @@
 package org.apache.cxf.sts.operation;
 
 import java.security.Principal;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Collections;
 import java.util.Properties;
 
 import javax.security.auth.callback.CallbackHandler;
-import javax.xml.bind.JAXBElement;
 import javax.xml.namespace.QName;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
+import jakarta.xml.bind.JAXBElement;
 import org.apache.cxf.jaxws.context.WrappedMessageContext;
 import org.apache.cxf.message.MessageImpl;
 import org.apache.cxf.security.SecurityContext;
@@ -46,7 +45,6 @@ import org.apache.cxf.sts.token.provider.TokenProvider;
 import org.apache.cxf.sts.token.provider.TokenProviderParameters;
 import org.apache.cxf.sts.token.provider.TokenProviderResponse;
 import org.apache.cxf.sts.token.validator.SAMLTokenValidator;
-import org.apache.cxf.sts.token.validator.TokenValidator;
 import org.apache.cxf.ws.security.sts.provider.model.RequestSecurityTokenResponseType;
 import org.apache.cxf.ws.security.sts.provider.model.RequestSecurityTokenType;
 import org.apache.cxf.ws.security.sts.provider.model.StatusType;
@@ -57,10 +55,13 @@ import org.apache.wss4j.common.crypto.CryptoFactory;
 import org.apache.wss4j.common.ext.WSSecurityException;
 import org.apache.wss4j.common.principal.CustomTokenPrincipal;
 
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+
 /**
  * Some unit tests for the validate operation to validate SAML tokens.
  */
-public class ValidateSamlUnitTest extends org.junit.Assert {
+public class ValidateSamlUnitTest {
 
     public static final QName REQUESTED_SECURITY_TOKEN =
         QNameConstants.WS_TRUST_FACTORY.createRequestedSecurityToken(null).getName();
@@ -75,9 +76,8 @@ public class ValidateSamlUnitTest extends org.junit.Assert {
         TokenValidateOperation validateOperation = new TokenValidateOperation();
 
         // Add Token Validator
-        List<TokenValidator> validatorList = new ArrayList<>();
-        validatorList.add(new SAMLTokenValidator());
-        validateOperation.setTokenValidators(validatorList);
+        validateOperation.setTokenValidators(Collections.singletonList(
+            new SAMLTokenValidator()));
 
         // Add STSProperties object
         STSPropertiesMBean stsProperties = new StaticSTSProperties();
@@ -136,9 +136,8 @@ public class ValidateSamlUnitTest extends org.junit.Assert {
         TokenValidateOperation validateOperation = new TokenValidateOperation();
 
         // Add Token Validator
-        List<TokenValidator> validatorList = new ArrayList<>();
-        validatorList.add(new SAMLTokenValidator());
-        validateOperation.setTokenValidators(validatorList);
+        validateOperation.setTokenValidators(Collections.singletonList(
+            new SAMLTokenValidator()));
 
         // Add STSProperties object
         STSPropertiesMBean stsProperties = new StaticSTSProperties();
@@ -243,7 +242,7 @@ public class ValidateSamlUnitTest extends org.junit.Assert {
                 tokenType, STSConstants.BEARER_KEY_KEYTYPE, crypto, signatureUsername, callbackHandler
             );
         TokenProviderResponse providerResponse = samlTokenProvider.createToken(providerParameters);
-        assertTrue(providerResponse != null);
+        assertNotNull(providerResponse);
         assertTrue(providerResponse.getToken() != null && providerResponse.getTokenId() != null);
 
         return (Element)providerResponse.getToken();

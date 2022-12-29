@@ -18,14 +18,14 @@
  */
 package org.apache.cxf.jaxrs.ext.form;
 
-import javax.ws.rs.core.Form;
-
+import jakarta.ws.rs.core.Form;
 import org.apache.cxf.jaxrs.utils.FormUtils;
 
-import org.junit.Assert;
 import org.junit.Test;
 
-public class FormTest extends Assert {
+import static org.junit.Assert.assertEquals;
+
+public class FormTest {
 
     @Test
     public void testToString() {

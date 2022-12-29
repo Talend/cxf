@@ -21,7 +21,7 @@ package httpsdemo.server;
 import java.util.HashMap;
 import java.util.Map;
 
-import javax.ws.rs.core.Response;
+import jakarta.ws.rs.core.Response;
 import httpsdemo.common.Customer;
 import httpsdemo.common.CustomerService;
 
@@ -36,8 +36,7 @@ public class CustomerServiceImpl implements CustomerService {
     public Customer getCustomer(String id) {
         System.out.println("----invoking getCustomer, Customer id is: " + id);
         long idNumber = Long.parseLong(id);
-        Customer c = customers.get(idNumber);
-        return c;
+        return customers.get(idNumber);
     }
 
     public Response updateCustomer(Customer customer) {

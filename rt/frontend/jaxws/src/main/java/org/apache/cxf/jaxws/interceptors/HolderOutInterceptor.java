@@ -24,8 +24,7 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import javax.xml.ws.Holder;
-
+import jakarta.xml.ws.Holder;
 import org.apache.cxf.common.logging.LogUtils;
 import org.apache.cxf.interceptor.Fault;
 import org.apache.cxf.message.Exchange;
@@ -72,7 +71,7 @@ public class HolderOutInterceptor extends AbstractPhaseInterceptor<Message> {
             List<MessagePartInfo> parts = op.getOutput().getMessageParts();
             MessageContentsList inObjects = MessageContentsList.getContentsList(exchange.getInMessage());
             if (inObjects != null) {
-                if (!(inObjects == outObjects)) {
+                if (inObjects != outObjects) {
                     for (int x = 0; x < inObjects.size(); x++) {
                         Object o = inObjects.get(x);
                         if (o instanceof Holder) {

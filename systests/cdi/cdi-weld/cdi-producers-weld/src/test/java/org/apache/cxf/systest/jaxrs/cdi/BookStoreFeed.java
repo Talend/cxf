@@ -18,39 +18,58 @@
  */
 package org.apache.cxf.systest.jaxrs.cdi;
 
-import javax.validation.Valid;
-import javax.validation.constraints.NotNull;
-import javax.ws.rs.GET;
-import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
 
-import org.apache.abdera.model.Feed;
-import org.apache.abdera.parser.stax.FOMEntry;
-import org.apache.abdera.parser.stax.FOMFeed;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
+import jakarta.ws.rs.GET;
+import jakarta.ws.rs.Path;
+import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.QueryParam;
+import jakarta.ws.rs.core.Response;
+import org.apache.cxf.systests.cdi.base.AtomFeed;
+import org.apache.cxf.systests.cdi.base.AtomFeedEntry;
 import org.apache.cxf.systests.cdi.base.Book;
 import org.apache.cxf.systests.cdi.base.BookStoreService;
 
 @Path("/bookstore/")
 public class BookStoreFeed {
     private final BookStoreService service;
-    
+
+    @QueryParam("fieldValue")
+    private String fieldValue;
+
     public BookStoreFeed(BookStoreService service) {
         this.service = service;
     }
-    
+
     @GET
     @Path("/books/feed")
     @NotNull @Valid
     @Produces("application/atom+xml")
-    public Feed getBooks() {
-        final FOMFeed feed = new FOMFeed();
-        
+    public AtomFeed getBooks() {
+        final AtomFeed feed = new AtomFeed();
+
         for (final Book book: service.all()) {
-            final FOMEntry entry = new FOMEntry();
+            final AtomFeedEntry entry = new AtomFeedEntry();
             entry.addLink("/bookstore/books/" + book.getId());
             feed.addEntry(entry);
         }
-        
+
         return feed;
     }
+
+    @GET
+    @Path("/books/param")
+    @Produces("text/plain")
+    public Response getFieldParam() {
+        return Response.ok().entity(fieldValue).build();
+    }
+
+    @GET
+    @Path("/books/param2")
+    @Produces("text/plain")
+    public Response getFieldParam2(@QueryParam("fieldValue2") String fieldValue2) {
+        return Response.ok().entity(fieldValue2).build();
+    }
+
 }

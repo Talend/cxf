@@ -18,13 +18,11 @@
  */
 package org.apache.cxf.systest.ws.tokens;
 
-import java.util.Arrays;
 import java.util.List;
 
-import javax.annotation.Resource;
-import javax.jws.WebService;
-import javax.xml.ws.WebServiceContext;
-
+import jakarta.annotation.Resource;
+import jakarta.jws.WebService;
+import jakarta.xml.ws.WebServiceContext;
 import org.apache.cxf.feature.Features;
 import org.apache.cxf.helpers.CastUtils;
 import org.apache.wss4j.common.token.BinarySecurity;
@@ -53,19 +51,19 @@ public class DoubleItBSTImpl implements DoubleItPortType {
         List<WSHandlerResult> results =
             CastUtils.cast((List<?>)wsContext.getMessageContext().get(WSHandlerConstants.RECV_RESULTS));
         Assert.assertNotNull("Security Results cannot be null", results);
-        Assert.assertTrue(!results.isEmpty());
+        Assert.assertFalse(results.isEmpty());
 
         WSHandlerResult result = results.get(0);
         List<WSSecurityEngineResult> securityResults = result.getResults();
         Assert.assertNotNull("Security Results cannot be null", securityResults);
-        Assert.assertTrue(!securityResults.isEmpty());
+        Assert.assertFalse(securityResults.isEmpty());
 
         WSSecurityEngineResult securityResult = securityResults.get(0);
         BinarySecurity binarySecurityToken =
             (BinarySecurity)securityResult.get(WSSecurityEngineResult.TAG_BINARY_SECURITY_TOKEN);
         Assert.assertNotNull(binarySecurityToken);
 
-        Assert.assertTrue(Arrays.equals(binarySecurityToken.getToken(), "This is a token".getBytes()));
+        Assert.assertArrayEquals(binarySecurityToken.getToken(), "This is a token".getBytes());
 
         return numberToDouble * 2;
     }

@@ -26,12 +26,12 @@ import java.util.Set;
 
 import javax.net.ssl.KeyManager;
 import javax.net.ssl.TrustManager;
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.JAXBElement;
-import javax.xml.bind.JAXBException;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
 
+import jakarta.xml.bind.JAXBContext;
+import jakarta.xml.bind.JAXBElement;
+import jakarta.xml.bind.JAXBException;
 import org.apache.cxf.common.injection.NoJSR250Annotations;
 import org.apache.cxf.common.jaxb.JAXBContextCache;
 import org.apache.cxf.common.jaxb.JAXBContextCache.CachedContextAndSchemas;
@@ -57,7 +57,7 @@ public final class TLSClientParametersConfig {
 
     private static synchronized JAXBContext getContext() throws JAXBException {
         if (context == null || classes == null) {
-            Set<Class<?>> c2 = new HashSet<Class<?>>();
+            Set<Class<?>> c2 = new HashSet<>();
             JAXBContextCache.addPackage(c2,
                                         PackageUtils.getPackageName(TLSClientParametersType.class),
                                         TLSClientParametersConfig.class.getClassLoader());

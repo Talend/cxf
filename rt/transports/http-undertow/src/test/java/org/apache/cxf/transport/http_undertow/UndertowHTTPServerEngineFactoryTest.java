@@ -30,14 +30,17 @@ import org.apache.cxf.transport.http.HTTPTransportFactory;
 
 import org.junit.After;
 import org.junit.AfterClass;
-import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 
-public class UndertowHTTPServerEngineFactoryTest
-        extends Assert {
+
+public class UndertowHTTPServerEngineFactoryTest {
     Bus bus;
 
     @BeforeClass
@@ -111,16 +114,15 @@ public class UndertowHTTPServerEngineFactoryTest
 
         // The Engine for port 1234 should be configured for TLS.
         // This will throw an error if it is not.
-        UndertowHTTPServerEngine engine = null;
-        engine = factory.createUndertowHTTPServerEngine(1234, "https");
+        UndertowHTTPServerEngine engine = factory.createUndertowHTTPServerEngine(1234, "https");
 
         assertNotNull("Engine is not available.", engine);
         assertEquals(1234, engine.getPort());
         assertEquals("Not https", "https", engine.getProtocol());
 
         try {
-            engine = factory.createUndertowHTTPServerEngine(1234, "http");
-            fail("The engine's protocol should be https");
+            factory.createUndertowHTTPServerEngine(1234, "http");
+            fail("The engine's protocol should be http");
         } catch (Exception e) {
             // expect the exception
         }

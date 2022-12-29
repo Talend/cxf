@@ -24,19 +24,18 @@ import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.logging.Logger;
 
-import javax.annotation.Priority;
-import javax.ws.rs.Priorities;
-import javax.ws.rs.container.ContainerRequestContext;
-import javax.ws.rs.container.ContainerRequestFilter;
-import javax.ws.rs.container.PreMatching;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.MultivaluedMap;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.SecurityContext;
-import javax.ws.rs.core.UriBuilder;
-import javax.ws.rs.core.UriInfo;
-
+import jakarta.annotation.Priority;
+import jakarta.ws.rs.Priorities;
+import jakarta.ws.rs.container.ContainerRequestContext;
+import jakarta.ws.rs.container.ContainerRequestFilter;
+import jakarta.ws.rs.container.PreMatching;
+import jakarta.ws.rs.core.Context;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.MultivaluedMap;
+import jakarta.ws.rs.core.Response;
+import jakarta.ws.rs.core.SecurityContext;
+import jakarta.ws.rs.core.UriBuilder;
+import jakarta.ws.rs.core.UriInfo;
 import org.apache.cxf.common.logging.LogUtils;
 import org.apache.cxf.common.util.Base64UrlUtility;
 import org.apache.cxf.jaxrs.client.WebClient;
@@ -303,13 +302,13 @@ public class ClientCodeRequestFilter implements ContainerRequestFilter {
     protected MultivaluedMap<String, String> toCodeRequestState(ContainerRequestContext rc, UriInfo ui) {
         MultivaluedMap<String, String> state = toRequestState(rc, ui);
         if (state == null) {
-            state = new MetadataMap<String, String>();
+            state = new MetadataMap<>();
         }
         return state;
     }
 
     protected MultivaluedMap<String, String> toRequestState(ContainerRequestContext rc, UriInfo ui) {
-        MultivaluedMap<String, String> requestState = new MetadataMap<String, String>();
+        MultivaluedMap<String, String> requestState = new MetadataMap<>();
         requestState.putAll(ui.getQueryParameters(decodeRequestParameters));
         if (MediaType.APPLICATION_FORM_URLENCODED_TYPE.isCompatible(rc.getMediaType())) {
             String body = FormUtils.readBody(rc.getEntityStream(), StandardCharsets.UTF_8.name());
@@ -320,14 +319,7 @@ public class ClientCodeRequestFilter implements ContainerRequestFilter {
     }
 
     public void setScopeList(List<String> list) {
-        StringBuilder sb = new StringBuilder();
-        for (String s : list) {
-            if (sb.length() > 0) {
-                sb.append(" ");
-            }
-            sb.append(s);
-        }
-        setScopes(sb.toString());
+        setScopes(String.join(" ", list));
     }
 
     public void setScopes(String scopes) {

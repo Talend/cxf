@@ -35,9 +35,9 @@ import javax.wsdl.extensions.ExtensibilityElement;
 import javax.wsdl.extensions.schema.Schema;
 import javax.wsdl.extensions.schema.SchemaImport;
 import javax.wsdl.factory.WSDLFactory;
-import javax.xml.bind.JAXBException;
 import javax.xml.namespace.QName;
 
+import jakarta.xml.bind.JAXBException;
 import org.apache.cxf.BusFactory;
 import org.apache.cxf.binding.corba.wsdl.CorbaConstants;
 import org.apache.cxf.binding.corba.wsdl.TypeMappingType;
@@ -139,7 +139,7 @@ public class WSDLSchemaManager {
     }
 
     public void addWSDLDefinitionImport(Definition rootDefn, Definition defn, String prefix, File file) {
-        if (rootDefn.getImports().get(defn.getTargetNamespace()) == null && !file.getName().equals(".wsdl")) {
+        if (rootDefn.getImports().get(defn.getTargetNamespace()) == null && !".wsdl".equals(file.getName())) {
             // Only import if not already done to prevent multiple imports of the same file
             // in the WSDL. Also watch out for empty fileNames, which by this point in the
             // code would show up as ".wsdl".

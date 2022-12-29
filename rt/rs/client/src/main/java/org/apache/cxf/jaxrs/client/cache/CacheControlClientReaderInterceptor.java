@@ -27,18 +27,18 @@ import java.text.ParseException;
 import java.util.HashMap;
 import java.util.Map;
 
-import javax.annotation.Priority;
 import javax.cache.Cache;
-import javax.ws.rs.Priorities;
-import javax.ws.rs.WebApplicationException;
-import javax.ws.rs.core.CacheControl;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.HttpHeaders;
-import javax.ws.rs.core.MultivaluedMap;
-import javax.ws.rs.core.UriInfo;
-import javax.ws.rs.ext.ReaderInterceptor;
-import javax.ws.rs.ext.ReaderInterceptorContext;
 
+import jakarta.annotation.Priority;
+import jakarta.ws.rs.Priorities;
+import jakarta.ws.rs.WebApplicationException;
+import jakarta.ws.rs.core.CacheControl;
+import jakarta.ws.rs.core.Context;
+import jakarta.ws.rs.core.HttpHeaders;
+import jakarta.ws.rs.core.MultivaluedMap;
+import jakarta.ws.rs.core.UriInfo;
+import jakarta.ws.rs.ext.ReaderInterceptor;
+import jakarta.ws.rs.ext.ReaderInterceptorContext;
 import org.apache.cxf.helpers.IOUtils;
 import org.apache.cxf.transport.http.Headers;
 
@@ -88,7 +88,7 @@ public class CacheControlClientReaderInterceptor implements ReaderInterceptor {
         }
         final MultivaluedMap<String, String> responseHeaders = context.getHeaders();
         final String cacheControlHeader = responseHeaders.getFirst(HttpHeaders.CACHE_CONTROL);
-        final CacheControl cacheControl = CacheControl.valueOf(cacheControlHeader.toString());
+        final CacheControl cacheControl = CacheControl.valueOf(cacheControlHeader);
 
         byte[] cachedBytes = null;
         final boolean validCacheControl = isCacheControlValid(context, cacheControl);
@@ -103,21 +103,7 @@ public class CacheControlClientReaderInterceptor implements ReaderInterceptor {
         if (!validCacheControl) {
             return responseEntity;
         }
-        // if a max-age property is set then it overrides Expires
-        long expiry = cacheControl.getMaxAge();
-        if (expiry == -1) {
-            //TODO: Review if Expires can be supported as an alternative to Cache-Control
-            String expiresHeader = responseHeaders.getFirst(HttpHeaders.EXPIRES);
-            if (expiresHeader.startsWith("'") && expiresHeader.endsWith("'")) {
-                expiresHeader = expiresHeader.substring(1, expiresHeader.length() - 1);
-            }
-            try {
-                expiry = (Headers.getHttpDateFormat().parse(expiresHeader).getTime()
-                    - System.currentTimeMillis()) / 1000;
-            } catch (final ParseException e) {
-                // TODO: Revisit the possibility of supporting multiple formats
-            }
-        }
+
         Serializable ser = null;
         if (cachedBytes != null) {
             // store the cached bytes - they will be parsed again when a client cache will return them
@@ -131,13 +117,12 @@ public class CacheControlClientReaderInterceptor implements ReaderInterceptor {
             byte[] bytes = IOUtils.readBytesFromStream((InputStream)responseEntity);
             ser = new BytesEntity(bytes, true);
             responseEntity = new ByteArrayInputStream(bytes);
-        } else if (responseEntity instanceof byte[]) {
-            // the cached bytes will be returned immediately when a client cache will return them
-            ser = new BytesEntity((byte[])responseEntity, false);
         }
+
         if (ser != null) {
             final Entry entry =
-                new Entry(ser, responseHeaders, computeCacheHeaders(responseHeaders), expiry);
+                new Entry(ser, responseHeaders,
+                          computeCacheHeaders(responseHeaders), computeExpiry(cacheControl, responseHeaders));
             final URI uri = uriInfo.getRequestUri();
             final String accepts = (String)context.getProperty(CacheControlClientRequestFilter.CLIENT_ACCEPTS);
             cache.put(new Key(uri, accepts), entry);
@@ -158,6 +143,25 @@ public class CacheControlClientReaderInterceptor implements ReaderInterceptor {
         }
 
         return cacheHeaders;
+    }
+
+    private long computeExpiry(CacheControl cacheControl, MultivaluedMap<String, String> responseHeaders) {
+        // if a max-age property is set then it overrides Expires
+        long expiry = cacheControl.getMaxAge();
+        if (expiry == -1) {
+            //TODO: Review if Expires can be supported as an alternative to Cache-Control
+            String expiresHeader = responseHeaders.getFirst(HttpHeaders.EXPIRES);
+            if (expiresHeader.length() > 1 && expiresHeader.startsWith("'") && expiresHeader.endsWith("'")) {
+                expiresHeader = expiresHeader.substring(1, expiresHeader.length() - 1);
+            }
+            try {
+                expiry = (Headers.getHttpDateFormat().parse(expiresHeader).getTime()
+                    - System.currentTimeMillis()) / 1000L;
+            } catch (final ParseException e) {
+                // TODO: Revisit the possibility of supporting multiple formats
+            }
+        }
+        return expiry;
     }
 
     public boolean isCacheInputStream() {

@@ -54,7 +54,7 @@ public final class CorbaBindingHelper {
                 props.put("org.omg.CORBA.ORBSingletonClass", config.getOrbSingletonClass());
             }
             List<String> orbArgs = config.getOrbArgs();
-            defaultORB = ORB.init(orbArgs.toArray(new String[orbArgs.size()]), props);
+            defaultORB = ORB.init(orbArgs.toArray(new String[0]), props);
             if (defaultORB == null) {
                 LOG.severe("Could not create instance of the ORB");
                 throw new CorbaBindingException("Could not create instance of the ORB");
@@ -76,9 +76,7 @@ public final class CorbaBindingHelper {
     private static ORB createAddressSpecificORB(String address,
                                                 Properties props,
                                                 List<String> orbArgs) {
-        ORB orb = null;
-
-        URI addressURI = null;
+        final URI addressURI;
         try {
             addressURI = new URI(address);
         } catch (URISyntaxException ex) {
@@ -123,7 +121,7 @@ public final class CorbaBindingHelper {
         } else {
             throw new CorbaBindingException("Unsupported address scheme type " + scheme);
         }
-        orb = ORB.init(orbArgs.toArray(new String[orbArgs.size()]), props);
+        ORB orb = ORB.init(orbArgs.toArray(new String[0]), props);
         orbList.put(getORBNameFromAddress(address), orb);
 
         return orb;
@@ -132,9 +130,9 @@ public final class CorbaBindingHelper {
 
 
     private static String getORBNameFromAddress(String address) {
-        String name = null;
+        String name;
 
-        URI addressURI = null;
+        final URI addressURI;
         try {
             addressURI = new URI(address);
         } catch (URISyntaxException ex) {

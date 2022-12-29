@@ -58,11 +58,20 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 
 import org.junit.After;
-import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNotSame;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertSame;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
-public class SpringBeansTest extends Assert {
+
+public class SpringBeansTest {
 
     @After
     public void tearDown() throws Exception {
@@ -212,6 +221,7 @@ public class SpringBeansTest extends Assert {
             }
         }
         assertTrue(saaj);
+        assertTrue(logging);
     }
 
     @Test
@@ -278,6 +288,7 @@ public class SpringBeansTest extends Assert {
         assertTrue("Not soap version 1.2: " + sbc.getVersion(),  sbc.getVersion() instanceof Soap12);
 
         bean = (JaxWsServerFactoryBean) ctx.getBean("inlineDataBinding");
+        assertNotNull(bean);
 
         boolean found = false;
         String[] names = ctx.getBeanNamesForType(SpringServerFactoryBean.class);
@@ -403,11 +414,10 @@ public class SpringBeansTest extends Assert {
 
     @Test
     public void testTwoEndpointsWithTwoBuses() throws Exception {
-        ClassPathXmlApplicationContext ctx = null;
         Bus cxf1 = null;
         Bus cxf2 = null;
-        try {
-            ctx = new ClassPathXmlApplicationContext("/org/apache/cxf/jaxws/spring/endpoints2.xml");
+        try (ClassPathXmlApplicationContext ctx
+            = new ClassPathXmlApplicationContext("/org/apache/cxf/jaxws/spring/endpoints2.xml")) {
             EndpointImpl ep1 = (EndpointImpl) ctx.getBean("ep1");
             assertNotNull(ep1);
             cxf1 = (Bus) ctx.getBean("cxf1");
@@ -428,9 +438,6 @@ public class SpringBeansTest extends Assert {
             }
             if (cxf2 != null) {
                 cxf2.shutdown(true);
-            }
-            if (ctx != null) {
-                ctx.close();
             }
         }
     }
@@ -463,7 +470,11 @@ public class SpringBeansTest extends Assert {
         assertEquals(2, PostConstructCalledCount.getCount());
         assertEquals(2, PostConstructCalledCount.getInjectedCount());
     }
-    @Test
+    @Ignore
+    //Spring5 has this setting in org.springframework.context.annotation.CommonAnnotationBeanPostProcessor
+    //this.ignoreResourceType("javax.xml.ws.WebServiceContext");
+    //but this setting for jakarta.xml.ws.WebServiceContext is removed in Spring6, see
+    //https://github.com/spring-projects/spring-framework/issues/27422
     public void testCXF3959SpringInject() throws Exception {
         PostConstructCalledCount.reset();
         ClassPathXmlApplicationContext ctx
@@ -476,4 +487,3 @@ public class SpringBeansTest extends Assert {
         assertNotNull(pc.getContext());
     }
 }
-

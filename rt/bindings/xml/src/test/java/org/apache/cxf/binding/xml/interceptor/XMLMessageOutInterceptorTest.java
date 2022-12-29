@@ -41,6 +41,9 @@ import org.apache.hello_world_xml_http.wrapped.types.GreetMe;
 import org.junit.Before;
 import org.junit.Test;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+
 public class XMLMessageOutInterceptorTest extends TestBase {
 
     static String bareNs = "http://apache.org/hello_world_xml_http/bare";
@@ -150,7 +153,7 @@ public class XMLMessageOutInterceptorTest extends TestBase {
                 break;
             }
         }
-        assertEquals("found request type", true, foundRequest);
+        assertTrue("found request type", foundRequest);
     }
 
     @Test

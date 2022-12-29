@@ -27,11 +27,14 @@ import org.omg.CORBA.TCKind;
 import org.omg.CORBA.TypeCode;
 
 import org.junit.After;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
-public class CorbaArrayHandlerTest extends Assert {
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+
+public class CorbaArrayHandlerTest {
 
     private ORB orb;
     private CorbaArrayHandler obj;
@@ -76,7 +79,7 @@ public class CorbaArrayHandlerTest extends Assert {
         obj = new CorbaArrayHandler(objName, objIdlType, objTypeCode, arrayType);
         assertNotNull(obj);
 
-        int arrayData[] = {2, 4, 6, 8, 10};
+        int[] arrayData = {2, 4, 6, 8, 10};
         for (int i = 0; i < arrayData.length; ++i) {
             QName elName = new QName("item");
             QName elIdlType = CorbaConstants.NT_CORBA_LONG;
@@ -88,11 +91,11 @@ public class CorbaArrayHandlerTest extends Assert {
 
         QName nameResult = obj.getName();
         assertNotNull(nameResult);
-        assertTrue(objName.equals(nameResult));
+        assertEquals(objName, nameResult);
 
         QName idlTypeResult = obj.getIdlType();
         assertNotNull(idlTypeResult);
-        assertTrue(idlTypeResult.equals(objIdlType));
+        assertEquals(idlTypeResult, objIdlType);
 
         TypeCode tcResult = obj.getTypeCode();
         assertNotNull(tcResult);

@@ -28,13 +28,18 @@ import java.util.logging.Logger;
 import org.apache.cxf.common.logging.LogUtils;
 import org.apache.cxf.helpers.IOUtils;
 
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 
-public class PlugInClassLoaderTest extends Assert {
+public class PlugInClassLoaderTest {
     private static final Logger LOG = LogUtils.getLogger(PlugInClassLoaderTest.class);
     private static boolean debug;
     PlugInClassLoader plugInClassLoader;
@@ -78,8 +83,8 @@ public class PlugInClassLoaderTest extends Assert {
     public void testLoadClassWithParentClassLoader() throws Exception {
         Class<?> resultClass = plugInClassLoader.loadClass("org.omg.CORBA.ORB");
         assertEquals("wrong class", "org.omg.CORBA.ORB", resultClass.getName());
-        assertTrue("class loader must NOT be the plugInClassLoader",
-            !(plugInClassLoader.equals(resultClass.getClassLoader())));
+        assertFalse("class loader must NOT be the plugInClassLoader",
+            plugInClassLoader.equals(resultClass.getClassLoader()));
     }
 
     @Test
@@ -99,7 +104,7 @@ public class PlugInClassLoaderTest extends Assert {
     @Test
     public void testLoadNonFilteredButAvailableClassWithPlugInClassLoader()
         throws Exception {
-        String className = "javax.resource.ResourceException";
+        String className = "jakarta.resource.ResourceException";
         // ensure it is available
         getClass().getClassLoader().loadClass(className);
         try {

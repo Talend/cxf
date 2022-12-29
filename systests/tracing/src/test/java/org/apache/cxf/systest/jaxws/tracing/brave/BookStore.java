@@ -22,12 +22,14 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.UUID;
 
-import javax.jws.WebMethod;
-import javax.jws.WebService;
-
 import brave.Span;
 import brave.Tracer.SpanInScope;
 import brave.Tracing;
+import jakarta.annotation.Resource;
+import jakarta.jws.WebMethod;
+import jakarta.jws.WebService;
+import jakarta.xml.ws.WebServiceContext;
+import jakarta.xml.ws.handler.MessageContext;
 import org.apache.cxf.systest.Book;
 import org.apache.cxf.systest.brave.TestSpanReporter;
 import org.apache.cxf.systest.jaxws.tracing.BookStoreService;
@@ -36,10 +38,13 @@ import org.apache.cxf.systest.jaxws.tracing.BookStoreService;
 public class BookStore implements BookStoreService {
     private final Tracing brave;
 
+    @Resource
+    private WebServiceContext context;
+
     public BookStore() {
         brave = Tracing.newBuilder()
             .localServiceName("book-store")
-            .reporter(new TestSpanReporter())
+            .spanReporter(new TestSpanReporter())
             .build();
     }
 
@@ -59,5 +64,11 @@ public class BookStore implements BookStoreService {
     @WebMethod
     public int removeBooks() {
         throw new RuntimeException("Unable to remove books");
+    }
+    
+    @WebMethod
+    public void addBooks() {
+        final MessageContext ctx = context.getMessageContext();
+        ctx.put(MessageContext.HTTP_RESPONSE_CODE, 305);
     }
 }

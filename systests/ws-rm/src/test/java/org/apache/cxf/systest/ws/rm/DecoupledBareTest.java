@@ -23,10 +23,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Logger;
 
-import javax.xml.ws.BindingProvider;
-import javax.xml.ws.Endpoint;
-
-
+import jakarta.xml.ws.BindingProvider;
+import jakarta.xml.ws.Endpoint;
 import org.apache.cxf.Bus;
 import org.apache.cxf.BusFactory;
 import org.apache.cxf.bus.spring.SpringBusFactory;
@@ -43,6 +41,9 @@ import org.apache.hello_world_soap_http.types.BareDocumentResponse;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 /**
  * Tests the addition of WS-RM properties to application messages and the

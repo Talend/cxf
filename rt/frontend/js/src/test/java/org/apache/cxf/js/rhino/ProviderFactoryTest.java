@@ -21,19 +21,21 @@ package org.apache.cxf.js.rhino;
 
 import java.io.File;
 
-import javax.xml.ws.Service;
-
+import jakarta.xml.ws.Service;
 import org.mozilla.javascript.EvaluatorException;
 import org.mozilla.javascript.Scriptable;
 
 import org.easymock.EasyMock;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 
-public class ProviderFactoryTest extends Assert {
+
+public class ProviderFactoryTest {
 
     private String epAddr = "http://cxf.apache.org/";
 

@@ -64,17 +64,16 @@ public class AbstractWSDLToProcessor implements Processor {
 
 
     protected Writer getOutputWriter(String newNameExt) throws ToolException {
-        Writer writer = null;
-        String newName = null;
-        String outputDir;
+        final String newName;
+        final String outputDir;
 
         if (env.get(ToolConstants.CFG_OUTPUTFILE) != null) {
             newName = (String)env.get(ToolConstants.CFG_OUTPUTFILE);
         } else {
             String oldName = (String)env.get(ToolConstants.CFG_WSDLURL);
-            int position = oldName.lastIndexOf("/");
+            int position = oldName.lastIndexOf('/');
             if (position < 0) {
-                position = oldName.lastIndexOf("\\");
+                position = oldName.lastIndexOf('\\');
             }
             if (position >= 0) {
                 oldName = oldName.substring(position + 1, oldName.length());
@@ -87,16 +86,12 @@ public class AbstractWSDLToProcessor implements Processor {
         }
         if (env.get(ToolConstants.CFG_OUTPUTDIR) != null) {
             outputDir = (String)env.get(ToolConstants.CFG_OUTPUTDIR);
-            if (!("/".equals(outputDir.substring(outputDir.length() - 1)) || "\\".equals(outputDir
-                .substring(outputDir.length() - 1)))) {
-                outputDir = outputDir + "/";
-            }
         } else {
             outputDir = "./";
         }
         FileWriterUtil fw = new FileWriterUtil(outputDir, env.get(OutputStreamCreator.class));
         try {
-            writer = fw.getWriter("", newName);
+            return fw.getWriter("", newName);
         } catch (IOException ioe) {
             Message msg = new Message("FAIL_TO_WRITE_FILE",
                                       LOG,
@@ -105,7 +100,6 @@ public class AbstractWSDLToProcessor implements Processor {
                                       + newName);
             throw new ToolException(msg, ioe);
         }
-        return writer;
     }
 
 
@@ -132,7 +126,7 @@ public class AbstractWSDLToProcessor implements Processor {
     public WSDLExtensibilityPlugin getWSDLPlugin(final String key, final Class<?> clz) {
         StringBuilder sb = new StringBuilder();
         sb.append(key);
-        sb.append("-");
+        sb.append('-');
         sb.append(clz.getName());
         WSDLExtensibilityPlugin plugin = wsdlPlugins.get(sb.toString());
         if (plugin == null) {

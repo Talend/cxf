@@ -21,20 +21,23 @@ package org.apache.cxf.jaxrs;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
+import java.lang.reflect.Method;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
-import javax.ws.rs.Consumes;
-import javax.ws.rs.GET;
-import javax.ws.rs.POST;
-import javax.ws.rs.PUT;
-import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.MultivaluedMap;
-import javax.ws.rs.core.Response;
-
+import jakarta.servlet.ServletConfig;
+import jakarta.ws.rs.Consumes;
+import jakarta.ws.rs.GET;
+import jakarta.ws.rs.POST;
+import jakarta.ws.rs.PUT;
+import jakarta.ws.rs.Path;
+import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.core.HttpHeaders;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.MultivaluedMap;
+import jakarta.ws.rs.core.Response;
+import jakarta.ws.rs.core.UriInfo;
 import org.apache.cxf.endpoint.Endpoint;
 import org.apache.cxf.jaxrs.fortest.BookEntity;
 import org.apache.cxf.jaxrs.fortest.BookEntity2;
@@ -47,7 +50,6 @@ import org.apache.cxf.jaxrs.fortest.GenericEntityImpl4;
 import org.apache.cxf.jaxrs.impl.MetadataMap;
 import org.apache.cxf.jaxrs.model.ClassResourceInfo;
 import org.apache.cxf.jaxrs.model.OperationResourceInfo;
-import org.apache.cxf.jaxrs.provider.ProviderFactory;
 import org.apache.cxf.jaxrs.provider.ServerProviderFactory;
 import org.apache.cxf.jaxrs.resources.Book;
 import org.apache.cxf.jaxrs.resources.Chapter;
@@ -58,10 +60,13 @@ import org.apache.cxf.message.Message;
 import org.apache.cxf.message.MessageImpl;
 
 import org.easymock.EasyMock;
-import org.junit.Assert;
 import org.junit.Test;
 
-public class SelectMethodCandidatesTest extends Assert {
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertSame;
+
+public class SelectMethodCandidatesTest {
 
     @Test
     public void testFindFromAbstractGenericClass() throws Exception {
@@ -105,21 +110,10 @@ public class SelectMethodCandidatesTest extends Assert {
         Exchange ex = new ExchangeImpl();
         ex.setInMessage(m);
         m.setExchange(ex);
-        Endpoint e = EasyMock.createMock(Endpoint.class);
-        e.isEmpty();
-        EasyMock.expectLastCall().andReturn(true).anyTimes();
-        e.size();
-        EasyMock.expectLastCall().andReturn(0).anyTimes();
-        e.getEndpointInfo();
-        EasyMock.expectLastCall().andReturn(null).anyTimes();
-        e.get(ServerProviderFactory.class.getName());
-        EasyMock.expectLastCall().andReturn(ServerProviderFactory.getInstance()).times(2);
-        e.get("org.apache.cxf.jaxrs.comparator");
-        EasyMock.expectLastCall().andReturn(null);
-        EasyMock.replay(e);
+        Endpoint e = mockEndpoint();
         ex.put(Endpoint.class, e);
 
-        MetadataMap<String, String> values = new MetadataMap<String, String>();
+        MetadataMap<String, String> values = new MetadataMap<>();
         OperationResourceInfo ori = findTargetResourceClass(resources, m,
                                                             "/books",
                                                             "POST",
@@ -149,7 +143,7 @@ public class SelectMethodCandidatesTest extends Assert {
         Message m = createMessage();
         m.put(Message.CONTENT_TYPE, "text/xml");
 
-        MetadataMap<String, String> values = new MetadataMap<String, String>();
+        MetadataMap<String, String> values = new MetadataMap<>();
         OperationResourceInfo ori = findTargetResourceClass(resources, m,
                                                             "/",
                                                             "POST",
@@ -167,6 +161,65 @@ public class SelectMethodCandidatesTest extends Assert {
         assertNotNull(book);
         assertEquals("The Book", book.getName());
     }
+    
+    @Test
+    public void testFindFromAbstractGenericImpl6() throws Exception {
+        JAXRSServiceFactoryBean sf = new JAXRSServiceFactoryBean();
+        sf.setResourceClasses(CustomerServiceResource.class);
+
+        sf.create();
+        List<ClassResourceInfo> resources = ((JAXRSServiceImpl)sf.getService()).getClassResourceInfos();
+        Message m = createMessage();
+        m.put(Message.CONTENT_TYPE, "text/xml");
+
+        MetadataMap<String, String> values = new MetadataMap<>();
+        OperationResourceInfo ori = findTargetResourceClass(resources, m,
+                                                            "/process",
+                                                            "POST",
+                                                            values, "text/xml",
+                                                            sortMediaTypes("*/*"));
+        assertNotNull(ori);
+        assertEquals("resourceMethod needs to be selected", "process",
+                     ori.getMethodToInvoke().getName());
+
+        String value = "<CustomerRequest><customerId>1</customerId><requestId>100</requestId></CustomerRequest>";
+        m.setContent(InputStream.class, new ByteArrayInputStream(value.getBytes()));
+        List<Object> params = JAXRSUtils.processParameters(ori, values, m);
+        assertEquals(1, params.size());
+        CustomerServiceRequest request = (CustomerServiceRequest)params.get(0);
+        assertNotNull(request);
+        assertEquals(1, request.getCustomerId());
+        assertEquals(100, request.getRequestId());
+        
+        final Method notSynthetic = CustomerServiceResource.class.getMethod("process", 
+            new Class[]{CustomerServiceRequest.class});
+        assertEquals(notSynthetic, ori.getMethodToInvoke());
+    }
+
+    @Test
+    public void testFindOverridesDifferentArguments() throws Exception {
+        JAXRSServiceFactoryBean sf = new JAXRSServiceFactoryBean();
+        sf.setResourceClasses(CustomizedApi.class);
+
+        sf.create();
+        List<ClassResourceInfo> resources = ((JAXRSServiceImpl)sf.getService()).getClassResourceInfos();
+        Message m = createMessage();
+        m.put(Message.CONTENT_TYPE, "application/json");
+
+        MetadataMap<String, String> values = new MetadataMap<>();
+        OperationResourceInfo ori = findTargetResourceClass(resources, m,
+                                                            "/api",
+                                                            "GET",
+                                                            values, "application/json",
+                                                            sortMediaTypes("*/*"));
+        assertNotNull(ori);
+        assertEquals("resourceMethod needs to be selected", "getApi",
+                     ori.getMethodToInvoke().getName());
+        
+        final Method expected = CustomizedApi.class.getMethod("getApi", 
+            new Class[]{ServletConfig.class, HttpHeaders.class, UriInfo.class, String.class});
+        assertEquals(expected, ori.getMethodToInvoke());
+    }
 
     @Test
     public void testFindFromAbstractGenericClass3() throws Exception {
@@ -182,21 +235,10 @@ public class SelectMethodCandidatesTest extends Assert {
         Exchange ex = new ExchangeImpl();
         ex.setInMessage(m);
         m.setExchange(ex);
-        Endpoint e = EasyMock.createMock(Endpoint.class);
-        e.isEmpty();
-        EasyMock.expectLastCall().andReturn(true).anyTimes();
-        e.size();
-        EasyMock.expectLastCall().andReturn(0).anyTimes();
-        e.getEndpointInfo();
-        EasyMock.expectLastCall().andReturn(null).anyTimes();
-        e.get(ServerProviderFactory.class.getName());
-        EasyMock.expectLastCall().andReturn(ServerProviderFactory.getInstance()).times(3);
-        e.get("org.apache.cxf.jaxrs.comparator");
-        EasyMock.expectLastCall().andReturn(null);
-        EasyMock.replay(e);
+        Endpoint e = mockEndpoint();
         ex.put(Endpoint.class, e);
 
-        MetadataMap<String, String> values = new MetadataMap<String, String>();
+        MetadataMap<String, String> values = new MetadataMap<>();
         OperationResourceInfo ori = findTargetResourceClass(resources, m,
                                                             "/books",
                                                             "PUT",
@@ -230,21 +272,10 @@ public class SelectMethodCandidatesTest extends Assert {
         Exchange ex = new ExchangeImpl();
         ex.setInMessage(m);
         m.setExchange(ex);
-        Endpoint e = EasyMock.createMock(Endpoint.class);
-        e.isEmpty();
-        EasyMock.expectLastCall().andReturn(true).anyTimes();
-        e.size();
-        EasyMock.expectLastCall().andReturn(0).anyTimes();
-        e.getEndpointInfo();
-        EasyMock.expectLastCall().andReturn(null).anyTimes();
-        e.get(ServerProviderFactory.class.getName());
-        EasyMock.expectLastCall().andReturn(ServerProviderFactory.getInstance()).times(3);
-        e.get("org.apache.cxf.jaxrs.comparator");
-        EasyMock.expectLastCall().andReturn(null);
-        EasyMock.replay(e);
+        Endpoint e = mockEndpoint();
         ex.put(Endpoint.class, e);
 
-        MetadataMap<String, String> values = new MetadataMap<String, String>();
+        MetadataMap<String, String> values = new MetadataMap<>();
         OperationResourceInfo ori = findTargetResourceClass(resources, m,
                                                             "/service/all",
                                                             "PUT",
@@ -314,21 +345,10 @@ public class SelectMethodCandidatesTest extends Assert {
         Exchange ex = new ExchangeImpl();
         ex.setInMessage(m);
         m.setExchange(ex);
-        Endpoint e = EasyMock.createMock(Endpoint.class);
-        e.isEmpty();
-        EasyMock.expectLastCall().andReturn(true).anyTimes();
-        e.size();
-        EasyMock.expectLastCall().andReturn(0).anyTimes();
-        e.getEndpointInfo();
-        EasyMock.expectLastCall().andReturn(null).anyTimes();
-        e.get(ServerProviderFactory.class.getName());
-        EasyMock.expectLastCall().andReturn(ServerProviderFactory.getInstance()).times(2);
-        e.get("org.apache.cxf.jaxrs.comparator");
-        EasyMock.expectLastCall().andReturn(null);
-        EasyMock.replay(e);
+        Endpoint e = mockEndpoint();
         ex.put(Endpoint.class, e);
 
-        MetadataMap<String, String> values = new MetadataMap<String, String>();
+        MetadataMap<String, String> values = new MetadataMap<>();
         OperationResourceInfo ori = findTargetResourceClass(resources,
                                                             m,
                                                             "/",
@@ -479,21 +499,10 @@ public class SelectMethodCandidatesTest extends Assert {
         Exchange ex = new ExchangeImpl();
         ex.setInMessage(m);
         m.setExchange(ex);
-        Endpoint e = EasyMock.createMock(Endpoint.class);
-        e.isEmpty();
-        EasyMock.expectLastCall().andReturn(true).anyTimes();
-        e.size();
-        EasyMock.expectLastCall().andReturn(0).anyTimes();
-        e.getEndpointInfo();
-        EasyMock.expectLastCall().andReturn(null).anyTimes();
-        e.get(ServerProviderFactory.class.getName());
-        EasyMock.expectLastCall().andReturn(ServerProviderFactory.getInstance()).times(2);
-        e.get("org.apache.cxf.jaxrs.comparator");
-        EasyMock.expectLastCall().andReturn(null);
-        EasyMock.replay(e);
+        Endpoint e = mockEndpoint();
         ex.put(Endpoint.class, e);
 
-        MetadataMap<String, String> values = new MetadataMap<String, String>();
+        MetadataMap<String, String> values = new MetadataMap<>();
         Map<ClassResourceInfo, MultivaluedMap<String, String>> mResources
             = JAXRSUtils.selectResourceClass(resources, path, m);
 
@@ -531,7 +540,7 @@ public class SelectMethodCandidatesTest extends Assert {
 
         Message m = prepareMessage();
 
-        MetadataMap<String, String> values = new MetadataMap<String, String>();
+        MetadataMap<String, String> values = new MetadataMap<>();
         OperationResourceInfo ori = findTargetResourceClass(resources, m,
                                                             path,
                                                             "PUT",
@@ -550,18 +559,7 @@ public class SelectMethodCandidatesTest extends Assert {
         Exchange ex = new ExchangeImpl();
         ex.setInMessage(m);
         m.setExchange(ex);
-        Endpoint e = EasyMock.createMock(Endpoint.class);
-        e.isEmpty();
-        EasyMock.expectLastCall().andReturn(true).anyTimes();
-        e.size();
-        EasyMock.expectLastCall().andReturn(0).anyTimes();
-        e.getEndpointInfo();
-        EasyMock.expectLastCall().andReturn(null).anyTimes();
-        e.get(ServerProviderFactory.class.getName());
-        EasyMock.expectLastCall().andReturn(ServerProviderFactory.getInstance()).times(3);
-        e.get("org.apache.cxf.jaxrs.comparator");
-        EasyMock.expectLastCall().andReturn(null);
-        EasyMock.replay(e);
+        Endpoint e = mockEndpoint();
         ex.put(Endpoint.class, e);
         return m;
     }
@@ -579,21 +577,10 @@ public class SelectMethodCandidatesTest extends Assert {
         Exchange ex = new ExchangeImpl();
         ex.setInMessage(m);
         m.setExchange(ex);
-        Endpoint e = EasyMock.createMock(Endpoint.class);
-        e.isEmpty();
-        EasyMock.expectLastCall().andReturn(true).anyTimes();
-        e.size();
-        EasyMock.expectLastCall().andReturn(0).anyTimes();
-        e.getEndpointInfo();
-        EasyMock.expectLastCall().andReturn(null).anyTimes();
-        e.get(ServerProviderFactory.class.getName());
-        EasyMock.expectLastCall().andReturn(ServerProviderFactory.getInstance()).times(3);
-        e.get("org.apache.cxf.jaxrs.comparator");
-        EasyMock.expectLastCall().andReturn(null);
-        EasyMock.replay(e);
+        Endpoint e = mockEndpoint();
         ex.put(Endpoint.class, e);
 
-        MetadataMap<String, String> values = new MetadataMap<String, String>();
+        MetadataMap<String, String> values = new MetadataMap<>();
         OperationResourceInfo ori = findTargetResourceClass(resources, m,
                                                             "/books",
                                                             methodName,
@@ -650,7 +637,7 @@ public class SelectMethodCandidatesTest extends Assert {
         String contentTypes = "*/*";
         String acceptContentTypes = "text/xml,*/*";
 
-        MetadataMap<String, String> values = new MetadataMap<String, String>();
+        MetadataMap<String, String> values = new MetadataMap<>();
         OperationResourceInfo ori = findTargetResourceClass(resources,
                                                             createMessage(),
                                                             path,
@@ -672,7 +659,7 @@ public class SelectMethodCandidatesTest extends Assert {
         String contentTypes = "*/*";
         String acceptContentTypes = "application/xml;q=0.5,application/json";
 
-        MetadataMap<String, String> values = new MetadataMap<String, String>();
+        MetadataMap<String, String> values = new MetadataMap<>();
         OperationResourceInfo ori = findTargetResourceClass(resources, createMessage(),
                                                             "/1/2/3/d/resource1",
                                                             "GET",
@@ -697,7 +684,7 @@ public class SelectMethodCandidatesTest extends Assert {
 
         //If acceptContentTypes does not specify a specific Mime type, the
         //method is declared with a most specific ProduceMime type is selected.
-        MetadataMap<String, String> values = new MetadataMap<String, String>();
+        MetadataMap<String, String> values = new MetadataMap<>();
         OperationResourceInfo ori = findTargetResourceClass(resources, createMessage(),
                                                             "/1/2/3/d",
                                                             "GET",
@@ -774,7 +761,7 @@ public class SelectMethodCandidatesTest extends Assert {
         String contentTypes = "*/*";
         String acceptContentTypes = "application/bar,application/foo;q=0.8";
 
-        MetadataMap<String, String> values = new MetadataMap<String, String>();
+        MetadataMap<String, String> values = new MetadataMap<>();
         OperationResourceInfo ori = findTargetResourceClass(resources, null,
                                       "/1/2/3/d/custom",
                                       "GET",
@@ -815,7 +802,6 @@ public class SelectMethodCandidatesTest extends Assert {
         return createMessage(false);
     }
     private Message createMessage(boolean setKeepSubProp) {
-        ProviderFactory factory = ServerProviderFactory.getInstance();
         Message m = new MessageImpl();
         m.put("org.apache.cxf.http.case_insensitive_queries", false);
         if (setKeepSubProp) {
@@ -824,18 +810,7 @@ public class SelectMethodCandidatesTest extends Assert {
         Exchange e = new ExchangeImpl();
         m.setExchange(e);
         e.setInMessage(m);
-        Endpoint endpoint = EasyMock.createMock(Endpoint.class);
-        endpoint.getEndpointInfo();
-        EasyMock.expectLastCall().andReturn(null).anyTimes();
-        endpoint.get("org.apache.cxf.jaxrs.comparator");
-        EasyMock.expectLastCall().andReturn(null);
-        endpoint.size();
-        EasyMock.expectLastCall().andReturn(0).anyTimes();
-        endpoint.isEmpty();
-        EasyMock.expectLastCall().andReturn(true).anyTimes();
-        endpoint.get(ServerProviderFactory.class.getName());
-        EasyMock.expectLastCall().andReturn(factory).anyTimes();
-        EasyMock.replay(endpoint);
+        Endpoint endpoint = mockEndpoint();
         e.put(Endpoint.class, endpoint);
         return m;
     }
@@ -878,6 +853,19 @@ public class SelectMethodCandidatesTest extends Assert {
 
         return null;
     }
+
+    private static Endpoint mockEndpoint() {
+        Endpoint e = EasyMock.mock(Endpoint.class);
+        EasyMock.expect(e.isEmpty()).andReturn(true).anyTimes();
+        EasyMock.expect(e.size()).andReturn(0).anyTimes();
+        EasyMock.expect(e.getEndpointInfo()).andReturn(null).anyTimes();
+        EasyMock.expect(e.get(ServerProviderFactory.class.getName())).andReturn(ServerProviderFactory.getInstance())
+                .times(3);
+        EasyMock.expect(e.get("org.apache.cxf.jaxrs.comparator")).andReturn(null);
+        EasyMock.replay(e);
+        return e;
+    }
+
     @Path("{a}")
     @Produces("text/xml")
     @Consumes("text/xml")

@@ -19,12 +19,14 @@
 
 package org.apache.cxf.jaxrs.impl;
 
-import javax.ws.rs.core.Cookie;
+import jakarta.ws.rs.core.Cookie;
 
-import org.junit.Assert;
 import org.junit.Test;
 
-public class CookieHeaderProviderTest extends Assert {
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+
+public class CookieHeaderProviderTest {
 
 
     @Test

@@ -23,10 +23,10 @@ import java.net.URL;
 import java.util.logging.Logger;
 
 import javax.xml.namespace.QName;
-import javax.xml.ws.Endpoint;
-import javax.xml.ws.wsaddressing.W3CEndpointReference;
-import javax.xml.ws.wsaddressing.W3CEndpointReferenceBuilder;
 
+import jakarta.xml.ws.Endpoint;
+import jakarta.xml.ws.wsaddressing.W3CEndpointReference;
+import jakarta.xml.ws.wsaddressing.W3CEndpointReferenceBuilder;
 import org.apache.cxf.common.logging.LogUtils;
 import org.apache.cxf.testutil.common.AbstractBusClientServerTestBase;
 import org.apache.cxf.testutil.common.AbstractBusTestServerBase;
@@ -35,6 +35,10 @@ import org.apache.locator.LocatorService_Service;
 
 import org.junit.BeforeClass;
 import org.junit.Test;
+
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 public class LocatorClientServerTest extends AbstractBusClientServerTestBase {
     static final String PORT = allocatePort(MyServer.class);
@@ -106,7 +110,7 @@ public class LocatorClientServerTest extends AbstractBusClientServerTestBase {
             builder.build();
             fail("Address in an EPR cannot be null, when serviceName or portName is null");
         } catch (IllegalStateException ie) {
-            assertTrue(true);
+            // expected
         } catch (Exception e) {
             fail("Unexpected Exception " + e.getClass() + " raised: " + e.getMessage());
         }

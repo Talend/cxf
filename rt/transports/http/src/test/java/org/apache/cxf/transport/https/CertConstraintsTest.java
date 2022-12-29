@@ -20,22 +20,22 @@
 
 package org.apache.cxf.transport.https;
 
-import java.io.ByteArrayInputStream;
-import java.nio.file.FileSystems;
-import java.nio.file.Files;
-import java.nio.file.Path;
+import java.io.InputStream;
 import java.security.KeyStore;
 import java.security.cert.X509Certificate;
 
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.JAXBElement;
-import javax.xml.bind.JAXBException;
-import javax.xml.bind.Unmarshaller;
-
+import jakarta.xml.bind.JAXBContext;
+import jakarta.xml.bind.JAXBElement;
+import jakarta.xml.bind.JAXBException;
+import jakarta.xml.bind.Unmarshaller;
 import org.apache.cxf.configuration.security.CertificateConstraintsType;
 import org.apache.cxf.staxutils.StaxUtils;
 
-public class CertConstraintsTest extends org.junit.Assert {
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+
+public class CertConstraintsTest {
 
     @org.junit.Test
     public void testCertConstraints() throws Exception {
@@ -44,17 +44,16 @@ public class CertConstraintsTest extends org.junit.Assert {
         final X509Certificate gordyCert =
             loadCertificate("Gordy.jks", "JKS", "password", "gordy");
 
-        CertConstraints tmp = null;
         //
         // bethal matches but gordy doesn't
         //
-        tmp = loadCertConstraints("subject-CN-bethal");
+        CertConstraints tmp = loadCertConstraints("subject-CN-bethal");
         assertTrue(tmp.matches(bethalCert) && !tmp.matches(gordyCert));
         //
         // gordy matches but bethal doesn't
         //
         tmp = loadCertConstraints("subject-CN-gordy");
-        assertTrue(!tmp.matches(bethalCert) && tmp.matches(gordyCert));
+        assertFalse(tmp.matches(bethalCert) && tmp.matches(gordyCert));
 
         //
         // both are under the ApacheTest organization
@@ -72,7 +71,7 @@ public class CertConstraintsTest extends org.junit.Assert {
         // neither are O=BadApacheTest
         //
         tmp = loadCertConstraints("subject-CN-bethal-O-badapache");
-        assertTrue(!tmp.matches(bethalCert) && !tmp.matches(gordyCert));
+        assertFalse(tmp.matches(bethalCert) || tmp.matches(gordyCert));
 
         //
         // both satisfy either CN=Bethal or O=ApacheTest
@@ -117,12 +116,9 @@ public class CertConstraintsTest extends org.junit.Assert {
         final String id
     ) throws Exception {
         final KeyStore store = KeyStore.getInstance(keystoreType);
-        Path path =
-            FileSystems.getDefault().getPath("src/test/java/org/apache/cxf/transport/https/resources/",
-                                             keystoreFilename);
-        byte[] bytes = Files.readAllBytes(path);
-        try (ByteArrayInputStream bin = new ByteArrayInputStream(bytes)) {
-            store.load(bin, keystorePassword.toCharArray());
+        try (InputStream is = CertConstraintsTest.class
+                .getResourceAsStream("/org/apache/cxf/transport/https/resources/" + keystoreFilename)) {
+            store.load(is, keystorePassword.toCharArray());
             for (java.util.Enumeration<String> aliases = store.aliases(); aliases.hasMoreElements();) {
                 final String alias = aliases.nextElement();
                 if (id.equals(alias)) {
@@ -130,7 +126,6 @@ public class CertConstraintsTest extends org.junit.Assert {
                 }
             }
         }
-        assert false;
         throw new RuntimeException("error in test -- keystore " + id + " has no trusted certs");
     }
 
@@ -149,7 +144,7 @@ public class CertConstraintsTest extends org.junit.Assert {
                 final org.w3c.dom.NodeList elts = datum.getElementsByTagNameNS(
                     "http://cxf.apache.org/configuration/security", elementName
                 );
-                assert elts.getLength() == 1;
+                assertEquals(1, elts.getLength());
                 return unmarshal(cls, (org.w3c.dom.Element) elts.item(0));
             }
         }

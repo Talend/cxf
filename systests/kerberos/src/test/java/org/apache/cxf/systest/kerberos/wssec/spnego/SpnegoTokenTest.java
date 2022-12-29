@@ -23,15 +23,15 @@ import java.io.File;
 import java.net.URL;
 
 import javax.xml.namespace.QName;
-import javax.xml.ws.Service;
 
+import jakarta.xml.ws.Service;
 import org.apache.cxf.Bus;
 import org.apache.cxf.BusFactory;
 import org.apache.cxf.bus.spring.SpringBusFactory;
 import org.apache.cxf.systest.kerberos.common.SecurityTestUtil;
+import org.apache.cxf.testutil.common.AbstractBusClientServerTestBase;
 import org.apache.cxf.testutil.common.AbstractClientServerTestBase;
 import org.apache.cxf.testutil.common.TestUtil;
-import org.apache.directory.server.core.integ.AbstractLdapTestUnit;
 import org.apache.kerby.kerberos.kerb.server.SimpleKdcServer;
 import org.apache.wss4j.dom.engine.WSSConfig;
 import org.example.contract.doubleit.DoubleItPortType;
@@ -42,7 +42,7 @@ import org.junit.BeforeClass;
 /**
  * A set of tests for Spnego Tokens that use an Apache Kerby instance as the KDC.
  */
-public class SpnegoTokenTest extends AbstractLdapTestUnit {
+public class SpnegoTokenTest extends AbstractBusClientServerTestBase {
     static final String PORT = TestUtil.getPortNumber(Server.class);
     static final String STAX_PORT = TestUtil.getPortNumber(StaxServer.class);
     static final String PORT2 = TestUtil.getPortNumber(Server.class, 2);
@@ -55,7 +55,7 @@ public class SpnegoTokenTest extends AbstractLdapTestUnit {
             SecurityTestUtil.checkUnrestrictedPoliciesInstalled();
 
     private static boolean runTests;
-    
+
     private static SimpleKdcServer kerbyServer;
 
     @BeforeClass
@@ -68,7 +68,7 @@ public class SpnegoTokenTest extends AbstractLdapTestUnit {
         if (!"IBM Corporation".equals(System.getProperty("java.vendor"))) {
             runTests = true;
         }
-        
+
         String basedir = System.getProperty("basedir");
         if (basedir == null) {
             basedir = new File(".").getCanonicalPath();
@@ -115,7 +115,6 @@ public class SpnegoTokenTest extends AbstractLdapTestUnit {
 
     @org.junit.AfterClass
     public static void cleanup() throws Exception {
-        SecurityTestUtil.cleanup();
         AbstractClientServerTestBase.stopAllServers();
         if (kerbyServer != null) {
             kerbyServer.stop();

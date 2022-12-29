@@ -20,9 +20,8 @@ package org.apache.cxf.rs.security.oauth2.tokens.hawk;
 
 import java.net.URI;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.ws.rs.core.UriInfo;
-
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.ws.rs.core.UriInfo;
 import org.apache.cxf.jaxrs.ext.MessageContext;
 import org.apache.cxf.rs.security.oauth2.client.HttpRequestProperties;
 import org.apache.cxf.rs.security.oauth2.common.AccessTokenValidation;
@@ -31,11 +30,12 @@ import org.apache.cxf.rs.security.oauth2.provider.OAuthDataProvider;
 import org.apache.cxf.rs.security.oauth2.utils.OAuthConstants;
 
 import org.easymock.EasyMock;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
-public class HawkAccessTokenValidatorTest extends Assert {
+import static org.junit.Assert.assertNotNull;
+
+public class HawkAccessTokenValidatorTest {
 
     private HawkAccessTokenValidator validator = new HawkAccessTokenValidator();
     private OAuthDataProvider dataProvider = EasyMock.createMock(OAuthDataProvider.class);

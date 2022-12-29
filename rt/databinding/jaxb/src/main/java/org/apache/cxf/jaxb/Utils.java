@@ -20,6 +20,7 @@
 package org.apache.cxf.jaxb;
 
 import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.lang.reflect.ParameterizedType;
@@ -29,12 +30,12 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlTransient;
-import javax.xml.bind.annotation.adapters.XmlAdapter;
-import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
-import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapters;
+import jakarta.xml.bind.annotation.XmlAccessType;
+import jakarta.xml.bind.annotation.XmlAccessorType;
+import jakarta.xml.bind.annotation.XmlTransient;
+import jakarta.xml.bind.annotation.adapters.XmlAdapter;
+import jakarta.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
+import jakarta.xml.bind.annotation.adapters.XmlJavaTypeAdapters;
 
 /**
  * JAXB reflection utilities.
@@ -256,8 +257,9 @@ final class Utils {
 
     @SuppressWarnings("rawtypes")
     static XmlAdapter getXmlAdapter(XmlJavaTypeAdapter adapterAnnotation)
-        throws InstantiationException, IllegalAccessException {
-        return adapterAnnotation != null ? adapterAnnotation.value().newInstance() : null;
+        throws InstantiationException, IllegalAccessException, InvocationTargetException,
+               NoSuchMethodException, SecurityException {
+        return adapterAnnotation != null ? adapterAnnotation.value().getDeclaredConstructor().newInstance() : null;
     }
 
     static XmlJavaTypeAdapter getFieldXJTA(final Field f) {
@@ -266,12 +268,15 @@ final class Utils {
             adapter = f.getType().getAnnotation(XmlJavaTypeAdapter.class);
         }
         if (adapter == null) {
-            XmlJavaTypeAdapters adapters = f.getDeclaringClass().getPackage().getAnnotation(XmlJavaTypeAdapters.class);
-            if (adapters != null) {
-                for (XmlJavaTypeAdapter candidate : adapters.value()) {
-                    if (candidate != null && candidate.type().equals(f.getType())) {
-                        adapter = candidate;
-                        break;
+            Package packageDeclaration = f.getDeclaringClass().getPackage();
+            if (packageDeclaration != null) {
+                XmlJavaTypeAdapters adapters = packageDeclaration.getAnnotation(XmlJavaTypeAdapters.class);
+                if (adapters != null) {
+                    for (XmlJavaTypeAdapter candidate : adapters.value()) {
+                        if (candidate != null && candidate.type().equals(f.getType())) {
+                            adapter = candidate;
+                            break;
+                        }
                     }
                 }
             }

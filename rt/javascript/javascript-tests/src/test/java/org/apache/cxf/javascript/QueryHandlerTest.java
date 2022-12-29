@@ -25,7 +25,6 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.URL;
 import java.net.URLConnection;
-import java.nio.charset.Charset;
 import java.util.logging.Logger;
 
 import org.apache.cxf.common.logging.LogUtils;
@@ -38,11 +37,15 @@ import org.springframework.context.support.GenericApplicationContext;
 import org.junit.Before;
 import org.junit.Test;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotSame;
+
 /**
  *
  */
 public class QueryHandlerTest extends AbstractCXFSpringTest {
-    private static final Charset UTF8 = Charset.forName("utf-8");
     private static final Logger LOG = LogUtils.getL7dLogger(QueryHandlerTest.class);
     private Endpoint hwEndpoint;
     private Endpoint dlbEndpoint;
@@ -81,7 +84,7 @@ public class QueryHandlerTest extends AbstractCXFSpringTest {
     }
 
     private String readStringFromStream(InputStream jsStream) throws IOException {
-        InputStreamReader isr = new InputStreamReader(jsStream, UTF8);
+        InputStreamReader isr = new InputStreamReader(jsStream, UTF_8);
         BufferedReader in = new BufferedReader(isr);
         String line = in.readLine();
         StringBuilder js = new StringBuilder();
@@ -90,7 +93,7 @@ public class QueryHandlerTest extends AbstractCXFSpringTest {
 
             for (int x = 0; x < tok.length; x++) {
                 String token = tok[x];
-                js.append("  " + token);
+                js.append("  ").append(token);
             }
             line = in.readLine();
         }

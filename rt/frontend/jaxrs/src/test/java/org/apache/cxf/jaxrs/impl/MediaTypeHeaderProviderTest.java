@@ -23,12 +23,14 @@ import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-import javax.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.MediaType;
 
-import org.junit.Assert;
 import org.junit.Test;
 
-public class MediaTypeHeaderProviderTest extends Assert {
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
+
+public class MediaTypeHeaderProviderTest {
 
     @Test(expected = IllegalArgumentException.class)
     public void testNullValue() throws Exception {
@@ -156,6 +158,48 @@ public class MediaTypeHeaderProviderTest extends Assert {
         } catch (IllegalArgumentException pe) {
             // expected
         }
+
+        try {
+            new MediaTypeHeaderProvider().fromString("@pplication/json");
+            fail("Parse exception expected");
+        } catch (IllegalArgumentException pe) {
+            // expected
+        }
+
+        try {
+            new MediaTypeHeaderProvider().fromString("application/<xml>");
+            fail("Parse exception expected");
+        } catch (IllegalArgumentException pe) {
+            // expected
+        }
+
+        try {
+            new MediaTypeHeaderProvider().fromString("application/xml,json");
+            fail("Parse exception expected");
+        } catch (IllegalArgumentException pe) {
+            // expected
+        }
+
+        try {
+            new MediaTypeHeaderProvider().fromString("t[ext]/plain");
+            fail("Parse exception expected");
+        } catch (IllegalArgumentException pe) {
+            // expected
+        }
+
+        try {
+            new MediaTypeHeaderProvider().fromString("text/pla:n");
+            fail("Parse exception expected");
+        } catch (IllegalArgumentException pe) {
+            // expected
+        }
+
+        try {
+            new MediaTypeHeaderProvider().fromString("text/reg(ex)");
+            fail("Parse exception expected");
+        } catch (IllegalArgumentException pe) {
+            // expected
+        }
     }
 
     @Test
@@ -201,7 +245,7 @@ public class MediaTypeHeaderProviderTest extends Assert {
         MediaTypeHeaderProvider provider =
             new MediaTypeHeaderProvider();
 
-        Map<String, String> params = new LinkedHashMap<String, String>();
+        Map<String, String> params = new LinkedHashMap<>();
         params.put("foo", "bar");
         params.put("q", "0.2");
 

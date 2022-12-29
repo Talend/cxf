@@ -29,10 +29,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.JAXBElement;
-import javax.xml.bind.JAXBException;
-import javax.xml.bind.Unmarshaller;
 import javax.xml.namespace.QName;
 
 import org.w3c.dom.Attr;
@@ -40,6 +36,10 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
+import jakarta.xml.bind.JAXBContext;
+import jakarta.xml.bind.JAXBElement;
+import jakarta.xml.bind.JAXBException;
+import jakarta.xml.bind.Unmarshaller;
 import org.apache.cxf.Bus;
 import org.apache.cxf.binding.soap.SoapFault;
 import org.apache.cxf.binding.soap.SoapHeader;
@@ -78,7 +78,7 @@ import org.apache.cxf.ws.addressing.VersionTransformer.Names200408;
  */
 public class MAPCodec extends AbstractSoapInterceptor {
     public static final MAPCodec INSTANCE = new MAPCodec();
-    
+
     private static final Logger LOG = LogUtils.getL7dLogger(MAPCodec.class);
     private static final String IS_REFERENCE_PARAM_ATTR_NAME = "IsReferenceParameter";
     private static final ResourceBundle BUNDLE = LOG.getResourceBundle();
@@ -90,7 +90,7 @@ public class MAPCodec extends AbstractSoapInterceptor {
      * is used in all chains.
      */
     protected final Map<String, Exchange> uncorrelatedExchanges
-        = new ConcurrentHashMap<String, Exchange>();
+        = new ConcurrentHashMap<>();
 
     private VersionTransformer transformer;
     private HeaderFactory headerFactory;
@@ -118,7 +118,7 @@ public class MAPCodec extends AbstractSoapInterceptor {
         }
         return mc;
     }
-    
+
     public Map<String, Exchange> getUncorrelatedExchanges() {
         return uncorrelatedExchanges;
     }
@@ -386,13 +386,12 @@ public class MAPCodec extends AbstractSoapInterceptor {
                         if (header == null) {
                             header = getHeaderFactory().getHeader(msg.getVersion());
                         }
-                        JAXBElement<?> jaxbEl = null;
                         if (o instanceof Element) {
                             Element e = (Element)o;
                             Node importedNode = header.getOwnerDocument().importNode(e, true);
                             header.appendChild(importedNode);
                         } else {
-                            jaxbEl = (JAXBElement<?>) o;
+                            JAXBElement<?> jaxbEl = (JAXBElement<?>) o;
                             ctx.createMarshaller().marshal(jaxbEl, header);
                         }
 
@@ -449,11 +448,11 @@ public class MAPCodec extends AbstractSoapInterceptor {
      *
      * @param maps the MAPs, where getNamespceURI() specifies the WS-Addressing
      *  version to expose
+     * @param message the SoapMessage
      * @param value the value to encode
      * @param name the QName for the header
      * @param clz the class
-     * @param header the SOAP header element
-     * @param JAXBContext the JAXB context to use
+     * @param context the JAXB context to use
      */
     private <T> void encodeAsExposed(AddressingProperties maps,
                                      SoapMessage message,
@@ -466,7 +465,7 @@ public class MAPCodec extends AbstractSoapInterceptor {
                     "{0} : {1}",
                     new Object[] {name.getLocalPart(), getLogText(value)});
 
-            boolean mu = maps.getMustUnderstand().contains(name);
+            boolean mu = maps.isRequired() || maps.getMustUnderstand().contains(name);
 
             transformer.encodeAsExposed(message,
                                         maps.getNamespaceURI(),
@@ -482,7 +481,7 @@ public class MAPCodec extends AbstractSoapInterceptor {
      * Decode the MAPs from protocol-specific headers.
      *
      * @param message the SOAP message
-     * @param the decoded MAPs
+     * @return the decoded MAPs
      * @exception SOAPFaultException if decoded MAPs are invalid
      */
     public AddressingProperties unmarshalMAPs(SoapMessage message) {
@@ -644,7 +643,7 @@ public class MAPCodec extends AbstractSoapInterceptor {
      * @param encodedAs specifies the encoded version
      * @param clz the class
      * @param headerElement the SOAP header element
-     * @param marshaller the JAXB marshaller to use
+     * @param unmarshaller the JAXB unmarshaller to use
      * @return the decoded value
      */
     public <T> T decodeAsNative(String encodedAs,
@@ -690,7 +689,7 @@ public class MAPCodec extends AbstractSoapInterceptor {
      * Decode the MAPs from protocol-specific headers.
      *
      * @param message the messsage
-     * @param the decoded MAPs
+     * @return the decoded MAPs
      * @exception SOAPFaultException if decoded MAPs are invalid
      */
     private AddressingProperties decode(SoapMessage message) {
@@ -706,8 +705,8 @@ public class MAPCodec extends AbstractSoapInterceptor {
      * @param value the value to encode
      * @param qname the QName for the header
      * @param clz the class
-     * @param header the SOAP header element
-     * @param marshaller the JAXB context to use
+     * @param ctx the JAXBContent
+     * @param mustUnderstand
      */
     protected <T> void encodeMAP(SoapMessage message,
                                  T value,
@@ -727,7 +726,7 @@ public class MAPCodec extends AbstractSoapInterceptor {
      *
      * @param clz the class
      * @param headerElement the SOAP header element
-     * @param marshaller the JAXB marshaller to use
+     * @param unmarshaller the JAXB unmarshaller to use
      * @return the decoded value
      */
     protected <T> T decodeMAP(Class<T> clz,
@@ -757,7 +756,7 @@ public class MAPCodec extends AbstractSoapInterceptor {
     }
 
     /**
-     * Propogate action to SOAPAction header
+     * Propagate action to SOAPAction header
      *
      * @param action the Action property
      * @param message the SOAP message
@@ -804,7 +803,6 @@ public class MAPCodec extends AbstractSoapInterceptor {
      * Create a SoapFault.
      *
      * @param localName the fault local name
-     * @param prefix the fault prefix
      * @param namespace the fault namespace
      * @param reason the fault reason
      * @return a new SoapFault
@@ -875,7 +873,8 @@ public class MAPCodec extends AbstractSoapInterceptor {
             } else if (maps.getRelatesTo() == null
                 && maps.getAction() != null
                 && (Names.WSA_DEFAULT_FAULT_ACTION.equals(maps.getAction().getValue())
-                    || Names.WSA_DEFAULT_SOAP_FAULT_ACTION.equals(maps.getAction().getValue()))) {
+                    || Names.WSA_DEFAULT_SOAP_FAULT_ACTION.equals(maps.getAction().getValue())
+                    || "http://docs.oasis-open.org/wsrf/fault".equals(maps.getAction().getValue()))) {
                 //there is an Action header that points to a fault and no relatesTo.  Use the out map for the ID
                 Message m = message.getExchange().getOutMessage();
                 maps = ContextUtils.retrieveMAPs(m, false, true, false);

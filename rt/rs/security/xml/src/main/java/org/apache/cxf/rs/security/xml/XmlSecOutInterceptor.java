@@ -28,11 +28,11 @@ import java.util.logging.Logger;
 
 import javax.crypto.KeyGenerator;
 import javax.crypto.SecretKey;
-import javax.ws.rs.core.Response;
 import javax.xml.namespace.QName;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamWriter;
 
+import jakarta.ws.rs.core.Response;
 import org.apache.cxf.common.logging.LogUtils;
 import org.apache.cxf.common.util.StringUtils;
 import org.apache.cxf.interceptor.AbstractOutDatabindingInterceptor;
@@ -50,7 +50,6 @@ import org.apache.cxf.rs.security.common.RSSecurityUtils;
 import org.apache.cxf.rt.security.SecurityConstants;
 import org.apache.cxf.rt.security.utils.SecurityUtils;
 import org.apache.wss4j.common.crypto.Crypto;
-import org.apache.wss4j.common.ext.WSPasswordCallback;
 import org.apache.wss4j.common.ext.WSSecurityException;
 import org.apache.wss4j.common.util.KeyUtils;
 import org.apache.xml.security.Init;
@@ -129,8 +128,6 @@ public class XmlSecOutInterceptor extends AbstractPhaseInterceptor<Message> {
 
             newXMLStreamWriter = outboundXMLSec.processOutMessage(os, encoding);
             message.setContent(XMLStreamWriter.class, newXMLStreamWriter);
-        } catch (XMLSecurityException e) {
-            throwFault(e.getMessage(), e);
         } catch (Exception e) {
             throwFault(e.getMessage(), e);
         }
@@ -159,7 +156,7 @@ public class XmlSecOutInterceptor extends AbstractPhaseInterceptor<Message> {
         properties.setEncryptionSymAlgorithm(symEncAlgo);
         properties.setEncryptionKey(getSymmetricKey(symEncAlgo));
         if (encryptSymmetricKey) {
-            X509Certificate sendingCert = null;
+            X509Certificate sendingCert;
             String userName =
                 (String)SecurityUtils.getSecurityPropertyValue(SecurityConstants.ENCRYPT_USERNAME, message);
             if (RSSecurityUtils.USE_REQUEST_SIGNATURE_CERT.equals(userName)
@@ -206,7 +203,7 @@ public class XmlSecOutInterceptor extends AbstractPhaseInterceptor<Message> {
             }
         }
 
-        properties.addAction(XMLSecurityConstants.ENCRYPT);
+        properties.addAction(XMLSecurityConstants.ENCRYPTION);
 
         if (elementsToEncrypt == null || elementsToEncrypt.isEmpty()) {
             LOG.fine("No Elements to encrypt are specified, so the entire request is encrypt");
@@ -283,8 +280,7 @@ public class XmlSecOutInterceptor extends AbstractPhaseInterceptor<Message> {
             throw new Exception("User name is not available");
         }
 
-        String password =
-            RSSecurityUtils.getPassword(message, user, WSPasswordCallback.SIGNATURE, this.getClass());
+        String password = RSSecurityUtils.getSignaturePassword(message, user, this.getClass());
 
         X509Certificate[] issuerCerts = RSSecurityUtils.getCertificates(crypto, user);
         properties.setSignatureCerts(issuerCerts);
@@ -293,12 +289,12 @@ public class XmlSecOutInterceptor extends AbstractPhaseInterceptor<Message> {
             ? SignatureConstants.ALGO_ID_SIGNATURE_RSA_SHA1 : sigProps.getSignatureAlgo();
 
         String pubKeyAlgo = issuerCerts[0].getPublicKey().getAlgorithm();
-        if (pubKeyAlgo.equalsIgnoreCase("DSA")) {
+        if ("DSA".equalsIgnoreCase(pubKeyAlgo)) {
             sigAlgo = SignatureConstants.ALGO_ID_SIGNATURE_DSA_SHA1;
         }
 
         properties.setSignatureAlgorithm(sigAlgo);
-        PrivateKey privateKey = null;
+        final PrivateKey privateKey;
         try {
             privateKey = crypto.getPrivateKey(user, password);
         } catch (Exception ex) {
@@ -344,7 +340,7 @@ public class XmlSecOutInterceptor extends AbstractPhaseInterceptor<Message> {
         if (Boolean.TRUE.equals(sigProps.getSignatureOmitC14nTransform())) {
             properties.setSignatureIncludeDigestTransform(false);
         }
-        
+
         if (elementsToSign == null || elementsToSign.isEmpty()) {
             LOG.fine("No Elements to sign are specified, so the entire request is signed");
             SecurePart securePart =

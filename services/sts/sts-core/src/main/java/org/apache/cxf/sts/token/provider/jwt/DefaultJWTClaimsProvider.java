@@ -172,7 +172,7 @@ public class DefaultJWTClaimsProvider implements JWTClaimsProvider {
 
         Instant currentDate = Instant.now();
         long currentTime = currentDate.getEpochSecond();
-        
+
         // Set the defaults first
         claims.setIssuedAt(currentTime);
         claims.setNotBefore(currentTime);
@@ -181,8 +181,8 @@ public class DefaultJWTClaimsProvider implements JWTClaimsProvider {
         Lifetime tokenLifetime = providerParameters.getTokenRequirements().getLifetime();
         if (lifetime > 0 && acceptClientLifetime && tokenLifetime != null
             && tokenLifetime.getCreated() != null && tokenLifetime.getExpires() != null) {
-            Instant creationTime = null;
-            Instant expirationTime = null;
+            final Instant creationTime;
+            Instant expirationTime;
             try {
                 creationTime = ZonedDateTime.parse(tokenLifetime.getCreated()).toInstant();
                 expirationTime = ZonedDateTime.parse(tokenLifetime.getExpires()).toInstant();
@@ -310,7 +310,7 @@ public class DefaultJWTClaimsProvider implements JWTClaimsProvider {
 
     /**
      * Set the default lifetime in seconds for issued JWT tokens
-     * @param default lifetime in seconds
+     * @param lifetime default lifetime in seconds
      */
     public void setLifetime(long lifetime) {
         this.lifetime = lifetime;
@@ -327,7 +327,7 @@ public class DefaultJWTClaimsProvider implements JWTClaimsProvider {
 
     /**
      * Set the maximum lifetime in seconds for issued JWT tokens
-     * @param maximum lifetime in seconds
+     * @param maxLifetime maximum lifetime in seconds
      */
     public void setMaxLifetime(long maxLifetime) {
         this.maxLifetime = maxLifetime;

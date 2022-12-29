@@ -20,12 +20,11 @@ package org.apache.cxf.wsn;
 
 import java.util.List;
 
-import javax.jws.WebMethod;
-import javax.jws.WebParam;
-import javax.jws.WebResult;
-import javax.jws.WebService;
-import javax.xml.ws.wsaddressing.W3CEndpointReference;
-
+import jakarta.jws.WebMethod;
+import jakarta.jws.WebParam;
+import jakarta.jws.WebResult;
+import jakarta.jws.WebService;
+import jakarta.xml.ws.wsaddressing.W3CEndpointReference;
 import org.oasis_open.docs.wsn.b_2.InvalidTopicExpressionFaultType;
 import org.oasis_open.docs.wsn.b_2.NotificationMessageHolderType;
 import org.oasis_open.docs.wsn.b_2.TopicExpressionType;
@@ -109,8 +108,7 @@ public abstract class AbstractPublisher extends AbstractEndpoint implements Publ
         topic = registerPublisherRequest.getTopic();
         // Check demand based
         demand = registerPublisherRequest.isDemand() != null
-            ? registerPublisherRequest.isDemand().booleanValue()
-                : false;
+            && registerPublisherRequest.isDemand().booleanValue();
         // Check all parameters
         if (publisherReference == null && demand) {
             PublisherRegistrationFailedFaultType fault = new PublisherRegistrationFailedFaultType();

@@ -28,22 +28,24 @@ import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManagerFactory;
-import javax.ws.rs.ProcessingException;
-import javax.ws.rs.RuntimeType;
-import javax.ws.rs.client.Client;
-import javax.ws.rs.client.ClientBuilder;
-import javax.ws.rs.core.Configurable;
-import javax.ws.rs.core.Configuration;
 
+import jakarta.ws.rs.ProcessingException;
+import jakarta.ws.rs.RuntimeType;
+import jakarta.ws.rs.client.Client;
+import jakarta.ws.rs.client.ClientBuilder;
+import jakarta.ws.rs.core.Configuration;
 import org.apache.cxf.jaxrs.client.AbstractClient;
+
+import static org.apache.cxf.jaxrs.client.ClientProperties.HTTP_CONNECTION_TIMEOUT_PROP;
+import static org.apache.cxf.jaxrs.client.ClientProperties.HTTP_RECEIVE_TIMEOUT_PROP;
 
 public class ClientBuilderImpl extends ClientBuilder {
 
-    private Configurable<ClientBuilder> configImpl;
+    private ClientConfigurableImpl<ClientBuilder> configImpl;
     private TLSConfiguration secConfig = new TLSConfiguration();
 
     public ClientBuilderImpl() {
-        configImpl = new ClientConfigurableImpl<ClientBuilder>(this);
+        configImpl = new ClientConfigurableImpl<>(this);
     }
 
     @Override
@@ -98,7 +100,13 @@ public class ClientBuilderImpl extends ClientBuilder {
 
     @Override
     public Client build() {
-        return new ClientImpl(configImpl.getConfiguration(), secConfig);
+        return new ClientImpl(configImpl.getConfiguration(), secConfig) {
+            @Override
+            public void close() {
+                super.close();
+                configImpl.close();
+            }
+        };
     }
 
     @Override
@@ -149,7 +157,7 @@ public class ClientBuilderImpl extends ClientBuilder {
         if (cfg.getRuntimeType() != RuntimeType.CLIENT) {
             throw new IllegalArgumentException();
         }
-        configImpl = new ClientConfigurableImpl<ClientBuilder>(this, cfg);
+        configImpl = new ClientConfigurableImpl<>(this, cfg);
         return this;
     }
 
@@ -166,13 +174,13 @@ public class ClientBuilderImpl extends ClientBuilder {
     @Override
     public ClientBuilder connectTimeout(long timeout, TimeUnit timeUnit) {
         validateTimeout(timeout);
-        return property(ClientImpl.HTTP_CONNECTION_TIMEOUT_PROP, timeUnit.toMillis(timeout));
+        return property(HTTP_CONNECTION_TIMEOUT_PROP, timeUnit.toMillis(timeout));
     }
 
     @Override
     public ClientBuilder readTimeout(long timeout, TimeUnit timeUnit) {
         validateTimeout(timeout);
-        return property(ClientImpl.HTTP_RECEIVE_TIMEOUT_PROP, timeUnit.toMillis(timeout));
+        return property(HTTP_RECEIVE_TIMEOUT_PROP, timeUnit.toMillis(timeout));
     }
 
     private void validateTimeout(long timeout) {
@@ -181,3 +189,4 @@ public class ClientBuilderImpl extends ClientBuilder {
         }
     }
 }
+

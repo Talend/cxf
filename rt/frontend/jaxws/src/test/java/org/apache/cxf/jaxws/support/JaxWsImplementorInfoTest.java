@@ -19,15 +19,17 @@
 
 package org.apache.cxf.jaxws.support;
 
-import javax.jws.WebService;
-import javax.xml.ws.WebServiceProvider;
-
+import jakarta.jws.WebService;
+import jakarta.xml.ws.WebServiceProvider;
 import org.apache.cxf.calculator.CalculatorImpl;
 
-import org.junit.Assert;
 import org.junit.Test;
 
-public class JaxWsImplementorInfoTest extends Assert {
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+
+public class JaxWsImplementorInfoTest {
 
     @Test
     public void testGetWSDLLocation() throws Exception {

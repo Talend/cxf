@@ -28,14 +28,14 @@ import java.util.Map;
 
 import javax.xml.namespace.QName;
 import javax.xml.transform.Source;
-import javax.xml.ws.Dispatch;
-import javax.xml.ws.Service;
-import javax.xml.ws.WebServiceException;
-import javax.xml.ws.handler.Handler;
-import javax.xml.ws.handler.HandlerResolver;
-import javax.xml.ws.handler.PortInfo;
-import javax.xml.ws.soap.SOAPBinding;
 
+import jakarta.xml.ws.Dispatch;
+import jakarta.xml.ws.Service;
+import jakarta.xml.ws.WebServiceException;
+import jakarta.xml.ws.handler.Handler;
+import jakarta.xml.ws.handler.HandlerResolver;
+import jakarta.xml.ws.handler.PortInfo;
+import jakarta.xml.ws.soap.SOAPBinding;
 import org.apache.cxf.Bus;
 import org.apache.cxf.BusException;
 import org.apache.cxf.bus.spring.SpringBusFactory;
@@ -52,6 +52,13 @@ import org.apache.hello_world_soap_http.Greeter;
 import org.apache.hello_world_soap_http.SOAPService;
 
 import org.junit.Test;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 public class ServiceImplTest extends AbstractJaxWsTest {
 
@@ -77,7 +84,7 @@ public class ServiceImplTest extends AbstractJaxWsTest {
         QName sName = new QName("service");
         QName pName = new QName("port");
 
-        javax.xml.ws.Service service = Service.create(sName);
+        jakarta.xml.ws.Service service = Service.create(sName);
         service.addPort(pName, SOAPBinding.SOAP11HTTP_BINDING, "http://mysite.org/test");
 
         Iterator<QName> ports = service.getPorts();

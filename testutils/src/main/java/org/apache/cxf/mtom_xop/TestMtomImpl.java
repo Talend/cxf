@@ -19,10 +19,9 @@
 
 package org.apache.cxf.mtom_xop;
 
-import javax.activation.DataHandler;
-import javax.jws.WebService;
-import javax.xml.ws.Holder;
-
+import jakarta.activation.DataHandler;
+import jakarta.jws.WebService;
+import jakarta.xml.ws.Holder;
 import org.apache.cxf.mime.TestMtom;
 import org.apache.cxf.mime.types.XopStringType;
 
@@ -35,8 +34,11 @@ import org.apache.cxf.mime.types.XopStringType;
 public class TestMtomImpl implements TestMtom {
 
     public void testXop(Holder<String> name, Holder<DataHandler> attachinfo) {
-        if (name.value.equals("have name") && attachinfo.value.getName() != null) {
+        if ("have name".equals(name.value) && attachinfo.value.getName() != null) {
             name.value = "return detail + " + attachinfo.value.getName();
+        } else if ("break schema".equals(name.value)) {
+            name.value = "abcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyz"
+                + "abcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyz";
         } else {
             name.value = "return detail + " + name.value;
         }

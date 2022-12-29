@@ -23,8 +23,8 @@ import java.util.Arrays;
 import java.util.Collection;
 
 import javax.xml.namespace.QName;
-import javax.xml.ws.BindingProvider;
 
+import jakarta.xml.ws.BindingProvider;
 import org.apache.cxf.Bus;
 import org.apache.cxf.BusFactory;
 import org.apache.cxf.binding.soap.SoapBindingConstants;
@@ -36,7 +36,6 @@ import org.apache.cxf.interceptor.Fault;
 import org.apache.cxf.message.Message;
 import org.apache.cxf.phase.AbstractPhaseInterceptor;
 import org.apache.cxf.phase.Phase;
-import org.apache.cxf.systest.ws.common.SecurityTestUtil;
 import org.apache.cxf.testutil.common.AbstractBusClientServerTestBase;
 import org.apache.cxf.ws.security.SecurityConstants;
 import org.apache.cxf.ws.security.trust.STSClient;
@@ -46,6 +45,9 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized.Parameters;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 /**
  * SecureConversation tests.
@@ -86,7 +88,9 @@ public class WSSCTest extends AbstractBusClientServerTestBase {
             clearAction = a;
         }
         public String toString() {
-            return prefix + ":" + port + ":" + (streaming ? "streaming" : "dom")
+            return prefix + ":" 
+                + port + ((STAX_PORT.equals(port) || STAX_PORT2.equals(port)) ? "(stax)" : "") 
+                + ":" + (streaming ? "streaming" : "dom")
                 + (clearAction ? "/no SOAPAction" : "");
         }
     }
@@ -114,127 +118,126 @@ public class WSSCTest extends AbstractBusClientServerTestBase {
     }
 
     @Parameters(name = "{0}")
-    public static Collection<TestParam[]> data() {
-        return Arrays.asList(new TestParam[][] {
-            {new TestParam("SecureConversation_UserNameOverTransport_IPingService", PORT2, false)},
-            {new TestParam("SecureConversation_MutualCertificate10SignEncrypt_IPingService", PORT, false)},
-            {new TestParam("AC_IPingService", PORT, false)},
-            {new TestParam("ADC_IPingService", PORT, false)},
-            {new TestParam("ADC-ES_IPingService", PORT, false)},
-            {new TestParam("_A_IPingService", PORT, false)},
-            {new TestParam("_AD_IPingService", PORT, false)},
-            {new TestParam("_AD-ES_IPingService", PORT, false)},
-            {new TestParam("UXC_IPingService", PORT, false)},
-            {new TestParam("UXDC_IPingService", PORT, false)},
-            {new TestParam("UXDC-SEES_IPingService", PORT, false)},
-            {new TestParam("_UX_IPingService", PORT, false)},
-            {new TestParam("_UXD_IPingService", PORT, false)},
-            {new TestParam("_UXD-SEES_IPingService", PORT, false)},
-            {new TestParam("XC_IPingService", PORT, false)},
-            {new TestParam("XDC_IPingService", PORT, false)},
-            {new TestParam("XDC_IPingService1", PORT, false)},
-            {new TestParam("XDC-ES_IPingService", PORT, false)},
-            {new TestParam("XDC-SEES_IPingService", PORT, false)},
-            {new TestParam("_X_IPingService", PORT, false)},
-            {new TestParam("_X10_IPingService", PORT, false)},
-            {new TestParam("_XD_IPingService", PORT, false)},
-            {new TestParam("_XD-SEES_IPingService", PORT, false)},
-            {new TestParam("_XD-ES_IPingService", PORT, false)},
+    public static Collection<TestParam> data() {
+        return Arrays.asList(new TestParam[] {
+            new TestParam("SecureConversation_UserNameOverTransport_IPingService", STAX_PORT2, true),
+            new TestParam("SecureConversation_UserNameOverTransport_IPingService", PORT2, false),
+            new TestParam("SecureConversation_MutualCertificate10SignEncrypt_IPingService", PORT, false),
+            new TestParam("AC_IPingService", PORT, false),
+            new TestParam("ADC_IPingService", PORT, false),
+            new TestParam("ADC-ES_IPingService", PORT, false),
+            new TestParam("_A_IPingService", PORT, false),
+            new TestParam("_AD_IPingService", PORT, false),
+            new TestParam("_AD-ES_IPingService", PORT, false),
+            new TestParam("UXC_IPingService", PORT, false),
+            new TestParam("UXDC_IPingService", PORT, false),
+            new TestParam("UXDC-SEES_IPingService", PORT, false),
+            new TestParam("_UX_IPingService", PORT, false),
+            new TestParam("_UXD_IPingService", PORT, false),
+            new TestParam("_UXD-SEES_IPingService", PORT, false),
+            new TestParam("XC_IPingService", PORT, false),
+            new TestParam("XDC_IPingService", PORT, false),
+            new TestParam("XDC_IPingService1", PORT, false),
+            new TestParam("XDC-ES_IPingService", PORT, false),
+            new TestParam("XDC-SEES_IPingService", PORT, false),
+            new TestParam("_X_IPingService", PORT, false),
+            new TestParam("_X10_IPingService", PORT, false),
+            new TestParam("_XD_IPingService", PORT, false),
+            new TestParam("_XD-SEES_IPingService", PORT, false),
+            new TestParam("_XD-ES_IPingService", PORT, false),
 
-            {new TestParam("SecureConversation_UserNameOverTransport_IPingService", PORT2, true)},
+            new TestParam("SecureConversation_UserNameOverTransport_IPingService", PORT2, true),
             // TODO Endorsing streaming not supported
-            // {new TestParam("SecureConversation_MutualCertificate10SignEncrypt_IPingService", PORT, true)},
-            {new TestParam("AC_IPingService", PORT, true)},
-            {new TestParam("ADC_IPingService", PORT, true)},
-            {new TestParam("ADC-ES_IPingService", PORT, true)},
-            {new TestParam("_A_IPingService", PORT, true)},
-            {new TestParam("_AD_IPingService", PORT, true)},
-            {new TestParam("_AD-ES_IPingService", PORT, true)},
-            {new TestParam("UXC_IPingService", PORT, true)},
-            {new TestParam("UXDC_IPingService", PORT, true)},
-            {new TestParam("UXDC-SEES_IPingService", PORT, true)},
-            {new TestParam("_UX_IPingService", PORT, true)},
-            {new TestParam("_UXD_IPingService", PORT, true)},
-            {new TestParam("_UXD-SEES_IPingService", PORT, true)},
+            // new TestParam("SecureConversation_MutualCertificate10SignEncrypt_IPingService", PORT, true),
+            new TestParam("AC_IPingService", PORT, true),
+            new TestParam("ADC_IPingService", PORT, true),
+            new TestParam("ADC-ES_IPingService", PORT, true),
+            new TestParam("_A_IPingService", PORT, true),
+            new TestParam("_AD_IPingService", PORT, true),
+            new TestParam("_AD-ES_IPingService", PORT, true),
+            new TestParam("UXC_IPingService", PORT, true),
+            new TestParam("UXDC_IPingService", PORT, true),
+            new TestParam("UXDC-SEES_IPingService", PORT, true),
+            new TestParam("_UX_IPingService", PORT, true),
+            new TestParam("_UXD_IPingService", PORT, true),
+            new TestParam("_UXD-SEES_IPingService", PORT, true),
             // TODO Streaming endorsing not working
-            // {new TestParam("XC_IPingService", PORT, true)},
-            // {new TestParam("XDC_IPingService", PORT, true)},
-            // {new TestParam("XDC_IPingService1", PORT, true)},
-            // {new TestParam("XDC-ES_IPingService", PORT, true)},
-            // {new TestParam("XDC-SEES_IPingService", PORT, true)},
-            // {new TestParam("_X_IPingService", PORT, true)},
-            {new TestParam("_X10_IPingService", PORT, true)},
+            // new TestParam("XC_IPingService", PORT, true),
+            // new TestParam("XDC_IPingService", PORT, true),
+            // new TestParam("XDC_IPingService1", PORT, true),
+            // new TestParam("XDC-ES_IPingService", PORT, true),
+            // new TestParam("XDC-SEES_IPingService", PORT, true),
+            // new TestParam("_X_IPingService", PORT, true),
+            new TestParam("_X10_IPingService", PORT, true),
             // TODO Streaming endorsing not working
-            // {new TestParam("_XD_IPingService", PORT, true)},
-            // {new TestParam("_XD-SEES_IPingService", PORT, true)},
-            // {new TestParam("_XD-ES_IPingService", PORT, true)},
+            // new TestParam("_XD_IPingService", PORT, true),
+            // new TestParam("_XD-SEES_IPingService", PORT, true),
+            // new TestParam("_XD-ES_IPingService", PORT, true),
 
-            {new TestParam("SecureConversation_UserNameOverTransport_IPingService", STAX_PORT2, false)},
+            new TestParam("SecureConversation_UserNameOverTransport_IPingService", STAX_PORT2, false),
             // TODO StAX Policy Validation error caused by incorrect DOM message
-            // {new TestParam("SecureConversation_MutualCertificate10SignEncrypt_IPingService",
-            //               STAX_PORT, false)},
-            {new TestParam("AC_IPingService", STAX_PORT, false)},
-            {new TestParam("ADC_IPingService", STAX_PORT, false)},
-            {new TestParam("ADC-ES_IPingService", STAX_PORT, false)},
-            {new TestParam("_A_IPingService", STAX_PORT, false)},
-            {new TestParam("_AD_IPingService", STAX_PORT, false)},
-            {new TestParam("_AD-ES_IPingService", STAX_PORT, false)},
-            {new TestParam("UXC_IPingService", STAX_PORT, false)},
-            {new TestParam("UXDC_IPingService", STAX_PORT, false)},
-            {new TestParam("UXDC-SEES_IPingService", STAX_PORT, false)},
-            {new TestParam("_UX_IPingService", STAX_PORT, false)},
-            {new TestParam("_UXD_IPingService", STAX_PORT, false)},
-            {new TestParam("_UXD-SEES_IPingService", STAX_PORT, false)},
-            {new TestParam("XC_IPingService", STAX_PORT, false)},
-            {new TestParam("XDC_IPingService", STAX_PORT, false)},
-            {new TestParam("XDC_IPingService1", STAX_PORT, false)},
-            {new TestParam("XDC-ES_IPingService", STAX_PORT, false)},
-            {new TestParam("XDC-SEES_IPingService", STAX_PORT, false)},
-            {new TestParam("_X_IPingService", STAX_PORT, false)},
-            {new TestParam("_X10_IPingService", STAX_PORT, false)},
-            {new TestParam("_XD_IPingService", STAX_PORT, false)},
-            {new TestParam("_XD-SEES_IPingService", STAX_PORT, false)},
-            {new TestParam("_XD-ES_IPingService", STAX_PORT, false)},
+            // new TestParam("SecureConversation_MutualCertificate10SignEncrypt_IPingService",
+            //               STAX_PORT, false),
+            new TestParam("AC_IPingService", STAX_PORT, false),
+            new TestParam("ADC_IPingService", STAX_PORT, false),
+            new TestParam("ADC-ES_IPingService", STAX_PORT, false),
+            new TestParam("_A_IPingService", STAX_PORT, false),
+            new TestParam("_AD_IPingService", STAX_PORT, false),
+            new TestParam("_AD-ES_IPingService", STAX_PORT, false),
+            new TestParam("UXC_IPingService", STAX_PORT, false),
+            new TestParam("UXDC_IPingService", STAX_PORT, false),
+            new TestParam("UXDC-SEES_IPingService", STAX_PORT, false),
+            new TestParam("_UX_IPingService", STAX_PORT, false),
+            new TestParam("_UXD_IPingService", STAX_PORT, false),
+            new TestParam("_UXD-SEES_IPingService", STAX_PORT, false),
+            new TestParam("XC_IPingService", STAX_PORT, false),
+            new TestParam("XDC_IPingService", STAX_PORT, false),
+            new TestParam("XDC_IPingService1", STAX_PORT, false),
+            new TestParam("XDC-ES_IPingService", STAX_PORT, false),
+            new TestParam("XDC-SEES_IPingService", STAX_PORT, false),
+            new TestParam("_X_IPingService", STAX_PORT, false),
+            new TestParam("_X10_IPingService", STAX_PORT, false),
+            new TestParam("_XD_IPingService", STAX_PORT, false),
+            new TestParam("_XD-SEES_IPingService", STAX_PORT, false),
+            new TestParam("_XD-ES_IPingService", STAX_PORT, false),
 
-            {new TestParam("SecureConversation_UserNameOverTransport_IPingService", STAX_PORT2, true)},
             // TODO Endorsing derived keys not supported.
-            // {new TestParam("SecureConversation_MutualCertificate10SignEncrypt_IPingService",
-            //               STAX_PORT, true)},
-            {new TestParam("AC_IPingService", STAX_PORT, true)},
-            {new TestParam("ADC_IPingService", STAX_PORT, true)},
-            {new TestParam("ADC-ES_IPingService", STAX_PORT, true)},
-            {new TestParam("_A_IPingService", STAX_PORT, true)},
-            {new TestParam("_AD_IPingService", STAX_PORT, true)},
-            {new TestParam("_AD-ES_IPingService", STAX_PORT, true)},
-            {new TestParam("UXC_IPingService", STAX_PORT, true)},
-            {new TestParam("UXDC_IPingService", STAX_PORT, true)},
-            {new TestParam("UXDC-SEES_IPingService", STAX_PORT, true)},
-            {new TestParam("_UX_IPingService", STAX_PORT, true)},
-            {new TestParam("_UXD_IPingService", STAX_PORT, true)},
-            {new TestParam("_UXD-SEES_IPingService", STAX_PORT, true)},
+            // new TestParam("SecureConversation_MutualCertificate10SignEncrypt_IPingService",
+            //               STAX_PORT, true),
+            new TestParam("AC_IPingService", STAX_PORT, true),
+            new TestParam("ADC_IPingService", STAX_PORT, true),
+            new TestParam("ADC-ES_IPingService", STAX_PORT, true),
+            new TestParam("_A_IPingService", STAX_PORT, true),
+            new TestParam("_AD_IPingService", STAX_PORT, true),
+            new TestParam("_AD-ES_IPingService", STAX_PORT, true),
+            new TestParam("UXC_IPingService", STAX_PORT, true),
+            new TestParam("UXDC_IPingService", STAX_PORT, true),
+            new TestParam("UXDC-SEES_IPingService", STAX_PORT, true),
+            new TestParam("_UX_IPingService", STAX_PORT, true),
+            new TestParam("_UXD_IPingService", STAX_PORT, true),
+            new TestParam("_UXD-SEES_IPingService", STAX_PORT, true),
             // TODO Streaming endorsing not working
-            // {new TestParam("XC_IPingService", STAX_PORT, true)},
-            // {new TestParam("XDC_IPingService", STAX_PORT, true)},
-            // {new TestParam("XDC_IPingService1", STAX_PORT, true)},
-            // {new TestParam("XDC-ES_IPingService", STAX_PORT, true)},
-            // {new TestParam("XDC-SEES_IPingService", STAX_PORT, true)},
-            // {new TestParam("_X_IPingService", STAX_PORT, true)},
-            {new TestParam("_X10_IPingService", STAX_PORT, true)},
+            // new TestParam("XC_IPingService", STAX_PORT, true),
+            // new TestParam("XDC_IPingService", STAX_PORT, true),
+            // new TestParam("XDC_IPingService1", STAX_PORT, true),
+            // new TestParam("XDC-ES_IPingService", STAX_PORT, true),
+            // new TestParam("XDC-SEES_IPingService", STAX_PORT, true),
+            // new TestParam("_X_IPingService", STAX_PORT, true),
+            new TestParam("_X10_IPingService", STAX_PORT, true),
             // TODO Streaming endorsing not working
-            // {new TestParam("_XD_IPingService", STAX_PORT, true)},
-            // {new TestParam("_XD-SEES_IPingService", STAX_PORT, true)},
-            // {new TestParam("_XD-ES_IPingService", STAX_PORT, true)},
+            // new TestParam("_XD_IPingService", STAX_PORT, true),
+            // new TestParam("_XD-SEES_IPingService", STAX_PORT, true),
+            // new TestParam("_XD-ES_IPingService", STAX_PORT, true),
 
-            {new TestParam("AC_IPingService", PORT, false, true)},
-            {new TestParam("AC_IPingService", PORT, true, true)},
-            {new TestParam("AC_IPingService", STAX_PORT, false, true)},
-            {new TestParam("AC_IPingService", STAX_PORT, true, true)},
+            new TestParam("AC_IPingService", PORT, false, true),
+            new TestParam("AC_IPingService", PORT, true, true),
+            new TestParam("AC_IPingService", STAX_PORT, false, true),
+            new TestParam("AC_IPingService", STAX_PORT, true, true),
         });
     }
 
     @org.junit.AfterClass
     public static void cleanup() throws Exception {
-        SecurityTestUtil.cleanup();
         bus.shutdown(true);
         stopAllServers();
     }

@@ -18,8 +18,7 @@
  */
 package org.apache.cxf.rs.security.oauth2.grants.refresh;
 
-import javax.ws.rs.core.MultivaluedMap;
-
+import jakarta.ws.rs.core.MultivaluedMap;
 import org.apache.cxf.jaxrs.impl.MetadataMap;
 import org.apache.cxf.rs.security.oauth2.common.AccessTokenGrant;
 import org.apache.cxf.rs.security.oauth2.utils.OAuthConstants;
@@ -43,7 +42,7 @@ public class RefreshTokenGrant implements AccessTokenGrant {
     }
 
     public MultivaluedMap<String, String> toMap() {
-        MultivaluedMap<String, String> map = new MetadataMap<String, String>();
+        MultivaluedMap<String, String> map = new MetadataMap<>();
         map.putSingle(OAuthConstants.GRANT_TYPE, OAuthConstants.REFRESH_TOKEN_GRANT);
         map.putSingle(OAuthConstants.REFRESH_TOKEN, refreshToken);
         if (scope != null) {

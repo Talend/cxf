@@ -33,10 +33,11 @@ import javax.xml.stream.XMLStreamReader;
 import org.apache.cxf.staxutils.PartialXMLStreamReader;
 import org.apache.cxf.staxutils.StaxUtils;
 
-import org.junit.Assert;
 import org.junit.Test;
 
-public class InTransformReaderTest extends Assert {
+import static org.junit.Assert.assertEquals;
+
+public class InTransformReaderTest {
 
     @Test
     public void testReadWithDefaultNamespace() throws Exception {
@@ -49,7 +50,7 @@ public class InTransformReaderTest extends Assert {
         ByteArrayOutputStream bos = new ByteArrayOutputStream();
         StaxUtils.copy(reader, bos);
         String value = bos.toString();
-        assertTrue("<test2 xmlns=\"\"/>".equals(value));
+        assertEquals("<test2 xmlns=\"\"/>", value);
     }
 
     @Test
@@ -67,6 +68,116 @@ public class InTransformReaderTest extends Assert {
         StaxUtils.copy(reader, bos);
         String value = bos.toString();
         assertEquals("<ns:test xmlns:ns=\"http://bar\"><ns:a>1 2 3</ns:a></ns:test>", value);
+    }
+    
+    @Test
+    public void testDropComplexElement() throws Exception {
+        InputStream is = new ByteArrayInputStream(new String(
+              "<emp:EmployeeByNameRequest xmlns:emp=\"http://www.jpworks.com/employee\">"
+            + "<emp:firstname>Alex</emp:firstname>"
+            + "<emp:lastname>Just</emp:lastname>"
+            + "<emp:skippedElement>"
+            + "<age>35</age>"
+            + "</emp:skippedElement>"
+            + "<emp:email>alex.just@nowhere</emp:email>"
+            + "</emp:EmployeeByNameRequest>").getBytes());
+        XMLStreamReader reader = StaxUtils.createXMLStreamReader(is);
+        reader = new InTransformReader(reader,
+                                        null,
+                                        null,
+                                        Collections.singletonList("{http://www.jpworks.com/employee}skippedElement"),
+                                        null, false);
+
+        ByteArrayOutputStream bos = new ByteArrayOutputStream();
+        StaxUtils.copy(reader, bos);
+        String value = bos.toString();
+        assertEquals("<emp:EmployeeByNameRequest xmlns:emp=\"http://www.jpworks.com/employee\">"
+                + "<emp:firstname>Alex</emp:firstname>"
+                + "<emp:lastname>Just</emp:lastname>"
+                + "<age>35</age>"
+                + "<emp:email>alex.just@nowhere</emp:email>"
+                + "</emp:EmployeeByNameRequest>", value);
+    }
+    
+    @Test
+    public void testDropComplexElementByReplacement() throws Exception {
+        InputStream is = new ByteArrayInputStream(new String(
+              "<emp:EmployeeByNameRequest xmlns:emp=\"http://www.jpworks.com/employee\">"
+            + "<emp:firstname>Alex</emp:firstname>"
+            + "<emp:lastname>Just</emp:lastname>"
+            + "<emp:skippedElement>"
+            + "<age>35</age>"
+            + "</emp:skippedElement>"
+            + "<emp:email>alex.just@nowhere</emp:email>"
+            + "</emp:EmployeeByNameRequest>").getBytes());
+        XMLStreamReader reader = StaxUtils.createXMLStreamReader(is);
+        reader = new InTransformReader(reader,
+                                        Collections.singletonMap("{http://www.jpworks.com/employee}skippedElement", ""),
+                                        null,
+                                        null,
+                                        null, false);
+
+        ByteArrayOutputStream bos = new ByteArrayOutputStream();
+        StaxUtils.copy(reader, bos);
+        String value = bos.toString();
+        assertEquals("<emp:EmployeeByNameRequest xmlns:emp=\"http://www.jpworks.com/employee\">"
+                + "<emp:firstname>Alex</emp:firstname>"
+                + "<emp:lastname>Just</emp:lastname>"
+                + "<emp:email>alex.just@nowhere</emp:email>"
+                + "</emp:EmployeeByNameRequest>", value);
+    }
+
+    @Test
+    public void testDropComplexElementLastByReplacement() throws Exception {
+        InputStream is = new ByteArrayInputStream(new String(
+              "<emp:EmployeeByNameRequest xmlns:emp=\"http://www.jpworks.com/employee\">"
+            + "<emp:firstname>Alex</emp:firstname>"
+            + "<emp:lastname>Just</emp:lastname>"
+            + "<emp:skippedElement>"
+            + "<age>35</age>"
+            + "</emp:skippedElement>"
+            + "</emp:EmployeeByNameRequest>").getBytes());
+        XMLStreamReader reader = StaxUtils.createXMLStreamReader(is);
+        reader = new InTransformReader(reader,
+                                        Collections.singletonMap("{http://www.jpworks.com/employee}skippedElement", ""),
+                                        null,
+                                        null,
+                                        null, false);
+
+        ByteArrayOutputStream bos = new ByteArrayOutputStream();
+        StaxUtils.copy(reader, bos);
+        String value = bos.toString();
+        assertEquals("<emp:EmployeeByNameRequest xmlns:emp=\"http://www.jpworks.com/employee\">"
+                + "<emp:firstname>Alex</emp:firstname>"
+                + "<emp:lastname>Just</emp:lastname>"
+                + "</emp:EmployeeByNameRequest>", value);
+    }
+
+    @Test
+    public void testDropSimpleElementByReplacement() throws Exception {
+        InputStream is = new ByteArrayInputStream(new String(
+              "<emp:EmployeeByNameRequest xmlns:emp=\"http://www.jpworks.com/employee\">"
+            + "<emp:firstname>Alex</emp:firstname>"
+            + "<emp:lastname>Just</emp:lastname>"
+            + "<emp:skippedElement>"
+            + "<age>35</age>"
+            + "</emp:skippedElement>"
+            + "</emp:EmployeeByNameRequest>").getBytes());
+        XMLStreamReader reader = StaxUtils.createXMLStreamReader(is);
+        reader = new InTransformReader(reader,
+                                        Collections.singletonMap("age", ""),
+                                        null,
+                                        null,
+                                        null, false);
+
+        ByteArrayOutputStream bos = new ByteArrayOutputStream();
+        StaxUtils.copy(reader, bos);
+        String value = bos.toString();
+        assertEquals("<emp:EmployeeByNameRequest xmlns:emp=\"http://www.jpworks.com/employee\">"
+                + "<emp:firstname>Alex</emp:firstname>"
+                + "<emp:lastname>Just</emp:lastname>"
+                + "<emp:skippedElement/>"
+                + "</emp:EmployeeByNameRequest>", value);
     }
 
     @Test
@@ -257,7 +368,7 @@ public class InTransformReaderTest extends Assert {
 
         TransformTestUtils.transformInStreamAndCompare("../resources/greetMeReqIn1.xml",
                                                      "../resources/greetMeReq.xml",
-                                  transformElements, appendElements, null, null, null);
+                                  transformElements, appendElements, null, null);
     }
 
     @Test
@@ -282,7 +393,7 @@ public class InTransformReaderTest extends Assert {
         TransformTestUtils.transformInStreamAndCompare("../resources/greetMeReqIn2.xml",
                                                      "../resources/greetMeReq.xml",
                                   transformElements, appendElements, dropElements,
-                                  transformAttributes, null);
+                                  transformAttributes);
     }
 
     @Test
@@ -293,7 +404,7 @@ public class InTransformReaderTest extends Assert {
 
         TransformTestUtils.transformInStreamAndCompare("../resources/greetMeReqIn3.xml",
                                                      "../resources/greetMeReq.xml",
-                                  transformElements, null, null, null, null);
+                                  transformElements, null, null, null);
     }
 
     @Test
@@ -304,7 +415,7 @@ public class InTransformReaderTest extends Assert {
 
         TransformTestUtils.transformInStreamAndCompare("../resources/greetMeReqIn4.xml",
                                                      "../resources/greetMeReq.xml",
-                                  null, null, null, transformAttributes, null);
+                                  null, null, null, transformAttributes);
     }
 
     @Test
@@ -314,7 +425,7 @@ public class InTransformReaderTest extends Assert {
                            "{http://xml.amazon.com/AWSECommerceService/2004-08-01}IdType=ASIN");
         TransformTestUtils.transformInStreamAndCompare("../resources/amazonIn1.xml",
                                                      "../resources/amazon.xml",
-                                  null, appendElements, null, null, null);
+                                  null, appendElements, null, null);
 
     }
 
@@ -325,7 +436,7 @@ public class InTransformReaderTest extends Assert {
                            "{http://xml.amazon.com/AWSECommerceService/2004-08-01}IdType=ASIN");
         TransformTestUtils.transformInStreamAndCompare("../resources/amazonIn1nospace.xml",
                                                      "../resources/amazon.xml",
-                                  null, appendElements, null, null, null);
+                                  null, appendElements, null, null);
 
     }
 
@@ -339,7 +450,7 @@ public class InTransformReaderTest extends Assert {
                            "{http://www.w3.org/2003/05/soap-envelope}Body");
         TransformTestUtils.transformInStreamAndCompare("../resources/AddRequestIn2.xml",
                                                      "../resources/AddRequest2.xml",
-                                  transformElements, appendElements, null, null, null);
+                                  transformElements, appendElements, null, null);
     }
 
     @Test
@@ -352,7 +463,7 @@ public class InTransformReaderTest extends Assert {
                            "{http://www.w3.org/2003/05/soap-envelope}Body");
         TransformTestUtils.transformInStreamAndCompare("../resources/AddRequestIn2nospace.xml",
                                                      "../resources/AddRequest2.xml",
-                                  transformElements, appendElements, null, null, null);
+                                  transformElements, appendElements, null, null);
     }
 
     @Test
@@ -362,7 +473,7 @@ public class InTransformReaderTest extends Assert {
                            "{http://xml.amazon.com/AWSECommerceService/2004-08-01}ItemId=0486411214");
         TransformTestUtils.transformInStreamAndCompare("../resources/amazonIn2.xml",
                                                      "../resources/amazon.xml",
-                                  null, appendElements, null, null, null);
+                                  null, appendElements, null, null);
 
     }
 
@@ -373,7 +484,7 @@ public class InTransformReaderTest extends Assert {
                            "{http://xml.amazon.com/AWSECommerceService/2004-08-01}ItemId=0486411214");
         TransformTestUtils.transformInStreamAndCompare("../resources/amazonIn2nospace.xml",
                                                      "../resources/amazon.xml",
-                                  null, appendElements, null, null, null);
+                                  null, appendElements, null, null);
 
     }
 
@@ -384,7 +495,7 @@ public class InTransformReaderTest extends Assert {
                            "{http://apache.org/cxf/calculator/types}add");
         TransformTestUtils.transformInStreamAndCompare("../resources/AddRequestIn1.xml",
                                                      "../resources/AddRequest.xml",
-                                  null, appendElements, null, null, null);
+                                  null, appendElements, null, null);
 
     }
 
@@ -395,7 +506,7 @@ public class InTransformReaderTest extends Assert {
                            "{http://apache.org/cxf/calculator/types}add");
         TransformTestUtils.transformInStreamAndCompare("../resources/AddRequestIn1nospace.xml",
                                                      "../resources/AddRequest.xml",
-                                  null, appendElements, null, null, null);
+                                  null, appendElements, null, null);
 
     }
 
@@ -420,7 +531,7 @@ public class InTransformReaderTest extends Assert {
 
         TransformTestUtils.transformInStreamAndCompare("../resources/AddRequestIn3.xml",
                                                      "../resources/AddRequest3.xml",
-                                  transformElements, appendElements, dropElements, null, null);
+                                  transformElements, appendElements, dropElements, null);
 
     }
 
@@ -434,7 +545,7 @@ public class InTransformReaderTest extends Assert {
 
         TransformTestUtils.transformInStreamAndCompare("../resources/wstrustReqSTRCIn1.xml",
                                                      "../resources/wstrustReqSTRC.xml",
-                                  transformElements, null, null, null, null);
+                                  transformElements, null, null, null);
 
     }
 
@@ -446,7 +557,7 @@ public class InTransformReaderTest extends Assert {
 
         TransformTestUtils.transformInStreamAndCompare("../resources/multiNSIn1.xml",
                                                      "../resources/multiNS.xml",
-                                  transformElements, null, null, null, null);
+                                  transformElements, null, null, null);
     }
 
     @Test
@@ -456,7 +567,7 @@ public class InTransformReaderTest extends Assert {
                               "{http://bar.com/foobar}*");
         TransformTestUtils.transformInStreamAndCompare("../resources/multiNS2In1.xml",
                                                      "../resources/multiNS2.xml",
-                                  transformElements, null, null, null, null);
+                                  transformElements, null, null, null);
 
     }
 

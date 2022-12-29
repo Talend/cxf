@@ -28,15 +28,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
-import javax.ws.rs.ServiceUnavailableException;
-import javax.ws.rs.container.AsyncResponse;
-import javax.ws.rs.container.CompletionCallback;
-import javax.ws.rs.container.ConnectionCallback;
-import javax.ws.rs.container.TimeoutHandler;
-import javax.ws.rs.core.HttpHeaders;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.ResponseBuilder;
-
+import jakarta.ws.rs.ServiceUnavailableException;
+import jakarta.ws.rs.container.AsyncResponse;
+import jakarta.ws.rs.container.CompletionCallback;
+import jakarta.ws.rs.container.ConnectionCallback;
+import jakarta.ws.rs.container.TimeoutHandler;
+import jakarta.ws.rs.core.HttpHeaders;
+import jakarta.ws.rs.core.Response;
+import jakarta.ws.rs.core.Response.ResponseBuilder;
 import org.apache.cxf.continuations.Continuation;
 import org.apache.cxf.continuations.ContinuationCallback;
 import org.apache.cxf.continuations.ContinuationProvider;
@@ -56,8 +55,8 @@ public class AsyncResponseImpl implements AsyncResponse, ContinuationCallback {
     private volatile boolean resumedByApplication;
     private volatile Long pendingTimeout;
 
-    private List<CompletionCallback> completionCallbacks = new LinkedList<CompletionCallback>();
-    private List<ConnectionCallback> connectionCallbacks = new LinkedList<ConnectionCallback>();
+    private List<CompletionCallback> completionCallbacks = new LinkedList<>();
+    private List<ConnectionCallback> connectionCallbacks = new LinkedList<>();
     private Throwable unmappedThrowable;
 
     public AsyncResponseImpl(Message inMessage) {
@@ -187,9 +186,9 @@ public class AsyncResponseImpl implements AsyncResponse, ContinuationCallback {
         try {
             Object[] extraCallbacks = new Object[callbacks.length];
             for (int i = 0; i < callbacks.length; i++) {
-                extraCallbacks[i] = callbacks[i].newInstance();
+                extraCallbacks[i] = callbacks[i].getDeclaredConstructor().newInstance();
             }
-            return register(callback.newInstance(), extraCallbacks);
+            return register(callback.getDeclaredConstructor().newInstance(), extraCallbacks);
         } catch (NullPointerException e) {
             throw e;
         } catch (Throwable t) {
@@ -206,8 +205,7 @@ public class AsyncResponseImpl implements AsyncResponse, ContinuationCallback {
     @Override
     public Map<Class<?>, Collection<Class<?>>> register(Object callback, Object... callbacks)
         throws NullPointerException {
-        Map<Class<?>, Collection<Class<?>>> map =
-            new HashMap<Class<?>, Collection<Class<?>>>();
+        Map<Class<?>, Collection<Class<?>>> map = new HashMap<>();
 
         Object[] allCallbacks = new Object[1 + callbacks.length];
         allCallbacks[0] = callback;
@@ -220,7 +218,7 @@ public class AsyncResponseImpl implements AsyncResponse, ContinuationCallback {
             Class<?> callbackCls = allCallbacks[i].getClass();
             Collection<Class<?>> knownCallbacks = map.get(callbackCls);
             if (knownCallbacks == null) {
-                knownCallbacks = new HashSet<Class<?>>();
+                knownCallbacks = new HashSet<>();
                 map.put(callbackCls, knownCallbacks);
             }
 
@@ -261,7 +259,7 @@ public class AsyncResponseImpl implements AsyncResponse, ContinuationCallback {
     }
 
     public synchronized boolean suspendContinuationIfNeeded() {
-        if (!resumedByApplication && !cont.isPending() && !cont.isResumed()) {
+        if (!resumedByApplication && !isDone() && !cont.isPending() && !cont.isResumed()) {
             cont.suspend(AsyncResponse.NO_TIMEOUT);
             initialSuspend = false;
             return true;
@@ -303,6 +301,11 @@ public class AsyncResponseImpl implements AsyncResponse, ContinuationCallback {
     private void initContinuation() {
         ContinuationProvider provider =
             (ContinuationProvider)inMessage.get(ContinuationProvider.class.getName());
+        if (provider == null) {
+            throw new IllegalArgumentException(
+                "Continuation not supported. " 
+                + "Please ensure that all servlets and servlet filters support async operations");
+        }
         cont = provider.getContinuation();
         initialSuspend = true;
     }

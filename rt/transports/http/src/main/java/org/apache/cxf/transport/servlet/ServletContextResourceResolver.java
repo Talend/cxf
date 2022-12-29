@@ -28,15 +28,13 @@ import java.net.URL;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-import javax.naming.InitialContext;
-import javax.servlet.ServletContext;
-
+import jakarta.servlet.ServletContext;
 import org.apache.cxf.resource.ResourceResolver;
 
 
 public class ServletContextResourceResolver implements ResourceResolver {
     ServletContext servletContext;
-    Map<String, URL> urlMap = new ConcurrentHashMap<String, URL>();
+    Map<String, URL> urlMap = new ConcurrentHashMap<>();
 
     public ServletContextResourceResolver(ServletContext sc) {
         servletContext = sc;
@@ -55,24 +53,6 @@ public class ServletContextResourceResolver implements ResourceResolver {
     }
 
     public final <T> T resolve(final String entryName, final Class<T> clz) {
-
-        Object obj = null;
-        try {
-            if (entryName != null) {
-                InitialContext ic = new InitialContext();
-                try {
-                    obj = ic.lookup(entryName);
-                } finally {
-                    ic.close();
-                }
-            }
-        } catch (Throwable e) {
-            //do nothing
-        }
-
-        if (obj != null && clz.isInstance(obj)) {
-            return clz.cast(obj);
-        }
 
         if (clz.isAssignableFrom(URL.class)) {
             if (urlMap.containsKey(entryName)) {
@@ -105,9 +85,7 @@ public class ServletContextResourceResolver implements ResourceResolver {
                     urlMap.put(url.toString(), url);
                     return clz.cast(url);
                 }
-            } catch (MalformedURLException e1) {
-                //ignore
-            } catch (URISyntaxException e) {
+            } catch (MalformedURLException | URISyntaxException e1) {
                 //ignore
             }
         } else if (clz.isAssignableFrom(InputStream.class)) {

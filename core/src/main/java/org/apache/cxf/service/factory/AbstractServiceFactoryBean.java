@@ -20,6 +20,7 @@
 package org.apache.cxf.service.factory;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -54,7 +55,7 @@ public abstract class AbstractServiceFactoryBean {
     private Bus bus;
     private DataBinding dataBinding;
     private Service service;
-    private List<FactoryBeanListener> listeners = new ModCountCopyOnWriteArrayList<FactoryBeanListener>();
+    private List<FactoryBeanListener> listeners = new ModCountCopyOnWriteArrayList<>();
     private Map<String, Object> sessionState = new HashMap<>();
 
     public abstract Service create();
@@ -133,20 +134,18 @@ public abstract class AbstractServiceFactoryBean {
         for (String l : schemaLocations) {
             URL url = rr.resolveResource(l, URL.class);
             if (url == null) {
-                URIResolver res;
-                try {
-                    res = new URIResolver(l);
+                try (URIResolver res = new URIResolver(l)) {
+                    if (!res.isResolved()) {
+                        throw new ServiceConstructionException(new Message("INVALID_SCHEMA_URL", LOG, l));
+                    }
+                    url = res.getURL();
                 } catch (IOException e) {
                     throw new ServiceConstructionException(new Message("INVALID_SCHEMA_URL", LOG, l), e);
                 }
-                if (!res.isResolved()) {
-                    throw new ServiceConstructionException(new Message("INVALID_SCHEMA_URL", LOG, l));
-                }
-                url = res.getURL();
             }
             Document d;
-            try {
-                d = StaxUtils.read(url.openStream());
+            try (InputStream in = url.openStream()) {
+                d = StaxUtils.read(in);
             } catch (Exception e) {
                 throw new ServiceConstructionException(new Message("ERROR_READING_SCHEMA", LOG, l), e);
             }

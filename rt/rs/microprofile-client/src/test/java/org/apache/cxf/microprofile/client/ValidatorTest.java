@@ -21,21 +21,25 @@ package org.apache.cxf.microprofile.client;
 import java.net.MalformedURLException;
 import java.net.URL;
 
-import javax.ws.rs.DELETE;
-import javax.ws.rs.GET;
-import javax.ws.rs.POST;
-import javax.ws.rs.PUT;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.core.Response;
-
+import jakarta.ws.rs.DELETE;
+import jakarta.ws.rs.GET;
+import jakarta.ws.rs.POST;
+import jakarta.ws.rs.PUT;
+import jakarta.ws.rs.Path;
+import jakarta.ws.rs.PathParam;
+import jakarta.ws.rs.client.ClientRequestContext;
+import jakarta.ws.rs.core.Response;
 import org.eclipse.microprofile.rest.client.RestClientBuilder;
 import org.eclipse.microprofile.rest.client.RestClientDefinitionException;
+import org.eclipse.microprofile.rest.client.annotation.ClientHeaderParam;
 
-import org.junit.Assert;
 import org.junit.Test;
 
-public class ValidatorTest extends Assert {
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+
+public class ValidatorTest {
 
     public abstract static class NotAnInterface {
         @GET
@@ -91,6 +95,70 @@ public class ValidatorTest extends Assert {
         Response get(@PathParam("any") String any);
     }
 
+    public interface ClientHeaderParamNoName {
+        @ClientHeaderParam(name = "", value = "something")
+        @GET
+        Response get();
+    }
+
+    public interface ClientHeaderParamNoComputeMethod {
+        @ClientHeaderParam(name = "SomeHeader", value = "{missingComputeMethod}")
+        @GET
+        Response get();
+    }
+
+    public interface ClientHeaderParamNonDefaultComputeMethod {
+        @ClientHeaderParam(name = "SomeHeader", value = "{nonDefaultComputeMethod}")
+        @GET
+        Response get();
+
+        String nonDefaultComputeMethod();
+    }
+
+    public interface ClientHeaderParamComputeMethodDoesNotExist {
+        @ClientHeaderParam(name = "SomeHeader", value = "{nonExistentComputeMethod}")
+        @GET
+        Response get();
+    }
+
+    public interface ClientHeaderParamInaccessibleComputeMethod {
+        @ClientHeaderParam(name = "SomeHeader",
+            value = "{org.apache.cxf.microprofile.client.mock.HeaderGenerator.generateHeaderPrivate}")
+        @GET
+        Response get();
+    }
+
+    public interface ClientHeaderParamNoValidComputeMethodSignatures {
+        @ClientHeaderParam(name = "SomeHeader", value = "{computeMethod}")
+        @GET
+        Response get();
+
+        default String computeMethod(String x, String y) {
+            return "must only contain one String argument";
+        }
+        default String computeMethod(ClientRequestContext x, ClientRequestContext y) {
+            return "must only contain one ClientRequestContext argument";
+        }
+        default Integer computeMethod() {
+            return 5; // must return a String
+        }
+        default void computeMethod(String headerName) { } // must return a String
+        default String computeMethod(java.util.Date date) {
+            return "unexpected argument";
+        }
+        default String computeMethod(String headerName, ClientRequestContext context, int extra) {
+            return "too many arguments";
+        }
+    }
+
+    public interface PathRegexTestClient {
+
+        // Only books with id consisting of 3 or 4 digits of the numbers between 5 and 9 are accepted
+        @POST
+        @Path("/echoxmlbookregex/{id : [5-9]{3,4}}")
+        void testRegex(@PathParam("id") String id);
+    }
+
     private static RestClientBuilder newBuilder() {
         RestClientBuilder builder = RestClientBuilder.newBuilder();
         try {
@@ -108,8 +176,8 @@ public class ValidatorTest extends Assert {
 
     @Test
     public void testMethodWithMultipleVerbs() {
-        test(MultiVerbMethod.class, "more than one HTTP method", "postAndDelete", "javax.ws.rs.POST",
-            "javax.ws.rs.DELETE");
+        test(MultiVerbMethod.class, "more than one HTTP method", "postAndDelete", "jakarta.ws.rs.POST",
+            "jakarta.ws.rs.DELETE");
     }
 
     @Test
@@ -129,6 +197,43 @@ public class ValidatorTest extends Assert {
         test(ExtraParamTemplate.class, "extra path segments", "ExtraParamTemplate");
     }
 
+    @Test
+    public void testClientHeaderParamNoName() {
+        test(ClientHeaderParamNoName.class, ClientHeaderParamNoName.class.getName(), "null or empty name");
+    }
+
+    @Test
+    public void testClientHeaderParamNoComputeMethod() {
+        test(ClientHeaderParamNoComputeMethod.class, ClientHeaderParamNoComputeMethod.class.getName(),
+             "value attribute specifies a method", "that does not exist");
+    }
+
+    @Test
+    public void testClientHeaderParamNonDefaultComputeMethod() {
+        test(ClientHeaderParamNonDefaultComputeMethod.class,
+             ClientHeaderParamNonDefaultComputeMethod.class.getName(),
+             " is not accessible");
+    }
+
+    @Test
+    public void testClientHeaderParamComputeMethodDoesNotExist() {
+        test(ClientHeaderParamNonDefaultComputeMethod.class,
+             ClientHeaderParamNonDefaultComputeMethod.class.getName(),
+             " does not exist");
+    }
+
+    @Test
+    public void testClientHeaderParamNoValidComputeMethodSignatures() {
+        test(ClientHeaderParamNoValidComputeMethodSignatures.class,
+             ClientHeaderParamNoValidComputeMethodSignatures.class.getName(),
+             " contains an incorrect signature");
+    }
+
+    @Test
+    public void testPathRegularExpression() {
+        assertNotNull(newBuilder().build(PathRegexTestClient.class));
+    }
+
     private void test(Class<?> clientInterface, String...expectedMessageTexts) {
         try {
             newBuilder().build(clientInterface);
@@ -137,7 +242,7 @@ public class ValidatorTest extends Assert {
             String msgText = ex.getMessage();
             assertNotNull("No message text in RestClientDefinitionException", msgText);
             for (String expectedMessageText : expectedMessageTexts) {
-                assertTrue("Exception text does not contain expected message: " + expectedMessageText, 
+                assertTrue("Exception text does not contain expected message: " + expectedMessageText,
                            msgText.contains(expectedMessageText));
             }
         }

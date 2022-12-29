@@ -23,26 +23,25 @@ import java.util.List;
 import java.util.ResourceBundle;
 import java.util.logging.Logger;
 
-import javax.validation.executable.ExecutableType;
-import javax.validation.executable.ValidateOnExecution;
-
+import jakarta.validation.executable.ExecutableType;
+import jakarta.validation.executable.ValidateOnExecution;
 import org.apache.cxf.common.i18n.BundleUtils;
 import org.apache.cxf.common.logging.LogUtils;
 import org.apache.cxf.endpoint.Endpoint;
-import org.apache.cxf.interceptor.Fault;
 import org.apache.cxf.message.Message;
 import org.apache.cxf.message.MessageContentsList;
+import org.apache.cxf.message.MessageUtils;
 import org.apache.cxf.phase.AbstractPhaseInterceptor;
 import org.apache.cxf.service.invoker.FactoryInvoker;
 import org.apache.cxf.service.invoker.Invoker;
-import org.apache.cxf.service.invoker.MethodDispatcher;
-import org.apache.cxf.service.model.BindingOperationInfo;
 
-public abstract class AbstractValidationInterceptor extends AbstractPhaseInterceptor< Message > {
+public abstract class AbstractValidationInterceptor extends AbstractPhaseInterceptor< Message >
+        implements AutoCloseable {
     protected static final Logger LOG = LogUtils.getL7dLogger(AbstractValidationInterceptor.class);
     protected static final ResourceBundle BUNDLE = BundleUtils.getBundle(AbstractValidationInterceptor.class);
 
     private Object serviceObject;
+    private boolean customProvider;
     private volatile BeanValidationProvider provider;
 
     public AbstractValidationInterceptor(String phase) {
@@ -58,7 +57,14 @@ public abstract class AbstractValidationInterceptor extends AbstractPhaseInterce
     }
 
     @Override
-    public void handleMessage(Message message) throws Fault {
+    public void close() {
+        if (customProvider) {
+            provider.close();
+        }
+    }
+
+    @Override
+    public void handleMessage(Message message) {
         final Object theServiceObject = getServiceObject(message);
         if (theServiceObject == null) {
             return;
@@ -109,15 +115,7 @@ public abstract class AbstractValidationInterceptor extends AbstractPhaseInterce
         Message inMessage = message.getExchange().getInMessage();
         Method method = null;
         if (inMessage != null) {
-            method = (Method)inMessage.get("org.apache.cxf.resource.method");
-            if (method == null) {
-                BindingOperationInfo bop = inMessage.getExchange().getBindingOperationInfo();
-                if (bop != null) {
-                    MethodDispatcher md = (MethodDispatcher)
-                        inMessage.getExchange().getService().get(MethodDispatcher.class.getName());
-                    method = md.getMethod(bop);
-                }
-            }
+            method = MessageUtils.getTargetMethod(inMessage).orElse(null);
         }
         if (method == null) {
             method = message.getExchange().get(Method.class);
@@ -135,7 +133,13 @@ public abstract class AbstractValidationInterceptor extends AbstractPhaseInterce
             if (prop != null) {
                 provider = (BeanValidationProvider)prop;
             } else {
-                provider = new BeanValidationProvider();
+                // don't create 2 validator factories and one not released!
+                synchronized (this) {
+                    if (provider == null) {
+                        provider = new BeanValidationProvider();
+                        customProvider = true;
+                    }
+                }
             }
         }
         return provider;

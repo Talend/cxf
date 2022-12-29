@@ -29,10 +29,10 @@ import java.util.concurrent.Executors;
 import java.util.logging.Logger;
 
 import javax.xml.namespace.QName;
-import javax.xml.ws.AsyncHandler;
-import javax.xml.ws.BindingProvider;
-import javax.xml.ws.Response;
 
+import jakarta.xml.ws.AsyncHandler;
+import jakarta.xml.ws.BindingProvider;
+import jakarta.xml.ws.Response;
 import org.apache.cxf.common.logging.LogUtils;
 import org.apache.cxf.configuration.security.AuthorizationPolicy;
 import org.apache.cxf.endpoint.Client;
@@ -48,6 +48,12 @@ import org.apache.hello_world_soap_http.types.GreetMeLaterResponse;
 
 import org.junit.BeforeClass;
 import org.junit.Test;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 public class ClientServerWebSocketTest extends AbstractBusClientServerTestBase {
     static final String PORT = allocatePort(Server.class);
@@ -130,7 +136,7 @@ public class ClientServerWebSocketTest extends AbstractBusClientServerTestBase {
         Greeter greeter = service.getPort(portName, Greeter.class);
         updateGreeterAddress(greeter, PORT);
 
-        ((javax.xml.ws.BindingProvider)greeter).getRequestContext().put("javax.xml.ws.client.receiveTimeout",
+        ((jakarta.xml.ws.BindingProvider)greeter).getRequestContext().put("jakarta.xml.ws.client.receiveTimeout",
                                                                         "1");
         try {
             greeter.greetMe("test");
@@ -239,7 +245,7 @@ public class ClientServerWebSocketTest extends AbstractBusClientServerTestBase {
             bp.getRequestContext().remove(BindingProvider.USERNAME_PROPERTY);
             bp.getRequestContext().remove(BindingProvider.PASSWORD_PROPERTY);
             ((Closeable)greeter).close();
-            
+
             greeter = service.getPort(portName, Greeter.class);
             updateGreeterAddress(greeter, PORT);
             //try setting on the conduit directly
@@ -378,9 +384,7 @@ public class ClientServerWebSocketTest extends AbstractBusClientServerTestBase {
             try {
                 GreetMeLaterResponse reply = response.get();
                 replyBuffer = reply.getResponseType();
-            } catch (InterruptedException ex) {
-                ex.printStackTrace();
-            } catch (ExecutionException ex) {
+            } catch (InterruptedException | ExecutionException ex) {
                 ex.printStackTrace();
             }
         }

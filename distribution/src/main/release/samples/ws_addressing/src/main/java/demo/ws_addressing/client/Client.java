@@ -23,9 +23,10 @@ import java.io.File;
 import java.lang.reflect.UndeclaredThrowableException;
 import java.net.URL;
 import java.util.Map;
-import javax.xml.namespace.QName;
-import javax.xml.ws.BindingProvider;
 
+import javax.xml.namespace.QName;
+
+import jakarta.xml.ws.BindingProvider;
 import org.apache.cxf.Bus;
 import org.apache.cxf.BusFactory;
 import org.apache.cxf.bus.spring.SpringBusFactory;
@@ -52,7 +53,7 @@ public final class Client {
     private Client() {
     }
 
-    public static void main(String args[]) throws Exception {
+    public static void main(String[] args) throws Exception {
         if (args.length == 0) {
             System.out.println("please specify wsdl");
             System.exit(1);
@@ -92,7 +93,7 @@ public final class Client {
     }
 
     /**
-     * A series of invocations with implicitly propogated
+     * A series of invocations with implicitly propagated
      * Message Addressing Properties.
      */
     private static void implicitPropagation(Greeter port) {
@@ -133,15 +134,13 @@ public final class Client {
     }
 
     /**
-     * A series of invocations with explicitly propogated
+     * A series of invocations with explicitly propagated
      * Message Addressing Properties.
      */
     private static void explicitPropagation(Greeter port) {
         System.out.println();
         System.out.println("Explicit MessageAddressingProperties propagation");
         System.out.println("------------------------------------------------");
-
-
 
         // associate MAPs with request context
         Map<String, Object> requestContext =

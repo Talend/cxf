@@ -20,7 +20,9 @@
 
 package demo.callback.server;
 
-import javax.xml.ws.Endpoint;
+import jakarta.xml.ws.Endpoint;
+
+import org.apache.cxf.ext.logging.LoggingFeature;
 
 public class Server {
 
@@ -28,10 +30,10 @@ public class Server {
         System.out.println("Starting Server");
         Object implementor = new ServerImpl();
         String address = "http://localhost:9000/SoapContext/SoapPort";
-        Endpoint.publish(address, implementor);
+        Endpoint.publish(address, implementor, new LoggingFeature());
     }
 
-    public static void main(String args[]) throws Exception {
+    public static void main(String[] args) throws Exception {
         new Server();
         System.out.println("Server ready...");
         Thread.sleep(5 * 60 * 1000);

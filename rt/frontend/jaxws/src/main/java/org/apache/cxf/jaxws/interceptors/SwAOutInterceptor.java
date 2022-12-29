@@ -41,17 +41,17 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Logger;
 
-import javax.activation.DataHandler;
-import javax.activation.DataSource;
 import javax.imageio.ImageIO;
 import javax.imageio.ImageWriter;
 import javax.imageio.stream.ImageOutputStream;
-import javax.xml.bind.JAXBContext;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamWriter;
 import javax.xml.transform.Source;
 import javax.xml.transform.stream.StreamSource;
 
+import jakarta.activation.DataHandler;
+import jakarta.activation.DataSource;
+import jakarta.xml.bind.JAXBContext;
 import org.apache.cxf.attachment.AttachmentImpl;
 import org.apache.cxf.attachment.ByteDataSource;
 import org.apache.cxf.binding.soap.SoapMessage;
@@ -79,7 +79,7 @@ public class SwAOutInterceptor extends AbstractSoapInterceptor {
     private static final Logger LOG = LogUtils.getL7dLogger(SwAOutInterceptor.class);
 
     private static final Map<String, Method> SWA_REF_METHOD
-        = new ConcurrentHashMap<String, Method>(4, 0.75f, 2);
+        = new ConcurrentHashMap<>(4, 0.75f, 2);
     private static final Set<String> SWA_REF_NO_METHOD
         = Collections.newSetFromMap(new ConcurrentHashMap<String, Boolean>(4, 0.75f, 2));
 
@@ -165,7 +165,7 @@ public class SwAOutInterceptor extends AbstractSoapInterceptor {
             String ct = (String) mpi.getProperty(Message.CONTENT_TYPE);
 
             String id = new StringBuilder().append(partName)
-                .append("=")
+                .append('=')
                 .append(UUID.randomUUID())
                 .append("@apache.org").toString();
 
@@ -177,7 +177,7 @@ public class SwAOutInterceptor extends AbstractSoapInterceptor {
                 continue;
             }
             outObjects.set(idx, null);
-            DataHandler dh = null;
+            DataHandler dh;
 
             // This code could probably be refactored out somewhere...
             if (o instanceof Source) {

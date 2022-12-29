@@ -78,7 +78,8 @@ public class SpringBeanLocator implements ConfiguredBeanLocator {
                 ((ExtensionManagerImpl)orig).removeBeansOfNames(names);
             }
         }
-        loadOSGIContext(bus);
+        //TODO: [OSGi+Jakarta] Uncomment this when osgi comes back
+        //loadOSGIContext(bus);
     }
 
     private void loadOSGIContext(Bus b) {
@@ -132,7 +133,7 @@ public class SpringBeanLocator implements ConfiguredBeanLocator {
 
     /** {@inheritDoc}*/
     public List<String> getBeanNamesOfType(Class<?> type) {
-        Set<String> s = new LinkedHashSet<String>(Arrays.asList(context.getBeanNamesForType(type,
+        Set<String> s = new LinkedHashSet<>(Arrays.asList(context.getBeanNamesForType(type,
                                                                                          false,
                                                                                          false)));
         s.removeAll(passThroughs);
@@ -142,22 +143,23 @@ public class SpringBeanLocator implements ConfiguredBeanLocator {
 
     /** {@inheritDoc}*/
     public <T> Collection<? extends T> getBeansOfType(Class<T> type) {
-        Set<String> s = new LinkedHashSet<String>(Arrays.asList(context.getBeanNamesForType(type,
+        Set<String> s = new LinkedHashSet<>(Arrays.asList(context.getBeanNamesForType(type,
                                                                                             false,
                                                                                             false)));
         s.removeAll(passThroughs);
-        List<T> lst = new LinkedList<T>();
+        List<T> lst = new LinkedList<>();
         for (String n : s) {
             lst.add(type.cast(context.getBean(n, type)));
         }
         lst.addAll(orig.getBeansOfType(type));
-        if (lst.isEmpty()) {
+        //TODO: [OSGi+Jakarta] Uncomment this when osgi comes back
+        /*if (lst.isEmpty()) {
             tryOSGI(lst, type);
-        }
+        }*/
         return lst;
     }
     private <T> void tryOSGI(Collection<T> lst, Class<T> type) {
-        if (!osgi) {
+        if (!osgi || bundleContext == null) {
             return;
         }
         try {
@@ -184,7 +186,7 @@ public class SpringBeanLocator implements ConfiguredBeanLocator {
     }
     private Class<?> findContextClass(Class<?> cls) {
         for (Class<?> c : cls.getInterfaces()) {
-            if (c.getName().equals("org.osgi.framework.BundleContext")) {
+            if ("org.osgi.framework.BundleContext".equals(c.getName())) {
                 return c;
             }
         }

@@ -19,9 +19,8 @@
 
 package org.apache.cxf.jaxrs.ext.multipart;
 
-import javax.activation.DataHandler;
-import javax.ws.rs.core.MultivaluedMap;
-
+import jakarta.activation.DataHandler;
+import jakarta.ws.rs.core.MultivaluedMap;
 import org.apache.cxf.jaxrs.impl.MetadataMap;
 
 /**
@@ -29,7 +28,7 @@ import org.apache.cxf.jaxrs.impl.MetadataMap;
  */
 public class AttachmentBuilder {
     private MultivaluedMap<String, String> headers =
-        new MetadataMap<String, String>(false, true);
+        new MetadataMap<>(false, true);
     private Object object;
     private DataHandler dataHandler;
     private ContentDisposition contentDisposition;

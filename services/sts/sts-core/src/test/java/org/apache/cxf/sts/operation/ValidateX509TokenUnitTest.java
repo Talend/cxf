@@ -20,14 +20,13 @@ package org.apache.cxf.sts.operation;
 
 import java.security.Principal;
 import java.security.cert.X509Certificate;
-import java.util.ArrayList;
 import java.util.Base64;
-import java.util.List;
+import java.util.Collections;
 import java.util.Properties;
 
-import javax.xml.bind.JAXBElement;
 import javax.xml.namespace.QName;
 
+import jakarta.xml.bind.JAXBElement;
 import org.apache.cxf.jaxws.context.WrappedMessageContext;
 import org.apache.cxf.message.MessageImpl;
 import org.apache.cxf.security.SecurityContext;
@@ -36,7 +35,6 @@ import org.apache.cxf.sts.STSConstants;
 import org.apache.cxf.sts.STSPropertiesMBean;
 import org.apache.cxf.sts.StaticSTSProperties;
 import org.apache.cxf.sts.common.PasswordCallbackHandler;
-import org.apache.cxf.sts.token.validator.TokenValidator;
 import org.apache.cxf.sts.token.validator.X509TokenValidator;
 import org.apache.cxf.ws.security.sts.provider.model.RequestSecurityTokenResponseType;
 import org.apache.cxf.ws.security.sts.provider.model.RequestSecurityTokenType;
@@ -49,10 +47,13 @@ import org.apache.wss4j.common.crypto.CryptoFactory;
 import org.apache.wss4j.common.crypto.CryptoType;
 import org.apache.wss4j.common.principal.CustomTokenPrincipal;
 
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+
 /**
  * Some unit tests for the validate operation to validate X.509 tokens.
  */
-public class ValidateX509TokenUnitTest extends org.junit.Assert {
+public class ValidateX509TokenUnitTest {
 
     public static final QName REQUESTED_SECURITY_TOKEN =
         QNameConstants.WS_TRUST_FACTORY.createRequestedSecurityToken(null).getName();
@@ -67,9 +68,8 @@ public class ValidateX509TokenUnitTest extends org.junit.Assert {
         TokenValidateOperation validateOperation = new TokenValidateOperation();
 
         // Add Token Validator
-        List<TokenValidator> validatorList = new ArrayList<>();
-        validatorList.add(new X509TokenValidator());
-        validateOperation.setTokenValidators(validatorList);
+        validateOperation.setTokenValidators(Collections.singletonList(
+            new X509TokenValidator()));
 
         // Add STSProperties object
         STSPropertiesMBean stsProperties = new StaticSTSProperties();
@@ -130,9 +130,8 @@ public class ValidateX509TokenUnitTest extends org.junit.Assert {
         TokenValidateOperation validateOperation = new TokenValidateOperation();
 
         // Add Token Validator
-        List<TokenValidator> validatorList = new ArrayList<>();
-        validatorList.add(new X509TokenValidator());
-        validateOperation.setTokenValidators(validatorList);
+        validateOperation.setTokenValidators(Collections.singletonList(
+            new X509TokenValidator()));
 
         // Add STSProperties object
         STSPropertiesMBean stsProperties = new StaticSTSProperties();

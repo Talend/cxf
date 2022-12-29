@@ -31,22 +31,21 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
-import javax.ws.rs.BeanParam;
-import javax.ws.rs.Priorities;
-import javax.ws.rs.RuntimeType;
-import javax.ws.rs.container.ContainerRequestFilter;
-import javax.ws.rs.container.ContainerResponseFilter;
-import javax.ws.rs.container.DynamicFeature;
-import javax.ws.rs.container.PreMatching;
-import javax.ws.rs.core.Application;
-import javax.ws.rs.core.Configurable;
-import javax.ws.rs.core.Configuration;
-import javax.ws.rs.core.Feature;
-import javax.ws.rs.core.FeatureContext;
-import javax.ws.rs.ext.ExceptionMapper;
-import javax.ws.rs.ext.ReaderInterceptor;
-import javax.ws.rs.ext.WriterInterceptor;
-
+import jakarta.ws.rs.BeanParam;
+import jakarta.ws.rs.Priorities;
+import jakarta.ws.rs.RuntimeType;
+import jakarta.ws.rs.container.ContainerRequestFilter;
+import jakarta.ws.rs.container.ContainerResponseFilter;
+import jakarta.ws.rs.container.DynamicFeature;
+import jakarta.ws.rs.container.PreMatching;
+import jakarta.ws.rs.core.Application;
+import jakarta.ws.rs.core.Configurable;
+import jakarta.ws.rs.core.Configuration;
+import jakarta.ws.rs.core.Feature;
+import jakarta.ws.rs.core.FeatureContext;
+import jakarta.ws.rs.ext.ExceptionMapper;
+import jakarta.ws.rs.ext.ReaderInterceptor;
+import jakarta.ws.rs.ext.WriterInterceptor;
 import org.apache.cxf.Bus;
 import org.apache.cxf.BusFactory;
 import org.apache.cxf.common.util.ClassHelper;
@@ -76,19 +75,19 @@ public final class ServerProviderFactory extends ProviderFactory {
     private static final String WADL_PROVIDER_NAME = "org.apache.cxf.jaxrs.model.wadl.WadlGenerator";
     private static final String MAKE_DEFAULT_WAE_LEAST_SPECIFIC = "default.wae.mapper.least.specific";
     private List<ProviderInfo<ExceptionMapper<?>>> exceptionMappers =
-        new ArrayList<ProviderInfo<ExceptionMapper<?>>>(1);
+        new ArrayList<>(1);
 
     private List<ProviderInfo<ContainerRequestFilter>> preMatchContainerRequestFilters =
-        new ArrayList<ProviderInfo<ContainerRequestFilter>>(1);
+        new ArrayList<>(1);
     private Map<NameKey, ProviderInfo<ContainerRequestFilter>> postMatchContainerRequestFilters =
-        new NameKeyMap<ProviderInfo<ContainerRequestFilter>>(true);
+        new NameKeyMap<>(true);
     private Map<NameKey, ProviderInfo<ContainerResponseFilter>> containerResponseFilters =
-        new NameKeyMap<ProviderInfo<ContainerResponseFilter>>(false);
+        new NameKeyMap<>(false);
     private RequestPreprocessor requestPreprocessor;
     private ApplicationInfo application;
-    private Set<DynamicFeature> dynamicFeatures = new LinkedHashSet<DynamicFeature>();
+    private Set<DynamicFeature> dynamicFeatures = new LinkedHashSet<>();
 
-    private Map<Class<?>, BeanParamInfo> beanParams = new ConcurrentHashMap<Class<?>, BeanParamInfo>();
+    private Map<Class<?>, BeanParamInfo> beanParams = new ConcurrentHashMap<>();
     private ProviderInfo<ContainerRequestFilter> wadlGenerator;
 
     private ServerProviderFactory(Bus bus) {
@@ -185,7 +184,7 @@ public final class ServerProviderFactory extends ProviderFactory {
                                                                           Message m) {
         
         boolean makeDefaultWaeLeastSpecific =
-            MessageUtils.getContextualBoolean(m, MAKE_DEFAULT_WAE_LEAST_SPECIFIC, false);
+            MessageUtils.getContextualBoolean(m, MAKE_DEFAULT_WAE_LEAST_SPECIFIC, true);
         
         return (ExceptionMapper<T>)exceptionMappers.stream()
                 .filter(em -> handleMapper(em, exceptionType, m, ExceptionMapper.class, Throwable.class, true))
@@ -201,7 +200,7 @@ public final class ServerProviderFactory extends ProviderFactory {
     @SuppressWarnings("unchecked")
     @Override
     protected void setProviders(boolean custom, boolean busGlobal, Object... providers) {
-        List<Object> allProviders = new LinkedList<Object>();
+        List<Object> allProviders = new LinkedList<>();
         for (Object p : providers) {
             if (p instanceof Feature) {
                 FeatureContext featureContext = createServerFeatureContext();
@@ -234,15 +233,20 @@ public final class ServerProviderFactory extends ProviderFactory {
 
 
         List<ProviderInfo<ContainerRequestFilter>> postMatchRequestFilters =
-            new LinkedList<ProviderInfo<ContainerRequestFilter>>();
+            new LinkedList<>();
         List<ProviderInfo<ContainerResponseFilter>> postMatchResponseFilters =
-            new LinkedList<ProviderInfo<ContainerResponseFilter>>();
+            new LinkedList<>();
 
         List<ProviderInfo<? extends Object>> theProviders =
             prepareProviders(custom, busGlobal, allProviders.toArray(), application);
-        super.setCommonProviders(theProviders);
+        super.setCommonProviders(theProviders, RuntimeType.SERVER);
         for (ProviderInfo<? extends Object> provider : theProviders) {
             Class<?> providerCls = ClassHelper.getRealClass(getBus(), provider.getProvider());
+
+            // Check if provider is constrained to server
+            if (!constrainedTo(providerCls, RuntimeType.SERVER)) {
+                continue;
+            }
 
             if (filterContractSupported(provider, providerCls, ContainerRequestFilter.class)) {
                 addContainerRequestFilter(postMatchRequestFilters,

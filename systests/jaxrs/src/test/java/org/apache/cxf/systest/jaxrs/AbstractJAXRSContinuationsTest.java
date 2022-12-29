@@ -26,9 +26,8 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
-import javax.ws.rs.core.HttpHeaders;
-import javax.ws.rs.core.Response;
-
+import jakarta.ws.rs.core.HttpHeaders;
+import jakarta.ws.rs.core.Response;
 import org.apache.cxf.jaxrs.client.WebClient;
 import org.apache.cxf.testutil.common.AbstractBusClientServerTestBase;
 import org.apache.http.client.methods.CloseableHttpResponse;
@@ -39,6 +38,10 @@ import org.apache.http.util.EntityUtils;
 
 import org.junit.Ignore;
 import org.junit.Test;
+
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 
 
 public abstract class AbstractJAXRSContinuationsTest extends AbstractBusClientServerTestBase {

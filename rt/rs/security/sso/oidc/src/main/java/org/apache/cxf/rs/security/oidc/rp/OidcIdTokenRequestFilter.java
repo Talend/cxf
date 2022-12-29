@@ -22,12 +22,11 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 
-import javax.ws.rs.container.ContainerRequestContext;
-import javax.ws.rs.container.ContainerRequestFilter;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.MultivaluedMap;
-import javax.ws.rs.core.Response;
-
+import jakarta.ws.rs.container.ContainerRequestContext;
+import jakarta.ws.rs.container.ContainerRequestFilter;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.MultivaluedMap;
+import jakarta.ws.rs.core.Response;
 import org.apache.cxf.common.util.StringUtils;
 import org.apache.cxf.jaxrs.impl.MetadataMap;
 import org.apache.cxf.jaxrs.utils.FormUtils;
@@ -59,7 +58,7 @@ public class OidcIdTokenRequestFilter implements ContainerRequestFilter {
     }
 
     private MultivaluedMap<String, String> toFormData(ContainerRequestContext rc) {
-        MultivaluedMap<String, String> requestState = new MetadataMap<String, String>();
+        MultivaluedMap<String, String> requestState = new MetadataMap<>();
         if (MediaType.APPLICATION_FORM_URLENCODED_TYPE.isCompatible(rc.getMediaType())) {
             String body = FormUtils.readBody(rc.getEntityStream(), StandardCharsets.UTF_8.name());
             FormUtils.populateMapFromString(requestState, JAXRSUtils.getCurrentMessage(), body,

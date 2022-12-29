@@ -21,17 +21,16 @@ package org.apache.cxf.sts.operation;
 import java.security.Principal;
 import java.time.Instant;
 import java.time.ZoneOffset;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Collections;
 import java.util.Properties;
 
 import javax.security.auth.callback.CallbackHandler;
-import javax.xml.bind.JAXBElement;
 import javax.xml.namespace.QName;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
+import jakarta.xml.bind.JAXBElement;
 import org.apache.cxf.jaxws.context.WrappedMessageContext;
 import org.apache.cxf.message.MessageImpl;
 import org.apache.cxf.security.SecurityContext;
@@ -53,12 +52,12 @@ import org.apache.cxf.sts.token.provider.TokenProviderResponse;
 import org.apache.cxf.sts.token.renewer.SAMLTokenRenewer;
 import org.apache.cxf.sts.token.renewer.TokenRenewer;
 import org.apache.cxf.sts.token.validator.SAMLTokenValidator;
-import org.apache.cxf.sts.token.validator.TokenValidator;
 import org.apache.cxf.ws.security.sts.provider.model.RenewTargetType;
 import org.apache.cxf.ws.security.sts.provider.model.RequestSecurityTokenResponseType;
 import org.apache.cxf.ws.security.sts.provider.model.RequestSecurityTokenType;
 import org.apache.cxf.ws.security.sts.provider.model.RequestedSecurityTokenType;
 import org.apache.cxf.ws.security.tokenstore.TokenStore;
+import org.apache.cxf.ws.security.tokenstore.TokenStoreException;
 import org.apache.wss4j.common.WSS4JConstants;
 import org.apache.wss4j.common.crypto.Crypto;
 import org.apache.wss4j.common.crypto.CryptoFactory;
@@ -71,10 +70,13 @@ import org.apache.wss4j.common.util.DateUtil;
 
 import org.junit.BeforeClass;
 
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+
 /**
  * Some unit tests for the renew operation to renew SAML tokens.
  */
-public class RenewSamlUnitTest extends org.junit.Assert {
+public class RenewSamlUnitTest {
 
     public static final QName REQUESTED_SECURITY_TOKEN =
         QNameConstants.WS_TRUST_FACTORY.createRequestedSecurityToken(null).getName();
@@ -82,7 +84,7 @@ public class RenewSamlUnitTest extends org.junit.Assert {
     private static TokenStore tokenStore;
 
     @BeforeClass
-    public static void init() {
+    public static void init() throws TokenStoreException {
         tokenStore = new DefaultInMemoryTokenStore();
     }
 
@@ -95,16 +97,13 @@ public class RenewSamlUnitTest extends org.junit.Assert {
         renewOperation.setTokenStore(tokenStore);
 
         // Add Token Renewer
-        List<TokenRenewer> renewerList = new ArrayList<>();
         TokenRenewer tokenRenewer = new SAMLTokenRenewer();
         tokenRenewer.setVerifyProofOfPossession(false);
-        renewerList.add(tokenRenewer);
-        renewOperation.setTokenRenewers(renewerList);
+        renewOperation.setTokenRenewers(Collections.singletonList(tokenRenewer));
 
         // Add Token Validator
-        List<TokenValidator> validatorList = new ArrayList<>();
-        validatorList.add(new SAMLTokenValidator());
-        renewOperation.setTokenValidators(validatorList);
+        renewOperation.setTokenValidators(Collections.singletonList(
+            new SAMLTokenValidator()));
 
         // Add STSProperties object
         STSPropertiesMBean stsProperties = new StaticSTSProperties();
@@ -186,17 +185,14 @@ public class RenewSamlUnitTest extends org.junit.Assert {
         renewOperation.setTokenStore(tokenStore);
 
         // Add Token Renewer
-        List<TokenRenewer> renewerList = new ArrayList<>();
         TokenRenewer tokenRenewer = new SAMLTokenRenewer();
         tokenRenewer.setVerifyProofOfPossession(false);
         tokenRenewer.setAllowRenewalAfterExpiry(true);
-        renewerList.add(tokenRenewer);
-        renewOperation.setTokenRenewers(renewerList);
+        renewOperation.setTokenRenewers(Collections.singletonList(tokenRenewer));
 
         // Add Token Validator
-        List<TokenValidator> validatorList = new ArrayList<>();
-        validatorList.add(new SAMLTokenValidator());
-        renewOperation.setTokenValidators(validatorList);
+        renewOperation.setTokenValidators(Collections.singletonList(
+            new SAMLTokenValidator()));
 
         // Add STSProperties object
         STSPropertiesMBean stsProperties = new StaticSTSProperties();
@@ -280,17 +276,14 @@ public class RenewSamlUnitTest extends org.junit.Assert {
         renewOperation.setTokenStore(tokenStore);
 
         // Add Token Renewer
-        List<TokenRenewer> renewerList = new ArrayList<>();
         TokenRenewer tokenRenewer = new SAMLTokenRenewer();
         tokenRenewer.setVerifyProofOfPossession(false);
         tokenRenewer.setAllowRenewalAfterExpiry(true);
-        renewerList.add(tokenRenewer);
-        renewOperation.setTokenRenewers(renewerList);
+        renewOperation.setTokenRenewers(Collections.singletonList(tokenRenewer));
 
         // Add Token Validator
-        List<TokenValidator> validatorList = new ArrayList<>();
-        validatorList.add(new SAMLTokenValidator());
-        renewOperation.setTokenValidators(validatorList);
+        renewOperation.setTokenValidators(Collections.singletonList(
+            new SAMLTokenValidator()));
 
         // Add STSProperties object
         STSPropertiesMBean stsProperties = new StaticSTSProperties();
@@ -374,17 +367,14 @@ public class RenewSamlUnitTest extends org.junit.Assert {
         renewOperation.setTokenStore(tokenStore);
 
         // Add Token Renewer
-        List<TokenRenewer> renewerList = new ArrayList<>();
         TokenRenewer tokenRenewer = new SAMLTokenRenewer();
         tokenRenewer.setVerifyProofOfPossession(false);
         tokenRenewer.setAllowRenewalAfterExpiry(true);
-        renewerList.add(tokenRenewer);
-        renewOperation.setTokenRenewers(renewerList);
+        renewOperation.setTokenRenewers(Collections.singletonList(tokenRenewer));
 
         // Add Token Validator
-        List<TokenValidator> validatorList = new ArrayList<>();
-        validatorList.add(new SAMLTokenValidator());
-        renewOperation.setTokenValidators(validatorList);
+        renewOperation.setTokenValidators(Collections.singletonList(
+            new SAMLTokenValidator()));
 
         // Add STSProperties object
         STSPropertiesMBean stsProperties = new StaticSTSProperties();
@@ -502,7 +492,7 @@ public class RenewSamlUnitTest extends org.junit.Assert {
 
         if (ttlMs != 0) {
             Lifetime lifetime = new Lifetime();
-            
+
             Instant creationTime = Instant.now();
             Instant expirationTime = creationTime.plusNanos(ttlMs * 1000000L);
 
@@ -513,7 +503,7 @@ public class RenewSamlUnitTest extends org.junit.Assert {
         }
 
         TokenProviderResponse providerResponse = samlTokenProvider.createToken(providerParameters);
-        assertTrue(providerResponse != null);
+        assertNotNull(providerResponse);
         assertTrue(providerResponse.getToken() != null && providerResponse.getTokenId() != null);
 
         return (Element)providerResponse.getToken();

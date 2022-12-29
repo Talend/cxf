@@ -19,33 +19,20 @@
 
 package org.apache.cxf.systest.coloc;
 
-
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-
 import org.junit.Test;
-
 
 public class ColocHeaderDocLitTest extends AbstractHeaderServiceDocLitTest {
     static final String TRANSPORT_URI = "http://localhost:" + PORT + "/headers";
 
-    private Log logger = LogFactory.getLog(ColocHeaderDocLitTest.class);
-
-    protected Log getLogger() {
-        return logger;
-    }
-
     protected Object getServiceImpl() {
-        HttpServiceImpl impl = new HttpServiceImpl();
-        impl.init(getLogger());
-        return impl;
+        return new HttpServiceImpl();
     }
 
     protected String getTransportURI() {
         return TRANSPORT_URI;
     }
 
-    @javax.jws.WebService(portName = "SoapPort9000", serviceName = "SOAPHeaderService",
+    @jakarta.jws.WebService(portName = "SoapPort9000", serviceName = "SOAPHeaderService",
             targetNamespace = "http://apache.org/headers/doc_lit",
             endpointInterface = "org.apache.headers.doc_lit.HeaderTester")
     class HttpServiceImpl extends BaseHeaderTesterDocLitImpl { }

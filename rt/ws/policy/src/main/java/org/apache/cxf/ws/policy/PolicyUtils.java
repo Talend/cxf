@@ -167,30 +167,26 @@ public final class PolicyUtils {
         buf.append("type: ");
         buf.append(typeToString(pc.getType()));
         if (Constants.TYPE_ASSERTION == pc.getType()) {
-            buf.append(" ");
+            buf.append(' ');
             buf.append(((Assertion)pc).getName());
             if (((Assertion)pc).isOptional()) {
                 buf.append(" (optional)");
             }
             buf.append(" (");
             buf.append(pc);
-            buf.append(")");
+            buf.append(')');
             nl(buf);
             if (pc instanceof PolicyContainingAssertion) {
                 PolicyComponent nested = ((PolicyContainingAssertion)pc).getPolicy();
-                level++;
-                printPolicyComponent(nested, buf, level);
-                level--;
+                printPolicyComponent(nested, buf, level + 1);
             }
         } else {
-            level++;
             List<PolicyComponent> children = CastUtils.cast(((PolicyOperator)pc).getPolicyComponents(),
                 PolicyComponent.class);
             nl(buf);
             for (PolicyComponent child : children) {
-                printPolicyComponent(child, buf, level);
+                printPolicyComponent(child, buf, level + 1);
             }
-            level--;
         }
     }
 

@@ -43,7 +43,7 @@ public final class NSDecl {
     }
 
     public String toString() {
-        return prefix + ":" + uri;
+        return prefix + ':' + uri;
     }
 
     public int hashCode() {
@@ -54,8 +54,7 @@ public final class NSDecl {
         if (!(obj instanceof NSDecl)) {
             return false;
         }
-        return uri == ((NSDecl)obj).uri
-            && prefix == ((NSDecl)obj).prefix;
+        return uri == ((NSDecl)obj).uri && prefix == ((NSDecl)obj).prefix; //NOPMD
     }
 
 }

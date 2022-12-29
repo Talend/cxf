@@ -27,15 +27,16 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 
+import javax.xml.XMLConstants;
 import javax.xml.namespace.QName;
-import javax.xml.soap.SOAPEnvelope;
-import javax.xml.soap.SOAPException;
-import javax.xml.soap.SOAPMessage;
 import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathFactory;
 
 import org.w3c.dom.Element;
 
+import jakarta.xml.soap.SOAPEnvelope;
+import jakarta.xml.soap.SOAPException;
+import jakarta.xml.soap.SOAPMessage;
 import org.apache.cxf.binding.soap.SoapFault;
 import org.apache.cxf.binding.soap.SoapMessage;
 import org.apache.cxf.binding.soap.interceptor.AbstractSoapInterceptor;
@@ -120,15 +121,14 @@ public class CryptoCoverageChecker extends AbstractSoapInterceptor {
             throw new SoapFault("Error obtaining SOAP document", Fault.FAULT_CODE_CLIENT);
         }
 
-        Element documentElement = null;
+        final Element documentElement;
         try {
             SOAPMessage saajDoc = message.getContent(SOAPMessage.class);
             SOAPEnvelope envelope = saajDoc.getSOAPPart().getEnvelope();
             if (!checkFaults && envelope.getBody().hasFault()) {
                 return;
             }
-            documentElement = envelope;
-            documentElement = (Element)DOMUtils.getDomElement(documentElement);
+            documentElement = (Element)DOMUtils.getDomElement(envelope);
         } catch (SOAPException e) {
             throw new SoapFault("Error obtaining SOAP document", Fault.FAULT_CODE_CLIENT);
         }
@@ -178,6 +178,11 @@ public class CryptoCoverageChecker extends AbstractSoapInterceptor {
         // XPathFactory and XPath are not thread-safe so we must recreate them
         // each request.
         final XPathFactory factory = XPathFactory.newInstance();
+        try {
+            factory.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, Boolean.TRUE);
+        } catch (javax.xml.xpath.XPathFactoryConfigurationException ex) {
+            // ignore
+        }
         final XPath xpath = factory.newXPath();
 
         if (this.prefixMap != null) {
@@ -219,7 +224,7 @@ public class CryptoCoverageChecker extends AbstractSoapInterceptor {
      * Sets the XPath expressions to check for, clearing all previously
      * set expressions.
      *
-     * @param xPaths the XPath expressions to check for
+     * @param xpaths the XPath expressions to check for
      */
     public final void setXPaths(List<XPathExpression> xpaths) {
         this.xPaths.clear();
@@ -232,7 +237,7 @@ public class CryptoCoverageChecker extends AbstractSoapInterceptor {
      * Adds the XPath expressions to check for, adding to any previously
      * set expressions.
      *
-     * @param xPaths the XPath expressions to check for
+     * @param xpaths the XPath expressions to check for
      */
     public final void addXPaths(List<XPathExpression> xpaths) {
         if (xpaths != null) {

@@ -25,9 +25,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import javax.ws.rs.ext.ParamConverter;
-import javax.ws.rs.ext.ParamConverterProvider;
-
+import jakarta.ws.rs.ext.ParamConverter;
+import jakarta.ws.rs.ext.ParamConverterProvider;
 import org.apache.lucene.document.DateTools;
 import org.apache.lucene.document.DateTools.Resolution;
 
@@ -36,7 +35,7 @@ import org.apache.lucene.document.DateTools.Resolution;
  */
 public class DefaultParamConverterProvider implements ParamConverterProvider {
     private final Map< Class< ? >, ParamConverter< ? > > converters =
-            new HashMap< Class< ? >, ParamConverter< ? > >();
+            new HashMap<>();
 
     /**
      * Date type converter.

@@ -28,12 +28,11 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-import javax.servlet.ServletInputStream;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletRequestWrapper;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.MultivaluedMap;
-
+import jakarta.servlet.ServletInputStream;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequestWrapper;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.MultivaluedMap;
 import org.apache.cxf.io.DelegatingInputStream;
 import org.apache.cxf.jaxrs.utils.FormUtils;
 import org.apache.cxf.jaxrs.utils.HttpUtils;
@@ -83,7 +82,7 @@ public class HttpServletRequestFilter extends HttpServletRequestWrapper {
         Map<String, String[]> map1 = super.getParameterMap();
         if (isPostFormRequest) {
             readFromParamsIfNeeded();
-            Map<String, String[]> map2 = new LinkedHashMap<String, String[]>();
+            Map<String, String[]> map2 = new LinkedHashMap<>();
             map2.putAll(map1);
             for (Map.Entry<String, List<String>> e : formParams.entrySet()) {
                 map2.put(e.getKey(), e.getValue().toArray(new String[]{}));
@@ -117,7 +116,7 @@ public class HttpServletRequestFilter extends HttpServletRequestWrapper {
             if (m.containsKey(FormUtils.FORM_PARAM_MAP)) {
                 formParams = (MultivaluedMap<String, String>)m.get(FormUtils.FORM_PARAM_MAP);
             } else {
-                formParams = new MetadataMap<String, String>();
+                formParams = new MetadataMap<>();
                 MediaType mt = JAXRSUtils.toMediaType((String)m.get(Message.CONTENT_TYPE));
                 String enc = HttpUtils.getEncoding(mt, StandardCharsets.UTF_8.name());
                 String body = FormUtils.readBody(m.getContent(InputStream.class), enc);

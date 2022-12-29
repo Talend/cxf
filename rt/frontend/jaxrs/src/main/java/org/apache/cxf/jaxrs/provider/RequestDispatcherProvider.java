@@ -29,15 +29,14 @@ import java.util.ResourceBundle;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import javax.servlet.RequestDispatcher;
-import javax.servlet.ServletContext;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletRequestWrapper;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.MultivaluedMap;
-import javax.ws.rs.core.PathSegment;
-import javax.ws.rs.core.UriInfo;
-
+import jakarta.servlet.RequestDispatcher;
+import jakarta.servlet.ServletContext;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequestWrapper;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.MultivaluedMap;
+import jakarta.ws.rs.core.PathSegment;
+import jakarta.ws.rs.core.UriInfo;
 import org.apache.cxf.common.i18n.BundleUtils;
 import org.apache.cxf.common.logging.LogUtils;
 import org.apache.cxf.jaxrs.utils.ExceptionUtils;
@@ -177,7 +176,7 @@ public class RequestDispatcherProvider extends AbstractResponseViewProvider {
             MultivaluedMap<String, String> params = ui.getPathParameters();
             for (Map.Entry<String, List<String>> entry : params.entrySet()) {
                 String value = entry.getValue().get(0);
-                int ind = value.indexOf(";");
+                int ind = value.indexOf(';');
                 if (ind > 0) {
                     value = value.substring(0, ind);
                 }
@@ -256,7 +255,7 @@ public class RequestDispatcherProvider extends AbstractResponseViewProvider {
         }
 
         public void setParameters(String name, List<String> values) {
-            doSetParameters(name, values.toArray(new String[values.size()]));
+            doSetParameters(name, values.toArray(new String[0]));
         }
 
         private void doSetParameters(String name, String[] values) {

@@ -20,7 +20,6 @@
 package org.apache.cxf.systest.jaxrs.security.jose.jwt;
 
 import java.net.URL;
-import java.security.Security;
 import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
@@ -29,10 +28,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import javax.ws.rs.core.Response;
+import com.fasterxml.jackson.jakarta.rs.json.JacksonJsonProvider;
 
-import com.fasterxml.jackson.jaxrs.json.JacksonJsonProvider;
-
+import jakarta.ws.rs.core.Response;
 import org.apache.cxf.jaxrs.client.WebClient;
 import org.apache.cxf.rs.security.jose.jaxrs.JwtAuthenticationClientFilter;
 import org.apache.cxf.rs.security.jose.jwt.JwtClaims;
@@ -40,10 +38,12 @@ import org.apache.cxf.rs.security.jose.jwt.JwtConstants;
 import org.apache.cxf.rs.security.jose.jwt.JwtToken;
 import org.apache.cxf.systest.jaxrs.security.Book;
 import org.apache.cxf.testutil.common.AbstractBusClientServerTestBase;
-import org.bouncycastle.jce.provider.BouncyCastleProvider;
 
-import org.junit.AfterClass;
 import org.junit.BeforeClass;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotEquals;
+import static org.junit.Assert.assertTrue;
 
 /**
  * Some tests for various properties of JWT tokens.
@@ -55,17 +55,6 @@ public class JWTPropertiesTest extends AbstractBusClientServerTestBase {
     public static void startServers() throws Exception {
         assertTrue("server did not launch correctly",
                    launchServer(BookServerJwtProperties.class, true));
-        registerBouncyCastleIfNeeded();
-    }
-
-    private static void registerBouncyCastleIfNeeded() throws Exception {
-        // Still need it for Oracle Java 7 and Java 8
-        Security.addProvider(new BouncyCastleProvider());
-    }
-
-    @AfterClass
-    public static void unregisterBouncyCastleIfNeeded() throws Exception {
-        Security.removeProvider(BouncyCastleProvider.PROVIDER_NAME);
     }
 
     @org.junit.Test
@@ -371,7 +360,7 @@ public class JWTPropertiesTest extends AbstractBusClientServerTestBase {
         WebClient.getConfig(client).getRequestContext().putAll(properties);
 
         Response response = client.post(new Book("book", 123L));
-        assertNotEquals(response.getStatus(), 200);
+        assertEquals(response.getStatus(), 200);
     }
 
     @org.junit.Test

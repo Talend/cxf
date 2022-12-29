@@ -25,13 +25,11 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.apache.cxf.common.logging.LogUtils;
-import org.apache.cxf.interceptor.Fault;
 import org.apache.cxf.message.Message;
+import org.apache.cxf.message.MessageUtils;
 import org.apache.cxf.phase.AbstractPhaseInterceptor;
 import org.apache.cxf.phase.Phase;
 import org.apache.cxf.security.SecurityContext;
-import org.apache.cxf.service.invoker.MethodDispatcher;
-import org.apache.cxf.service.model.BindingOperationInfo;
 
 public abstract class AbstractAuthorizingInInterceptor extends AbstractPhaseInterceptor<Message> {
 
@@ -45,8 +43,9 @@ public abstract class AbstractAuthorizingInInterceptor extends AbstractPhaseInte
     public AbstractAuthorizingInInterceptor(boolean uniqueId) {
         super(null, Phase.PRE_INVOKE, uniqueId);
     }
-    public void handleMessage(Message message) throws Fault {
-        Method method = getTargetMethod(message);
+    public void handleMessage(Message message) {
+        Method method = MessageUtils.getTargetMethod(message).orElseThrow(() -> 
+            new AccessDeniedException("Method is not available : Unauthorized"));
         SecurityContext sc = message.get(SecurityContext.class);
         if (sc != null && sc.getUserPrincipal() != null) {
             if (authorize(sc, method)) {
@@ -60,27 +59,13 @@ public abstract class AbstractAuthorizingInInterceptor extends AbstractPhaseInte
         throw new AccessDeniedException("Unauthorized");
     }
 
-    protected Method getTargetMethod(Message m) {
-        BindingOperationInfo bop = m.getExchange().getBindingOperationInfo();
-        if (bop != null) {
-            MethodDispatcher md = (MethodDispatcher)
-                m.getExchange().getService().get(MethodDispatcher.class.getName());
-            return md.getMethod(bop);
-        }
-        Method method = (Method)m.get("org.apache.cxf.resource.method");
-        if (method != null) {
-            return method;
-        }
-        throw new AccessDeniedException("Method is not available : Unauthorized");
-    }
-
     protected boolean authorize(SecurityContext sc, Method method) {
         List<String> expectedRoles = getExpectedRoles(method);
         if (expectedRoles.isEmpty()) {
 
             List<String> denyRoles = getDenyRoles(method);
 
-            return denyRoles.isEmpty() ? true : isUserInRole(sc, denyRoles, true);
+            return denyRoles.isEmpty() || isUserInRole(sc, denyRoles, true);
         }
 
         if (isUserInRole(sc, expectedRoles, false)) {

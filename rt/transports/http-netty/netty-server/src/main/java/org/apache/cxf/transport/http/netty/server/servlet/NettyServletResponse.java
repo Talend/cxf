@@ -23,17 +23,20 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
+import java.util.Collection;
 import java.util.Locale;
 
-import javax.servlet.ServletOutputStream;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.ServletOutputStream;
+import jakarta.servlet.http.HttpServletResponse;
 
 import io.netty.handler.codec.http.HttpContent;
-import io.netty.handler.codec.http.HttpHeaders;
+import io.netty.handler.codec.http.HttpHeaderNames;
 import io.netty.handler.codec.http.HttpResponse;
 import io.netty.handler.codec.http.HttpResponseStatus;
+import io.netty.handler.codec.http.HttpUtil;
+import io.netty.util.AsciiString;
 
-import static io.netty.handler.codec.http.HttpHeaders.Names.LOCATION;
+import static io.netty.handler.codec.http.HttpHeaderNames.LOCATION;
 
 
 public class NettyServletResponse implements HttpServletResponse {
@@ -57,19 +60,19 @@ public class NettyServletResponse implements HttpServletResponse {
     }
 
     public void addDateHeader(String name, long date) {
-        HttpHeaders.addHeader(this.originalResponse, name, date);
+        this.originalResponse.headers().set(name, date);
     }
 
     public void addHeader(String name, String value) {
-        HttpHeaders.addHeader(this.originalResponse, name, value);
+        this.originalResponse.headers().set(name, value);
     }
 
     public void addIntHeader(String name, int value) {
-        HttpHeaders.addIntHeader(this.originalResponse, name, value);
+        this.originalResponse.headers().set(name, value);
     }
 
     @Override
-    public void addCookie(javax.servlet.http.Cookie cookie) {
+    public void addCookie(jakarta.servlet.http.Cookie cookie) {
         //TODO Do we need to implement it ?
     }
 
@@ -92,15 +95,19 @@ public class NettyServletResponse implements HttpServletResponse {
     }
 
     public void setDateHeader(String name, long date) {
-        HttpHeaders.setHeader(this.originalResponse, name, date);
+        this.originalResponse.headers().set(name, date);
+    }
+
+    public void setHeader(AsciiString name, String value) {
+        this.originalResponse.headers().set(name, value);
     }
 
     public void setHeader(String name, String value) {
-        HttpHeaders.setHeader(this.originalResponse, name, value);
+        this.originalResponse.headers().set(name, value);
     }
 
     public void setIntHeader(String name, int value) {
-        HttpHeaders.setIntHeader(this.originalResponse, name, value);
+        this.originalResponse.headers().set(name, value);
 
     }
 
@@ -124,13 +131,12 @@ public class NettyServletResponse implements HttpServletResponse {
 
     @Override
     public void setContentType(String type) {
-        HttpHeaders.setHeader(this.originalResponse,
-                HttpHeaders.Names.CONTENT_TYPE, type);
+        this.originalResponse.headers().set(HttpHeaderNames.CONTENT_TYPE, type);
     }
 
     @Override
     public void setContentLength(int len) {
-        HttpHeaders.setContentLength(this.originalResponse, len);
+        HttpUtil.setContentLength(this.originalResponse, len);
     }
 
     @Override
@@ -222,5 +228,30 @@ public class NettyServletResponse implements HttpServletResponse {
         throw new IllegalStateException(
                 "Method 'setLocale' not yet implemented!");
 
+    }
+
+    @Override
+    public void setContentLengthLong(long len) {
+        throw new IllegalStateException("Method 'setContentLengthLong' not yet implemented!");
+    }
+
+    @Override
+    public int getStatus() {
+        throw new IllegalStateException("Method 'getStatus' not yet implemented!");
+    }
+
+    @Override
+    public String getHeader(String name) {
+        throw new IllegalStateException("Method 'getHeader' not yet implemented!");
+    }
+
+    @Override
+    public Collection<String> getHeaders(String name) {
+        throw new IllegalStateException("Method 'getHeaders' not yet implemented!");
+    }
+
+    @Override
+    public Collection<String> getHeaderNames() {
+        throw new IllegalStateException("Method 'getHeaderNames' not yet implemented!");
     }
 }

@@ -100,8 +100,12 @@ public final class ToolConstants {
     public static final String CFG_FAULT_SERIAL_VERSION_UID = "faultSerialVersionUID";
     public static final String CFG_EXCEPTION_SUPER = "exceptionSuper";
     public static final String CFG_SEI_SUPER = "seiSuper";
-    public static final String CFG_MARK_GENERATED = "mark-generated";
-    public static final String CFG_SUPPRESS_GENERATED_DATE = "suppress-generated-date";
+    public static final String CFG_MARK_GENERATED = "markGenerated";
+    public static final String CFG_SUPPRESS_GENERATED_DATE = "suppressGeneratedDate";
+
+    public static final String CFG_MARK_GENERATED_OPTION = "mark-generated";
+    public static final String CFG_SUPPRESS_GENERATED_DATE_OPTION = "suppress-generated-date";
+    public static final String CFG_MAX_EXTENSION_STACK_DEPTH = "maxExtensionStackDepth";
 
     //Internal Flag to generate
     public static final String CFG_IMPL_CLASS = "implClass";
@@ -166,8 +170,8 @@ public final class ToolConstants {
     public static final String HANDLER_GENERATOR = "handler.generator";
 
     // Binding namespace
-    public static final String NS_JAXWS_BINDINGS = "http://java.sun.com/xml/ns/jaxws";
-    public static final String NS_JAXB_BINDINGS = "http://java.sun.com/xml/ns/jaxb";
+    public static final String NS_JAXWS_BINDINGS = "https://jakarta.ee/xml/ns/jaxws";
+    public static final String NS_JAXB_BINDINGS = "https://jakarta.ee/xml/ns/jaxb";
     public static final QName  JAXWS_BINDINGS = new QName(NS_JAXWS_BINDINGS, "bindings");
     public static final QName  JAXB_BINDINGS = new QName(NS_JAXB_BINDINGS, "bindings");
     public static final QName SCHEMA = new QName(SCHEMA_URI, "schema");
@@ -177,7 +181,7 @@ public final class ToolConstants {
 
     public static final String ASYNC_METHOD_SUFFIX = "Async";
 
-    public static final String HANDLER_CHAINS_URI = "http://java.sun.com/xml/ns/javaee";
+    public static final String HANDLER_CHAINS_URI = "https://jakarta.ee/xml/ns/jakartaee";
     public static final String HANDLER_CHAIN = "handler-chain";
     public static final String HANDLER_CHAINS = "handler-chains";
 

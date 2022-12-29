@@ -19,36 +19,47 @@
 
 package org.apache.cxf.jaxrs.client;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-
+import jakarta.ws.rs.Path;
+import jakarta.ws.rs.PathParam;
+import jakarta.ws.rs.core.HttpHeaders;
+import jakarta.ws.rs.core.MediaType;
 import org.apache.cxf.Bus;
 import org.apache.cxf.BusFactory;
 import org.apache.cxf.common.util.ProxyClassLoader;
+import org.apache.cxf.endpoint.Server;
 import org.apache.cxf.feature.AbstractFeature;
-import org.apache.cxf.feature.Feature;
+import org.apache.cxf.helpers.CastUtils;
 import org.apache.cxf.interceptor.Fault;
 import org.apache.cxf.interceptor.InterceptorProvider;
+import org.apache.cxf.jaxrs.JAXRSServerFactoryBean;
+import org.apache.cxf.jaxrs.impl.ResponseImpl;
 import org.apache.cxf.jaxrs.model.UserOperation;
 import org.apache.cxf.jaxrs.model.UserResource;
 import org.apache.cxf.jaxrs.resources.Book;
 import org.apache.cxf.jaxrs.resources.BookInterface;
 import org.apache.cxf.jaxrs.resources.BookStore;
 import org.apache.cxf.jaxrs.resources.BookStoreSubresourcesOnly;
+import org.apache.cxf.jaxrs.resources.BookSuperClass;
+import org.apache.cxf.jaxrs.resources.SuperBook;
+import org.apache.cxf.jaxrs.resources.SuperBookStore;
 import org.apache.cxf.message.Message;
 import org.apache.cxf.phase.AbstractPhaseInterceptor;
 import org.apache.cxf.phase.Phase;
 import org.apache.cxf.transport.Conduit;
 import org.apache.cxf.transport.http.HTTPConduit;
 
-import org.junit.Assert;
 import org.junit.Test;
 
-public class JAXRSClientFactoryBeanTest extends Assert {
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertSame;
+import static org.junit.Assert.assertTrue;
+
+public class JAXRSClientFactoryBeanTest {
 
     @Test
     public void testCreateClient() throws Exception {
@@ -175,9 +186,7 @@ public class JAXRSClientFactoryBeanTest extends Assert {
         bean.setAddress("http://bar");
         bean.setResourceClass(BookStoreSubresourcesOnly.class);
         TestFeature testFeature = new TestFeature();
-        List<Feature> features = new ArrayList<>();
-        features.add(testFeature);
-        bean.setFeatures(features);
+        bean.setFeatures(Collections.singletonList(testFeature));
 
         BookStoreSubresourcesOnly store = bean.create(BookStoreSubresourcesOnly.class, 1, 2, 3);
         assertTrue("TestFeature wasn't initialized", testFeature.isInitialized());
@@ -197,6 +206,38 @@ public class JAXRSClientFactoryBeanTest extends Assert {
         assertNotNull(productResourceElement);
     }
     
+    @Test
+    public void testBookAndBridgeMethods() throws Exception {
+        SuperBookStore superBookResource = JAXRSClientFactory.create("http://localhost:9000",
+                SuperBookStore.class);
+        assertNotNull(superBookResource);
+        
+        Book book = ((BookSuperClass)superBookResource).getNewBook("id4", true);
+        assertNotNull(book);
+        
+        SuperBook superBook = (SuperBook)superBookResource.getNewBook("id4", true);
+        assertNotNull(superBook);
+    }
+
+    @Test
+    public void testVoidResponseAcceptWildcard() throws Exception {
+        String address = "local://store";
+        JAXRSServerFactoryBean sf = new JAXRSServerFactoryBean();
+        sf.setServiceBean(new BookStore());
+        sf.setAddress(address);
+        Server s = sf.create(); 
+
+        BookStore store = JAXRSClientFactory.create(address, BookStore.class);
+        store.addBook(new Book());
+
+        s.stop();
+
+        ResponseImpl response = (ResponseImpl) WebClient.client(store).getResponse();
+        Map<String, List<String>> headers =
+            CastUtils.cast((Map<?, ?>) response.getOutMessage().get(Message.PROTOCOL_HEADERS));
+        assertTrue(headers.get(HttpHeaders.ACCEPT).contains(MediaType.WILDCARD));
+    }
+
     @Test(expected = IllegalArgumentException.class)
     public void testInvokePathNull() throws Exception {
         JAXRSClientFactoryBean bean = new JAXRSClientFactoryBean();
@@ -214,7 +255,7 @@ public class JAXRSClientFactoryBeanTest extends Assert {
         BookInterface store = bean.create(BookInterface.class);
         store.getBook("");
     }
-    
+
     @Test
     public void testInvokePathEmptyAllowed() throws Exception {
         Bus bus = BusFactory.newInstance().createBus();
@@ -246,10 +287,6 @@ public class JAXRSClientFactoryBeanTest extends Assert {
         private boolean isInitialized;
 
         TestInterceptor() {
-            this(Phase.PRE_STREAM);
-        }
-
-        TestInterceptor(String s) {
             super(Phase.PRE_STREAM);
             isInitialized = true;
         }

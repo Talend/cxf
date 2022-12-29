@@ -21,9 +21,7 @@ package org.apache.cxf.wsdl.interceptors;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 import java.util.logging.Logger;
 
 import javax.xml.namespace.QName;
@@ -50,13 +48,6 @@ import org.apache.cxf.staxutils.StaxUtils;
 
 public class BareInInterceptor extends AbstractInDatabindingInterceptor {
     private static final Logger LOG = LogUtils.getL7dLogger(BareInInterceptor.class);
-
-    private static Set<String> filter = new HashSet<>();
-
-    static {
-        filter.add("void");
-        filter.add("javax.activation.DataHandler");
-    }
 
     public BareInInterceptor() {
         super(Phase.UNMARSHAL);
@@ -112,9 +103,8 @@ public class BareInInterceptor extends AbstractInDatabindingInterceptor {
 
         while (StaxUtils.toNextElement(xmlReader)) {
             QName elName = xmlReader.getName();
-            Object o = null;
 
-            MessagePartInfo p;
+            final MessagePartInfo p;
             if (msgInfo != null && msgInfo.getMessageParts() != null) {
                 assert msgInfo.getMessageParts().size() > paramNum;
                 p = msgInfo.getMessageParts().get(paramNum);
@@ -127,6 +117,7 @@ public class BareInInterceptor extends AbstractInDatabindingInterceptor {
                                 Fault.FAULT_CODE_CLIENT);
             }
 
+            final Object o;
             try {
                 o = dr.read(p, xmlReader);
             } catch (Fault fault) {

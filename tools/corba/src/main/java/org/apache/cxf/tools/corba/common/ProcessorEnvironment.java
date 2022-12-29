@@ -25,7 +25,7 @@ import java.util.Map;
 
 import org.xml.sax.InputSource;
 
-import org.apache.cxf.common.util.URIParserUtil;
+import org.apache.cxf.common.util.PackageUtils;
 import org.apache.cxf.tools.common.ToolConstants;
 import org.apache.cxf.tools.util.PropertyUtil;
 
@@ -69,7 +69,7 @@ public class ProcessorEnvironment {
     }
 
     public boolean containsKey(String key) {
-        return (paramMap == null) ? false : paramMap.containsKey(key);
+        return (paramMap != null) && paramMap.containsKey(key);
     }
 
     public Object get(String key) {
@@ -84,7 +84,7 @@ public class ProcessorEnvironment {
     }
 
     public boolean getBooleanValue(String key, String defaultValue) {
-        return Boolean.valueOf((String) get(key, defaultValue)).booleanValue();
+        return Boolean.parseBoolean((String) get(key, defaultValue));
     }
 
     public void put(String key, Object value) {
@@ -102,7 +102,7 @@ public class ProcessorEnvironment {
     }
 
     public boolean optionSet(String key) {
-        return (get(key) == null) ? false : true;
+        return get(key) != null;
     }
 
     public boolean isVerbose() {
@@ -149,7 +149,7 @@ public class ProcessorEnvironment {
     }
 
     public String getCustomizedNS(String ns) {
-        return URIParserUtil.getNamespace(mapPackageName(ns));
+        return PackageUtils.getNamespace(mapPackageName(ns));
     }
 
     public void addJaxbBindingFile(String location, InputSource is) {

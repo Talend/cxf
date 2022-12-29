@@ -23,12 +23,15 @@
     <packaging>bundle</packaging>
     <name>Apache CXF Runtime JavaScript Client Generator Tests</name>
     <description>Apache CXF Runtime JavaScript Client Generator Tests</description>
-    <url>http://cxf.apache.org/</url>
+    <url>https://cxf.apache.org/</url>
     <parent>
         <groupId>org.apache.cxf</groupId>
         <artifactId>cxf-runtime-javascript</artifactId>
-        <version>3.2.5-SNAPSHOT</version>
+        <version>4.0.1-SNAPSHOT</version>
     </parent>
+    <properties>
+        <cxf.module.name>org.apache.cxf.js.tests</cxf.module.name>
+    </properties>
     <dependencies>
         <dependency>
             <groupId>org.apache.cxf</groupId>
@@ -76,8 +79,8 @@
             <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>rhino</groupId>
-            <artifactId>js</artifactId>
+            <groupId>org.mozilla</groupId>
+            <artifactId>rhino</artifactId>
             <scope>test</scope>
         </dependency>
         <dependency>

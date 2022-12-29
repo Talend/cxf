@@ -26,23 +26,26 @@ import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
-import javax.ws.rs.core.EntityTag;
-import javax.ws.rs.core.HttpHeaders;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.MultivaluedMap;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.ResponseBuilder;
-import javax.ws.rs.core.Variant;
-
+import jakarta.ws.rs.core.EntityTag;
+import jakarta.ws.rs.core.HttpHeaders;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.MultivaluedMap;
+import jakarta.ws.rs.core.Response;
+import jakarta.ws.rs.core.Response.ResponseBuilder;
+import jakarta.ws.rs.core.Variant;
 import org.apache.cxf.message.Message;
 import org.apache.cxf.message.MessageImpl;
 
 import org.junit.After;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
-public class RequestImplTest extends Assert {
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertSame;
+
+public class RequestImplTest {
 
     private Message m;
     private MultivaluedMap<String, String> metadata;
@@ -50,7 +53,7 @@ public class RequestImplTest extends Assert {
     @Before
     public void setUp() {
         m = new MessageImpl();
-        metadata = new MetadataMap<String, String>();
+        metadata = new MetadataMap<>();
         m.put(Message.PROTOCOL_HEADERS, metadata);
         m.put(Message.HTTP_REQUEST_METHOD, "GET");
     }
@@ -151,7 +154,7 @@ public class RequestImplTest extends Assert {
         metadata.putSingle(HttpHeaders.ACCEPT_LANGUAGE, "en-us");
         metadata.putSingle(HttpHeaders.ACCEPT_ENCODING, "gzip;q=1.0, compress");
 
-        List<Variant> list = new ArrayList<Variant>();
+        List<Variant> list = new ArrayList<>();
         Variant var1 = new Variant(MediaType.valueOf("a/b"), new Locale("en"), "gzip");
         Variant var2 = new Variant(MediaType.valueOf("x/z"), new Locale("en"), "gzip");
         Variant var3 = new Variant(MediaType.valueOf("e/f+json"), new Locale("en"), "gzip");

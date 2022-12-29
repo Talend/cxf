@@ -20,11 +20,11 @@ package demo.jaxrs.server;
 
 import java.util.HashMap;
 import java.util.Map;
-import javax.ws.rs.GET;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
+import jakarta.ws.rs.GET;
+import jakarta.ws.rs.Path;
+import jakarta.ws.rs.PathParam;
 
-import javax.xml.bind.annotation.XmlRootElement;
+import jakarta.xml.bind.annotation.XmlRootElement;
 
 @XmlRootElement(name = "Order")
 public class Order {
@@ -56,8 +56,7 @@ public class Order {
     @Path("products/{productId}/")
     public Product getProduct(@PathParam("productId")int productId) {
         System.out.println("----invoking getProduct with id: " + productId);
-        Product p = products.get(new Long(productId));
-        return p;
+        return products.get(Long.valueOf(productId));
     }
 
     final void init() {

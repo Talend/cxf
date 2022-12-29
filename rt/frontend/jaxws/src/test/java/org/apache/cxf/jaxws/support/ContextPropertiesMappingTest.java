@@ -23,13 +23,11 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Map;
 
-import javax.activation.DataHandler;
-import javax.activation.DataSource;
-import javax.xml.ws.BindingProvider;
-import javax.xml.ws.handler.MessageContext;
-import javax.xml.ws.handler.MessageContext.Scope;
-
-
+import jakarta.activation.DataHandler;
+import jakarta.activation.DataSource;
+import jakarta.xml.ws.BindingProvider;
+import jakarta.xml.ws.handler.MessageContext;
+import jakarta.xml.ws.handler.MessageContext.Scope;
 import org.apache.cxf.attachment.AttachmentImpl;
 import org.apache.cxf.attachment.ByteDataSource;
 import org.apache.cxf.helpers.CastUtils;
@@ -40,11 +38,15 @@ import org.apache.cxf.message.ExchangeImpl;
 import org.apache.cxf.message.Message;
 import org.apache.cxf.message.MessageImpl;
 
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
-public class ContextPropertiesMappingTest extends Assert {
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+
+public class ContextPropertiesMappingTest {
     private static final String ADDRESS = "test address";
     private static final String REQUEST_METHOD = "GET";
     private static final String HEADER = "header";
@@ -99,7 +101,7 @@ public class ContextPropertiesMappingTest extends Assert {
         Exchange exchange = new ExchangeImpl();
         Message inMessage = new MessageImpl();
 
-        Collection<Attachment> attachments = new LinkedList<Attachment>();
+        Collection<Attachment> attachments = new LinkedList<>();
 
         DataSource source = new ByteDataSource(new byte[0], "text/xml");
 

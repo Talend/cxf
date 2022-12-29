@@ -22,14 +22,18 @@
     <parent>
         <groupId>org.apache.cxf.systests</groupId>
         <artifactId>cxf-systests-cdi-weld</artifactId>
-        <version>3.2.5-SNAPSHOT</version>
+        <version>4.0.1-SNAPSHOT</version>
         <relativePath>../</relativePath>
     </parent>
     <modelVersion>4.0.0</modelVersion>
     <artifactId>cxf-systests-cdi-weld-producers</artifactId>
     <name>Apache CXF CDI Integration System Tests - Weld with producers</name>
     <description>Apache CXF CDI Integration System Tests - Weld with producers</description>
-    <url>http://cxf.apache.org</url>
+    <url>https://cxf.apache.org</url>
+    
+    <properties>
+        <cxf.module.name>org.apache.cxf.systests.cdi.weld.producers</cxf.module.name>
+    </properties>
     
     <dependencies>
         <dependency>
@@ -38,18 +42,16 @@
              <version>${project.version}</version>
         </dependency>
         <dependency>
-             <groupId>org.apache.abdera</groupId>
-             <artifactId>abdera-core</artifactId>
-        </dependency>
-        <dependency>
-             <groupId>org.apache.abdera</groupId>
-             <artifactId>abdera-parser</artifactId>
-        </dependency>
-        <dependency>
             <groupId>org.jboss.weld.se</groupId>
             <artifactId>weld-se-core</artifactId>
             <version>${cxf.jboss.weld.version}</version>
             <scope>test</scope>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.jboss.spec.javax.el</groupId>
+                    <artifactId>jboss-el-api_3.0_spec</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
     </dependencies>
 </project>

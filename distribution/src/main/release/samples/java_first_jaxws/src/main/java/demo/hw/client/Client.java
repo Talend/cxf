@@ -22,8 +22,9 @@ package demo.hw.client;
 import java.util.Map;
 
 import javax.xml.namespace.QName;
-import javax.xml.ws.Service;
-import javax.xml.ws.soap.SOAPBinding;
+
+import jakarta.xml.ws.Service;
+import jakarta.xml.ws.soap.SOAPBinding;
 
 import demo.hw.server.HelloWorld;
 import demo.hw.server.User;
@@ -40,7 +41,7 @@ public final class Client {
     private Client() {
     }
 
-    public static void main(String args[]) throws Exception {
+    public static void main(String[] args) throws Exception {
         Service service = Service.create(SERVICE_NAME);
         // Endpoint Address
         String endpointAddress = "http://localhost:9000/helloWorld";

@@ -18,15 +18,13 @@
  */
 package org.apache.cxf.sts.token.provider;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Properties;
 
-import javax.xml.bind.JAXBElement;
-
 import org.w3c.dom.Element;
 
+import jakarta.xml.bind.JAXBElement;
 import org.apache.cxf.jaxws.context.WrappedMessageContext;
 import org.apache.cxf.message.MessageImpl;
 import org.apache.cxf.rt.security.claims.Claim;
@@ -58,10 +56,14 @@ import org.opensaml.core.xml.XMLObject;
 
 import org.junit.Assert;
 
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+
 /**
  * Some unit tests for creating SAML Tokens with an ActAs element.
  */
-public class SAMLProviderActAsTest extends org.junit.Assert {
+public class SAMLProviderActAsTest {
 
     /**
      * Create a default Saml1 Bearer Assertion with ActAs from a UsernameToken
@@ -89,7 +91,7 @@ public class SAMLProviderActAsTest extends org.junit.Assert {
 
         assertTrue(samlTokenProvider.canHandleToken(WSS4JConstants.WSS_SAML_TOKEN_TYPE));
         TokenProviderResponse providerResponse = samlTokenProvider.createToken(providerParameters);
-        assertTrue(providerResponse != null);
+        assertNotNull(providerResponse);
         assertTrue(providerResponse.getToken() != null && providerResponse.getTokenId() != null);
 
         // Verify the token
@@ -114,7 +116,7 @@ public class SAMLProviderActAsTest extends org.junit.Assert {
             }
         }
 
-        Assert.assertTrue(foundActAsAttribute);
+        assertTrue(foundActAsAttribute);
     }
 
     /**
@@ -137,7 +139,7 @@ public class SAMLProviderActAsTest extends org.junit.Assert {
 
         assertTrue(samlTokenProvider.canHandleToken(WSS4JConstants.WSS_SAML2_TOKEN_TYPE));
         TokenProviderResponse providerResponse = samlTokenProvider.createToken(providerParameters);
-        assertTrue(providerResponse != null);
+        assertNotNull(providerResponse);
         assertTrue(providerResponse.getToken() != null && providerResponse.getTokenId() != null);
 
         // Verify the token
@@ -162,7 +164,7 @@ public class SAMLProviderActAsTest extends org.junit.Assert {
             }
         }
 
-        Assert.assertTrue(foundActAsAttribute);
+        assertTrue(foundActAsAttribute);
     }
 
     /**
@@ -192,7 +194,7 @@ public class SAMLProviderActAsTest extends org.junit.Assert {
 
         assertTrue(samlTokenProvider.canHandleToken(WSS4JConstants.WSS_SAML_TOKEN_TYPE));
         TokenProviderResponse providerResponse = samlTokenProvider.createToken(providerParameters);
-        assertTrue(providerResponse != null);
+        assertNotNull(providerResponse);
         assertTrue(providerResponse.getToken() != null && providerResponse.getTokenId() != null);
 
         Element token = (Element)providerResponse.getToken();
@@ -203,12 +205,11 @@ public class SAMLProviderActAsTest extends org.junit.Assert {
 
         assertFalse(tokenString.contains("CustomActAs"));
 
-        List<AttributeStatementProvider> customProviderList = new ArrayList<>();
-        customProviderList.add(new CustomAttributeProvider());
+        List<AttributeStatementProvider> customProviderList = Collections.singletonList(new CustomAttributeProvider());
         ((SAMLTokenProvider)samlTokenProvider).setAttributeStatementProviders(customProviderList);
 
         providerResponse = samlTokenProvider.createToken(providerParameters);
-        assertTrue(providerResponse != null);
+        assertNotNull(providerResponse);
         assertTrue(providerResponse.getToken() != null && providerResponse.getTokenId() != null);
 
         token = (Element)providerResponse.getToken();
@@ -248,7 +249,7 @@ public class SAMLProviderActAsTest extends org.junit.Assert {
 
         assertTrue(samlTokenProvider.canHandleToken(WSS4JConstants.WSS_SAML2_TOKEN_TYPE));
         TokenProviderResponse providerResponse = samlTokenProvider.createToken(providerParameters);
-        assertTrue(providerResponse != null);
+        assertNotNull(providerResponse);
         assertTrue(providerResponse.getToken() != null && providerResponse.getTokenId() != null);
 
         // Verify the token
@@ -273,7 +274,7 @@ public class SAMLProviderActAsTest extends org.junit.Assert {
             }
         }
 
-        Assert.assertTrue(foundActAsAttribute);
+        assertTrue(foundActAsAttribute);
 
         // Check that claims are also present
         String tokenString = DOM2Writer.nodeToString(token);
@@ -306,7 +307,7 @@ public class SAMLProviderActAsTest extends org.junit.Assert {
 
         assertTrue(samlTokenProvider.canHandleToken(WSS4JConstants.WSS_SAML_TOKEN_TYPE));
         TokenProviderResponse providerResponse = samlTokenProvider.createToken(providerParameters);
-        assertTrue(providerResponse != null);
+        assertNotNull(providerResponse);
         assertTrue(providerResponse.getToken() != null && providerResponse.getTokenId() != null);
 
         // Verify the token
@@ -331,7 +332,7 @@ public class SAMLProviderActAsTest extends org.junit.Assert {
             }
         }
 
-        Assert.assertTrue(foundActAsAttribute);
+        assertTrue(foundActAsAttribute);
 
         // Now get another token "ActAs" the previous token
         providerParameters =
@@ -345,16 +346,13 @@ public class SAMLProviderActAsTest extends org.junit.Assert {
 
         assertTrue(samlTokenProvider.canHandleToken(WSS4JConstants.WSS_SAML2_TOKEN_TYPE));
         providerResponse = samlTokenProvider.createToken(providerParameters);
-        assertTrue(providerResponse != null);
+        assertNotNull(providerResponse);
         assertTrue(providerResponse.getToken() != null && providerResponse.getTokenId() != null);
 
         // Verify the token
         token = (Element)providerResponse.getToken();
         assertion = new SamlAssertionWrapper(token);
         Assert.assertEquals("service-A", assertion.getSubjectName());
-
-        String tokenString = DOM2Writer.nodeToString(token);
-        System.out.println(tokenString);
 
         boolean foundBob = false;
         boolean foundTechnical = false;
@@ -375,8 +373,8 @@ public class SAMLProviderActAsTest extends org.junit.Assert {
             }
         }
 
-        Assert.assertTrue(foundBob);
-        Assert.assertTrue(foundTechnical);
+        assertTrue(foundBob);
+        assertTrue(foundTechnical);
     }
 
     private Element getSAMLAssertion() throws Exception {
@@ -386,7 +384,7 @@ public class SAMLProviderActAsTest extends org.junit.Assert {
         providerParameters.setPrincipal(new CustomTokenPrincipal("bob"));
         assertTrue(samlTokenProvider.canHandleToken(WSS4JConstants.WSS_SAML_TOKEN_TYPE));
         TokenProviderResponse providerResponse = samlTokenProvider.createToken(providerParameters);
-        assertTrue(providerResponse != null);
+        assertNotNull(providerResponse);
         assertTrue(providerResponse.getToken() != null && providerResponse.getTokenId() != null);
 
         return (Element)providerResponse.getToken();

@@ -22,20 +22,23 @@ package org.apache.cxf.systest.jaxb;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-import javax.jws.WebService;
-import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 import javax.xml.namespace.QName;
-import javax.xml.ws.Endpoint;
-import javax.xml.ws.Service;
-import javax.xml.ws.soap.MTOM;
-import javax.xml.ws.soap.SOAPBinding;
 
+import jakarta.jws.WebService;
+import jakarta.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
+import jakarta.xml.ws.Endpoint;
+import jakarta.xml.ws.Service;
+import jakarta.xml.ws.soap.MTOM;
+import jakarta.xml.ws.soap.SOAPBinding;
 import org.apache.cxf.ext.logging.Logging;
 import org.apache.cxf.testutil.common.AbstractBusClientServerTestBase;
 import org.apache.cxf.testutil.common.AbstractBusTestServerBase;
 
 import org.junit.BeforeClass;
 import org.junit.Test;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 /**
  *
@@ -46,7 +49,7 @@ public class MTOMTest extends AbstractBusClientServerTestBase {
 
     public static class ObjectWithHashMapData {
         private String name;
-        private Map<String, byte[]> keyData = new LinkedHashMap<String, byte[]>();
+        private Map<String, byte[]> keyData = new LinkedHashMap<>();
 
         public ObjectWithHashMapData() {
         }
@@ -87,7 +90,7 @@ public class MTOMTest extends AbstractBusClientServerTestBase {
         }
 
         private byte[] generateByteData(int x) {
-            byte bytes[] = new byte[x];
+            byte[] bytes = new byte[x];
             for (int y = 0; y < x; y++) {
                 int z = 'A' + y;
                 if (z > 'z') {
@@ -131,7 +134,7 @@ public class MTOMTest extends AbstractBusClientServerTestBase {
         final int count = 99;
         ObjectWithHashMapData data = port.getHashMapData(count);
         for (int y = 1;  y < count; y++) {
-            byte bytes[] = data.getKeyData().get(Integer.toHexString(y));
+            byte[] bytes = data.getKeyData().get(Integer.toHexString(y));
             assertEquals(y, bytes.length);
         }
     }

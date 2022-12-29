@@ -30,12 +30,11 @@ import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import javax.annotation.Priority;
-import javax.ws.rs.Priorities;
-import javax.ws.rs.container.ContainerRequestContext;
-import javax.ws.rs.container.ContainerRequestFilter;
-import javax.ws.rs.core.Context;
-
+import jakarta.annotation.Priority;
+import jakarta.ws.rs.Priorities;
+import jakarta.ws.rs.container.ContainerRequestContext;
+import jakarta.ws.rs.container.ContainerRequestFilter;
+import jakarta.ws.rs.core.Context;
 import org.apache.cxf.common.logging.LogUtils;
 import org.apache.cxf.common.util.ClassHelper;
 import org.apache.cxf.jaxrs.ext.MessageContext;
@@ -48,13 +47,8 @@ import org.apache.cxf.rs.security.oauth2.utils.OAuthContextUtils;
 public class OAuthScopesFilter implements ContainerRequestFilter {
 
     private static final Logger LOG = LogUtils.getL7dLogger(OAuthScopesFilter.class);
-    private static final Set<String> SKIP_METHODS;
-    static {
-        SKIP_METHODS = new HashSet<>();
-        SKIP_METHODS.addAll(Arrays.asList(
-            new String[] {"wait", "notify", "notifyAll",
-                          "equals", "toString", "hashCode"}));
-    }
+    private static final Set<String> SKIP_METHODS = new HashSet<>(
+            Arrays.asList("wait", "notify", "notifyAll", "equals", "toString", "hashCode"));
 
     @Context
     private MessageContext mc;
@@ -125,7 +119,7 @@ public class OAuthScopesFilter implements ContainerRequestFilter {
         }
         boolean matchAll = scopesMatchAllMap.get(m.getName());
         OAuthContext context = OAuthContextUtils.getContext(mc);
-        List<String> requestScopes = new LinkedList<String>();
+        List<String> requestScopes = new LinkedList<>();
         for (OAuthPermission perm : context.getPermissions()) {
             if (matchAll) {
                 requestScopes.add(perm.getPermission());

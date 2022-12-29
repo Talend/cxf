@@ -32,8 +32,8 @@
   		       http://www.springframework.org/schema/beans/spring-beans.xsd"
            elementFormDefault="qualified" 
            attributeFormDefault="unqualified"
-           xmlns:jaxb="http://java.sun.com/xml/ns/jaxb"
-           jaxb:version="2.0">
+           xmlns:jaxb="https://jakarta.ee/xml/ns/jaxb"
+           jaxb:version="3.0">
 
     <xs:import namespace="http://cxf.apache.org/configuration/security"
                schemaLocation="http://cxf.apache.org/schemas/configuration/security.xsd"/>
@@ -126,6 +126,7 @@
          <xs:element name="connector" type="xsd:anyType" minOccurs="0"/>
          <xs:element name="handlers" type="xsd:anyType" minOccurs="0"/>
          <xs:element name="sessionSupport" type="ptp:ParameterizedBoolean" minOccurs="0"/>
+         <xs:element name="sessionTimeout" type="xs:int" minOccurs="0"/>
          <xs:element name="reuseAddress" type="ptp:ParameterizedBoolean" minOccurs="0" />          
        </xs:sequence>
        

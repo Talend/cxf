@@ -24,10 +24,15 @@ import java.net.URL;
 
 import org.apache.cxf.helpers.IOUtils;
 
-import org.junit.Assert;
 import org.junit.Test;
 
-public class URIResolverTest extends Assert {
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+
+public class URIResolverTest {
 
     private URIResolver uriResolver;
 
@@ -39,15 +44,13 @@ public class URIResolverTest extends Assert {
     public void testJARProtocol() throws Exception {
         uriResolver = new URIResolver();
 
-        byte[] barray = new byte[]{0};
-        byte[] barray2 = new byte[]{1};
         String uriStr = "jar:" + resourceURL.toString() + "!/wsdl/hello_world.wsdl";
 
         // Check standard Java API's work with "jar:"
         URL jarURL = new URL(uriStr);
         InputStream is = jarURL.openStream();
         assertNotNull(is);
-        barray = new byte[is.available()];
+        byte[] barray = new byte[is.available()];
         is.read(barray);
         is.close();
 
@@ -55,7 +58,7 @@ public class URIResolverTest extends Assert {
 
         InputStream is2 = uriResolver.getInputStream();
         assertNotNull(is2);
-        barray2 = new byte[is2.available()];
+        byte[] barray2 = new byte[is2.available()];
         is2.read(barray2);
         is2.close();
         assertEquals(IOUtils.newStringFromBytes(barray), IOUtils.newStringFromBytes(barray2));

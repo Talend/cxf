@@ -21,8 +21,7 @@ package org.apache.cxf.rs.security.oauth2.client;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-import javax.ws.rs.core.MultivaluedMap;
-
+import jakarta.ws.rs.core.MultivaluedMap;
 import org.apache.cxf.jaxrs.ext.MessageContext;
 import org.apache.cxf.jaxrs.impl.MetadataMap;
 import org.apache.cxf.rs.security.oauth2.provider.OAuthServiceException;
@@ -33,7 +32,7 @@ import org.apache.cxf.rt.security.crypto.MessageDigestUtils;
 
 public class MemoryClientCodeStateManager implements ClientCodeStateManager {
     private Map<String, MultivaluedMap<String, String>> map =
-            new ConcurrentHashMap<String, MultivaluedMap<String, String>>();
+            new ConcurrentHashMap<>();
 
     private boolean generateNonce;
 
@@ -41,10 +40,10 @@ public class MemoryClientCodeStateManager implements ClientCodeStateManager {
     public MultivaluedMap<String, String> toRedirectState(MessageContext mc,
                                                           MultivaluedMap<String, String> requestState) {
         String stateParam = OAuthUtils.generateRandomTokenKey();
-        MultivaluedMap<String, String> redirectMap = new MetadataMap<String, String>();
+        MultivaluedMap<String, String> redirectMap = new MetadataMap<>();
 
         if (generateNonce) {
-            String nonceParam = MessageDigestUtils.generate(CryptoUtils.generateSecureRandomBytes(16));
+            String nonceParam = MessageDigestUtils.generate(CryptoUtils.generateSecureRandomBytes(32));
             requestState.putSingle(OAuthConstants.NONCE, nonceParam);
             redirectMap.putSingle(OAuthConstants.NONCE, nonceParam);
         }

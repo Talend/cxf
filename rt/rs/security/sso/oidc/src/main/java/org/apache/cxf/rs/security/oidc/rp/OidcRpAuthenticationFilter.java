@@ -22,18 +22,17 @@ import java.io.ByteArrayInputStream;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
 
-import javax.annotation.Priority;
-import javax.ws.rs.Priorities;
-import javax.ws.rs.container.ContainerRequestContext;
-import javax.ws.rs.container.ContainerRequestFilter;
-import javax.ws.rs.container.PreMatching;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.HttpHeaders;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.MultivaluedMap;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.UriBuilder;
-
+import jakarta.annotation.Priority;
+import jakarta.ws.rs.Priorities;
+import jakarta.ws.rs.container.ContainerRequestContext;
+import jakarta.ws.rs.container.ContainerRequestFilter;
+import jakarta.ws.rs.container.PreMatching;
+import jakarta.ws.rs.core.Context;
+import jakarta.ws.rs.core.HttpHeaders;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.MultivaluedMap;
+import jakarta.ws.rs.core.Response;
+import jakarta.ws.rs.core.UriBuilder;
 import org.apache.cxf.common.util.StringUtils;
 import org.apache.cxf.jaxrs.ext.MessageContext;
 import org.apache.cxf.jaxrs.ext.MessageContextImpl;
@@ -60,7 +59,7 @@ public class OidcRpAuthenticationFilter implements ContainerRequestFilter {
         if (checkSecurityContext(rc)) {
             return;
         } else if (redirectUri != null) {
-            UriBuilder redirectBuilder = null;
+            final UriBuilder redirectBuilder;
             if (redirectUri.startsWith("/")) {
                 String basePath = (String)mc.get("http.base.path");
                 redirectBuilder = UriBuilder.fromUri(basePath).path(redirectUri);
@@ -107,7 +106,7 @@ public class OidcRpAuthenticationFilter implements ContainerRequestFilter {
         return true;
     }
     private MultivaluedMap<String, String> toRequestState(ContainerRequestContext rc) {
-        MultivaluedMap<String, String> requestState = new MetadataMap<String, String>();
+        MultivaluedMap<String, String> requestState = new MetadataMap<>();
         requestState.putAll(rc.getUriInfo().getQueryParameters(true));
         if (MediaType.APPLICATION_FORM_URLENCODED_TYPE.isCompatible(rc.getMediaType())) {
             String body = FormUtils.readBody(rc.getEntityStream(), StandardCharsets.UTF_8.name());

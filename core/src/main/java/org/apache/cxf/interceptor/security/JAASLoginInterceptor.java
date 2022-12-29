@@ -33,7 +33,6 @@ import javax.security.auth.login.LoginContext;
 import javax.security.auth.login.LoginException;
 
 import org.apache.cxf.common.logging.LogUtils;
-import org.apache.cxf.interceptor.Fault;
 import org.apache.cxf.interceptor.InterceptorChain;
 import org.apache.cxf.interceptor.security.callback.CallbackHandlerProvider;
 import org.apache.cxf.interceptor.security.callback.CallbackHandlerProviderAuthPol;
@@ -78,6 +77,10 @@ public class JAASLoginInterceptor extends AbstractPhaseInterceptor<Message> {
         return contextName;
     }
 
+    /**
+     * @deprecated replaced by {@link #setRoleClassifier(String)}
+     * @param name
+     */
     @Deprecated
     public void setRolePrefix(String name) {
         setRoleClassifier(name);
@@ -121,7 +124,7 @@ public class JAASLoginInterceptor extends AbstractPhaseInterceptor<Message> {
         return null;
     }
 
-    public void handleMessage(final Message message) throws Fault {
+    public void handleMessage(final Message message) {
         if (allowNamedPrincipals) {
             SecurityContext sc = message.get(SecurityContext.class);
             if (sc != null && sc.getUserPrincipal() != null
@@ -152,6 +155,7 @@ public class JAASLoginInterceptor extends AbstractPhaseInterceptor<Message> {
                     public Void run() {
                         InterceptorChain chain = message.getInterceptorChain();
                         if (chain != null) {
+                            message.put("suspend.chain.on.current.interceptor", Boolean.TRUE);
                             chain.doIntercept(message);
                         }
                         return null;

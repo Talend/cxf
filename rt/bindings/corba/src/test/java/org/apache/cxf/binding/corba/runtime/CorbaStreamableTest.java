@@ -30,12 +30,15 @@ import org.omg.CORBA.portable.InputStream;
 import org.omg.CORBA.portable.OutputStream;
 
 import org.junit.After;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
-public class CorbaStreamableTest extends Assert {
+
+public class CorbaStreamableTest {
 
     private static ORB orb;
 
@@ -88,7 +91,7 @@ public class CorbaStreamableTest extends Assert {
         assertTrue(mode == org.omg.CORBA.ARG_OUT.value);
 
         String name = streamable.getName();
-        assertTrue(name.equals(objName.getLocalPart()));
+        assertEquals(name, objName.getLocalPart());
     }
 
     @Test

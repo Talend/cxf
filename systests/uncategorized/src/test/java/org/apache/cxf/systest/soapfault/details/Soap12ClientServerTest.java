@@ -25,8 +25,8 @@ import java.net.MalformedURLException;
 import java.net.URL;
 
 import javax.xml.namespace.QName;
-import javax.xml.ws.soap.SOAPFaultException;
 
+import jakarta.xml.ws.soap.SOAPFaultException;
 import org.apache.cxf.testutil.common.AbstractBusClientServerTestBase;
 import org.apache.hello_world_soap12_http.Greeter;
 import org.apache.hello_world_soap12_http.PingMeFault;
@@ -35,6 +35,11 @@ import org.apache.hello_world_soap12_http.types.FaultDetail;
 
 import org.junit.BeforeClass;
 import org.junit.Test;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 public class Soap12ClientServerTest extends AbstractBusClientServerTestBase {
     public static final String PORT = Server12.PORT;

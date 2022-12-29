@@ -20,17 +20,19 @@
 package org.apache.cxf.ws.security.wss4j.policyvalidators;
 
 import java.util.ArrayList;
-import java.util.Base64;
 import java.util.Collection;
 import java.util.List;
+import java.util.logging.Logger;
 
 import javax.xml.namespace.QName;
 
+import org.apache.cxf.common.logging.LogUtils;
 import org.apache.cxf.ws.policy.AssertionInfo;
 import org.apache.cxf.ws.policy.AssertionInfoMap;
 import org.apache.cxf.ws.security.SecurityConstants;
 import org.apache.cxf.ws.security.policy.PolicyUtils;
 import org.apache.cxf.ws.security.tokenstore.SecurityToken;
+import org.apache.cxf.ws.security.tokenstore.TokenStoreException;
 import org.apache.cxf.ws.security.tokenstore.TokenStoreUtils;
 import org.apache.wss4j.common.ext.WSSecurityException;
 import org.apache.wss4j.common.token.BinarySecurity;
@@ -43,12 +45,15 @@ import org.apache.wss4j.policy.SP12Constants;
 import org.apache.wss4j.policy.SPConstants;
 import org.apache.wss4j.policy.model.KerberosToken;
 import org.apache.wss4j.policy.model.KerberosToken.ApReqTokenType;
+import org.apache.xml.security.utils.XMLUtils;
 
 /**
  * Validate a WSSecurityEngineResult corresponding to the processing of a Kerberos Token
  * against the appropriate policy.
  */
 public class KerberosTokenPolicyValidator extends AbstractSecurityPolicyValidator {
+
+    private static final Logger LOG = LogUtils.getL7dLogger(KerberosTokenPolicyValidator.class);
 
     /**
      * Return true if this SecurityPolicyValidator implementation is capable of validating a
@@ -101,7 +106,11 @@ public class KerberosTokenPolicyValidator extends AbstractSecurityPolicyValidato
             if (asserted) {
                 SecurityToken token = createSecurityToken(kerberosToken);
                 token.setSecret((byte[])kerberosResult.get(WSSecurityEngineResult.TAG_SECRET));
-                TokenStoreUtils.getTokenStore(parameters.getMessage()).add(token);
+                try {
+                    TokenStoreUtils.getTokenStore(parameters.getMessage()).add(token);
+                } catch (TokenStoreException ex) {
+                    LOG.warning(ex.getMessage());
+                }
                 parameters.getMessage().getExchange().put(SecurityConstants.TOKEN_ID, token.getId());
                 return;
             }
@@ -162,7 +171,7 @@ public class KerberosTokenPolicyValidator extends AbstractSecurityPolicyValidato
         token.setTokenType(binarySecurityToken.getValueType());
         byte[] tokenBytes = binarySecurityToken.getToken();
         try {
-            token.setSHA1(Base64.getMimeEncoder().encodeToString(KeyUtils.generateDigest(tokenBytes)));
+            token.setSHA1(XMLUtils.encodeToString(KeyUtils.generateDigest(tokenBytes)));
         } catch (WSSecurityException e) {
             // Just consume this for now as it isn't critical...
         }

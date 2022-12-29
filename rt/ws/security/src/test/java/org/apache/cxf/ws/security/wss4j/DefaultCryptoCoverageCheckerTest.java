@@ -36,6 +36,9 @@ import org.apache.wss4j.common.ConfigurationConstants;
 
 import org.junit.Test;
 
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+
 /**
  * Test the DefaultCryptoCoverageChecker, which extends the CryptoCoverageChecker to provide
  * an easier way to check to see if the SOAP (1.1 + 1.2) Body was signed and/or encrypted, if
@@ -123,7 +126,7 @@ public class DefaultCryptoCoverageCheckerTest extends AbstractSecurityTest {
 
     private PhaseInterceptor<SoapMessage> getWss4jInInterceptor() {
         final WSS4JInInterceptor inHandler = new WSS4JInInterceptor(true);
-        final String action = ConfigurationConstants.SIGNATURE + " " + ConfigurationConstants.ENCRYPT;
+        final String action = ConfigurationConstants.SIGNATURE + " " + ConfigurationConstants.ENCRYPTION;
 
         inHandler.setProperty(ConfigurationConstants.ACTION, action);
         inHandler.setProperty(ConfigurationConstants.SIG_VER_PROP_FILE,

@@ -22,13 +22,16 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.UUID;
 
-import javax.jws.WebMethod;
-import javax.jws.WebService;
-
+import jakarta.annotation.Resource;
+import jakarta.jws.WebMethod;
+import jakarta.jws.WebService;
+import jakarta.xml.ws.WebServiceContext;
+import jakarta.xml.ws.handler.MessageContext;
 import org.apache.cxf.systest.Book;
 import org.apache.cxf.systest.jaxws.tracing.BookStoreService;
 
-import io.opentracing.ActiveSpan;
+import io.opentracing.Scope;
+import io.opentracing.Span;
 import io.opentracing.Tracer;
 import io.opentracing.util.GlobalTracer;
 
@@ -36,22 +39,34 @@ import io.opentracing.util.GlobalTracer;
 public class BookStore implements BookStoreService {
     private final Tracer tracer;
 
+    @Resource
+    private WebServiceContext context;
+    
     public BookStore() {
         tracer = GlobalTracer.get();
     }
 
     @WebMethod
-    public Collection< Book > getBooks() {
-        try (ActiveSpan span = tracer.buildSpan("Get Books").startActive()) {
+    public Collection<Book> getBooks() {
+        final Span span = tracer.buildSpan("Get Books").start();
+        try (Scope scope = tracer.activateSpan(span)) {
             return Arrays.asList(
                     new Book("Apache CXF in Action", UUID.randomUUID().toString()),
                     new Book("Mastering Apache CXF", UUID.randomUUID().toString())
                 );
+        } finally {
+            span.finish();
         }
     }
 
     @WebMethod
     public int removeBooks() {
         throw new RuntimeException("Unable to remove books");
+    }
+    
+    @WebMethod
+    public void addBooks() {
+        final MessageContext ctx = context.getMessageContext();
+        ctx.put(MessageContext.HTTP_RESPONSE_CODE, 202);
     }
 }

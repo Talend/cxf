@@ -29,22 +29,22 @@ import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.JAXBElement;
-import javax.xml.bind.JAXBException;
 import javax.xml.namespace.QName;
-import javax.xml.ws.AsyncHandler;
-import javax.xml.ws.BindingProvider;
-import javax.xml.ws.Dispatch;
-import javax.xml.ws.EndpointReference;
-import javax.xml.ws.Holder;
-import javax.xml.ws.Response;
-import javax.xml.ws.Service;
-import javax.xml.ws.soap.AddressingFeature;
-import javax.xml.ws.soap.SOAPBinding;
-import javax.xml.ws.wsaddressing.W3CEndpointReference;
-import javax.xml.ws.wsaddressing.W3CEndpointReferenceBuilder;
 
+import jakarta.xml.bind.JAXBContext;
+import jakarta.xml.bind.JAXBElement;
+import jakarta.xml.bind.JAXBException;
+import jakarta.xml.ws.AsyncHandler;
+import jakarta.xml.ws.BindingProvider;
+import jakarta.xml.ws.Dispatch;
+import jakarta.xml.ws.EndpointReference;
+import jakarta.xml.ws.Holder;
+import jakarta.xml.ws.Response;
+import jakarta.xml.ws.Service;
+import jakarta.xml.ws.soap.AddressingFeature;
+import jakarta.xml.ws.soap.SOAPBinding;
+import jakarta.xml.ws.wsaddressing.W3CEndpointReference;
+import jakarta.xml.ws.wsaddressing.W3CEndpointReferenceBuilder;
 import org.apache.cxf.Bus;
 import org.apache.cxf.BusFactory;
 import org.apache.cxf.common.jaxb.JAXBContextCache;
@@ -146,7 +146,6 @@ public class WSDiscoveryClient implements Closeable {
 
     /**
      * WS-Discovery will use SOAP 1.2 by default.  This allows forcing the use of SOAP 1.1.
-     * @param do11
      */
     public void setSoapVersion11() {
         setSoapVersion(true);
@@ -215,8 +214,7 @@ public class WSDiscoveryClient implements Closeable {
             if (StringUtils.isEmpty(uri.getHost())) {
                 adHoc = true;
             } else {
-                InetSocketAddress isa = null;
-                isa = new InetSocketAddress(uri.getHost(), uri.getPort());
+                InetSocketAddress isa = new InetSocketAddress(uri.getHost(), uri.getPort());
                 if (isa.getAddress().isMulticastAddress()) {
                     adHoc = true;
                 }
@@ -233,7 +231,7 @@ public class WSDiscoveryClient implements Closeable {
             dispatch.getRequestContext().put("thread.local.request.context", Boolean.TRUE);
             version.addVersionTransformer(dispatch);
         }
-        addAddressing(dispatch, false, action);
+        addAddressing(dispatch, addSeq, action);
         return dispatch;
     }
     private void addAddressing(BindingProvider p, boolean addSeq, String action) {
@@ -277,9 +275,10 @@ public class WSDiscoveryClient implements Closeable {
         }
         service = null;
     }
+    @SuppressWarnings("deprecation")
     protected void finalize() throws Throwable {
-        super.finalize();
         close();
+        super.finalize();
     }
 
     /**
@@ -376,9 +375,7 @@ public class WSDiscoveryClient implements Closeable {
                                 resetDispatch(h.getXAddrs().get(0));
                             }
                         }
-                    } catch (InterruptedException e) {
-                        // ?
-                    } catch (ExecutionException e) {
+                    } catch (InterruptedException | ExecutionException e) {
                         // ?
                     }
                 }
@@ -402,7 +399,7 @@ public class WSDiscoveryClient implements Closeable {
         rt.setEndpointReference(ref);
         if (adHoc) {
             disp.getRequestContext().put("udp.multi.response.timeout", timeout);
-            final Holder<ResolveMatchesType> response = new Holder<ResolveMatchesType>();
+            final Holder<ResolveMatchesType> response = new Holder<>();
             AsyncHandler<Object> handler = new AsyncHandler<Object>() {
                 public void handleResponse(Response<Object> res) {
                     try {
@@ -422,9 +419,7 @@ public class WSDiscoveryClient implements Closeable {
                                 resetDispatch(h.getXAddrs().get(0));
                             }
                         }
-                    } catch (InterruptedException e) {
-                        // ?
-                    } catch (ExecutionException e) {
+                    } catch (InterruptedException | ExecutionException e) {
                         // ?
                     }
                 }

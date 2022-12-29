@@ -23,6 +23,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
+import java.lang.reflect.InvocationTargetException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -34,6 +35,7 @@ import javax.xml.stream.XMLStreamReader;
 
 import org.apache.cxf.common.classloader.ClassLoaderUtils;
 import org.apache.cxf.common.logging.LogUtils;
+import org.apache.cxf.common.util.PropertyUtils;
 import org.apache.cxf.common.util.StringUtils;
 import org.apache.cxf.helpers.CastUtils;
 import org.apache.cxf.helpers.HttpHeaderHelper;
@@ -82,7 +84,7 @@ public class StaxInInterceptor extends AbstractPhaseInterceptor<Message> {
                 if (reader == null) {
                     reader = new InputStreamReader(is, (String)message.get(Message.ENCODING));
                 }
-                char s[] = new char[1024];
+                char[] s = new char[1024];
                 int i = reader.read(s);
                 while (htmlMessage.length() < 64536 && i > 0) {
                     htmlMessage.append(s, 0, i);
@@ -127,11 +129,19 @@ public class StaxInInterceptor extends AbstractPhaseInterceptor<Message> {
                     xreader = StaxUtils.createXMLStreamReader(is, encoding);
                 }
             } else {
-                synchronized (factory) {
+                if (PropertyUtils.isTrue(message.getContextualProperty(Message.THREAD_SAFE_STAX_FACTORIES))) {
                     if (reader != null) {
                         xreader = factory.createXMLStreamReader(reader);
                     } else {
                         xreader = factory.createXMLStreamReader(is, encoding);
+                    }
+                } else {
+                    synchronized (factory) {
+                        if (reader != null) {
+                            xreader = factory.createXMLStreamReader(reader);
+                        } else {
+                            xreader = factory.createXMLStreamReader(is, encoding);
+                        }
                     }
                 }
             }
@@ -146,7 +156,10 @@ public class StaxInInterceptor extends AbstractPhaseInterceptor<Message> {
     }
 
 
-    public static XMLInputFactory getXMLInputFactory(Message m) throws Fault {
+    /**
+     * @throws Fault
+     */
+    public static XMLInputFactory getXMLInputFactory(Message m) {
         Object o = m.getContextualProperty(XMLInputFactory.class.getName());
         if (o instanceof XMLInputFactory) {
             return (XMLInputFactory)o;
@@ -169,11 +182,10 @@ public class StaxInInterceptor extends AbstractPhaseInterceptor<Message> {
                 }
 
                 try {
-                    xif = (XMLInputFactory)(cls.newInstance());
+                    xif = (XMLInputFactory)(cls.getDeclaredConstructor().newInstance());
                     factories.put(o, xif);
-                } catch (InstantiationException e) {
-                    throw new Fault(e);
-                } catch (IllegalAccessException e) {
+                } catch (InstantiationException | IllegalAccessException | IllegalArgumentException
+                         | InvocationTargetException | NoSuchMethodException | SecurityException e) {
                     throw new Fault(e);
                 }
             }

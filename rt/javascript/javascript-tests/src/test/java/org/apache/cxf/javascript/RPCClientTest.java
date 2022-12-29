@@ -35,6 +35,10 @@ import org.springframework.context.support.GenericApplicationContext;
 import org.junit.Before;
 import org.junit.Test;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+
 /*
  * We end up here with a part with isElement == true, a non-array element,
  * but a complex type for an array of the element.
@@ -76,7 +80,7 @@ public class RPCClientTest extends JavascriptRhinoTest {
             testUtilities.rhinoCallConvert("simpleTest", Notifier.class,
                                            testUtilities.javaToJS(getAddress()),
                                            "String Parameter",
-                                           testUtilities.javaToJS(new Integer(1776)));
+                                           testUtilities.javaToJS(Integer.valueOf(1776)));
 
         boolean notified = notifier.waitForJavascript(1000 * 10);
         assertTrue(notified);

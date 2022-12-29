@@ -26,7 +26,6 @@ import java.util.Collection;
 
 import org.apache.cxf.common.injection.NoJSR250Annotations;
 import org.apache.cxf.common.util.StringUtils;
-import org.apache.cxf.ext.logging.event.DefaultLogEventMapper;
 import org.apache.cxf.ext.logging.event.LogEvent;
 import org.apache.cxf.ext.logging.event.LogEventSender;
 import org.apache.cxf.ext.logging.event.PrintWriterEventSender;
@@ -44,6 +43,8 @@ import org.apache.cxf.phase.PhaseInterceptor;
  */
 @NoJSR250Annotations
 public class LoggingInInterceptor extends AbstractLoggingInterceptor {
+    
+      
     class LoggingInFaultInterceptor extends AbstractPhaseInterceptor<Message> {
         LoggingInFaultInterceptor() {
             super(Phase.RECEIVE);
@@ -58,6 +59,7 @@ public class LoggingInInterceptor extends AbstractLoggingInterceptor {
             LoggingInInterceptor.this.handleMessage(message);
         }
     }
+
 
     public LoggingInInterceptor() {
         this(new Slf4jVerboseEventSender());
@@ -81,14 +83,24 @@ public class LoggingInInterceptor extends AbstractLoggingInterceptor {
     public void handleMessage(Message message) throws Fault {
         if (isLoggingDisabledNow(message)) {
             return;
+        } else {
+            //ensure only logging once for a certain message
+            //this can prevent message logging again when fault
+            //happen after PRE_INVOKE phase(rewind calls into LoggingInFaultInterceptor)
+            message.put(LIVE_LOGGING_PROP, Boolean.FALSE);
         }
         createExchangeId(message);
-        final LogEvent event = new DefaultLogEventMapper().map(message);
+        final LogEvent event = eventMapper.map(message, sensitiveProtocolHeaderNames);
         if (shouldLogContent(event)) {
             addContent(message, event);
         } else {
             event.setPayload(AbstractLoggingInterceptor.CONTENT_SUPPRESSED);
         }
+        String maskedContent = maskSensitiveElements(message, event.getPayload());
+        if (!logBinary) {
+            maskedContent = stripBinaryParts(event, maskedContent);
+        }
+        event.setPayload(transform(message, maskedContent));
         sender.send(event);
     }
 
@@ -126,6 +138,7 @@ public class LoggingInInterceptor extends AbstractLoggingInterceptor {
         boolean isTruncated = writer.size() > limit && limit != -1;
         StringBuilder payload = new StringBuilder();
         writer.writeCacheTo(payload, limit);
+        writer.close();
         event.setPayload(payload.toString());
         event.setTruncated(isTruncated);
         event.setFullContentFile(writer.getTempFile());

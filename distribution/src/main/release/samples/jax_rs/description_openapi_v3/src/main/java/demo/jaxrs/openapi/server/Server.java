@@ -19,7 +19,7 @@
 
 package demo.jaxrs.openapi.server;
 
-import com.fasterxml.jackson.jaxrs.json.JacksonJsonProvider;
+import com.fasterxml.jackson.jakarta.rs.json.JacksonJsonProvider;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.cxf.jaxrs.openapi.OpenApiFeature;
@@ -53,7 +53,7 @@ public class Server {
         server.join();
     }
 
-    public static void main(String args[]) throws Exception {
+    public static void main(String[] args) throws Exception {
         new Server();
         System.out.println("Server ready...");
 

@@ -31,17 +31,16 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import javax.annotation.PostConstruct;
-import javax.annotation.PreDestroy;
-import javax.annotation.Resource;
-import javax.annotation.Resources;
-
-
+import jakarta.annotation.PostConstruct;
+import jakarta.annotation.PreDestroy;
+import jakarta.annotation.Resource;
+import jakarta.annotation.Resources;
 import org.apache.cxf.common.annotation.AbstractAnnotationVisitor;
 import org.apache.cxf.common.annotation.AnnotationProcessor;
 import org.apache.cxf.common.logging.LogUtils;
 import org.apache.cxf.common.util.ClassHelper;
 import org.apache.cxf.common.util.ReflectionUtil;
+import org.apache.cxf.common.util.StringUtils;
 import org.apache.cxf.resource.ResourceManager;
 import org.apache.cxf.resource.ResourceResolver;
 
@@ -53,8 +52,7 @@ import org.apache.cxf.resource.ResourceResolver;
 public class ResourceInjector extends AbstractAnnotationVisitor {
 
     private static final Logger LOG = LogUtils.getL7dLogger(ResourceInjector.class);
-    private static final List<Class<? extends Annotation>> ANNOTATIONS =
-        new ArrayList<Class<? extends Annotation>>();
+    private static final List<Class<? extends Annotation>> ANNOTATIONS = new ArrayList<>();
 
     static {
         ANNOTATIONS.add(Resource.class);
@@ -92,7 +90,7 @@ public class ResourceInjector extends AbstractAnnotationVisitor {
 
     public static boolean processable(Class<?> cls, Object o) {
         if (cls.getName().startsWith("java.")
-            || cls.getName().startsWith("javax.")) {
+            || cls.getName().startsWith("jakarta.")) {
             return false;
         }
         NoJSR250Annotations njsr = cls.getAnnotation(NoJSR250Annotations.class);
@@ -148,6 +146,7 @@ public class ResourceInjector extends AbstractAnnotationVisitor {
 
     // Implementation of org.apache.cxf.common.annotation.AnnotationVisitor
 
+    @Override
     public final void visitClass(final Class<?> clz, final Annotation annotation) { //NOPMD
 
         assert annotation instanceof Resource || annotation instanceof Resources : annotation;
@@ -169,7 +168,7 @@ public class ResourceInjector extends AbstractAnnotationVisitor {
             return;
         }
 
-        Object resource = null;
+        Object resource;
         // first find a setter that matches this resource
         Method setter = findSetterForResource(res);
         if (setter != null) {
@@ -278,12 +277,9 @@ public class ResourceInjector extends AbstractAnnotationVisitor {
         return setterMethod;
     }
 
-
-    private String resourceNameToSetter(String resName) {
-
-        return "set" + Character.toUpperCase(resName.charAt(0)) + resName.substring(1);
+    private static String resourceNameToSetter(String resName) {
+        return "set" + StringUtils.capitalize(resName);
     }
-
 
     private void invokeSetter(Method method, Object resource) {
         try {
@@ -297,9 +293,7 @@ public class ResourceInjector extends AbstractAnnotationVisitor {
             }
         } catch (IllegalAccessException e) {
             LOG.log(Level.SEVERE, "INJECTION_SETTER_NOT_VISIBLE", method);
-        } catch (InvocationTargetException e) {
-            LogUtils.log(LOG, Level.SEVERE, "INJECTION_SETTER_RAISED_EXCEPTION", e, method);
-        } catch (SecurityException e) {
+        } catch (InvocationTargetException | SecurityException e) {
             LogUtils.log(LOG, Level.SEVERE, "INJECTION_SETTER_RAISED_EXCEPTION", e, method);
         } catch (NoSuchMethodException e) {
             LOG.log(Level.SEVERE, "INJECTION_SETTER_METHOD_NOT_FOUND", new Object[] {method.getName()});
@@ -311,15 +305,13 @@ public class ResourceInjector extends AbstractAnnotationVisitor {
         assert res != null;
         assert method.getName().startsWith("set") : method;
 
-        if (res.name() == null || "".equals(res.name())) {
+        if (res.name() == null || res.name().isEmpty()) {
             String name = method.getName().substring(3);
             name = Character.toLowerCase(name.charAt(0)) + name.substring(1);
-            return method.getDeclaringClass().getCanonicalName() + "/" + name;
+            return method.getDeclaringClass().getCanonicalName() + '/' + name;
         }
         return res.name();
     }
-
-
 
     private void injectField(Field field, Object resource) {
         assert field != null;
@@ -339,9 +331,7 @@ public class ResourceInjector extends AbstractAnnotationVisitor {
         }
     }
 
-
     public void invokePostConstruct() {
-
         boolean accessible = false;
         for (Method method : getPostConstructMethods()) {
             PostConstruct pc = method.getAnnotation(PostConstruct.class);
@@ -361,7 +351,6 @@ public class ResourceInjector extends AbstractAnnotationVisitor {
     }
 
     public void invokePreDestroy() {
-
         boolean accessible = false;
         for (Method method : getPreDestroyMethods()) {
             PreDestroy pd = method.getAnnotation(PreDestroy.class);
@@ -391,7 +380,7 @@ public class ResourceInjector extends AbstractAnnotationVisitor {
 
     private Collection<Method> getAnnotatedMethods(Class<? extends Annotation> acls) {
 
-        Collection<Method> methods = new LinkedList<Method>();
+        Collection<Method> methods = new LinkedList<>();
         addAnnotatedMethods(acls, getTarget().getClass().getMethods(), methods);
         addAnnotatedMethods(acls, ReflectionUtil.getDeclaredMethods(getTarget().getClass()), methods);
         if (getTargetClass() != getTarget().getClass()) {

@@ -24,9 +24,9 @@ import java.util.Arrays;
 import java.util.Collection;
 
 import javax.xml.namespace.QName;
-import javax.xml.ws.BindingProvider;
-import javax.xml.ws.Service;
 
+import jakarta.xml.ws.BindingProvider;
+import jakarta.xml.ws.Service;
 import org.apache.cxf.Bus;
 import org.apache.cxf.BusFactory;
 import org.apache.cxf.bus.spring.SpringBusFactory;
@@ -41,6 +41,10 @@ import org.example.schema.doubleit.DoubleIt3;
 import org.junit.BeforeClass;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized.Parameters;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 /**
  * This is a test for various Required/Signed/Encrypted Parts/Elements.
@@ -76,18 +80,17 @@ public class PartsTest extends AbstractBusClientServerTestBase {
     }
 
     @Parameters(name = "{0}")
-    public static Collection<TestParam[]> data() {
+    public static Collection<TestParam> data() {
 
-        return Arrays.asList(new TestParam[][] {{new TestParam(PORT, false)},
-                                                {new TestParam(PORT, true)},
-                                                {new TestParam(STAX_PORT, false)},
-                                                {new TestParam(STAX_PORT, true)},
+        return Arrays.asList(new TestParam[] {new TestParam(PORT, false),
+                                              new TestParam(PORT, true),
+                                              new TestParam(STAX_PORT, false),
+                                              new TestParam(STAX_PORT, true),
         });
     }
 
     @org.junit.AfterClass
     public static void cleanup() throws Exception {
-        SecurityTestUtil.cleanup();
         stopAllServers();
     }
 
@@ -116,7 +119,7 @@ public class PartsTest extends AbstractBusClientServerTestBase {
         try {
             port.doubleIt(25);
             fail("Failure expected on a required header which isn't present");
-        } catch (javax.xml.ws.soap.SOAPFaultException ex) {
+        } catch (jakarta.xml.ws.soap.SOAPFaultException ex) {
             String error = "RequiredParts: No header element";
             assertTrue(ex.getMessage().contains(error)
                        || ex.getMessage().contains("ToTo must be present"));
@@ -162,7 +165,7 @@ public class PartsTest extends AbstractBusClientServerTestBase {
         try {
             port.doubleIt(25);
             fail("Failure expected on a required header which isn't present");
-        } catch (javax.xml.ws.soap.SOAPFaultException ex) {
+        } catch (jakarta.xml.ws.soap.SOAPFaultException ex) {
             String error = "RequiredParts: No header element";
             assertTrue(ex.getMessage().contains(error) || ex.getMessage().contains("ToTo"));
         }
@@ -207,7 +210,7 @@ public class PartsTest extends AbstractBusClientServerTestBase {
         try {
             port.doubleIt(25);
             fail("Failure expected on a required header which isn't present");
-        } catch (javax.xml.ws.soap.SOAPFaultException ex) {
+        } catch (jakarta.xml.ws.soap.SOAPFaultException ex) {
             String error = "RequiredElements: No header element";
             assertTrue(ex.getMessage().contains(error)
                        || ex.getMessage().contains("ToTo must be present"));
@@ -253,7 +256,7 @@ public class PartsTest extends AbstractBusClientServerTestBase {
         try {
             port.doubleIt(25);
             fail("Failure expected on a body which isn't signed");
-        } catch (javax.xml.ws.soap.SOAPFaultException ex) {
+        } catch (jakarta.xml.ws.soap.SOAPFaultException ex) {
             String error = "SignedParts";
             assertTrue(ex.getMessage().contains(error)
                        || ex.getMessage().contains("Body must be signed"));
@@ -271,7 +274,7 @@ public class PartsTest extends AbstractBusClientServerTestBase {
         try {
             port.doubleIt(25);
             fail("Failure expected on a header which isn't signed");
-        } catch (javax.xml.ws.soap.SOAPFaultException ex) {
+        } catch (jakarta.xml.ws.soap.SOAPFaultException ex) {
             String error = "SignedParts";
             assertTrue(ex.getMessage().contains(error)
                        || ex.getMessage().contains("To must be signed"));
@@ -317,7 +320,7 @@ public class PartsTest extends AbstractBusClientServerTestBase {
         try {
             port.doubleIt(25);
             fail("Failure expected on a header which isn't signed");
-        } catch (javax.xml.ws.soap.SOAPFaultException ex) {
+        } catch (jakarta.xml.ws.soap.SOAPFaultException ex) {
             String error = "SignedElements";
             assertTrue(ex.getMessage().contains(error)
                        || ex.getMessage().contains("To must be signed"));
@@ -363,7 +366,7 @@ public class PartsTest extends AbstractBusClientServerTestBase {
         try {
             port.doubleIt(25);
             fail("Failure expected on a body which isn't encrypted");
-        } catch (javax.xml.ws.soap.SOAPFaultException ex) {
+        } catch (jakarta.xml.ws.soap.SOAPFaultException ex) {
             String error = "EncryptedParts";
             assertTrue(ex.getMessage().contains(error)
                        || ex.getMessage().contains("Body must be encrypted"));
@@ -381,7 +384,7 @@ public class PartsTest extends AbstractBusClientServerTestBase {
         try {
             port.doubleIt(25);
             fail("Failure expected on a header which isn't encrypted");
-        } catch (javax.xml.ws.soap.SOAPFaultException ex) {
+        } catch (jakarta.xml.ws.soap.SOAPFaultException ex) {
             String error = "EncryptedParts";
             assertTrue(ex.getMessage().contains(error)
                        || ex.getMessage().contains("To must be encrypted"));
@@ -427,7 +430,7 @@ public class PartsTest extends AbstractBusClientServerTestBase {
         try {
             port.doubleIt(25);
             fail("Failure expected on a header which isn't encrypted");
-        } catch (javax.xml.ws.soap.SOAPFaultException ex) {
+        } catch (jakarta.xml.ws.soap.SOAPFaultException ex) {
             String error = "EncryptedElements";
             assertTrue(ex.getMessage().contains(error)
                        || ex.getMessage().contains("To must be encrypted"));
@@ -477,7 +480,7 @@ public class PartsTest extends AbstractBusClientServerTestBase {
         try {
             port.doubleIt(25);
             fail("Failure expected on a header which isn't encrypted");
-        } catch (javax.xml.ws.soap.SOAPFaultException ex) {
+        } catch (jakarta.xml.ws.soap.SOAPFaultException ex) {
             String error = "EncryptedElements";
             assertTrue(ex.getMessage().contains(error)
                        || ex.getMessage().contains("To must be encrypted"));
@@ -523,7 +526,7 @@ public class PartsTest extends AbstractBusClientServerTestBase {
         try {
             port.doubleIt(25);
             fail("Failure expected on a header which isn't encrypted");
-        } catch (javax.xml.ws.soap.SOAPFaultException ex) {
+        } catch (jakarta.xml.ws.soap.SOAPFaultException ex) {
             String error = "EncryptedElements";
             assertTrue(ex.getMessage().contains(error)
                        || ex.getMessage().contains("To must be encrypted"));
@@ -573,7 +576,7 @@ public class PartsTest extends AbstractBusClientServerTestBase {
             doubleIt.setNumberToDouble(25);
             port.doubleIt3(doubleIt, "12345".getBytes());
             fail("Failure expected on an attachment which isn't signed");
-        } catch (javax.xml.ws.soap.SOAPFaultException ex) {
+        } catch (jakarta.xml.ws.soap.SOAPFaultException ex) {
             String error = "SignedParts";
             assertTrue(ex.getMessage().contains(error));
         }
@@ -622,7 +625,7 @@ public class PartsTest extends AbstractBusClientServerTestBase {
             doubleIt.setNumberToDouble(25);
             port.doubleIt3(doubleIt, "12345".getBytes());
             fail("Failure expected on an attachment which isn't encrypted");
-        } catch (javax.xml.ws.soap.SOAPFaultException ex) {
+        } catch (jakarta.xml.ws.soap.SOAPFaultException ex) {
             String error = "EncryptedParts";
             assertTrue(ex.getMessage().contains(error));
         }

@@ -20,16 +20,18 @@
 package org.apache.cxf.systest.jaxrs.security.oauth2.grants;
 
 import java.net.URL;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
-
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.MultivaluedMap;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.MultivaluedMap;
 import org.apache.cxf.Bus;
+import org.apache.cxf.BusFactory;
 import org.apache.cxf.bus.spring.SpringBusFactory;
 import org.apache.cxf.common.util.Base64UrlUtility;
 import org.apache.cxf.helpers.DOMUtils;
@@ -54,6 +56,8 @@ import org.apache.cxf.rt.security.SecurityConstants;
 import org.apache.cxf.systest.jaxrs.security.oauth2.common.OAuth2TestUtils;
 import org.apache.cxf.systest.jaxrs.security.oauth2.common.SamlCallbackHandler;
 import org.apache.cxf.testutil.common.AbstractBusClientServerTestBase;
+import org.apache.cxf.testutil.common.AbstractBusTestServerBase;
+import org.apache.cxf.testutil.common.TestUtil;
 import org.apache.wss4j.common.crypto.Crypto;
 import org.apache.wss4j.common.saml.SAMLCallback;
 import org.apache.wss4j.common.saml.SAMLUtil;
@@ -63,28 +67,71 @@ import org.apache.wss4j.common.util.DOM2Writer;
 
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized.Parameters;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+
+/**
+ * Some tests for OAuth 2.0. The tests are run multiple times with different OAuthDataProvider implementations:
+ * a) JCACHE_PORT - JCache
+ * b) JWT_JCACHE_PORT - JCache with useJwtFormatForAccessTokens enabled
+ * c) JPA_PORT - JPA provider
+ * d) JWT_NON_PERSIST_JCACHE_PORT-  JCache with useJwtFormatForAccessTokens + !persistJwtEncoding
+ */
+@RunWith(value = org.junit.runners.Parameterized.class)
 public class JAXRSOAuth2Test extends AbstractBusClientServerTestBase {
-    public static final String PORT = BookServerOAuth2.PORT;
+    public static final String JCACHE_PORT = TestUtil.getPortNumber("jaxrs-oauth2-jcache");
+    public static final String JCACHE_PORT_PUBLIC = TestUtil.getPortNumber("jaxrs-oauth2-public-jcache");
+    public static final String JWT_JCACHE_PORT = TestUtil.getPortNumber("jaxrs-oauth2-jcache-jwt");
+    public static final String JWT_JCACHE_PORT_PUBLIC = TestUtil.getPortNumber("jaxrs-oauth2-public-jcache-jwt");
+    public static final String JPA_PORT = TestUtil.getPortNumber("jaxrs-oauth2-jpa");
+    public static final String JPA_PORT_PUBLIC = TestUtil.getPortNumber("jaxrs-oauth2-public-jpa");
+    public static final String JWT_NON_PERSIST_JCACHE_PORT =
+        TestUtil.getPortNumber("jaxrs-oauth2-jcache-jwt-non-persist");
+    public static final String JWT_NON_PERSIST_JCACHE_PORT_PUBLIC =
+        TestUtil.getPortNumber("jaxrs-oauth2-public-jcache-jwt-non-persist");
+
     private static final String CRYPTO_RESOURCE_PROPERTIES =
         "org/apache/cxf/systest/jaxrs/security/alice.properties";
+
+    final String port;
+
+    public JAXRSOAuth2Test(String port) {
+        this.port = port;
+    }
 
     @BeforeClass
     public static void startServers() throws Exception {
         assertTrue("server did not launch correctly",
-                   launchServer(BookServerOAuth2.class, true));
+                   launchServer(BookServerOAuth2JCache.class, true));
+        assertTrue("server did not launch correctly",
+                   launchServer(BookServerOAuth2JCacheJWT.class, true));
+        assertTrue("server did not launch correctly",
+                   launchServer(BookServerOAuth2JPA.class, true));
+        assertTrue("server did not launch correctly",
+                   launchServer(BookServerOAuth2JCacheJWTNonPersist.class, true));
+    }
+
+    @Parameters(name = "{0}")
+    public static Collection<String> data() {
+
+        return Arrays.asList(JCACHE_PORT, JWT_JCACHE_PORT, JPA_PORT, JWT_NON_PERSIST_JCACHE_PORT);
     }
 
     @Test
     public void testSAML2BearerGrant() throws Exception {
-        String address = "https://localhost:" + PORT + "/oauth2/token";
+        String address = "https://localhost:" + port + "/oauth2/token";
         WebClient wc = createWebClient(address);
 
         Crypto crypto = new CryptoLoader().loadCrypto(CRYPTO_RESOURCE_PROPERTIES);
         SelfSignInfo signInfo = new SelfSignInfo(crypto, "alice", "password");
 
         SamlCallbackHandler samlCallbackHandler = new SamlCallbackHandler(false);
-        String audienceURI = "https://localhost:" + PORT + "/oauth2/token";
+        String audienceURI = "https://localhost:" + port + "/oauth2/token";
         samlCallbackHandler.setAudience(audienceURI);
         SamlAssertionWrapper assertionWrapper = SAMLUtils.createAssertion(samlCallbackHandler,
                                                                           signInfo);
@@ -102,7 +149,7 @@ public class JAXRSOAuth2Test extends AbstractBusClientServerTestBase {
 
     @Test
     public void testSAML2BearerAuthenticationDirect() throws Exception {
-        String address = "https://localhost:" + PORT + "/oauth2-auth/token";
+        String address = "https://localhost:" + port + "/oauth2-auth/token";
         WebClient wc = createWebClient(address);
 
         Crypto crypto = new CryptoLoader().loadCrypto(CRYPTO_RESOURCE_PROPERTIES);
@@ -110,7 +157,7 @@ public class JAXRSOAuth2Test extends AbstractBusClientServerTestBase {
 
         SamlCallbackHandler samlCallbackHandler = new SamlCallbackHandler(true);
         samlCallbackHandler.setIssuer("alice");
-        String audienceURI = "https://localhost:" + PORT + "/oauth2-auth/token";
+        String audienceURI = "https://localhost:" + port + "/oauth2-auth/token";
         samlCallbackHandler.setAudience(audienceURI);
         SamlAssertionWrapper assertionWrapper = SAMLUtils.createAssertion(samlCallbackHandler,
                                                                           signInfo);
@@ -132,7 +179,7 @@ public class JAXRSOAuth2Test extends AbstractBusClientServerTestBase {
 
     @Test()
     public void testConfidentialClientIdOnly() throws Exception {
-        String address = "https://localhost:" + PORT + "/oauth2/token";
+        String address = "https://localhost:" + port + "/oauth2/token";
         WebClient wc = createWebClient(address);
 
         try {
@@ -148,33 +195,48 @@ public class JAXRSOAuth2Test extends AbstractBusClientServerTestBase {
 
     @Test
     public void testConfidentialClientIdAndSecret() throws Exception {
-        String address = "https://localhost:" + PORT + "/oauth2/token";
+        String address = "https://localhost:" + port + "/oauth2/token";
         WebClient wc = createWebClient(address);
 
-        
+
         ClientAccessToken at = OAuthClientUtils.getAccessToken(wc,
                                                                new Consumer("fred", "password"),
                                                                new CustomGrant(),
                                                                false);
         assertNotNull(at.getTokenKey());
     }
-    
+
     @Test
     public void testPublicClientIdOnly() throws Exception {
-        String address = "http://localhost:" + BookServerOAuth2.PORT_PUBLIC + "/oauth2Public/token";
+        String pubPort = JCACHE_PORT_PUBLIC;
+        if (JWT_JCACHE_PORT.equals(port)) {
+            pubPort = JWT_JCACHE_PORT_PUBLIC;
+        } else if (JPA_PORT.equals(port)) {
+            pubPort = JPA_PORT_PUBLIC;
+        } else if (JWT_NON_PERSIST_JCACHE_PORT.equals(port)) {
+            pubPort = JWT_NON_PERSIST_JCACHE_PORT_PUBLIC;
+        }
+
+        String address = "http://localhost:" + pubPort + "/oauth2Public/token";
         WebClient wc = WebClient.create(address);
 
-        
+
         ClientAccessToken at = OAuthClientUtils.getAccessToken(wc,
                                                                new Consumer("fredPublic"),
                                                                new CustomGrant(),
                                                                false);
         assertNotNull(at.getTokenKey());
     }
-    
+
     @Test
     public void testTwoWayTLSAuthenticationCustomGrant() throws Exception {
-        String address = "https://localhost:" + PORT + "/oauth2/token";
+        if (JPA_PORT.equals(port)) {
+            // We don't run this test for the JPA provider due to:
+            // java.sql.BatchUpdateException: data exception: string data, right truncation;
+            // table: CLIENT_APPLICATIONCERTIFICATES column: APPLICATIONCERTIFICATES
+            return;
+        }
+        String address = "https://localhost:" + port + "/oauth2/token";
         WebClient wc = createWebClient(address);
 
         ClientAccessToken at = OAuthClientUtils.getAccessToken(wc, new CustomGrant());
@@ -183,7 +245,7 @@ public class JAXRSOAuth2Test extends AbstractBusClientServerTestBase {
 
     @Test
     public void testBasicAuthClientCred() throws Exception {
-        String address = "https://localhost:" + PORT + "/oauth2/token";
+        String address = "https://localhost:" + port + "/oauth2/token";
         WebClient wc = createWebClient(address);
         ClientCredentialsGrant grant = new ClientCredentialsGrant();
         // Pass client_id & client_secret as form properties
@@ -196,8 +258,8 @@ public class JAXRSOAuth2Test extends AbstractBusClientServerTestBase {
         } catch (OAuthServiceException ex) {
             assertEquals(OAuthConstants.UNAUTHORIZED_CLIENT, ex.getError().getError());
         }
-        
-        ClientAccessToken at = OAuthClientUtils.getAccessToken(wc,  
+
+        ClientAccessToken at = OAuthClientUtils.getAccessToken(wc,
                                                                new Consumer("bob", "bobPassword"),
                                                                new ClientCredentialsGrant(),
                                                                true);
@@ -206,7 +268,7 @@ public class JAXRSOAuth2Test extends AbstractBusClientServerTestBase {
 
     @Test
     public void testSAML2BearerAuthenticationInterceptor() throws Exception {
-        String address = "https://localhost:" + PORT + "/oauth2-auth/token";
+        String address = "https://localhost:" + port + "/oauth2-auth/token";
         WebClient wc = createWebClientWithProps(address);
 
         ClientAccessToken at = OAuthClientUtils.getAccessToken(wc,
@@ -216,7 +278,7 @@ public class JAXRSOAuth2Test extends AbstractBusClientServerTestBase {
 
     @Test
     public void testJWTBearerGrant() throws Exception {
-        String address = "https://localhost:" + PORT + "/oauth2/token";
+        String address = "https://localhost:" + port + "/oauth2/token";
         WebClient wc = createWebClient(address);
 
         // Create the JWT Token
@@ -232,7 +294,7 @@ public class JAXRSOAuth2Test extends AbstractBusClientServerTestBase {
 
     @Test
     public void testJWTBearerAuthenticationDirect() throws Exception {
-        String address = "https://localhost:" + PORT + "/oauth2-auth-jwt/token";
+        String address = "https://localhost:" + port + "/oauth2-auth-jwt/token";
         WebClient wc = createWebClient(address);
 
         // Create the JWT Token
@@ -255,10 +317,10 @@ public class JAXRSOAuth2Test extends AbstractBusClientServerTestBase {
 
     @Test
     public void testSAML11() throws Exception {
-        String address = "https://localhost:" + PORT + "/oauth2-auth/token";
+        String address = "https://localhost:" + port + "/oauth2-auth/token";
         WebClient wc = createWebClient(address);
 
-        String audienceURI = "https://localhost:" + PORT + "/oauth2-auth/token";
+        String audienceURI = "https://localhost:" + port + "/oauth2-auth/token";
         String assertion = OAuth2TestUtils.createToken(audienceURI, false, true);
         String encodedAssertion = Base64UrlUtility.encode(assertion);
 
@@ -276,10 +338,10 @@ public class JAXRSOAuth2Test extends AbstractBusClientServerTestBase {
 
     @Test
     public void testSAMLAudRestr() throws Exception {
-        String address = "https://localhost:" + PORT + "/oauth2-auth/token";
+        String address = "https://localhost:" + port + "/oauth2-auth/token";
         WebClient wc = createWebClient(address);
 
-        String audienceURI = "https://localhost:" + PORT + "/oauth2-auth/token2";
+        String audienceURI = "https://localhost:" + port + "/oauth2-auth/token2";
         String assertion = OAuth2TestUtils.createToken(audienceURI, true, true);
         String encodedAssertion = Base64UrlUtility.encode(assertion);
 
@@ -297,10 +359,10 @@ public class JAXRSOAuth2Test extends AbstractBusClientServerTestBase {
 
     @Test
     public void testSAMLBadSubjectName() throws Exception {
-        String address = "https://localhost:" + PORT + "/oauth2-auth/token";
+        String address = "https://localhost:" + port + "/oauth2-auth/token";
         WebClient wc = createWebClient(address);
 
-        String audienceURI = "https://localhost:" + PORT + "/oauth2-auth/token";
+        String audienceURI = "https://localhost:" + port + "/oauth2-auth/token";
 
         // Create the SAML Assertion
         SamlCallbackHandler samlCallbackHandler = new SamlCallbackHandler(true);
@@ -340,10 +402,10 @@ public class JAXRSOAuth2Test extends AbstractBusClientServerTestBase {
 
     @Test
     public void testSAMLUnsigned() throws Exception {
-        String address = "https://localhost:" + PORT + "/oauth2-auth/token";
+        String address = "https://localhost:" + port + "/oauth2-auth/token";
         WebClient wc = createWebClient(address);
 
-        String audienceURI = "https://localhost:" + PORT + "/oauth2-auth/token";
+        String audienceURI = "https://localhost:" + port + "/oauth2-auth/token";
         String assertion = OAuth2TestUtils.createToken(audienceURI, true, false);
         String encodedAssertion = Base64UrlUtility.encode(assertion);
 
@@ -361,10 +423,10 @@ public class JAXRSOAuth2Test extends AbstractBusClientServerTestBase {
 
     @Test
     public void testSAMLHolderOfKey() throws Exception {
-        String address = "https://localhost:" + PORT + "/oauth2-auth/token";
+        String address = "https://localhost:" + port + "/oauth2-auth/token";
         WebClient wc = createWebClient(address);
 
-        String audienceURI = "https://localhost:" + PORT + "/oauth2-auth/token";
+        String audienceURI = "https://localhost:" + port + "/oauth2-auth/token";
 
         // Create the SAML Assertion
         SamlCallbackHandler samlCallbackHandler = new SamlCallbackHandler(true);
@@ -405,7 +467,7 @@ public class JAXRSOAuth2Test extends AbstractBusClientServerTestBase {
 
     @Test
     public void testJWTBadSubjectName() throws Exception {
-        String address = "https://localhost:" + PORT + "/oauth2-auth-jwt/token";
+        String address = "https://localhost:" + port + "/oauth2-auth-jwt/token";
         WebClient wc = createWebClient(address);
 
         // Create the JWT Token
@@ -426,7 +488,7 @@ public class JAXRSOAuth2Test extends AbstractBusClientServerTestBase {
 
     @Test
     public void testJWTUnsigned() throws Exception {
-        String address = "https://localhost:" + PORT + "/oauth2-auth-jwt/token";
+        String address = "https://localhost:" + port + "/oauth2-auth-jwt/token";
         WebClient wc = createWebClient(address);
 
         // Create the JWT Token
@@ -448,7 +510,7 @@ public class JAXRSOAuth2Test extends AbstractBusClientServerTestBase {
 
     @Test
     public void testJWTNoIssuer() throws Exception {
-        String address = "https://localhost:" + PORT + "/oauth2-auth-jwt/token";
+        String address = "https://localhost:" + port + "/oauth2-auth-jwt/token";
         WebClient wc = createWebClient(address);
 
         // Create the JWT Token
@@ -469,7 +531,7 @@ public class JAXRSOAuth2Test extends AbstractBusClientServerTestBase {
 
     @Test
     public void testJWTNoExpiry() throws Exception {
-        String address = "https://localhost:" + PORT + "/oauth2-auth-jwt/token";
+        String address = "https://localhost:" + port + "/oauth2-auth-jwt/token";
         WebClient wc = createWebClient(address);
 
         // Create the JWT Token
@@ -491,7 +553,7 @@ public class JAXRSOAuth2Test extends AbstractBusClientServerTestBase {
 
     @Test
     public void testJWTBadAudienceRestriction() throws Exception {
-        String address = "https://localhost:" + PORT + "/oauth2-auth-jwt/token";
+        String address = "https://localhost:" + port + "/oauth2-auth-jwt/token";
         WebClient wc = createWebClient(address);
 
         // Create the JWT Token
@@ -540,7 +602,7 @@ public class JAXRSOAuth2Test extends AbstractBusClientServerTestBase {
 
         SamlCallbackHandler samlCallbackHandler = new SamlCallbackHandler(true);
         samlCallbackHandler.setIssuer("alice");
-        String audienceURI = "https://localhost:" + PORT + "/oauth2-auth/token";
+        String audienceURI = "https://localhost:" + port + "/oauth2-auth/token";
         samlCallbackHandler.setAudience(audienceURI);
         properties.put(SecurityConstants.SAML_CALLBACK_HANDLER, samlCallbackHandler);
 
@@ -566,11 +628,90 @@ public class JAXRSOAuth2Test extends AbstractBusClientServerTestBase {
 
         @Override
         public MultivaluedMap<String, String> toMap() {
-            MultivaluedMap<String, String> map = new MetadataMap<String, String>();
+            MultivaluedMap<String, String> map = new MetadataMap<>();
             map.putSingle(OAuthConstants.GRANT_TYPE, "custom_grant");
             return map;
         }
 
     }
 
+    //
+    // Server implementations
+    //
+
+    public static class BookServerOAuth2JCache extends AbstractBusTestServerBase {
+        private static final URL SERVER_CONFIG_FILE =
+            BookServerOAuth2JCache.class.getResource("server-jcache.xml");
+
+        protected void run() {
+            SpringBusFactory bf = new SpringBusFactory();
+            Bus springBus = bf.createBus(SERVER_CONFIG_FILE);
+            BusFactory.setDefaultBus(springBus);
+            setBus(springBus);
+
+            try {
+                new BookServerOAuth2JCache();
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        }
+
+    }
+
+    public static class BookServerOAuth2JCacheJWT extends AbstractBusTestServerBase {
+        private static final URL SERVER_CONFIG_FILE =
+            BookServerOAuth2JCacheJWT.class.getResource("server-jcache-jwt.xml");
+
+        protected void run() {
+            SpringBusFactory bf = new SpringBusFactory();
+            Bus springBus = bf.createBus(SERVER_CONFIG_FILE);
+            BusFactory.setDefaultBus(springBus);
+            setBus(springBus);
+
+            try {
+                new BookServerOAuth2JCacheJWT();
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        }
+
+    }
+
+    public static class BookServerOAuth2JPA extends AbstractBusTestServerBase {
+        private static final URL SERVER_CONFIG_FILE =
+            BookServerOAuth2JPA.class.getResource("server-jpa.xml");
+
+        protected void run() {
+            SpringBusFactory bf = new SpringBusFactory();
+            Bus springBus = bf.createBus(SERVER_CONFIG_FILE);
+            BusFactory.setDefaultBus(springBus);
+            setBus(springBus);
+
+            try {
+                new BookServerOAuth2JPA();
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        }
+
+    }
+
+    public static class BookServerOAuth2JCacheJWTNonPersist extends AbstractBusTestServerBase {
+        private static final URL SERVER_CONFIG_FILE =
+            BookServerOAuth2JCacheJWTNonPersist.class.getResource("server-jcache-jwt-non-persist.xml");
+
+        protected void run() {
+            SpringBusFactory bf = new SpringBusFactory();
+            Bus springBus = bf.createBus(SERVER_CONFIG_FILE);
+            BusFactory.setDefaultBus(springBus);
+            setBus(springBus);
+
+            try {
+                new BookServerOAuth2JCacheJWTNonPersist();
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        }
+
+    }
 }

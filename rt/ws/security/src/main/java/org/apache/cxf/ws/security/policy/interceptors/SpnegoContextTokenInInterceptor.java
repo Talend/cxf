@@ -20,11 +20,11 @@
 package org.apache.cxf.ws.security.policy.interceptors;
 
 import java.time.Instant;
-import java.util.Base64;
 import java.util.Collection;
 
 import javax.security.auth.callback.CallbackHandler;
 
+import org.apache.xml.security.stax.ext.XMLSecurityConstants;
 import org.w3c.dom.Element;
 
 import org.apache.cxf.binding.soap.SoapBindingConstants;
@@ -48,6 +48,7 @@ import org.apache.cxf.ws.security.policy.PolicyUtils;
 import org.apache.cxf.ws.security.policy.interceptors.HttpsTokenInterceptorProvider.HttpsTokenInInterceptor;
 import org.apache.cxf.ws.security.tokenstore.SecurityToken;
 import org.apache.cxf.ws.security.tokenstore.TokenStore;
+import org.apache.cxf.ws.security.tokenstore.TokenStoreException;
 import org.apache.cxf.ws.security.trust.STSUtils;
 import org.apache.cxf.ws.security.wss4j.WSS4JInInterceptor;
 import org.apache.cxf.ws.security.wss4j.WSS4JStaxInInterceptor;
@@ -60,8 +61,8 @@ import org.apache.wss4j.common.WSS4JConstants;
 import org.apache.wss4j.common.spnego.SpnegoTokenContext;
 import org.apache.wss4j.dom.engine.WSSConfig;
 import org.apache.wss4j.dom.message.token.SecurityContextToken;
-import org.apache.wss4j.dom.util.WSSecurityUtil;
 import org.apache.wss4j.policy.SPConstants;
+import org.apache.xml.security.utils.XMLUtils;
 
 class SpnegoContextTokenInInterceptor extends AbstractPhaseInterceptor<SoapMessage> {
 
@@ -227,10 +228,10 @@ class SpnegoContextTokenInInterceptor extends AbstractPhaseInterceptor<SoapMessa
 
             // KeySize
             writer.writeStartElement(prefix, "KeySize", namespace);
-            writer.writeCharacters("" + keySize);
+            writer.writeCharacters(Integer.toString(keySize));
             writer.writeEndElement();
 
-            byte[] secret = WSSecurityUtil.generateNonce(keySize / 8);
+            byte[] secret = XMLSecurityConstants.generateBytes(keySize / 8);
             byte[] key = spnegoToken.wrapKey(secret);
 
             writeProofToken(writer, prefix, namespace, key);
@@ -288,7 +289,7 @@ class SpnegoContextTokenInInterceptor extends AbstractPhaseInterceptor<SoapMessa
             }
 
             String content = DOMUtils.getContent(binaryExchange);
-            byte[] decodedContent = Base64.getMimeDecoder().decode(content);
+            byte[] decodedContent = XMLUtils.decode(content);
 
             String jaasContext =
                 (String)message.getContextualProperty(SecurityConstants.KERBEROS_JAAS_CONTEXT_NAME);
@@ -323,7 +324,7 @@ class SpnegoContextTokenInInterceptor extends AbstractPhaseInterceptor<SoapMessa
             writer.writeStartElement(WSS4JConstants.ENC_PREFIX, "CipherData", WSS4JConstants.ENC_NS);
             writer.writeStartElement(WSS4JConstants.ENC_PREFIX, "CipherValue", WSS4JConstants.ENC_NS);
 
-            writer.writeCharacters(Base64.getMimeEncoder().encodeToString(key));
+            writer.writeCharacters(XMLUtils.encodeToString(key));
 
             writer.writeEndElement();
             writer.writeEndElement();
@@ -371,23 +372,27 @@ class SpnegoContextTokenInInterceptor extends AbstractPhaseInterceptor<SoapMessa
         }
 
         public void handleMessage(SoapMessage message) throws Fault {
-            boolean foundSCT = NegotiationUtils.parseSCTResult(message);
+            try {
+                boolean foundSCT = NegotiationUtils.parseSCTResult(message);
 
-            AssertionInfoMap aim = message.get(AssertionInfoMap.class);
-            // extract Assertion information
-            if (aim != null) {
-                Collection<AssertionInfo> ais =
-                    PolicyUtils.getAllAssertionsByLocalname(aim, SPConstants.SPNEGO_CONTEXT_TOKEN);
-                if (ais.isEmpty()) {
-                    return;
-                }
-                for (AssertionInfo inf : ais) {
-                    if (foundSCT) {
-                        inf.setAsserted(true);
-                    } else {
-                        inf.setNotAsserted("No SecurityContextToken token found in message.");
+                AssertionInfoMap aim = message.get(AssertionInfoMap.class);
+                // extract Assertion information
+                if (aim != null) {
+                    Collection<AssertionInfo> ais =
+                            PolicyUtils.getAllAssertionsByLocalname(aim, SPConstants.SPNEGO_CONTEXT_TOKEN);
+                    if (ais.isEmpty()) {
+                        return;
+                    }
+                    for (AssertionInfo inf : ais) {
+                        if (foundSCT) {
+                            inf.setAsserted(true);
+                        } else {
+                            inf.setNotAsserted("No SecurityContextToken token found in message.");
+                        }
                     }
                 }
+            } catch (TokenStoreException ex) {
+                throw new Fault(ex);
             }
         }
     }

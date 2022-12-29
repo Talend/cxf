@@ -24,26 +24,25 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
-import javax.ws.rs.WebApplicationException;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.MultivaluedMap;
-import javax.ws.rs.ext.MessageBodyReader;
-import javax.ws.rs.ext.MessageBodyWriter;
 import javax.xml.namespace.QName;
 import javax.xml.stream.XMLStreamReader;
 import javax.xml.stream.XMLStreamWriter;
 import javax.xml.validation.Schema;
 
+import jakarta.ws.rs.WebApplicationException;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.MultivaluedMap;
+import jakarta.ws.rs.ext.MessageBodyReader;
+import jakarta.ws.rs.ext.MessageBodyWriter;
 import org.apache.cxf.databinding.AbstractDataBinding;
 import org.apache.cxf.databinding.DataReader;
 import org.apache.cxf.databinding.DataWriter;
 import org.apache.cxf.jaxrs.impl.MetadataMap;
 import org.apache.cxf.message.Attachment;
 import org.apache.cxf.message.Message;
+import org.apache.cxf.message.MessageUtils;
 import org.apache.cxf.phase.PhaseInterceptorChain;
 import org.apache.cxf.service.Service;
-import org.apache.cxf.service.invoker.MethodDispatcher;
-import org.apache.cxf.service.model.BindingOperationInfo;
 import org.apache.cxf.service.model.MessagePartInfo;
 
 /**
@@ -51,8 +50,8 @@ import org.apache.cxf.service.model.MessagePartInfo;
  */
 public class JAXRSDataBinding extends AbstractDataBinding {
 
-    private static final Class<?> SUPPORTED_READER_FORMATS[] = new Class<?>[] {XMLStreamReader.class};
-    private static final Class<?> SUPPORTED_WRITER_FORMATS[] = new Class<?>[] {XMLStreamWriter.class};
+    private static final Class<?>[] SUPPORTED_READER_FORMATS = new Class<?>[] {XMLStreamReader.class};
+    private static final Class<?>[] SUPPORTED_WRITER_FORMATS = new Class<?>[] {XMLStreamWriter.class};
 
     private MessageBodyReader<?> xmlReader;
     private MessageBodyWriter<Object> xmlWriter;
@@ -61,7 +60,7 @@ public class JAXRSDataBinding extends AbstractDataBinding {
     public void setProvider(Object provider) {
         if (!(provider instanceof MessageBodyWriter)) {
             throw new IllegalArgumentException(
-                "The provider must implement javax.ws.rs.ext.MessageBodyWriter");
+                "The provider must implement jakarta.ws.rs.ext.MessageBodyWriter");
         }
         xmlWriter = (MessageBodyWriter<Object>)provider;
 
@@ -74,7 +73,7 @@ public class JAXRSDataBinding extends AbstractDataBinding {
     public <T> DataReader<T> createReader(final Class<T> cls) {
         if (xmlReader == null) {
             throw new IllegalStateException(
-                "javax.ws.rs.ext.MessageBodyReader reference is uninitialized");
+                "jakarta.ws.rs.ext.MessageBodyReader reference is uninitialized");
         }
         return (DataReader<T>)new MessageBodyDataReader();
     }
@@ -94,15 +93,6 @@ public class JAXRSDataBinding extends AbstractDataBinding {
 
     public void initialize(Service service) {
         // Check how to deal with individual parts if needed, build a single JAXBContext, etc
-    }
-
-
-    // TODO: The method containing the actual annotations have to retrieved
-    protected Method getTargetMethod(Message m) {
-        BindingOperationInfo bop = m.getExchange().getBindingOperationInfo();
-        MethodDispatcher md = (MethodDispatcher)
-            m.getExchange().getService().get(MethodDispatcher.class.getName());
-        return md.getMethod(bop);
     }
 
     @SuppressWarnings("unchecked")
@@ -125,7 +115,7 @@ public class JAXRSDataBinding extends AbstractDataBinding {
         public void write(Object obj, MessagePartInfo part, XMLStreamWriter output) {
             try {
                 Message message = PhaseInterceptorChain.getCurrentMessage();
-                Method method = getTargetMethod(message);
+                Method method = MessageUtils.getTargetMethod(message).orElse(null);
                 MultivaluedMap<String, Object> headers = getWriteHeaders(message);
                 xmlWriter.writeTo(obj,
                                  method.getReturnType(),
@@ -171,7 +161,7 @@ public class JAXRSDataBinding extends AbstractDataBinding {
         @SuppressWarnings("unchecked")
         private <T> T read(Class<T> cls) throws WebApplicationException, IOException {
             Message message = PhaseInterceptorChain.getCurrentMessage();
-            Method method = getTargetMethod(message);
+            Method method = MessageUtils.getTargetMethod(message).orElse(null);
             MessageBodyReader<T> reader = (MessageBodyReader<T>)xmlReader;
 
             return reader.readFrom(cls,

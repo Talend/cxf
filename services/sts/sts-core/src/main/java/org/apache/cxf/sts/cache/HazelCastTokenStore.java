@@ -26,7 +26,7 @@ import java.util.concurrent.TimeUnit;
 
 import com.hazelcast.core.Hazelcast;
 import com.hazelcast.core.HazelcastInstance;
-import com.hazelcast.core.IMap;
+import com.hazelcast.map.IMap;
 
 import org.apache.cxf.common.util.StringUtils;
 import org.apache.cxf.helpers.CastUtils;
@@ -50,8 +50,7 @@ public class HazelCastTokenStore implements TokenStore {
 
     /**
      * Get the Hazelcast instance
-     * If null, return Default instance
-     * @param hzInstance Hazelcast instance
+     * @return Hazelcast instance
      */
     public HazelcastInstance getHazelcastInstance() {
         if (hazelcastInstance == null) {
@@ -63,7 +62,7 @@ public class HazelCastTokenStore implements TokenStore {
     /**
      * Set the Hazelcast instance, otherwise default instance used
      * If you configure Hazelcast instance in spring, you must inject the instance here.
-     * @param hzInstance Hazelcast instance
+     * @param hazelcastInstance Hazelcast instance
      */
     public void setHazelcastInstance(HazelcastInstance hazelcastInstance) {
         this.hazelcastInstance = hazelcastInstance;
@@ -124,14 +123,14 @@ public class HazelCastTokenStore implements TokenStore {
     }
 
     private int getTTL(SecurityToken token) {
-        int parsedTTL = 0;
+        int parsedTTL;
         if (token.getExpires() != null) {
             Instant expires = token.getExpires();
             Instant now = Instant.now();
             if (expires.isBefore(now)) {
                 return 0;
             }
-            
+
             Duration duration = Duration.between(now, expires);
 
             parsedTTL = (int)duration.getSeconds();

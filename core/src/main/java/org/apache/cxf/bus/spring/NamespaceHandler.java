@@ -40,6 +40,7 @@ public class NamespaceHandler extends NamespaceHandlerSupport {
         registerBeanDefinitionParser("workqueue",
                                      new SimpleBeanDefinitionParser(AutomaticWorkQueueImpl.class) {
 
+                @Override
                 protected void processNameAttribute(Element element,
                                                 ParserContext ctx,
                                                 BeanDefinitionBuilder bean,
@@ -47,8 +48,7 @@ public class NamespaceHandler extends NamespaceHandlerSupport {
                     bean.addPropertyValue("name", val);
                     element.removeAttribute("name");
                     if (!element.hasAttribute("id")) {
-                        val = "cxf.workqueue." + val;
-                        element.setAttribute("id", val);
+                        element.setAttribute("id", "cxf.workqueue." + val);
                     }
 
                 }

@@ -26,9 +26,14 @@
     <parent>
         <groupId>org.apache.cxf</groupId>
         <artifactId>cxf-parent</artifactId>
-        <version>3.2.5-SNAPSHOT</version>
+        <version>4.0.1-SNAPSHOT</version>
         <relativePath>../../../parent/pom.xml</relativePath>
     </parent>
+    
+    <properties>
+        <cxf.module.name>org.apache.cxf.systests.plugin.codegen</cxf.module.name>
+    </properties>
+    
     <build>
         <plugins>
             <plugin>
@@ -90,6 +95,7 @@
                                         <artifactId>cxf-systests-java2ws</artifactId>
                                         <version>${project.version}</version>
                                         <classifier>test</classifier>
+                                        <type>HelloWorld.wsdl</type>
                                     </wsdlArtifact>
                                 </wsdlOption>
                             </wsdlOptions>
@@ -105,7 +111,6 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-invoker-plugin</artifactId>
-                <version>3.0.0</version>
                 <configuration>
                     <projectsDirectory>src/it</projectsDirectory>
                     <cloneProjectsTo>${project.build.directory}/it</cloneProjectsTo>
@@ -116,6 +121,7 @@
                     <pomIncludes>
                         <pomInclude>*/pom.xml</pomInclude>
                     </pomIncludes>
+                    <skipInvocation>${maven.test.skip.exec}</skipInvocation>
                 </configuration>
                 <executions>
                     <execution>
@@ -136,7 +142,7 @@
             <artifactId>cxf-systests-java2ws</artifactId>
             <version>${project.version}</version>
             <classifier>test</classifier>
-            <type>wsdl</type>
+            <type>HelloWorld.wsdl</type>
         </dependency>
         <dependency>
             <groupId>org.apache.cxf</groupId>

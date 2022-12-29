@@ -24,7 +24,6 @@ import java.io.FilenameFilter;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.net.URLConnection;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -52,6 +51,7 @@ import org.w3c.dom.ls.LSResourceResolver;
 import org.xml.sax.ErrorHandler;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
+import org.xml.sax.SAXNotRecognizedException;
 import org.xml.sax.SAXParseException;
 
 import org.apache.cxf.common.i18n.Message;
@@ -67,7 +67,7 @@ public class SchemaValidator extends AbstractDefinitionValidator {
 
     protected String[] defaultSchemas;
 
-    protected String schemaLocation = "./";
+    protected final String schemaLocation;
 
     private String wsdlsrc;
 
@@ -108,13 +108,13 @@ public class SchemaValidator extends AbstractDefinitionValidator {
         try {
             docFactory.setNamespaceAware(true);
             docFactory.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, Boolean.TRUE);
+            docFactory.setFeature("http://apache.org/xml/features/disallow-doctype-decl", true);
             docBuilder = docFactory.newDocumentBuilder();
         } catch (ParserConfigurationException e) {
             throw new ToolException(e);
         }
 
-        String systemId = null;
-        systemId = URIParserUtil.getAbsoluteURI(wsdlsource);
+        String systemId = URIParserUtil.getAbsoluteURI(wsdlsource);
         InputSource is = new InputSource(systemId);
 
         return validate(is, schemas);
@@ -126,9 +126,15 @@ public class SchemaValidator extends AbstractDefinitionValidator {
 
         SchemaFactory sf = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
         sf.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, Boolean.TRUE);
-        sf.setProperty(XMLConstants.ACCESS_EXTERNAL_SCHEMA, "file");
-        SchemaResourceResolver resourceResolver = new SchemaResourceResolver();
+        
+        try {
+            // The 'http://javax.xml.XMLConstants/property/accessExternalSchema' is not supported by Xerces
+            sf.setProperty(XMLConstants.ACCESS_EXTERNAL_SCHEMA, "file,http,https");
+        } catch (final SAXNotRecognizedException ex) {
+            LOG.log(Level.WARNING, "The property '" + XMLConstants.ACCESS_EXTERNAL_SCHEMA + "' is not supported.");
+        }
 
+        SchemaResourceResolver resourceResolver = new SchemaResourceResolver();
         sf.setResourceResolver(resourceResolver);
 
         List<Source> sources = new ArrayList<>();
@@ -179,12 +185,12 @@ public class SchemaValidator extends AbstractDefinitionValidator {
     }
 
     public boolean validate(InputSource wsdlsource, String[] schemas) throws ToolException {
-        boolean isValid = false;
         Schema schema;
         try {
             SAXParserFactory saxFactory = SAXParserFactory.newInstance();
             saxFactory.setFeature("http://xml.org/sax/features/namespaces", true);
             saxFactory.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, Boolean.TRUE);
+            saxFactory.setFeature("http://apache.org/xml/features/disallow-doctype-decl", true);
             saxParser = saxFactory.newSAXParser();
 
             if (defaultSchemas != null) {
@@ -207,8 +213,6 @@ public class SchemaValidator extends AbstractDefinitionValidator {
                 throw new ToolException(errHandler.getErrorMessages());
             }
 
-            isValid = true;
-
         } catch (IOException ioe) {
             throw new ToolException("Cannot get the wsdl " + wsdlsource.getSystemId(), ioe);
         } catch (SAXException saxEx) {
@@ -216,7 +220,7 @@ public class SchemaValidator extends AbstractDefinitionValidator {
         } catch (ParserConfigurationException e) {
             throw new ToolException(e);
         }
-        return isValid;
+        return true;
     }
 
     private String[] addSchemas(String[] defaults, String[] schemas) {
@@ -241,7 +245,8 @@ public class SchemaValidator extends AbstractDefinitionValidator {
         if (f.exists() && f.isDirectory()) {
             FilenameFilter filter = new FilenameFilter() {
                 public boolean accept(File dir, String name) {
-                    if (name.toLowerCase().endsWith(".xsd")
+                    String suffix = ".xsd";
+                    if (name.regionMatches(true, name.length() - suffix.length(), suffix, 0, suffix.length())
                             && !new File(dir.getPath() + File.separator + name).isDirectory()) {
                         return true;
                     }
@@ -264,7 +269,7 @@ public class SchemaValidator extends AbstractDefinitionValidator {
                         throw new ToolException(e);
                     }
                 }
-                return xsdUrls.toArray(new String[xsdUrls.size()]);
+                return xsdUrls.toArray(new String[0]);
             }
         }
         return null;
@@ -316,13 +321,13 @@ class NewStackTraceErrorHandler implements ErrorHandler {
         if (errors == null) {
             return null;
         }
-        return errors.toArray(new SAXParseException[errors.size()]);
+        return errors.toArray(new SAXParseException[0]);
     }
 
     void addError(String msg, SAXParseException ex) {
         valid = false;
         if (numErrors == 0) {
-            buffer.append("\n");
+            buffer.append('\n');
         } else {
             buffer.append("\n\n");
         }
@@ -375,11 +380,10 @@ class SchemaResourceResolver implements LSResourceResolver {
 
         LSInput lsin = null;
         String resURL = null;
-        String localFile = null;
         if (systemId != null) {
             String schemaLocation = "";
             if (baseURI != null) {
-                schemaLocation = baseURI.substring(0, baseURI.lastIndexOf("/") + 1);
+                schemaLocation = baseURI.substring(0, baseURI.lastIndexOf('/') + 1);
             }
             if (systemId.indexOf("http://") < 0) {
                 resURL = schemaLocation + systemId;
@@ -390,41 +394,24 @@ class SchemaResourceResolver implements LSResourceResolver {
             resURL = namespaceURI;
         }
 
-        if (resURL != null && resURL.startsWith("http://")) {
-            String filename = NSFILEMAP.get(resURL);
-            if (filename != null) {
-                localFile = ToolConstants.CXF_SCHEMAS_DIR_INJAR + filename;
-            } else {
-                URL url;
-                URLConnection urlCon = null;
-                try {
-                    url = new URL(resURL);
-                    urlCon = url.openConnection();
-                    urlCon.setUseCaches(false);
-                    lsin = new LSInputImpl();
-                    lsin.setSystemId(resURL);
-                    lsin.setByteStream(urlCon.getInputStream());
-                    msg = new Message("RESOLVE_FROM_REMOTE", LOG, url);
-                    LOG.log(Level.FINE, msg.toString());
-                    return lsin;
-                } catch (Exception e) {
-                    e.printStackTrace();
-                    return null;
-                }
-            }
-        } else if (resURL != null && !resURL.startsWith("http:")) {
-            localFile = resURL;
-        }  else {
+        if (resURL == null) {
             return null;
         }
 
+        String localFile = resURL;
+        if (resURL.startsWith("http://")) {
+            String filename = NSFILEMAP.get(resURL);
+            if (filename != null) {
+                localFile = ToolConstants.CXF_SCHEMAS_DIR_INJAR + filename;
+            }
+        }
 
-        URIResolver resolver;
         try {
             msg = new Message("RESOLVE_FROM_LOCAL", LOG, localFile);
             LOG.log(Level.FINE, msg.toString());
 
-            resolver = new URIResolver(localFile);
+            @SuppressWarnings("resource")
+            final URIResolver resolver = new URIResolver(localFile);
             if (resolver.isResolved()) {
                 lsin = new LSInputImpl();
                 lsin.setSystemId(localFile);

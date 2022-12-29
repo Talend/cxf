@@ -20,8 +20,7 @@ package org.apache.cxf.rs.security.oauth2.grants.code;
 
 import java.net.URI;
 
-import javax.ws.rs.core.MultivaluedMap;
-
+import jakarta.ws.rs.core.MultivaluedMap;
 import org.apache.cxf.jaxrs.impl.MetadataMap;
 import org.apache.cxf.rs.security.jose.jwt.JwtClaims;
 import org.apache.cxf.rs.security.jose.jwt.JwtToken;
@@ -56,7 +55,7 @@ public class JwtRequestCodeGrant extends AuthorizationCodeGrant {
     }
     public MultivaluedMap<String, String> toMap() {
         String request = getRequest();
-        MultivaluedMap<String, String> newMap = new MetadataMap<String, String>();
+        MultivaluedMap<String, String> newMap = new MetadataMap<>();
         newMap.putSingle("request", request);
         return newMap;
 

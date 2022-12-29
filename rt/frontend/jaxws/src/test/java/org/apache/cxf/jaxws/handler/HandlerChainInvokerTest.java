@@ -27,21 +27,21 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import javax.xml.soap.MessageFactory;
-import javax.xml.soap.SOAPException;
-import javax.xml.soap.SOAPMessage;
 import javax.xml.transform.OutputKeys;
 import javax.xml.transform.Source;
 import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.stream.StreamResult;
-import javax.xml.ws.ProtocolException;
-import javax.xml.ws.handler.Handler;
-import javax.xml.ws.handler.LogicalHandler;
-import javax.xml.ws.handler.LogicalMessageContext;
-import javax.xml.ws.handler.MessageContext;
-import javax.xml.ws.handler.soap.SOAPMessageContext;
 
+import jakarta.xml.soap.MessageFactory;
+import jakarta.xml.soap.SOAPException;
+import jakarta.xml.soap.SOAPMessage;
+import jakarta.xml.ws.ProtocolException;
+import jakarta.xml.ws.handler.Handler;
+import jakarta.xml.ws.handler.LogicalHandler;
+import jakarta.xml.ws.handler.LogicalMessageContext;
+import jakarta.xml.ws.handler.MessageContext;
+import jakarta.xml.ws.handler.soap.SOAPMessageContext;
 import org.apache.cxf.binding.soap.SoapMessage;
 import org.apache.cxf.jaxws.context.WrappedMessageContext;
 import org.apache.cxf.jaxws.handler.logical.LogicalMessageContextImpl;
@@ -51,11 +51,16 @@ import org.apache.cxf.message.ExchangeImpl;
 import org.apache.cxf.message.Message;
 import org.apache.cxf.message.MessageImpl;
 
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
-public class HandlerChainInvokerTest extends Assert {
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertSame;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+
+public class HandlerChainInvokerTest {
 
     private static final int HANDLER_COUNT = 4;
 
@@ -112,7 +117,7 @@ public class HandlerChainInvokerTest extends Assert {
 
         assertEquals(HANDLER_COUNT, invoker.getProtocolHandlers().size());
         for (Handler<?> h : invoker.getProtocolHandlers()) {
-            assertTrue(!(h instanceof LogicalHandler));
+            assertFalse(h instanceof LogicalHandler);
         }
 
     }
@@ -155,7 +160,7 @@ public class HandlerChainInvokerTest extends Assert {
 
         boolean ret = invoker.invokeLogicalHandlers(false, lmc);
 
-        assertEquals(false, ret);
+        assertFalse(ret);
         assertFalse(invoker.isClosed());
         assertEquals(1, logicalHandlers[0].getHandleMessageCount());
         assertEquals(1, logicalHandlers[1].getHandleMessageCount());
@@ -188,7 +193,7 @@ public class HandlerChainInvokerTest extends Assert {
         boolean ret = invoker.invokeLogicalHandlers(false, lmc);
         assertFalse(invoker.isClosed());
 
-        assertEquals(false, ret);
+        assertFalse(ret);
         assertEquals(0, logicalHandlers[0].getHandleMessageCount());
         assertEquals(1, logicalHandlers[1].getHandleMessageCount());
         assertTrue(invoker.isOutbound());
@@ -200,9 +205,9 @@ public class HandlerChainInvokerTest extends Assert {
 
         assertTrue(invoker.isOutbound());
 
-        boolean continueProcessing = true;
         invoker.setLogicalMessageContext(lmc);
-        continueProcessing = invoker.invokeLogicalHandlers(false, lmc);
+        boolean continueProcessing = invoker.invokeLogicalHandlers(false, lmc);
+        assertTrue(continueProcessing);
         invoker.setProtocolMessageContext(pmc);
         continueProcessing = invoker.invokeProtocolHandlers(false, pmc);
 
@@ -214,8 +219,10 @@ public class HandlerChainInvokerTest extends Assert {
         protocolHandlers[2].setHandleMessageRet(true);
         invoker.setProtocolMessageContext(pmc);
         continueProcessing = invoker.invokeProtocolHandlers(false, pmc);
+        assertTrue(continueProcessing);
         invoker.setLogicalMessageContext(lmc);
         continueProcessing = invoker.invokeLogicalHandlers(false, lmc);
+        assertTrue(continueProcessing);
 
 
         assertEquals(2, logicalHandlers[0].getHandleMessageCount());
@@ -264,9 +271,8 @@ public class HandlerChainInvokerTest extends Assert {
         invoker.setRequestor(true);
         assertTrue(invoker.isOutbound());
 
-        boolean continueProcessing = true;
         invoker.setLogicalMessageContext(lmc);
-        continueProcessing = invoker.invokeLogicalHandlers(false, lmc);
+        boolean continueProcessing = invoker.invokeLogicalHandlers(false, lmc);
         assertTrue(continueProcessing);
 
         //create an empty SOAP body for testing
@@ -281,7 +287,7 @@ public class HandlerChainInvokerTest extends Assert {
 
         try {
             invoker.setProtocolMessageContext(pmc);
-            continueProcessing = invoker.invokeProtocolHandlers(false, pmc);
+            invoker.invokeProtocolHandlers(false, pmc);
             fail("did not get expected exception");
         } catch (ProtocolException e) {
             assertEquals("banzai", e.getMessage());
@@ -351,14 +357,13 @@ public class HandlerChainInvokerTest extends Assert {
         invoker.setRequestor(true);
         assertTrue(invoker.isOutbound());
 
-        boolean continueProcessing = true;
         invoker.setLogicalMessageContext(lmc);
-        continueProcessing = invoker.invokeLogicalHandlers(false, lmc);
+        boolean continueProcessing = invoker.invokeLogicalHandlers(false, lmc);
         assertTrue(continueProcessing);
 
         try {
             invoker.setProtocolMessageContext(pmc);
-            continueProcessing = invoker.invokeProtocolHandlers(false, pmc);
+            invoker.invokeProtocolHandlers(false, pmc);
             fail("did not get expected exception");
         } catch (ProtocolException e) {
             assertEquals("banzai", e.getMessage());
@@ -420,8 +425,7 @@ public class HandlerChainInvokerTest extends Assert {
         logicalHandlers[2].setHandleMessageRet(true);
         logicalHandlers[3].setHandleMessageRet(true);
 
-        boolean continueProcessing = true;
-        continueProcessing = invoker.invokeLogicalHandlers(false, lmc);
+        boolean continueProcessing = invoker.invokeLogicalHandlers(false, lmc);
 
         assertTrue(continueProcessing);
 
@@ -461,9 +465,8 @@ public class HandlerChainInvokerTest extends Assert {
         logicalHandlers[3].setHandleMessageRet(true);
         invoker.setResponseExpected(true);
 
-        boolean continueProcessing = true;
         invoker.setLogicalMessageContext(lmc);
-        continueProcessing = invoker.invokeLogicalHandlers(false, lmc);
+        boolean continueProcessing = invoker.invokeLogicalHandlers(false, lmc);
 
         assertFalse(continueProcessing);
 
@@ -512,8 +515,7 @@ public class HandlerChainInvokerTest extends Assert {
         logicalHandlers[3].setHandleMessageRet(true);
         invoker.setResponseExpected(false);
 
-        boolean continueProcessing = true;
-        continueProcessing = invoker.invokeLogicalHandlers(false, lmc);
+        boolean continueProcessing = invoker.invokeLogicalHandlers(false, lmc);
 
         assertFalse(continueProcessing);
 
@@ -945,7 +947,7 @@ public class HandlerChainInvokerTest extends Assert {
         invoker.invokeLogicalHandlers(true, lmc);
 
         assertEquals(7, invoker.getInvokedHandlers().size());
-//        assertTrue(!invoker.getInvokedHandlers().contains(logicalHandlers[1]));
+//        assertFalse(invoker.getInvokedHandlers().contains(logicalHandlers[1]));
         assertTrue(invoker.getInvokedHandlers().contains(protocolHandlers[0]));
         assertTrue(invoker.getInvokedHandlers().contains(protocolHandlers[1]));
         assertEquals(0, logicalHandlers[0].getHandleMessageCount());

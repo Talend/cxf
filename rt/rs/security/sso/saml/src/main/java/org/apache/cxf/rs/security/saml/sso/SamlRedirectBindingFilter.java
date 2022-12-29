@@ -27,14 +27,15 @@ import java.security.cert.X509Certificate;
 import java.util.Base64;
 import java.util.logging.Level;
 
+import javax.security.auth.DestroyFailedException;
 import javax.security.auth.callback.CallbackHandler;
-import javax.ws.rs.container.ContainerRequestContext;
-import javax.ws.rs.core.HttpHeaders;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.UriBuilder;
 
 import org.w3c.dom.Element;
 
+import jakarta.ws.rs.container.ContainerRequestContext;
+import jakarta.ws.rs.core.HttpHeaders;
+import jakarta.ws.rs.core.Response;
+import jakarta.ws.rs.core.UriBuilder;
 import org.apache.cxf.common.util.Base64Utility;
 import org.apache.cxf.jaxrs.utils.ExceptionUtils;
 import org.apache.cxf.jaxrs.utils.JAXRSUtils;
@@ -44,6 +45,7 @@ import org.apache.wss4j.common.crypto.Crypto;
 import org.apache.wss4j.common.crypto.CryptoType;
 import org.apache.wss4j.common.ext.WSPasswordCallback;
 import org.apache.wss4j.common.util.DOM2Writer;
+import org.apache.xml.security.algorithms.JCEMapper;
 import org.opensaml.saml.saml2.core.AuthnRequest;
 
 public class SamlRedirectBindingFilter extends AbstractServiceProviderFilter {
@@ -106,17 +108,17 @@ public class SamlRedirectBindingFilter extends AbstractServiceProviderFilter {
     ) throws Exception {
         Crypto crypto = getSignatureCrypto();
         if (crypto == null) {
-            LOG.fine("No crypto instance of properties file configured for signature");
+            LOG.warning("No crypto instance of properties file configured for signature");
             throw ExceptionUtils.toInternalServerErrorException(null, null);
         }
         String signatureUser = getSignatureUsername();
         if (signatureUser == null) {
-            LOG.fine("No user configured for signature");
+            LOG.warning("No user configured for signature");
             throw ExceptionUtils.toInternalServerErrorException(null, null);
         }
         CallbackHandler callbackHandler = getCallbackHandler();
         if (callbackHandler == null) {
-            LOG.fine("No CallbackHandler configured to supply a password for signature");
+            LOG.warning("No CallbackHandler configured to supply a password for signature");
             throw ExceptionUtils.toInternalServerErrorException(null, null);
         }
 
@@ -129,14 +131,13 @@ public class SamlRedirectBindingFilter extends AbstractServiceProviderFilter {
             );
         }
 
-        String sigAlgo = SSOConstants.RSA_SHA1;
+        String sigAlgo = getSignatureAlgorithm();
         String pubKeyAlgo = issuerCerts[0].getPublicKey().getAlgorithm();
-        String jceSigAlgo = "SHA1withRSA";
         LOG.fine("automatic sig algo detection: " + pubKeyAlgo);
-        if (pubKeyAlgo.equalsIgnoreCase("DSA")) {
+        if ("DSA".equalsIgnoreCase(pubKeyAlgo)) {
             sigAlgo = SSOConstants.DSA_SHA1;
-            jceSigAlgo = "SHA1withDSA";
         }
+
         LOG.fine("Using Signature algorithm " + sigAlgo);
         ub.queryParam(SSOConstants.SIG_ALG, URLEncoder.encode(sigAlgo, StandardCharsets.UTF_8.name()));
 
@@ -149,6 +150,7 @@ public class SamlRedirectBindingFilter extends AbstractServiceProviderFilter {
         PrivateKey privateKey = crypto.getPrivateKey(signatureUser, password);
 
         // Sign the request
+        String jceSigAlgo = JCEMapper.translateURItoJCEID(sigAlgo);
         Signature signature = Signature.getInstance(jceSigAlgo);
         signature.initSign(privateKey);
 
@@ -161,6 +163,13 @@ public class SamlRedirectBindingFilter extends AbstractServiceProviderFilter {
         byte[] signBytes = signature.sign();
 
         String encodedSignature = Base64.getEncoder().encodeToString(signBytes);
+
+        // Clean the private key from memory when we're done
+        try {
+            privateKey.destroy();
+        } catch (DestroyFailedException ex) {
+            // ignore
+        }
 
         ub.queryParam(SSOConstants.SIGNATURE, URLEncoder.encode(encodedSignature, StandardCharsets.UTF_8.name()));
 

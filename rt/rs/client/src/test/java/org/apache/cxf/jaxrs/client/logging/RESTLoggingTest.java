@@ -62,29 +62,48 @@ public class RESTLoggingTest {
         LoggingFeature loggingFeature = new LoggingFeature();
         TestEventSender sender = new TestEventSender();
         loggingFeature.setSender(sender);
+        loggingFeature.setLogBinary(true);
+
         Server server = createService(SERVICE_URI_BINARY, new TestServiceRestBinary(), loggingFeature);
         server.start();
         WebClient client = createClient(SERVICE_URI_BINARY, loggingFeature);
         client.get(InputStream.class).close();
-        loggingFeature.setLogBinary(true);
+        client.close();
+
+        List<LogEvent> events = sender.getEvents();
+        await().until(() -> events.size(), is(4));
+        server.stop();
+        server.destroy();
+
+        Assert.assertEquals(4, events.size());
+        
+        assertContentLogged(events.get(0));
+        assertContentLogged(events.get(1));
+        assertContentLogged(events.get(2));
+        assertContentLogged(events.get(3));
+    }
+    
+    @Test
+    public void testNonBinary() throws IOException, InterruptedException {
+        LoggingFeature loggingFeature = new LoggingFeature();
+        TestEventSender sender = new TestEventSender();
+        loggingFeature.setSender(sender);
+        Server server = createService(SERVICE_URI_BINARY, new TestServiceRestBinary(), loggingFeature);
+        server.start();
+        WebClient client = createClient(SERVICE_URI_BINARY, loggingFeature);
         client.get(InputStream.class).close();
         client.close();
         List<LogEvent> events = sender.getEvents();
-        await().until(() -> events.size(), is(8));
+        await().until(() -> events.size(), is(4));
         server.stop();
         server.destroy();
+
+        Assert.assertEquals(4, events.size());
         
-        // First call with binary logging false
         assertContentLogged(events.get(0));
         assertContentLogged(events.get(1));
         assertContentNotLogged(events.get(2));
         assertContentNotLogged(events.get(3));
-        
-        // Second call with binary logging true
-        assertContentLogged(events.get(4));
-        assertContentLogged(events.get(5));
-        assertContentLogged(events.get(6));
-        assertContentLogged(events.get(7));
     }
 
     @Test
@@ -98,8 +117,12 @@ public class RESTLoggingTest {
         WebClient client = createClient(SERVICE_URI, loggingFeature);
         String result = client.get(String.class);
         Assert.assertEquals("test1", result);
-        server.destroy();
+
         List<LogEvent> events = sender.getEvents();
+        await().until(() -> events.size(), is(4));
+        server.stop();
+        server.destroy();
+
         Assert.assertEquals(4, events.size());
         checkRequestOut(events.get(0));
         checkRequestIn(events.get(1));
@@ -156,7 +179,7 @@ public class RESTLoggingTest {
 
     private void checkResponseOut(LogEvent responseOut) {
         // Not yet available
-        Assert.assertNull(responseOut.getAddress());
+        Assert.assertEquals(SERVICE_URI + "/test1", responseOut.getAddress());
         Assert.assertEquals("application/octet-stream", responseOut.getContentType());
         Assert.assertEquals(EventType.RESP_OUT, responseOut.getType());
         Assert.assertNull(responseOut.getEncoding());
@@ -170,7 +193,7 @@ public class RESTLoggingTest {
 
     private void checkResponseIn(LogEvent responseIn) {
         // Not yet available
-        Assert.assertNull(responseIn.getAddress());
+        Assert.assertEquals(SERVICE_URI + "/test1", responseIn.getAddress());
         Assert.assertEquals("application/octet-stream", responseIn.getContentType());
         Assert.assertEquals(EventType.RESP_IN, responseIn.getType());
         Assert.assertNotNull(responseIn.getExchangeId());

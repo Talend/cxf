@@ -20,17 +20,16 @@
 package org.apache.cxf.systest.basicDOCBare;
 import java.math.BigDecimal;
 
-import javax.xml.ws.Holder;
-
+import jakarta.xml.ws.Holder;
 import org.apache.hello_world_doc_lit_bare.PutLastTradedPricePortType;
 import org.apache.hello_world_doc_lit_bare.types.TradePriceData;
 
 
-@javax.jws.WebService(serviceName = "SOAPService",
+@jakarta.jws.WebService(serviceName = "SOAPService",
                       portName = "SoapPort",
                       endpointInterface = "org.apache.hello_world_doc_lit_bare.PutLastTradedPricePortType",
                       targetNamespace = "http://apache.org/hello_world_doc_lit_bare",
-                      wsdlLocation = "testutils/doc_lit_bare.wsdl")
+                      wsdlLocation = "wsdl/doc_lit_bare.wsdl")
 public class PutLastTradedPriceImpl implements PutLastTradedPricePortType {
 
     public void sayHi(Holder<TradePriceData> inout) {

@@ -36,14 +36,18 @@ import org.apache.cxf.ws.policy.builder.primitive.PrimitiveAssertion;
 import org.apache.neethi.Assertion;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 
-import org.junit.Assert;
 import org.junit.Test;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.fail;
 
 
 /**
  *
  */
-public class IgnorablePolicyInterceptorProviderTest extends Assert {
+public class IgnorablePolicyInterceptorProviderTest {
     private static final QName ONEWAY_QNAME = new QName("http://tempuri.org/policy", "OneWay");
     private static final QName DUPLEX_QNAME = new QName("http://tempuri.org/policy", "Duplex");
 
@@ -136,11 +140,11 @@ public class IgnorablePolicyInterceptorProviderTest extends Assert {
 
     @Test
     public void testTwoBuses() {
-        ClassPathXmlApplicationContext context = null;
         Bus cxf1 = null;
         Bus cxf2 = null;
         try {
-            context = new ClassPathXmlApplicationContext("/org/apache/cxf/ws/policy/ignorable-policy2.xml");
+            ClassPathXmlApplicationContext context =
+                new ClassPathXmlApplicationContext("/org/apache/cxf/ws/policy/ignorable-policy2.xml");
             cxf1 = (Bus)context.getBean("cxf1");
             assertNotNull(cxf1);
 
@@ -171,8 +175,11 @@ public class IgnorablePolicyInterceptorProviderTest extends Assert {
         } finally {
             if (null != cxf1) {
                 cxf1.shutdown(true);
-                BusFactory.setDefaultBus(null);
             }
+            if (null != cxf2) {
+                cxf2.shutdown(true);
+            }
+            BusFactory.setDefaultBus(null);
         }
     }
 

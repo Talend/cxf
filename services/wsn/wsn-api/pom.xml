@@ -24,13 +24,16 @@
     <packaging>bundle</packaging>
     <name>Apache CXF WSN API</name>
     <description>Apache CXF WSN API</description>
-    <url>http://cxf.apache.org</url>
+    <url>https://cxf.apache.org</url>
     <parent>
         <groupId>org.apache.cxf</groupId>
         <artifactId>cxf-parent</artifactId>
-        <version>3.2.5-SNAPSHOT</version>
+        <version>4.0.1-SNAPSHOT</version>
         <relativePath>../../../parent/pom.xml</relativePath>
     </parent>
+    <properties>
+        <cxf.module.name>org.apache.cxf.wsn</cxf.module.name>
+    </properties>
     <dependencies>
         <dependency>
             <groupId>org.apache.cxf</groupId>
@@ -83,32 +86,6 @@
                         </goals>
                     </execution>
                 </executions>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.felix</groupId>
-                <artifactId>maven-bundle-plugin</artifactId>
-                <extensions>true</extensions>
-                <configuration>
-                    <instructions>
-                        <Import-Package>
-                            javax.xml.bind*;version="[0.0,3)",
-                            javax.jws*;version="[0.0,3)",
-                            javax.xml.ws*;version="[0.0,3)",
-                            org.apache.cxf*;version="[3.0,4)",
-                            *
-                        </Import-Package>
-                        <Export-Package>
-                            org.oasis_open.docs.wsn.*;version=1.3;-noimport:=true,
-                            org.oasis_open.docs.wsrf.*;version=1.2,
-                            org.apache.cxf.wsn.client;version=${cxf.osgi.version.clean},
-                            org.apache.cxf.wsn.util;version=${cxf.osgi.version.clean},
-                            org.apache.cxf.wsn.wsdl;version=${cxf.osgi.version.clean},
-                            org.apache.cxf.wsn.jaxws;version=${cxf.osgi.version.clean}
-                        </Export-Package>
-                        <_nouses>true</_nouses>
-                        <_versionpolicy>[$(version;==;$(@)),$(version;+;$(@)))</_versionpolicy>
-                    </instructions>
-                </configuration>
             </plugin>
         </plugins>
     </build>

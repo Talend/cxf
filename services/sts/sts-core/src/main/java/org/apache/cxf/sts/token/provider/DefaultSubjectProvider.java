@@ -27,6 +27,8 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
 
+import javax.crypto.KeyGenerator;
+import javax.crypto.SecretKey;
 import javax.naming.ldap.LdapName;
 import javax.naming.ldap.Rdn;
 import javax.security.auth.kerberos.KerberosPrincipal;
@@ -39,7 +41,7 @@ import org.apache.cxf.common.logging.LogUtils;
 import org.apache.cxf.sts.STSConstants;
 import org.apache.cxf.sts.STSPropertiesMBean;
 import org.apache.cxf.sts.request.KeyRequirements;
-import org.apache.cxf.sts.request.ReceivedKey;
+import org.apache.cxf.sts.request.ReceivedCredential;
 import org.apache.cxf.sts.request.ReceivedToken;
 import org.apache.cxf.sts.request.ReceivedToken.STATE;
 import org.apache.cxf.sts.request.TokenRequirements;
@@ -55,6 +57,7 @@ import org.apache.wss4j.common.saml.bean.KeyInfoBean.CERT_IDENTIFIER;
 import org.apache.wss4j.common.saml.bean.SubjectBean;
 import org.apache.wss4j.common.saml.builder.SAML1Constants;
 import org.apache.wss4j.common.saml.builder.SAML2Constants;
+import org.apache.wss4j.common.util.KeyUtils;
 import org.apache.wss4j.dom.message.WSSecEncryptedKey;
 
 /**
@@ -165,7 +168,7 @@ public class DefaultSubjectProvider implements SubjectProvider {
                 LdapName ln = new LdapName(principal.getName());
 
                 for (Rdn rdn : ln.getRdns()) {
-                    if ("CN".equalsIgnoreCase(rdn.getType()) && (rdn.getValue() instanceof String)) {
+                    if ("CN".equalsIgnoreCase(rdn.getType()) && rdn.getValue() instanceof String) {
                         subjectName = (String)rdn.getValue();
                         break;
                     }
@@ -241,7 +244,7 @@ public class DefaultSubjectProvider implements SubjectProvider {
                 throw new STSException("No Encryption Name is configured", STSException.REQUEST_FAILED);
             }
 
-            CryptoType cryptoType = null;
+            final CryptoType cryptoType;
 
             // Check for using of service endpoint (AppliesTo) as certificate identifier
             if (STSConstants.USE_ENDPOINT_AS_CERT_ALIAS.equals(encryptionName)) {
@@ -269,23 +272,23 @@ public class DefaultSubjectProvider implements SubjectProvider {
                 throw new STSException(ex.getMessage(), ex);
             }
         } else if (STSConstants.PUBLIC_KEY_KEYTYPE.equals(keyType)) {
-            ReceivedKey receivedKey = keyRequirements.getReceivedKey();
+            ReceivedCredential receivedCredential = keyRequirements.getReceivedCredential();
 
             // Validate UseKey trust
             if (stsProperties.isValidateUseKey() && stsProperties.getSignatureCrypto() != null) {
-                if (receivedKey.getX509Cert() != null) {
+                if (receivedCredential.getX509Cert() != null) {
                     try {
                         Collection<Pattern> constraints = Collections.emptyList();
                         stsProperties.getSignatureCrypto().verifyTrust(
-                            new X509Certificate[]{receivedKey.getX509Cert()}, false, constraints, null);
+                            new X509Certificate[]{receivedCredential.getX509Cert()}, false, constraints, null);
                     } catch (WSSecurityException e) {
                         LOG.log(Level.FINE, "Error in trust validation of UseKey: ", e);
                         throw new STSException("Error in trust validation of UseKey", STSException.REQUEST_FAILED);
                     }
                 }
-                if (receivedKey.getPublicKey() != null) {
+                if (receivedCredential.getPublicKey() != null) {
                     try {
-                        stsProperties.getSignatureCrypto().verifyTrust(receivedKey.getPublicKey());
+                        stsProperties.getSignatureCrypto().verifyTrust(receivedCredential.getPublicKey());
                     } catch (WSSecurityException e) {
                         LOG.log(Level.FINE, "Error in trust validation of UseKey: ", e);
                         throw new STSException("Error in trust validation of UseKey", STSException.REQUEST_FAILED);
@@ -293,7 +296,7 @@ public class DefaultSubjectProvider implements SubjectProvider {
                 }
             }
 
-            return createPublicKeyKeyInfo(receivedKey.getX509Cert(), receivedKey.getPublicKey());
+            return createPublicKeyKeyInfo(receivedCredential.getX509Cert(), receivedCredential.getPublicKey());
         }
 
         return null;
@@ -331,11 +334,18 @@ public class DefaultSubjectProvider implements SubjectProvider {
         // Create an EncryptedKey
         WSSecEncryptedKey encrKey = new WSSecEncryptedKey(doc);
         encrKey.setKeyIdentifierType(encryptionProperties.getKeyIdentifierType());
-        encrKey.setEphemeralKey(secret);
-        encrKey.setSymmetricEncAlgorithm(encryptionProperties.getEncryptionAlgorithm());
         encrKey.setUseThisCert(certificate);
         encrKey.setKeyEncAlgo(encryptionProperties.getKeyWrapAlgorithm());
-        encrKey.prepare(encryptionCrypto);
+
+        final SecretKey symmetricKey;
+        if (secret != null) {
+            symmetricKey = KeyUtils.prepareSecretKey(encryptionProperties.getEncryptionAlgorithm(), secret);
+        } else {
+            KeyGenerator keyGen = KeyUtils.getKeyGenerator(encryptionProperties.getEncryptionAlgorithm());
+            symmetricKey = keyGen.generateKey();
+        }
+
+        encrKey.prepare(encryptionCrypto, symmetricKey);
         Element encryptedKeyElement = encrKey.getEncryptedKeyElement();
 
         // Append the EncryptedKey to a KeyInfo element

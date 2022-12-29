@@ -25,13 +25,13 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Map;
 
-import javax.xml.bind.JAXBContext;
 import javax.xml.namespace.QName;
-import javax.xml.ws.BindingProvider;
-import javax.xml.ws.Dispatch;
-import javax.xml.ws.Service;
-import javax.xml.ws.WebServiceException;
 
+import jakarta.xml.bind.JAXBContext;
+import jakarta.xml.ws.BindingProvider;
+import jakarta.xml.ws.Dispatch;
+import jakarta.xml.ws.Service;
+import jakarta.xml.ws.WebServiceException;
 import org.apache.cxf.endpoint.ClientImpl;
 import org.apache.cxf.jaxws.JaxWsClientProxy;
 import org.apache.cxf.jaxws.context.WrappedMessageContext;
@@ -39,6 +39,11 @@ import org.apache.cxf.test.AbstractCXFTest;
 import org.apache.hello_world_soap_http.Greeter;
 
 import org.junit.Test;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotEquals;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
 public class JaxWsClientThreadTest extends AbstractCXFTest {
 
@@ -49,7 +54,7 @@ public class JaxWsClientThreadTest extends AbstractCXFTest {
     public void testRequestContextThreadSafety() throws Throwable {
 
         URL url = getClass().getResource("/wsdl/hello_world.wsdl");
-        javax.xml.ws.Service s = javax.xml.ws.Service.create(url, serviceName);
+        jakarta.xml.ws.Service s = jakarta.xml.ws.Service.create(url, serviceName);
         final Greeter greeter = s.getPort(portName, Greeter.class);
         final InvocationHandler handler = Proxy.getInvocationHandler(greeter);
 
@@ -60,7 +65,7 @@ public class JaxWsClientThreadTest extends AbstractCXFTest {
 
         String address = (String)requestContext.get(BindingProvider.ENDPOINT_ADDRESS_PROPERTY);
 
-        final Throwable errorHolder[] = new Throwable[1];
+        final Throwable[] errorHolder = new Throwable[1];
 
         Runnable r = new Runnable() {
             public void run() {
@@ -88,8 +93,8 @@ public class JaxWsClientThreadTest extends AbstractCXFTest {
                         }
 
                         requestContext.remove(BindingProvider.ENDPOINT_ADDRESS_PROPERTY);
-                        assertTrue("property is null", requestContext
-                                     .get(BindingProvider.ENDPOINT_ADDRESS_PROPERTY) == null);
+                        assertNull("property is null", requestContext
+                                     .get(BindingProvider.ENDPOINT_ADDRESS_PROPERTY));
 
                     }
                 } catch (Throwable t) {
@@ -121,11 +126,11 @@ public class JaxWsClientThreadTest extends AbstractCXFTest {
         // get the latest values
 
         ((ClientImpl.EchoContext)((WrappedMessageContext)requestContext).getWrappedMap()).reload();
-        assertTrue("address is different", !address.equals(requestContext
-            .get(BindingProvider.ENDPOINT_ADDRESS_PROPERTY)));
+        assertNotEquals("address is different", address, requestContext
+            .get(BindingProvider.ENDPOINT_ADDRESS_PROPERTY));
         // verify value reflects what other threads were doing
-        assertTrue("property is null from last thread execution", requestContext
-                   .get(BindingProvider.ENDPOINT_ADDRESS_PROPERTY) == null);
+        assertNull("property is null from last thread execution", requestContext
+                   .get(BindingProvider.ENDPOINT_ADDRESS_PROPERTY));
     }
 
 
@@ -134,7 +139,7 @@ public class JaxWsClientThreadTest extends AbstractCXFTest {
     public void testRequestContextThreadSafetyDispatch() throws Throwable {
 
         URL url = getClass().getResource("/wsdl/hello_world.wsdl");
-        javax.xml.ws.Service s = javax.xml.ws.Service.create(url, serviceName);
+        jakarta.xml.ws.Service s = jakarta.xml.ws.Service.create(url, serviceName);
         JAXBContext c = JAXBContext.newInstance(org.apache.hello_world_soap_http.types.ObjectFactory.class);
         final Dispatch<Object> disp = s.createDispatch(portName, c, Service.Mode.PAYLOAD);
 
@@ -145,7 +150,7 @@ public class JaxWsClientThreadTest extends AbstractCXFTest {
 
         String address = (String)requestContext.get(BindingProvider.ENDPOINT_ADDRESS_PROPERTY);
 
-        final Throwable errorHolder[] = new Throwable[1];
+        final Throwable[] errorHolder = new Throwable[1];
 
         Runnable r = new Runnable() {
             public void run() {
@@ -175,8 +180,8 @@ public class JaxWsClientThreadTest extends AbstractCXFTest {
                         }
 
                         requestContext.remove(BindingProvider.ENDPOINT_ADDRESS_PROPERTY);
-                        assertTrue("property is null", requestContext
-                                     .get(BindingProvider.ENDPOINT_ADDRESS_PROPERTY) == null);
+                        assertNull("property is null", requestContext
+                                     .get(BindingProvider.ENDPOINT_ADDRESS_PROPERTY));
 
                     }
                 } catch (Throwable t) {
@@ -208,12 +213,11 @@ public class JaxWsClientThreadTest extends AbstractCXFTest {
         // get the latest values
 
         ((ClientImpl.EchoContext)((WrappedMessageContext)requestContext).getWrappedMap()).reload();
-        assertTrue("address is different", !address.equals(requestContext
-            .get(BindingProvider.ENDPOINT_ADDRESS_PROPERTY)));
+        assertNotEquals("address is different", address, requestContext
+            .get(BindingProvider.ENDPOINT_ADDRESS_PROPERTY));
         // verify value reflects what other threads were doing
-        assertTrue("property is null from last thread execution", requestContext
-                   .get(BindingProvider.ENDPOINT_ADDRESS_PROPERTY) == null);
+        assertNull("property is null from last thread execution", requestContext
+                   .get(BindingProvider.ENDPOINT_ADDRESS_PROPERTY));
     }
 
 }
-

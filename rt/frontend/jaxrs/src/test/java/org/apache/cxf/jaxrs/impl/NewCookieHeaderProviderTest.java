@@ -21,14 +21,16 @@ package org.apache.cxf.jaxrs.impl;
 
 import java.util.Date;
 
-import javax.ws.rs.core.NewCookie;
-
+import jakarta.ws.rs.core.NewCookie;
 import org.apache.cxf.jaxrs.utils.HttpUtils;
 
-import org.junit.Assert;
 import org.junit.Test;
 
-public class NewCookieHeaderProviderTest extends Assert {
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+
+public class NewCookieHeaderProviderTest {
 
     @Test(expected = IllegalArgumentException.class)
     public void testNullValue() throws Exception {
@@ -49,6 +51,12 @@ public class NewCookieHeaderProviderTest extends Assert {
                    && "foo".equals(c.getName()));
     }
 
+    @Test
+    public void testNoValue() {
+        NewCookie c = NewCookie.valueOf("foo=");
+        assertTrue("".equals(c.getValue())
+                   && "foo".equals(c.getName()));
+    }
 
     @Test
     public void testFromComplexString() {

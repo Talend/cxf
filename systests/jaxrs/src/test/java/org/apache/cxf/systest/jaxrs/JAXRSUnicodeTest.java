@@ -18,10 +18,9 @@
  */
 package org.apache.cxf.systest.jaxrs;
 
-import javax.ws.rs.GET;
-import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
-
+import jakarta.ws.rs.GET;
+import jakarta.ws.rs.Path;
+import jakarta.ws.rs.Produces;
 import org.apache.cxf.jaxrs.client.WebClient;
 import org.apache.cxf.testutil.common.AbstractBusClientServerTestBase;
 
@@ -29,9 +28,11 @@ import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Test;
 
+import static org.junit.Assert.assertEquals;
+
 public class JAXRSUnicodeTest extends AbstractBusClientServerTestBase {
     public static final int PORT = SpringServer.PORT;
-    
+
     @BeforeClass
     public static void beforeClass() throws Exception {
         // must be 'in-process' to communicate with inner class in single JVM
@@ -54,7 +55,7 @@ public class JAXRSUnicodeTest extends AbstractBusClientServerTestBase {
         wc.accept("text/plain");
         assertEquals("Hello", wc.get(String.class));
     }
-    
+
     @Ignore
     @Path("/")
     public static class Resource {

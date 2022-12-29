@@ -23,14 +23,16 @@ import java.net.URI;
 import java.util.List;
 import java.util.Map;
 
-import javax.annotation.Priority;
 import javax.cache.Cache;
-import javax.ws.rs.HttpMethod;
-import javax.ws.rs.Priorities;
-import javax.ws.rs.client.ClientRequestContext;
-import javax.ws.rs.client.ClientRequestFilter;
-import javax.ws.rs.core.HttpHeaders;
-import javax.ws.rs.core.Response;
+
+import jakarta.annotation.Priority;
+import jakarta.ws.rs.HttpMethod;
+import jakarta.ws.rs.Priorities;
+import jakarta.ws.rs.client.ClientRequestContext;
+import jakarta.ws.rs.client.ClientRequestFilter;
+import jakarta.ws.rs.core.HttpHeaders;
+import jakarta.ws.rs.core.Response;
+import org.apache.cxf.common.util.StringUtils;
 
 @Priority(Priorities.USER - 1)
 public class CacheControlClientRequestFilter implements ClientRequestFilter {
@@ -64,7 +66,16 @@ public class CacheControlClientRequestFilter implements ClientRequestFilter {
             //TODO: do the extra validation against the conditional headers
             //      which may be contained in the current request
             if (entry.isOutDated()) {
-                cache.remove(key, entry);
+                String ifNoneMatchHeader = entry.getCacheHeaders().get(HttpHeaders.IF_NONE_MATCH);
+                String ifModifiedSinceHeader = entry.getCacheHeaders().get(HttpHeaders.IF_MODIFIED_SINCE);
+
+                if (StringUtils.isEmpty(ifNoneMatchHeader) && StringUtils.isEmpty(ifModifiedSinceHeader)) {
+                    cache.remove(key, entry);
+                } else {
+                    request.getHeaders().add(HttpHeaders.IF_NONE_MATCH, ifNoneMatchHeader);
+                    request.getHeaders().add(HttpHeaders.IF_MODIFIED_SINCE, ifModifiedSinceHeader);
+                    request.setProperty(CACHED_ENTITY_PROPERTY, entry.getData());
+                }
             } else {
                 Object cachedEntity = entry.getData();
                 Response.ResponseBuilder ok = Response.ok(cachedEntity);

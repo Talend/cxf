@@ -32,15 +32,13 @@ import java.util.TreeMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import javax.jms.BytesMessage;
-import javax.jms.JMSException;
-import javax.jms.Message;
-import javax.jms.Session;
-import javax.jms.TextMessage;
-
+import jakarta.jms.BytesMessage;
+import jakarta.jms.JMSException;
+import jakarta.jms.Message;
+import jakarta.jms.Session;
+import jakarta.jms.TextMessage;
 import org.apache.cxf.common.logging.LogUtils;
 import org.apache.cxf.common.util.PropertyUtils;
-import org.apache.cxf.common.util.StringUtils;
 import org.apache.cxf.helpers.CastUtils;
 import org.apache.cxf.helpers.HttpHeaderHelper;
 import org.apache.cxf.message.MessageImpl;
@@ -78,7 +76,7 @@ final class JMSMessageUtils {
      */
     private static void retrieveAndSetPayload(org.apache.cxf.message.Message inMessage, Message message)
         throws UnsupportedEncodingException, JMSException {
-        String messageType = null;
+        final String messageType;
         Object converted = new JMSMessageConverter().fromMessage(message);
         if (converted instanceof String) {
             inMessage.setContent(Reader.class, new StringReader((String)converted));
@@ -106,7 +104,7 @@ final class JMSMessageUtils {
         if (responseCode != null) {
             inMessage.put(org.apache.cxf.message.Message.RESPONSE_CODE, Integer.valueOf(responseCode));
         }
-        Map<String, List<String>> protHeaders = new TreeMap<String, List<String>>();
+        Map<String, List<String>> protHeaders = new TreeMap<>();
         for (String name : messageHeaders.getPropertyKeys()) {
             String val = (String)messageHeaders.getProperty(name);
             protHeaders.put(name, Collections.singletonList(val));
@@ -129,18 +127,7 @@ final class JMSMessageUtils {
 
 
     static String getEncoding(String ct) throws UnsupportedEncodingException {
-        String contentType = ct.toLowerCase();
-        String enc = null;
-
-        String[] tokens = StringUtils.split(contentType, ";");
-        for (String token : tokens) {
-            int index = token.indexOf("charset=");
-            if (index >= 0) {
-                enc = token.substring(index + 8);
-                break;
-            }
-        }
-
+        String enc = HttpHeaderHelper.findCharset(ct);
         String normalizedEncoding = HttpHeaderHelper.mapCharset(enc, StandardCharsets.UTF_8.name());
         if (normalizedEncoding == null) {
             String m = new org.apache.cxf.common.i18n.Message("INVALID_ENCODING_MSG", LOG, new Object[] {
@@ -172,7 +159,7 @@ final class JMSMessageUtils {
         Map<String, List<String>> headers = CastUtils.cast((Map<?, ?>)message
             .get(org.apache.cxf.message.Message.PROTOCOL_HEADERS));
         if (null == headers) {
-            headers = new TreeMap<String, List<String>>(String.CASE_INSENSITIVE_ORDER);
+            headers = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
             message.put(org.apache.cxf.message.Message.PROTOCOL_HEADERS, headers);
         }
         return contentType;
@@ -271,7 +258,7 @@ final class JMSMessageUtils {
             for (Map.Entry<String, List<String>> ent : headers.entrySet()) {
                 if (!ent.getKey().equals(org.apache.cxf.message.Message.CONTENT_TYPE)
                     && !ent.getKey().equals(HttpHeaderHelper.CONTENT_LENGTH)) {
-                    messageHeaders.putProperty(ent.getKey(), JMSMessageUtils.join(ent.getValue(), ','));
+                    messageHeaders.putProperty(ent.getKey(), String.join(",", ent.getValue()));
                 }
             }
         }
@@ -289,17 +276,6 @@ final class JMSMessageUtils {
             message.put(headerName, messageProperties);
         }
         return messageProperties;
-    }
-
-    private static String join(List<String> valueList, char seperator) {
-        StringBuilder b = new StringBuilder();
-        for (String s : valueList) {
-            if (b.length() > 0) {
-                b.append(seperator);
-            }
-            b.append(s);
-        }
-        return b.toString();
     }
 
     private static String getSoapAction(JMSMessageHeadersType messageProperties,
@@ -342,7 +318,7 @@ final class JMSMessageUtils {
         }
     }
 
-    public static String getMessageType(final javax.jms.Message request) {
+    public static String getMessageType(final jakarta.jms.Message request) {
         final String msgType;
         if (request instanceof TextMessage) {
             msgType = JMSConstants.TEXT_MESSAGE_TYPE;

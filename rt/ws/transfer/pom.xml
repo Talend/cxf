@@ -4,17 +4,18 @@
   <artifactId>cxf-rt-ws-transfer</artifactId>
   <packaging>jar</packaging>
   <name>Apache CXF Runtime WS Transfer</name>
-  <url>http://cxf.apache.org</url>
+  <url>https://cxf.apache.org</url>
   
   <parent>
       <groupId>org.apache.cxf</groupId>
       <artifactId>cxf-parent</artifactId>
-      <version>3.2.5-SNAPSHOT</version>
+      <version>4.0.1-SNAPSHOT</version>
       <relativePath>../../../parent/pom.xml</relativePath>
   </parent>
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <cxf.module.name>org.apache.cxf.ws.transfer</cxf.module.name>
   </properties>
 
   <dependencies>
@@ -22,6 +23,10 @@
       <groupId>${project.groupId}</groupId>
       <artifactId>cxf-rt-frontend-jaxws</artifactId>
       <version>${project.version}</version>
+    </dependency>
+    <dependency>
+        <groupId>com.sun.xml.messaging.saaj</groupId>
+        <artifactId>saaj-impl</artifactId>
     </dependency>
     <dependency>
       <groupId>junit</groupId>

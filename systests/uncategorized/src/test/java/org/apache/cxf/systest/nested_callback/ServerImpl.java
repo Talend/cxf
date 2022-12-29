@@ -22,12 +22,12 @@ package org.apache.cxf.systest.nested_callback;
 
 import java.net.URL;
 
-import javax.annotation.Resource;
 import javax.xml.namespace.QName;
-import javax.xml.ws.BindingProvider;
-import javax.xml.ws.Service;
-import javax.xml.ws.wsaddressing.W3CEndpointReference;
 
+import jakarta.annotation.Resource;
+import jakarta.xml.ws.BindingProvider;
+import jakarta.xml.ws.Service;
+import jakarta.xml.ws.wsaddressing.W3CEndpointReference;
 import org.apache.cxf.Bus;
 import org.apache.cxf.common.jaxb.JAXBUtils;
 import org.apache.cxf.jaxws.spi.ProviderImpl;
@@ -39,11 +39,11 @@ import org.apache.nested_callback.CallbackPortType;
 import org.apache.nested_callback.NestedCallback;
 import org.apache.nested_callback.ServerPortType;
 
-@javax.jws.WebService(serviceName = "SOAPService",
+@jakarta.jws.WebService(serviceName = "SOAPService",
                       portName = "SOAPPort",
                       targetNamespace = "http://apache.org/nested_callback",
                       endpointInterface = "org.apache.nested_callback.ServerPortType",
-                      wsdlLocation = "testutils/nested_callback.wsdl")
+                      wsdlLocation = "wsdl/nested_callback.wsdl")
 
 
 public class ServerImpl implements ServerPortType  {
@@ -73,7 +73,7 @@ public class ServerImpl implements ServerPortType  {
 
             StringBuilder seiName = new StringBuilder();
             seiName.append(JAXBUtils.namespaceURIToPackage(interfaceName.getNamespaceURI()));
-            seiName.append(".");
+            seiName.append('.');
             seiName.append(JAXBUtils.nameToIdentifier(interfaceName.getLocalPart(),
                                                       JAXBUtils.IdentifierType.INTERFACE));
 

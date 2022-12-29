@@ -29,9 +29,8 @@ import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import javax.xml.XMLConstants;
 import javax.xml.namespace.QName;
-import javax.xml.soap.SOAPException;
-import javax.xml.soap.SOAPMessage;
 import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpressionException;
@@ -40,6 +39,8 @@ import javax.xml.xpath.XPathFactory;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 
+import jakarta.xml.soap.SOAPException;
+import jakarta.xml.soap.SOAPMessage;
 import org.apache.cxf.common.logging.LogUtils;
 import org.apache.cxf.helpers.CastUtils;
 import org.apache.cxf.helpers.DOMUtils;
@@ -111,8 +112,7 @@ public abstract class AbstractSupportingTokenPolicyValidator extends AbstractSec
                                            parameters.getMessage())) {
             return false;
         }
-        if (isEncrypted() && !areTokensEncrypted(tokenResults, parameters.getEncryptedResults(),
-                                                 parameters.getMessage())) {
+        if (isEncrypted() && !areTokensEncrypted(tokenResults, parameters.getEncryptedResults())) {
             return false;
         }
 
@@ -156,8 +156,7 @@ public abstract class AbstractSupportingTokenPolicyValidator extends AbstractSec
             return false;
         }
         if (isEncrypted() && !areTokensEncrypted(tokenResults,
-                                                 parameters.getEncryptedResults(),
-                                                 parameters.getMessage())) {
+                                                 parameters.getEncryptedResults())) {
             return false;
         }
 
@@ -217,8 +216,7 @@ public abstract class AbstractSupportingTokenPolicyValidator extends AbstractSec
                                            parameters.getMessage())) {
             return false;
         }
-        if (isEncrypted() && !areTokensEncrypted(tokenResults, parameters.getEncryptedResults(),
-                                                 parameters.getMessage())) {
+        if (isEncrypted() && !areTokensEncrypted(tokenResults, parameters.getEncryptedResults())) {
             return false;
         }
 
@@ -273,8 +271,7 @@ public abstract class AbstractSupportingTokenPolicyValidator extends AbstractSec
                                            parameters.getMessage())) {
             return false;
         }
-        if (isEncrypted() && !areTokensEncrypted(tokenResults, parameters.getEncryptedResults(),
-                                                 parameters.getMessage())) {
+        if (isEncrypted() && !areTokensEncrypted(tokenResults, parameters.getEncryptedResults())) {
             return false;
         }
 
@@ -326,8 +323,7 @@ public abstract class AbstractSupportingTokenPolicyValidator extends AbstractSec
                                            parameters.getMessage())) {
             return false;
         }
-        if (isEncrypted() && !areTokensEncrypted(tokenResults, parameters.getEncryptedResults(),
-                                                 parameters.getMessage())) {
+        if (isEncrypted() && !areTokensEncrypted(tokenResults, parameters.getEncryptedResults())) {
             return false;
         }
         if (isEndorsing() && !checkEndorsed(tokenResults, parameters.getSignedResults(),
@@ -357,11 +353,11 @@ public abstract class AbstractSupportingTokenPolicyValidator extends AbstractSec
             return false;
         }
 
-        if (!validateSignedEncryptedElements(signedElements, false, signedResults, tokenResults, message)) {
+        if (!validateSignedEncryptedElements(signedElements, signedResults, tokenResults, message)) {
             return false;
         }
 
-        return validateSignedEncryptedElements(encryptedElements, false, encryptedResults, tokenResults, message);
+        return validateSignedEncryptedElements(encryptedElements, encryptedResults, tokenResults, message);
     }
 
 
@@ -380,8 +376,7 @@ public abstract class AbstractSupportingTokenPolicyValidator extends AbstractSec
                                            parameters.getMessage())) {
             return false;
         }
-        if (isEncrypted() && !areTokensEncrypted(tokenResults, parameters.getEncryptedResults(),
-                                                 parameters.getMessage())) {
+        if (isEncrypted() && !areTokensEncrypted(tokenResults, parameters.getEncryptedResults())) {
             return false;
         }
 
@@ -509,8 +504,7 @@ public abstract class AbstractSupportingTokenPolicyValidator extends AbstractSec
      * Return true if a list of tokens were encrypted, false otherwise.
      */
     private boolean areTokensEncrypted(List<WSSecurityEngineResult> tokens,
-                                       List<WSSecurityEngineResult> encryptedResults,
-                                       Message message) {
+                                       List<WSSecurityEngineResult> encryptedResults) {
         if (enforceEncryptedTokens) {
             for (WSSecurityEngineResult wser : tokens) {
                 Element tokenElement = (Element)wser.get(WSSecurityEngineResult.TAG_TOKEN_ELEMENT);
@@ -559,7 +553,7 @@ public abstract class AbstractSupportingTokenPolicyValidator extends AbstractSec
                 CastUtils.cast((List<?>)signedResult.get(
                     WSSecurityEngineResult.TAG_DATA_REF_URIS
                 ));
-            if (sl != null && sl.size() >= 1) {
+            if (sl != null && !sl.isEmpty()) {
                 for (WSDataRef dataRef : sl) {
                     QName signedQName = dataRef.getName();
                     if (WSConstants.SIGNATURE.equals(signedQName)
@@ -575,7 +569,7 @@ public abstract class AbstractSupportingTokenPolicyValidator extends AbstractSec
     /**
      * Check that a WSSecurityEngineResult corresponding to a signature or encryption uses the same
      * signing/encrypting credential as one of the tokens.
-     * @param signatureResult a WSSecurityEngineResult corresponding to a signature or encryption
+     * @param result a WSSecurityEngineResult corresponding to a signature or encryption
      * @param tokenResult A list of WSSecurityEngineResults corresponding to tokens
      * @return
      */
@@ -653,7 +647,7 @@ public abstract class AbstractSupportingTokenPolicyValidator extends AbstractSec
 
         if (parts.isBody()) {
             SOAPMessage soapMessage = message.getContent(SOAPMessage.class);
-            Element soapBody = null;
+            final Element soapBody;
             try {
                 soapBody = soapMessage.getSOAPBody();
             } catch (SOAPException ex) {
@@ -668,7 +662,7 @@ public abstract class AbstractSupportingTokenPolicyValidator extends AbstractSec
 
         for (Header h : parts.getHeaders()) {
             SOAPMessage soapMessage = message.getContent(SOAPMessage.class);
-            Element soapHeader = null;
+            final Element soapHeader;
             try {
                 soapHeader = soapMessage.getSOAPHeader();
             } catch (SOAPException ex) {
@@ -725,7 +719,6 @@ public abstract class AbstractSupportingTokenPolicyValidator extends AbstractSec
      */
     private boolean validateSignedEncryptedElements(
         RequiredElements elements,
-        boolean content,
         List<WSSecurityEngineResult> protResults,
         List<WSSecurityEngineResult> tokenResults,
         Message message
@@ -746,6 +739,12 @@ public abstract class AbstractSupportingTokenPolicyValidator extends AbstractSec
             // XPathFactory and XPath are not thread-safe so we must recreate them
             // each request.
             final XPathFactory factory = XPathFactory.newInstance();
+            try {
+                factory.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, Boolean.TRUE);
+            } catch (javax.xml.xpath.XPathFactoryConfigurationException ex) {
+                // ignore
+            }
+
             final XPath xpath = factory.newXPath();
 
             MapNamespaceContext namespaceContext = new MapNamespaceContext();

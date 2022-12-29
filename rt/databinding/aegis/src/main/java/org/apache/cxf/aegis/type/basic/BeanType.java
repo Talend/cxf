@@ -44,6 +44,7 @@ import org.apache.cxf.aegis.type.mtom.AbstractXOPType;
 import org.apache.cxf.aegis.xml.MessageReader;
 import org.apache.cxf.aegis.xml.MessageWriter;
 import org.apache.cxf.common.classloader.ClassLoaderUtils;
+import org.apache.cxf.common.util.StringUtils;
 import org.apache.cxf.common.xmlschema.XmlSchemaUtils;
 import org.apache.cxf.helpers.CastUtils;
 import org.apache.cxf.interceptor.Fault;
@@ -123,9 +124,9 @@ public class BeanType extends AegisType {
                 } else {
                     try {
                         clazz = ClassLoaderUtils.loadClass(impl, getClass());
-                        object = clazz.newInstance();
+                        object = clazz.getDeclaredConstructor().newInstance();
                         target = object;
-                    } catch (ClassNotFoundException e) {
+                    } catch (ClassNotFoundException | NoSuchMethodException e) {
                         throw new DatabindingException("Could not find implementation class " + impl
                                                        + " for class " + clazz.getName());
                     }
@@ -134,8 +135,12 @@ public class BeanType extends AegisType {
                 object = createFromFault(context);
                 target = object;
             } else {
-                object = clazz.newInstance();
-                target = object;
+                try {
+                    object = clazz.getDeclaredConstructor().newInstance();
+                    target = object;
+                } catch (NoSuchMethodException e) {
+                    throw new DatabindingException("Could not create object of class " + clazz.getName());
+                }
             }
 
             // Read attributes
@@ -197,7 +202,7 @@ public class BeanType extends AegisType {
             throw new DatabindingException("Illegal access. " + e.getMessage(), e);
         } catch (IllegalArgumentException e) {
             throw new DatabindingException("Illegal argument. " + e.getMessage(), e);
-        } catch (InvocationTargetException e) {
+        } catch (InvocationTargetException | NoSuchMethodException e) {
             throw new DatabindingException("Could not create class: " + e.getMessage(), e);
         }
     }
@@ -221,7 +226,7 @@ public class BeanType extends AegisType {
      * it exists).
      */
     protected Object createFromFault(Context context) throws SecurityException, InstantiationException,
-        IllegalAccessException, IllegalArgumentException, InvocationTargetException {
+        IllegalAccessException, InvocationTargetException, NoSuchMethodException {
         Class<?> clazz = getTypeClass();
         Constructor<?> ctr;
         Object o;
@@ -252,7 +257,7 @@ public class BeanType extends AegisType {
                         fault.getMessage()
                     });
                 } catch (NoSuchMethodException e2) {
-                    return clazz.newInstance();
+                    return clazz.getDeclaredConstructor().newInstance();
                 }
             }
         }
@@ -301,11 +306,9 @@ public class BeanType extends AegisType {
                     property
                 });
             }
+        } catch (DatabindingException e) {
+            throw e;
         } catch (Exception e) {
-            if (e instanceof DatabindingException) {
-                throw (DatabindingException)e;
-            }
-
             throw new DatabindingException("Couldn't set property " + name + " on " + object + ". "
                                            + e.getMessage(), e);
         }
@@ -316,7 +319,7 @@ public class BeanType extends AegisType {
      */
     private Method getWriteMethodFromImplClass(Class<?> impl, PropertyDescriptor pd) throws Exception {
         String name = pd.getName();
-        name = "set" + name.substring(0, 1).toUpperCase() + name.substring(1);
+        name = "set" + StringUtils.capitalize(name);
 
         return impl.getMethod(name, new Class[] {
             pd.getPropertyType()
@@ -430,8 +433,7 @@ public class BeanType extends AegisType {
                                 AegisType type, MessageWriter writer, Context context) {
 
         if (!type.isFlatArray()) {
-            MessageWriter cwriter = null;
-            cwriter = getWriter(writer, name, type);
+            MessageWriter cwriter = getWriter(writer, name, type);
             type.writeObject(value, cwriter, context);
             cwriter.close();
         } else {
@@ -646,7 +648,7 @@ public class BeanType extends AegisType {
      */
     @Override
     public String toString() {
-        StringBuilder sb = new StringBuilder();
+        StringBuilder sb = new StringBuilder(32);
         sb.append(getClass().getName());
         sb.append(": [class=");
         Class<?> c = getTypeClass();
@@ -656,7 +658,7 @@ public class BeanType extends AegisType {
         sb.append((q == null) ? "<null>" : q.toString());
         sb.append(",\ninfo=");
         sb.append(getTypeInfo().toString());
-        sb.append("]");
+        sb.append(']');
         return sb.toString();
     }
 

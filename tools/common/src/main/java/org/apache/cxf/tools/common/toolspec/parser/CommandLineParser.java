@@ -29,7 +29,6 @@ import java.util.StringTokenizer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerException;
 import javax.xml.transform.TransformerFactory;
@@ -66,7 +65,7 @@ public class CommandLineParser {
         while (toker.hasMoreTokens()) {
             res.add(toker.nextToken());
         }
-        return res.toArray(new String[res.size()]);
+        return res.toArray(new String[0]);
     }
 
     public CommandDocument parseArguments(String args) throws BadUsageException, IOException {
@@ -76,30 +75,17 @@ public class CommandLineParser {
     public CommandDocument parseArguments(String[] args) throws BadUsageException, IOException {
 
         if (LOG.isLoggable(Level.FINE)) {
-            StringBuilder debugMsg = new StringBuilder("Parsing arguments: ");
-
-            for (int i = 0; i < args.length; i++) {
-                debugMsg.append(args[i]).append(" ");
-            }
-            LOG.fine(debugMsg.toString());
+            LOG.fine("Parsing arguments: " + String.join(" ", args));
         }
 
         if (toolspec == null) {
-            throw new IllegalStateException("No schema known- call to acceptSc"
-                                            + "hema() must be made and must succeed");
+            throw new IllegalStateException("No schema known- call to acceptSchema() must be made and must succeed");
         }
 
         // Create a result document
 
-        Document resultDoc = null;
+        final Document resultDoc = DOMUtils.newDocument();
 
-        try {
-            DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-            factory.setNamespaceAware(true);
-            resultDoc = factory.newDocumentBuilder().newDocument();
-        } catch (Exception ex) {
-            LOG.log(Level.SEVERE, "FAIL_CREATE_DOM_MSG");
-        }
         Element commandEl = resultDoc.createElementNS("http://cxf.apache.org/Xutil/Command", "command");
 
         Attr attr =
@@ -227,7 +213,7 @@ public class CommandLineParser {
     }
 
     public String getFormattedDetailedUsage() throws TransformerException, IOException {
-        String usage = null;
+        final String usage;
         try (ByteArrayOutputStream baos = new ByteArrayOutputStream();
             InputStream is = getClass().getResourceAsStream("detailedUsage.xsl")) {
             toolspec.transform(is, baos);
@@ -245,17 +231,9 @@ public class CommandLineParser {
         int optSpan = optSize + afterOptLen - 1;
         int beforeDesSpan = beforeOptSpan + optSpan + 1;
         String lineSeparator = System.getProperty("line.separator");
-        StringTokenizer st1 = new StringTokenizer(usage, lineSeparator);
-        int i = 0;
-        int length = st1.countTokens();
-        String[] originalStrs = new String[length];
-        while (st1.hasMoreTokens()) {
-            String str = st1.nextToken();
-            originalStrs[i] = str;
-            i++;
-        }
+        String[] originalStrs = usage.split(lineSeparator);
         StringBuilder strbuffer = new StringBuilder();
-        for (int j = 0; j < length - 1; j = j + 2) {
+        for (int j = 0; j < originalStrs.length - 1; j = j + 2) {
             int optionLen = originalStrs[j].length();
             addWhiteNamespace(strbuffer, beforeOptSpan);
             if (optionLen <= optSpan) {
@@ -264,7 +242,7 @@ public class CommandLineParser {
 
                 strbuffer.append(originalStrs[j]);
                 addWhiteNamespace(strbuffer, optSpan - originalStrs[j].length());
-                strbuffer.append(" ");
+                strbuffer.append(' ');
                 if (originalStrs[j + 1].length() > totalLen - beforeDesSpan) {
                     int lastIdx = totalLen - beforeDesSpan;
                     int lastIdx2 = splitAndAppendText(strbuffer, originalStrs[j + 1], 0, lastIdx);
@@ -281,7 +259,7 @@ public class CommandLineParser {
             }
             String tmpStr = originalStrs[j + 1];
 
-            for (i = 0; i < tmpStr.length(); i = i + (totalLen - beforeDesSpan)) {
+            for (int i = 0; i < tmpStr.length(); i = i + (totalLen - beforeDesSpan)) {
                 if (i + totalLen - beforeDesSpan < tmpStr.length()) {
                     addWhiteNamespace(strbuffer, beforeDesSpan);
                     int lastIdx = i + totalLen - beforeDesSpan;
@@ -319,7 +297,7 @@ public class CommandLineParser {
     private void addWhiteNamespace(StringBuilder strbuffer, int count) {
 
         for (int i = 0; i < count; i++) {
-            strbuffer.append(" ");
+            strbuffer.append(' ');
         }
     }
 
@@ -332,7 +310,7 @@ public class CommandLineParser {
                                                                      "annotation");
 
 
-        if ((annotations != null) && (!annotations.isEmpty())) {
+        if ((annotations != null) && !annotations.isEmpty()) {
             result = annotations.get(0).getFirstChild().getNodeValue();
         }
         return result;

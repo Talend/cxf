@@ -19,11 +19,13 @@
 package org.apache.cxf.jaxrs.client;
 
 import java.net.URI;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 
-import javax.ws.rs.core.MultivaluedMap;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.UriBuilder;
-
+import jakarta.ws.rs.core.MultivaluedMap;
+import jakarta.ws.rs.core.Response;
+import jakarta.ws.rs.core.UriBuilder;
 import org.apache.cxf.common.util.StringUtils;
 import org.apache.cxf.jaxrs.impl.MetadataMap;
 import org.apache.cxf.jaxrs.impl.UriBuilderImpl;
@@ -36,40 +38,60 @@ public class LocalClientState implements ClientState {
     private static final String HTTP_SCHEME = "http";
     private static final String WS_SCHEME = "ws";
 
-    private MultivaluedMap<String, String> requestHeaders = new MetadataMap<String, String>(false, true);
+    private MultivaluedMap<String, String> requestHeaders = new MetadataMap<>(false, true);
     private MultivaluedMap<String, String> templates;
     private Response response;
     private URI baseURI;
     private UriBuilder currentBuilder;
+    private Map<String, Object> properties;
 
     public LocalClientState() {
 
     }
 
     public LocalClientState(URI baseURI) {
+        this(baseURI, Collections.emptyMap());
+    }
+    
+    public LocalClientState(URI baseURI, Map<String, Object> properties) {
         this.baseURI = baseURI;
-        resetCurrentUri();
+        
+        if (properties != null) {
+            this.properties = new HashMap<>(properties);
+        }
+        
+        resetCurrentUri(properties);
     }
 
     public LocalClientState(URI baseURI, URI currentURI) {
+        this(baseURI, currentURI, Collections.emptyMap()); 
+    }
+
+    public LocalClientState(URI baseURI, URI currentURI, Map<String, Object> properties) {
         this.baseURI = baseURI;
-        this.currentBuilder = new UriBuilderImpl().uri(currentURI);
+        
+        if (properties != null) {
+            this.properties = new HashMap<>(properties);
+        }
+        
+        this.currentBuilder = new UriBuilderImpl(properties).uri(currentURI);
     }
 
     public LocalClientState(LocalClientState cs) {
-        this.requestHeaders = new MetadataMap<String, String>(cs.requestHeaders);
+        this.requestHeaders = new MetadataMap<>(cs.requestHeaders);
         this.templates = cs.templates == null ? null : new MetadataMap<String, String>(cs.templates);
         this.response = cs.response;
 
         this.baseURI = cs.baseURI;
         this.currentBuilder = cs.currentBuilder != null ? cs.currentBuilder.clone() : null;
+        this.properties = cs.properties;
     }
 
-    private void resetCurrentUri() {
+    private void resetCurrentUri(Map<String, Object> props) {
         if (isSupportedScheme(baseURI)) {
-            this.currentBuilder = new UriBuilderImpl().uri(baseURI);
+            this.currentBuilder = new UriBuilderImpl(props).uri(baseURI);
         } else {
-            this.currentBuilder = new UriBuilderImpl().uri("/");
+            this.currentBuilder = new UriBuilderImpl(props).uri("/");
         }
     }
 
@@ -83,7 +105,7 @@ public class LocalClientState implements ClientState {
 
     public void setBaseURI(URI baseURI) {
         this.baseURI = baseURI;
-        resetCurrentUri();
+        resetCurrentUri(Collections.emptyMap());
     }
 
     public URI getBaseURI() {
@@ -123,18 +145,17 @@ public class LocalClientState implements ClientState {
     public void reset() {
         requestHeaders.clear();
         response = null;
-        currentBuilder = new UriBuilderImpl().uri(baseURI);
+        currentBuilder = new UriBuilderImpl(properties).uri(baseURI);
         templates = null;
     }
-
-    public ClientState newState(URI currentURI,
-                                MultivaluedMap<String, String> headers,
-                                MultivaluedMap<String, String> templatesMap) {
-        ClientState state = null;
+    
+    public ClientState newState(URI currentURI, MultivaluedMap<String, String> headers,
+            MultivaluedMap<String, String> templatesMap, Map<String, Object> props) {
+        final ClientState state;
         if (isSupportedScheme(currentURI)) {
-            state = new LocalClientState(currentURI);
+            state = new LocalClientState(currentURI, props);
         } else {
-            state = new LocalClientState(baseURI, currentURI);
+            state = new LocalClientState(baseURI, currentURI, props);
         }
         if (headers != null) {
             state.setRequestHeaders(headers);
@@ -148,6 +169,12 @@ public class LocalClientState implements ClientState {
         }
         state.setTemplates(newTemplateParams);
         return state;
+    }
+
+    public ClientState newState(URI currentURI,
+                                MultivaluedMap<String, String> headers,
+                                MultivaluedMap<String, String> templatesMap) {
+        return newState(currentURI, headers, templatesMap, properties);
     }
 
     private static boolean isSupportedScheme(URI uri) {

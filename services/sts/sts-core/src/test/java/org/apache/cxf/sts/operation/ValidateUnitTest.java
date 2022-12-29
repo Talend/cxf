@@ -18,19 +18,18 @@
  */
 package org.apache.cxf.sts.operation;
 
-import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
-import javax.xml.bind.JAXBElement;
 import javax.xml.namespace.QName;
 
+import jakarta.xml.bind.JAXBElement;
 import org.apache.cxf.jaxws.context.WrappedMessageContext;
 import org.apache.cxf.message.MessageImpl;
 import org.apache.cxf.sts.QNameConstants;
 import org.apache.cxf.sts.STSConstants;
 import org.apache.cxf.sts.STSPropertiesMBean;
 import org.apache.cxf.sts.StaticSTSProperties;
-import org.apache.cxf.sts.token.validator.TokenValidator;
 import org.apache.cxf.ws.security.sts.provider.STSException;
 import org.apache.cxf.ws.security.sts.provider.model.RequestSecurityTokenCollectionType;
 import org.apache.cxf.ws.security.sts.provider.model.RequestSecurityTokenResponseCollectionType;
@@ -40,10 +39,14 @@ import org.apache.cxf.ws.security.sts.provider.model.StatusType;
 import org.apache.cxf.ws.security.sts.provider.model.ValidateTargetType;
 import org.apache.cxf.ws.security.sts.provider.model.secext.BinarySecurityTokenType;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+
 /**
  * Some unit tests for the validate operation.
  */
-public class ValidateUnitTest extends org.junit.Assert {
+public class ValidateUnitTest {
 
     private static final QName QNAME_WST_STATUS =
         QNameConstants.WS_TRUST_FACTORY.createStatus(null).getName();
@@ -57,9 +60,8 @@ public class ValidateUnitTest extends org.junit.Assert {
         TokenValidateOperation validateOperation = new TokenValidateOperation();
 
         // Add Token Validator
-        List<TokenValidator> validatorList = new ArrayList<>();
-        validatorList.add(new DummyTokenValidator());
-        validateOperation.setTokenValidators(validatorList);
+        validateOperation.setTokenValidators(Collections.singletonList(
+            new DummyTokenValidator()));
 
         // Add STSProperties object
         STSPropertiesMBean stsProperties = new StaticSTSProperties();
@@ -103,9 +105,8 @@ public class ValidateUnitTest extends org.junit.Assert {
         requestCollectionOperation.setValidateOperation(validateOperation);
 
         // Add Token Validator
-        List<TokenValidator> validatorList = new ArrayList<>();
-        validatorList.add(new DummyTokenValidator());
-        validateOperation.setTokenValidators(validatorList);
+        validateOperation.setTokenValidators(Collections.singletonList(
+            new DummyTokenValidator()));
 
         // Add STSProperties object
         STSPropertiesMBean stsProperties = new StaticSTSProperties();
@@ -167,9 +168,8 @@ public class ValidateUnitTest extends org.junit.Assert {
         TokenValidateOperation validateOperation = new TokenValidateOperation();
 
         // Add Token Validator
-        List<TokenValidator> validatorList = new ArrayList<>();
-        validatorList.add(new DummyTokenValidator());
-        validateOperation.setTokenValidators(validatorList);
+        validateOperation.setTokenValidators(Collections.singletonList(
+            new DummyTokenValidator()));
 
         // Add STSProperties object
         STSPropertiesMBean stsProperties = new StaticSTSProperties();
@@ -204,9 +204,8 @@ public class ValidateUnitTest extends org.junit.Assert {
         TokenValidateOperation validateOperation = new TokenValidateOperation();
 
         // Add Token Validator
-        List<TokenValidator> validatorList = new ArrayList<>();
-        validatorList.add(new DummyTokenValidator());
-        validateOperation.setTokenValidators(validatorList);
+        validateOperation.setTokenValidators(Collections.singletonList(
+            new DummyTokenValidator()));
 
         // Add STSProperties object
         STSPropertiesMBean stsProperties = new StaticSTSProperties();
@@ -257,9 +256,8 @@ public class ValidateUnitTest extends org.junit.Assert {
         TokenValidateOperation validateOperation = new TokenValidateOperation();
 
         // Add Token Validator
-        List<TokenValidator> validatorList = new ArrayList<>();
-        validatorList.add(new DummyTokenValidator());
-        validateOperation.setTokenValidators(validatorList);
+        validateOperation.setTokenValidators(Collections.singletonList(
+            new DummyTokenValidator()));
 
         // Add STSProperties object
         STSPropertiesMBean stsProperties = new StaticSTSProperties();
@@ -290,7 +288,7 @@ public class ValidateUnitTest extends org.junit.Assert {
         RequestSecurityTokenResponseType response =
             validateOperation.validate(request, null, msgCtx);
         assertTrue(validateResponse(response));
-        assertTrue("AuthenticationContext".equals(response.getContext()));
+        assertEquals("AuthenticationContext", response.getContext());
     }
 
     /**

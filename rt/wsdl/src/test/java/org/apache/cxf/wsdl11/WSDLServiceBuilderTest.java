@@ -69,10 +69,16 @@ import org.apache.ws.commons.schema.XmlSchemaElement;
 
 import org.easymock.EasyMock;
 import org.easymock.IMocksControl;
-import org.junit.Assert;
 import org.junit.Test;
 
-public class WSDLServiceBuilderTest extends Assert {
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+
+public class WSDLServiceBuilderTest {
     // TODO: reuse the wsdl in testutils and add the parameter order into one of the wsdl
     private static final Logger LOG = LogUtils.getLogger(WSDLServiceBuilderTest.class);
     private static final String WSDL_PATH = "hello_world.wsdl";
@@ -101,7 +107,7 @@ public class WSDLServiceBuilderTest extends Assert {
 
     private DestinationFactoryManager destinationFactoryManager;
 
-    public void setUpBasic() throws Exception {
+    protected void setUpBasic() throws Exception {
         setUpWSDL(WSDL_PATH, 0);
     }
 
@@ -291,9 +297,8 @@ public class WSDLServiceBuilderTest extends Assert {
     @Test
     public void testBindingInfo() throws Exception {
         setUpBasic();
-        BindingInfo bindingInfo = null;
         assertEquals(1, serviceInfo.getBindings().size());
-        bindingInfo = serviceInfo.getBindings().iterator().next();
+        BindingInfo bindingInfo = serviceInfo.getBindings().iterator().next();
         assertNotNull(bindingInfo);
         assertEquals(bindingInfo.getInterface().getName().getLocalPart(), "Greeter");
         assertEquals(bindingInfo.getName().getLocalPart(), "Greeter_SOAPBinding");
@@ -304,8 +309,7 @@ public class WSDLServiceBuilderTest extends Assert {
     @Test
     public void testBindingOperationInfo() throws Exception {
         setUpBasic();
-        BindingInfo bindingInfo = null;
-        bindingInfo = serviceInfo.getBindings().iterator().next();
+        BindingInfo bindingInfo = serviceInfo.getBindings().iterator().next();
         Collection<BindingOperationInfo> bindingOperationInfos = bindingInfo.getOperations();
         assertNotNull(bindingOperationInfos);
         assertEquals(bindingOperationInfos.size(), 4);
@@ -336,8 +340,7 @@ public class WSDLServiceBuilderTest extends Assert {
     @Test
     public void testBindingMessageInfo() throws Exception {
         setUpBasic();
-        BindingInfo bindingInfo = null;
-        bindingInfo = serviceInfo.getBindings().iterator().next();
+        BindingInfo bindingInfo = serviceInfo.getBindings().iterator().next();
 
         QName name = new QName(serviceInfo.getName().getNamespaceURI(), "sayHi");
         BindingOperationInfo sayHi = bindingInfo.getOperation(name);
@@ -429,8 +432,7 @@ public class WSDLServiceBuilderTest extends Assert {
     @Test
     public void testBare() throws Exception {
         setUpWSDL(BARE_WSDL_PATH, 0);
-        BindingInfo bindingInfo = null;
-        bindingInfo = serviceInfo.getBindings().iterator().next();
+        BindingInfo bindingInfo = serviceInfo.getBindings().iterator().next();
         Collection<BindingOperationInfo> bindingOperationInfos = bindingInfo.getOperations();
         assertNotNull(bindingOperationInfos);
         assertEquals(bindingOperationInfos.size(), 1);

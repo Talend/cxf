@@ -18,16 +18,18 @@
  */
 package org.apache.cxf.databinding.source;
 
+import java.io.Closeable;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.Collection;
 import java.util.logging.Logger;
 
-import javax.activation.DataSource;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
 import javax.xml.stream.XMLStreamWriter;
 import javax.xml.transform.Source;
 import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamSource;
 import javax.xml.validation.Schema;
 import javax.xml.validation.Validator;
 
@@ -40,7 +42,7 @@ import org.xml.sax.ErrorHandler;
 import org.xml.sax.SAXException;
 import org.xml.sax.SAXParseException;
 
-
+import jakarta.activation.DataSource;
 import org.apache.cxf.common.i18n.Message;
 import org.apache.cxf.common.logging.LogUtils;
 import org.apache.cxf.databinding.DataWriter;
@@ -65,25 +67,30 @@ public class XMLStreamDataWriter implements DataWriter<XMLStreamWriter> {
         write(obj, output);
     }
 
+    @SuppressWarnings("PMD.UseTryWithResources")
     public void write(Object obj, XMLStreamWriter writer) {
-        try {
-            XMLStreamReader reader = null;
+        Closeable toClose = null;
+        try {            
             if (obj instanceof DataSource) {
                 DataSource ds = (DataSource)obj;
+                InputStream is = ds.getInputStream();
+                toClose = is;                    
                 if (schema != null) {
-                    DOMSource domSource = new DOMSource(StaxUtils.read(ds.getInputStream()));
+                    DOMSource domSource = new DOMSource(StaxUtils.read(is));
                     Validator schemaValidator = schema.newValidator();
                     schemaValidator.setErrorHandler(
                         new MtomValidationErrorHandler(schemaValidator.getErrorHandler(), domSource.getNode()));
                     schemaValidator.validate(domSource);
                     StaxUtils.copy(domSource, writer);
                 } else {
-                    reader = StaxUtils.createXMLStreamReader(ds.getInputStream());
+                    XMLStreamReader reader = StaxUtils.createXMLStreamReader(is);
                     StaxUtils.copy(reader, writer);
                     reader.close();
                 }
-
             } else if (obj instanceof Node) {
+                if (obj instanceof DocumentFragment) {
+                    obj = org.apache.cxf.helpers.DOMUtils.getDomDocumentFragment((DocumentFragment)obj);
+                }
                 if (schema != null) {
                     Validator schemaValidator = schema.newValidator();
                     schemaValidator.setErrorHandler(
@@ -108,6 +115,14 @@ public class XMLStreamDataWriter implements DataWriter<XMLStreamWriter> {
                     && ((DOMSource) s).getNode() == null) {
                     return;
                 }
+                if (s instanceof StreamSource) {
+                    StreamSource ss = (StreamSource)s;
+                    if (ss.getInputStream() != null) {
+                        toClose = ss.getInputStream();
+                    } else {
+                        toClose = ss.getReader();
+                    }
+                }
                 StaxUtils.copy(s, writer);
             }
         } catch (XMLStreamException e) {
@@ -118,6 +133,14 @@ public class XMLStreamDataWriter implements DataWriter<XMLStreamWriter> {
         } catch (SAXException e) {
             throw new Fault("COULD_NOT_WRITE_XML_STREAM_CAUSED_BY", LOG, e,
                             e.getClass().getCanonicalName(), e.getMessage());
+        } finally {
+            if (toClose != null) {
+                try {
+                    toClose.close();
+                } catch (IOException ex) {
+                    //likely already closed, not something we need to worry about
+                }
+            }
         }
     }
 
@@ -230,7 +253,7 @@ public class XMLStreamDataWriter implements DataWriter<XMLStreamWriter> {
         
         private String getAttachmentElementName(SAXParseException exception) {
             String msg = exception.getMessage();
-            String str[] = msg.split("'");
+            String[] str = msg.split("'");
             return str[1];
         }
         
@@ -244,8 +267,8 @@ public class XMLStreamDataWriter implements DataWriter<XMLStreamWriter> {
                     NodeList subNodeList = nNode.getChildNodes();
                     for (int j = 0; j < subNodeList.getLength(); j++) {
                         Node subNode = subNodeList.item(j);
-                        if (subNode.getNamespaceURI().equals("http://www.w3.org/2004/08/xop/include")
-                            && subNode.getLocalName().equals("Include")) {
+                        if ("http://www.w3.org/2004/08/xop/include".equals(subNode.getNamespaceURI())
+                            && "Include".equals(subNode.getLocalName())) {
                             // This is the Mtom element which break the SchemaValidation so ignore this
                             return true;
                         }

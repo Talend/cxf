@@ -30,36 +30,36 @@ import java.util.Map;
 import java.util.concurrent.Future;
 import java.util.logging.Logger;
 
-import javax.activation.DataSource;
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.JAXBElement;
 import javax.xml.namespace.QName;
-import javax.xml.soap.SOAPException;
-import javax.xml.soap.SOAPFault;
-import javax.xml.soap.SOAPMessage;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
 import javax.xml.stream.XMLStreamWriter;
 import javax.xml.transform.Source;
-import javax.xml.ws.AsyncHandler;
-import javax.xml.ws.Binding;
-import javax.xml.ws.BindingProvider;
-import javax.xml.ws.Dispatch;
-import javax.xml.ws.EndpointReference;
-import javax.xml.ws.Holder;
-import javax.xml.ws.Response;
-import javax.xml.ws.Service;
-import javax.xml.ws.WebServiceException;
-import javax.xml.ws.handler.MessageContext;
-import javax.xml.ws.handler.MessageContext.Scope;
-import javax.xml.ws.http.HTTPBinding;
-import javax.xml.ws.http.HTTPException;
-import javax.xml.ws.soap.SOAPBinding;
-import javax.xml.ws.soap.SOAPFaultException;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
+import jakarta.activation.DataSource;
+import jakarta.xml.bind.JAXBContext;
+import jakarta.xml.bind.JAXBElement;
+import jakarta.xml.soap.SOAPException;
+import jakarta.xml.soap.SOAPFault;
+import jakarta.xml.soap.SOAPMessage;
+import jakarta.xml.ws.AsyncHandler;
+import jakarta.xml.ws.Binding;
+import jakarta.xml.ws.BindingProvider;
+import jakarta.xml.ws.Dispatch;
+import jakarta.xml.ws.EndpointReference;
+import jakarta.xml.ws.Holder;
+import jakarta.xml.ws.Response;
+import jakarta.xml.ws.Service;
+import jakarta.xml.ws.WebServiceException;
+import jakarta.xml.ws.handler.MessageContext;
+import jakarta.xml.ws.handler.MessageContext.Scope;
+import jakarta.xml.ws.http.HTTPBinding;
+import jakarta.xml.ws.http.HTTPException;
+import jakarta.xml.ws.soap.SOAPBinding;
+import jakarta.xml.ws.soap.SOAPFaultException;
 import org.apache.cxf.binding.soap.model.SoapBindingInfo;
 import org.apache.cxf.binding.soap.model.SoapOperationInfo;
 import org.apache.cxf.binding.soap.saaj.SAAJInInterceptor;
@@ -71,6 +71,7 @@ import org.apache.cxf.common.util.StringUtils;
 import org.apache.cxf.databinding.DataWriter;
 import org.apache.cxf.endpoint.Client;
 import org.apache.cxf.endpoint.ClientCallback;
+import org.apache.cxf.endpoint.ClientImpl.IllegalEmptyResponseException;
 import org.apache.cxf.endpoint.Endpoint;
 import org.apache.cxf.feature.Feature;
 import org.apache.cxf.helpers.DOMUtils;
@@ -315,15 +316,16 @@ public class DispatchImpl<T> implements Dispatch<T>, BindingProvider, Closeable 
                     addInvokeOperation(opName, isOneWay);
                 }
             }
-            Holder<T> holder = new Holder<T>(obj);
+            Holder<T> holder = new Holder<>(obj);
             opName = calculateOpName(holder, opName, hasOpName);
 
-            Object ret[] = client.invokeWrapped(opName,
-                                                holder.value);
+            Object[] ret = client.invokeWrapped(opName, holder.value);
             if (isOneWay || ret == null || ret.length == 0) {
                 return null;
             }
             return (T)ret[0];
+        } catch (IllegalEmptyResponseException ie) {
+            return null;
         } catch (Exception ex) {
             throw mapException(ex);
         }
@@ -420,9 +422,19 @@ public class DispatchImpl<T> implements Dispatch<T>, BindingProvider, Closeable 
         checkError();
         client.setExecutor(getClient().getEndpoint().getExecutor());
 
-        ClientCallback callback = new JaxwsClientCallback<T>(asyncHandler, this);
+        ClientCallback callback = new JaxwsClientCallback<T>(asyncHandler, this) {
+            @Override
+            protected Throwable mapThrowable(Throwable t) {
+                if (t instanceof IOException) {
+                    return t;
+                } else if (t instanceof Exception) {
+                    t = mapException((Exception)t);
+                }
+                return t;
+            }
+        };            
 
-        Response<T> ret = new JaxwsResponseCallback<T>(callback);
+        Response<T> ret = new JaxwsResponseCallback<>(callback);
         try {
             boolean hasOpName;
 
@@ -439,7 +451,7 @@ public class DispatchImpl<T> implements Dispatch<T>, BindingProvider, Closeable 
                 }
             }
 
-            Holder<T> holder = new Holder<T>(obj);
+            Holder<T> holder = new Holder<>(obj);
             opName = calculateOpName(holder, opName, hasOpName);
 
             client.invokeWrapped(callback,
@@ -538,7 +550,7 @@ public class DispatchImpl<T> implements Dispatch<T>, BindingProvider, Closeable 
     }
 
     private Map<String, QName> createPayloadEleOpNameMap(BindingInfo bindingInfo, boolean reverseMapping) {
-        Map<String, QName> payloadElementMap = new java.util.HashMap<String, QName>();
+        Map<String, QName> payloadElementMap = new java.util.HashMap<>();
         // assume a document binding style, which is default according to W3C spec on WSDL
         String bindingStyle = "document";
         // if the bindingInfo is a SOAPBindingInfo instance then we can see if it has a style

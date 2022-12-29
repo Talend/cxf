@@ -21,7 +21,6 @@ package org.apache.cxf.sts.token.provider;
 import java.security.KeyStore;
 import java.security.Security;
 import java.security.cert.X509Certificate;
-import java.util.Arrays;
 import java.util.Properties;
 
 import org.apache.cxf.jaxws.context.WrappedMessageContext;
@@ -40,13 +39,13 @@ import org.apache.cxf.sts.SignatureProperties;
 import org.apache.cxf.sts.StaticSTSProperties;
 import org.apache.cxf.sts.cache.DefaultInMemoryTokenStore;
 import org.apache.cxf.sts.common.PasswordCallbackHandler;
-import org.apache.cxf.sts.common.TestUtils;
 import org.apache.cxf.sts.request.KeyRequirements;
 import org.apache.cxf.sts.request.TokenRequirements;
 import org.apache.cxf.sts.service.EncryptionProperties;
 import org.apache.cxf.sts.token.provider.jwt.JWTTokenProvider;
-import org.apache.cxf.ws.security.tokenstore.SecurityToken;
+import org.apache.cxf.test.TestUtilities;
 import org.apache.cxf.ws.security.tokenstore.TokenStore;
+import org.apache.cxf.ws.security.tokenstore.TokenStoreException;
 import org.apache.wss4j.common.crypto.Crypto;
 import org.apache.wss4j.common.crypto.CryptoFactory;
 import org.apache.wss4j.common.crypto.CryptoType;
@@ -56,17 +55,27 @@ import org.apache.wss4j.common.principal.CustomTokenPrincipal;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 
 import org.junit.Assert;
+import org.junit.BeforeClass;
+
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 /**
  * Some unit tests for creating JWTTokens.
  */
-public class JWTTokenProviderTest extends org.junit.Assert {
+public class JWTTokenProviderTest {
     private static boolean unrestrictedPoliciesInstalled;
-    private static TokenStore tokenStore = new DefaultInMemoryTokenStore();
+    private static TokenStore tokenStore;
 
     static {
-        unrestrictedPoliciesInstalled = TestUtils.checkUnrestrictedPoliciesInstalled();
+        unrestrictedPoliciesInstalled = TestUtilities.checkUnrestrictedPoliciesInstalled();
     };
+
+    @BeforeClass
+    public static void init() throws TokenStoreException {
+        tokenStore = new DefaultInMemoryTokenStore();
+    }
 
     @org.junit.Test
     public void testCreateUnsignedJWT() throws Exception {
@@ -77,7 +86,7 @@ public class JWTTokenProviderTest extends org.junit.Assert {
 
         assertTrue(jwtTokenProvider.canHandleToken(JWTTokenProvider.JWT_TOKEN_TYPE));
         TokenProviderResponse providerResponse = jwtTokenProvider.createToken(providerParameters);
-        assertTrue(providerResponse != null);
+        assertNotNull(providerResponse);
         assertTrue(providerResponse.getToken() != null && providerResponse.getTokenId() != null);
 
         String token = (String)providerResponse.getToken();
@@ -104,7 +113,7 @@ public class JWTTokenProviderTest extends org.junit.Assert {
 
         assertTrue(jwtTokenProvider.canHandleToken(JWTTokenProvider.JWT_TOKEN_TYPE));
         TokenProviderResponse providerResponse = jwtTokenProvider.createToken(providerParameters);
-        assertTrue(providerResponse != null);
+        assertNotNull(providerResponse);
         assertTrue(providerResponse.getToken() != null && providerResponse.getTokenId() != null);
 
         String token = (String)providerResponse.getToken();
@@ -146,7 +155,7 @@ public class JWTTokenProviderTest extends org.junit.Assert {
 
             assertTrue(jwtTokenProvider.canHandleToken(JWTTokenProvider.JWT_TOKEN_TYPE));
             TokenProviderResponse providerResponse = jwtTokenProvider.createToken(providerParameters);
-            assertTrue(providerResponse != null);
+            assertNotNull(providerResponse);
             assertTrue(providerResponse.getToken() != null && providerResponse.getTokenId() != null);
 
             String token = (String)providerResponse.getToken();
@@ -186,7 +195,7 @@ public class JWTTokenProviderTest extends org.junit.Assert {
 
         assertTrue(jwtTokenProvider.canHandleToken(JWTTokenProvider.JWT_TOKEN_TYPE));
         TokenProviderResponse providerResponse = jwtTokenProvider.createToken(providerParameters);
-        assertTrue(providerResponse != null);
+        assertNotNull(providerResponse);
         assertTrue(providerResponse.getToken() != null && providerResponse.getTokenId() != null);
 
         String token = (String)providerResponse.getToken();
@@ -202,11 +211,6 @@ public class JWTTokenProviderTest extends org.junit.Assert {
                             jwt.getClaim(JwtConstants.CLAIM_ISSUED_AT));
         Assert.assertEquals(providerResponse.getExpires().getEpochSecond(),
                             jwt.getClaim(JwtConstants.CLAIM_EXPIRY));
-
-        // Check that the token is stored correctly in the cache
-        String signature = token.substring(token.lastIndexOf(".") + 1);
-        SecurityToken secToken = tokenStore.getToken(Integer.toString(Arrays.hashCode(signature.getBytes())));
-        Assert.assertNotNull(secToken);
     }
 
     @org.junit.Test
@@ -219,7 +223,7 @@ public class JWTTokenProviderTest extends org.junit.Assert {
 
         assertTrue(jwtTokenProvider.canHandleToken(JWTTokenProvider.JWT_TOKEN_TYPE));
         TokenProviderResponse providerResponse = jwtTokenProvider.createToken(providerParameters);
-        assertTrue(providerResponse != null);
+        assertNotNull(providerResponse);
         assertTrue(providerResponse.getToken() != null && providerResponse.getTokenId() != null);
 
         String token = (String)providerResponse.getToken();
@@ -271,7 +275,7 @@ public class JWTTokenProviderTest extends org.junit.Assert {
 
             assertTrue(jwtTokenProvider.canHandleToken(JWTTokenProvider.JWT_TOKEN_TYPE));
             TokenProviderResponse providerResponse = jwtTokenProvider.createToken(providerParameters);
-            assertTrue(providerResponse != null);
+            assertNotNull(providerResponse);
             assertTrue(providerResponse.getToken() != null && providerResponse.getTokenId() != null);
 
             String token = (String)providerResponse.getToken();
@@ -320,7 +324,7 @@ public class JWTTokenProviderTest extends org.junit.Assert {
 
         assertTrue(jwtTokenProvider.canHandleToken(JWTTokenProvider.JWT_TOKEN_TYPE));
         TokenProviderResponse providerResponse = jwtTokenProvider.createToken(providerParameters);
-        assertTrue(providerResponse != null);
+        assertNotNull(providerResponse);
         assertTrue(providerResponse.getToken() != null && providerResponse.getTokenId() != null);
 
         String token = (String)providerResponse.getToken();

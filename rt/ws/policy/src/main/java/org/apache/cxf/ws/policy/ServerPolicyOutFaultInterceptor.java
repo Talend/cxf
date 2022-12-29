@@ -84,8 +84,7 @@ public class ServerPolicyOutFaultInterceptor extends AbstractPolicyInterceptor {
 
         Exception ex = exchange.get(Exception.class);
 
-        List<Interceptor<? extends Message>> faultInterceptors =
-            new ArrayList<Interceptor<? extends Message>>();
+        List<Interceptor<? extends Message>> faultInterceptors = new ArrayList<>();
         Collection<Assertion> assertions = new ArrayList<>();
 
         // 1. Check overridden policy
@@ -123,7 +122,7 @@ public class ServerPolicyOutFaultInterceptor extends AbstractPolicyInterceptor {
         }
 
         // insert assertions of the chosen alternative into the message
-        if (null != assertions && !assertions.isEmpty()) {
+        if (!assertions.isEmpty()) {
             msg.put(AssertionInfoMap.class, new AssertionInfoMap(assertions));
         }
     }

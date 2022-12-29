@@ -243,10 +243,9 @@ public class IDLToWSDLProcessor extends IDLProcessor {
                 if (outputWriter == null) {
                     outputWriter = getOutputWriter(idl + ".wsdl", outputDir);
                 }
-                String separator = System.getProperty("file.separator");
-                File file = null;
+                final File file;
                 if (env.get(ToolConstants.CFG_OUTPUTDIR) != null) {
-                    file = new File(outputDir + separator + idl + ".wsdl");
+                    file = new File(outputDir, idl + ".wsdl");
                 } else {
                     file = new File(idl + ".wsdl");
                 }
@@ -357,7 +356,7 @@ public class IDLToWSDLProcessor extends IDLProcessor {
                 System.err.println("IDLToWsdl Error : " + ex.getMessage());
                 System.err.println();
                 ex.printStackTrace();
-                System.exit(1);
+                System.exit(1); //NOPMD
             } else {
                 URI url = file.toURI();
                 return url.toString();
@@ -371,9 +370,9 @@ public class IDLToWSDLProcessor extends IDLProcessor {
     }
 
     private Writer createOutputWriter(String name) throws Exception {
-        String outDir = outputDir;
+//        String outDir = outputDir;
         int index = name.lastIndexOf(System.getProperty("file.separator"));
-        outDir = name.substring(0, index);
+        String outDir = name.substring(0, index);
         String filename = name.substring(index + 1, name.length());
         return getOutputWriter(filename, outDir);
     }
@@ -435,7 +434,7 @@ public class IDLToWSDLProcessor extends IDLProcessor {
                 if (bindingTokens.length > 1) {
                     StringBuilder name = new StringBuilder("");
                     for (int j = 0; j < bindingTokens.length - 2; j++) {
-                        name.append(bindingTokens[j] + ".");
+                        name.append(bindingTokens[j]).append('.');
                     }
                     name.append(bindingTokens[bindingTokens.length - 2] + "CORBAService");
                     serviceNames.put(ns, name.toString());
@@ -493,21 +492,17 @@ public class IDLToWSDLProcessor extends IDLProcessor {
                 (AddressType) def.getExtensionRegistry().createExtension(Port.class,
                                                                          CorbaConstants.NE_CORBA_ADDRESS);
 
-            String addr = null;
+            String addr;
             String addrFileName = (String) env.get(ToolCorbaConstants.CFG_ADDRESSFILE);
             if (addrFileName != null) {
-                BufferedReader bufferedReader = null;
+                File addrFile = new File(addrFileName);
                 try {
-                    File addrFile = new File(addrFileName);
                     FileReader fileReader = new FileReader(addrFile);
-                    bufferedReader = new BufferedReader(fileReader);
-                    addr = bufferedReader.readLine();
+                    try (BufferedReader bufferedReader = new BufferedReader(fileReader)) {
+                        addr = bufferedReader.readLine();
+                    }
                 } catch (Exception ex) {
                     throw new ToolException(ex.getMessage(), ex);
-                } finally {
-                    if (bufferedReader != null) {
-                        bufferedReader.close();
-                    }
                 }
             } else {
                 addr = (String) env.get(ToolCorbaConstants.CFG_ADDRESS);
@@ -618,7 +613,7 @@ public class IDLToWSDLProcessor extends IDLProcessor {
                 StringTokenizer tokens = new StringTokenizer(mapping, ",;");
                 while (tokens.hasMoreTokens()) {
                     String token = tokens.nextToken();
-                    int pos = token.indexOf("=");
+                    int pos = token.indexOf('=');
                     if (pos == -1) {
                         throw new RuntimeException("Mapping of idl modules to namespaces "
                                                    + "is not specified correctly."
@@ -633,7 +628,7 @@ public class IDLToWSDLProcessor extends IDLProcessor {
                 try (BufferedReader reader = new BufferedReader(new FileReader(mapping))) {
                     String token = reader.readLine();
                     while (token != null) {
-                        int pos = token.indexOf("=");
+                        int pos = token.indexOf('=');
                         if (pos == -1) {
                             reader.close();
                             throw new RuntimeException("Mapping of idl modules to namespaces "

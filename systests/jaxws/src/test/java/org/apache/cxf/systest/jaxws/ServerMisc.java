@@ -25,10 +25,9 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
-import javax.xml.ws.Endpoint;
-
 import com.codahale.metrics.MetricRegistry;
 
+import jakarta.xml.ws.Endpoint;
 import org.apache.cxf.Bus;
 import org.apache.cxf.anonymous_complex_type.AnonymousComplexTypeImpl;
 import org.apache.cxf.binding.soap.saaj.SAAJInInterceptor;
@@ -69,8 +68,8 @@ public class ServerMisc extends AbstractBusTestServerBase {
         "http://localhost:" + PORT + "/XMLBindingCodeFirstService/";
 
 
-    List<org.apache.cxf.endpoint.Server> servers = new LinkedList<org.apache.cxf.endpoint.Server>();
-    List<Endpoint> endpoints = new LinkedList<Endpoint>();
+    List<org.apache.cxf.endpoint.Server> servers = new LinkedList<>();
+    List<Endpoint> endpoints = new LinkedList<>();
     public void tearDown() throws Exception {
         for (org.apache.cxf.endpoint.Server s : servers) {
             s.stop();

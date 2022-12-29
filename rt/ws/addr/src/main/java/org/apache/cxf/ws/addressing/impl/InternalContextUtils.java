@@ -28,8 +28,8 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javax.xml.namespace.QName;
-import javax.xml.ws.WebFault;
 
+import jakarta.xml.ws.WebFault;
 import org.apache.cxf.Bus;
 import org.apache.cxf.binding.soap.SoapBindingConstants;
 import org.apache.cxf.binding.soap.model.SoapOperationInfo;
@@ -210,10 +210,10 @@ final class InternalContextUtils {
                     partialResponse.put(org.apache.cxf.message.Message.ENCODING,
                                         inMessage.get(Message.ENCODING));
                     partialResponse.put(ContextUtils.ACTION, inMessage.get(ContextUtils.ACTION));
-                    partialResponse.put("javax.xml.ws.addressing.context.inbound",
-                                        inMessage.get("javax.xml.ws.addressing.context.inbound"));
-                    partialResponse.put("javax.xml.ws.addressing.context.outbound",
-                                        inMessage.get("javax.xml.ws.addressing.context.outbound"));
+                    partialResponse.put("jakarta.xml.ws.addressing.context.inbound",
+                                        inMessage.get("jakarta.xml.ws.addressing.context.inbound"));
+                    partialResponse.put("jakarta.xml.ws.addressing.context.outbound",
+                                        inMessage.get("jakarta.xml.ws.addressing.context.outbound"));
                     exchange.setOutMessage(partialResponse);
                     PhaseInterceptorChain newChian = ((PhaseInterceptorChain)inMessage.getInterceptorChain())
                         .cloneChain();
@@ -324,7 +324,7 @@ final class InternalContextUtils {
                                         "Executor queue is full, use the caller thread."
                                         + "  Users can specify a larger executor queue to avoid this.");
                             // only block the thread if the prop is unset or set to false, otherwise let it go
-                            if (!MessageUtils.getContextualBoolean(inMessage, 
+                            if (!MessageUtils.getContextualBoolean(inMessage,
                                     "org.apache.cxf.oneway.rejected_execution_exception")) {
                                 //the executor queue is full, so run the task in the caller thread
                                 inMessage.getInterceptorChain().resume();
@@ -375,7 +375,7 @@ final class InternalContextUtils {
      * @return the Action URI
      */
     public static AttributedURIType getAction(Message message) {
-        String action = null;
+        final String action;
         LOG.fine("Determining action");
         Exception fault = message.getContent(Exception.class);
 
@@ -501,7 +501,6 @@ final class InternalContextUtils {
     /**
      * Get action from attributes on MessageInfo
      *
-     * @param bindingOpInfo the current BindingOperationInfo
      * @param msgInfo the current MessageInfo
      * @return the action if set
      */
@@ -539,8 +538,8 @@ final class InternalContextUtils {
 
     /**
      * Get the Executor for this invocation.
-     * @param endpoint
-     * @return
+     * @param message the current Message
+     * @return the executor for this invocation
      */
     private static Executor getExecutor(final Message message) {
         Endpoint endpoint = message.getExchange().getEndpoint();

@@ -18,9 +18,8 @@
  */
 package org.apache.cxf.aegis.util.stax;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Stack;
+import java.util.ArrayDeque;
+import java.util.Deque;
 
 import javax.xml.namespace.NamespaceContext;
 import javax.xml.stream.XMLStreamException;
@@ -35,15 +34,13 @@ import org.jdom.EntityRef;
 import org.jdom.Namespace;
 
 public class JDOMStreamWriter implements XMLStreamWriter {
-    private Stack<Element> stack = new Stack<Element>();
+    private final Deque<Element> stack = new ArrayDeque<>();
 
     private Document document;
 
     private Element currentNode;
 
     private NamespaceContext context;
-
-    private Map<String, Object> properties = new HashMap<>();
 
     public JDOMStreamWriter() {
     }
@@ -84,7 +81,7 @@ public class JDOMStreamWriter implements XMLStreamWriter {
     }
 
     public void writeStartElement(String prefix, String local, String namespace) throws XMLStreamException {
-        if (prefix == null || prefix.equals("")) {
+        if (prefix == null || prefix.isEmpty()) {
             writeStartElement(namespace, local);
         } else {
             newChild(new Element(local, prefix, namespace));
@@ -200,7 +197,7 @@ public class JDOMStreamWriter implements XMLStreamWriter {
     }
 
     public Object getProperty(String prop) throws IllegalArgumentException {
-        return properties.get(prop);
+        return null;
     }
 
     public Document getDocument() {

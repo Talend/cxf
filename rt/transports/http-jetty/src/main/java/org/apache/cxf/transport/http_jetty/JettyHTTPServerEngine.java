@@ -21,10 +21,10 @@ package org.apache.cxf.transport.http_jetty;
 
 import java.io.Closeable;
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.io.Writer;
 import java.lang.reflect.Method;
 import java.net.URL;
-import java.security.GeneralSecurityException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -32,14 +32,15 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import javax.annotation.PostConstruct;
 import javax.net.ssl.KeyManager;
 import javax.net.ssl.SSLContext;
-import javax.servlet.RequestDispatcher;
-import javax.servlet.ServletContext;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 
+import jakarta.annotation.PostConstruct;
+import jakarta.servlet.RequestDispatcher;
+import jakarta.servlet.ServletContext;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import org.apache.cxf.Bus;
 import org.apache.cxf.common.i18n.Message;
 import org.apache.cxf.common.logging.LogUtils;
@@ -50,9 +51,14 @@ import org.apache.cxf.common.util.SystemPropertyAction;
 import org.apache.cxf.configuration.jsse.SSLUtils;
 import org.apache.cxf.configuration.jsse.TLSServerParameters;
 import org.apache.cxf.configuration.security.ClientAuthentication;
+import org.apache.cxf.helpers.JavaUtils;
 import org.apache.cxf.interceptor.Fault;
 import org.apache.cxf.transport.HttpUriMapper;
+import org.apache.cxf.transport.http.HttpServerEngineSupport;
+import org.eclipse.jetty.alpn.server.ALPNServerConnectionFactory;
 import org.eclipse.jetty.http.HttpStatus;
+import org.eclipse.jetty.http2.server.HTTP2CServerConnectionFactory;
+import org.eclipse.jetty.http2.server.HTTP2ServerConnectionFactory;
 import org.eclipse.jetty.security.SecurityHandler;
 import org.eclipse.jetty.server.AbstractConnector;
 import org.eclipse.jetty.server.ConnectionFactory;
@@ -62,6 +68,7 @@ import org.eclipse.jetty.server.HttpConfiguration;
 import org.eclipse.jetty.server.HttpConnectionFactory;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.Response;
+import org.eclipse.jetty.server.SecureRequestCustomizer;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.ServerConnector;
 import org.eclipse.jetty.server.SslConnectionFactory;
@@ -82,7 +89,7 @@ import org.eclipse.jetty.util.thread.ThreadPool;
  * work off of a designated port. The port will be enabled for
  * "http" or "https" depending upon its successful configuration.
  */
-public class JettyHTTPServerEngine implements ServerEngine {
+public class JettyHTTPServerEngine implements ServerEngine, HttpServerEngineSupport {
     public static final String DO_NOT_CHECK_URL_PROP = "org.apache.cxf.transports.http_jetty.DontCheckUrl";
 
     private static final Logger LOG = LogUtils.getL7dLogger(JettyHTTPServerEngine.class);
@@ -105,6 +112,7 @@ public class JettyHTTPServerEngine implements ServerEngine {
     private String protocol = "http";
 
     private Boolean isSessionSupport = false;
+    private int sessionTimeout = -1;
     private Boolean isReuseAddress = true;
     private Boolean continuationsEnabled = true;
     private int maxIdleTime = 200000;
@@ -137,20 +145,17 @@ public class JettyHTTPServerEngine implements ServerEngine {
      */
     private boolean configFinalized;
 
-    private List<String> registedPaths = new CopyOnWriteArrayList<String>();
+    private List<String> registedPaths = new CopyOnWriteArrayList<>();
 
     /**
      * This constructor is called by the JettyHTTPServerEngineFactory.
      */
-    public JettyHTTPServerEngine(
-        Container.Listener mBeanContainer,
-        String host,
-        int port) {
+    public JettyHTTPServerEngine(Container.Listener mBeanContainer, String host, int port) {
         this.host = host;
         this.port = port;
         this.mBeanContainer = mBeanContainer;
     }
-
+    
     public JettyHTTPServerEngine() {
 
     }
@@ -354,7 +359,7 @@ public class JettyHTTPServerEngine implements ServerEngine {
         // back to the client.
         ErrorHandler eh = new ErrorHandler() {
             public void handle(String target, Request baseRequest, HttpServletRequest request,
-                               HttpServletResponse response) throws IOException {
+                               HttpServletResponse response) throws IOException, ServletException {
                 String msg = (String)request.getAttribute(RequestDispatcher.ERROR_MESSAGE);
                 if (StringUtils.isEmpty(msg) || msg.contains("org.apache.cxf.interceptor.Fault")) {
                     msg = HttpStatus.getMessage(response.getStatus());
@@ -395,7 +400,7 @@ public class JettyHTTPServerEngine implements ServerEngine {
             addServerMBean();
 
             if (connector == null) {
-                connector = createConnector(getHost(), getPort());
+                connector = createConnector(getHost(), getPort(), handler.getBus());
                 if (LOG.isLoggable(Level.FINER)) {
                     logConnector((ServerConnector)connector);
                 }
@@ -441,7 +446,7 @@ public class JettyHTTPServerEngine implements ServerEngine {
                     if (h instanceof DefaultHandler) {
                         defaultHandler = (DefaultHandler) h;
                     } else {
-                        if ((h instanceof SecurityHandler)
+                        if (h instanceof SecurityHandler
                             && ((SecurityHandler)h).getHandler() == null) {
                             //if h is SecurityHandler(such as ConstraintSecurityHandler)
                             //then it need be on top of JettyHTTPHandler
@@ -485,32 +490,12 @@ public class JettyHTTPServerEngine implements ServerEngine {
         }
 
         String contextName = HttpUriMapper.getContextName(url.getPath());
-        ContextHandler context = new ContextHandler();
+        ContextHandler context = handler.createContextHandler();
         context.setContextPath(contextName);
         // bind the jetty http handler with the context handler
         if (isSessionSupport) {
-            // If we have sessions, we need two handlers.
-            SessionHandler sh = null;
-            if (Server.getVersion().startsWith("9.2")
-                || Server.getVersion().startsWith("9.3")) {
-                if (sessionHandler == null) {
-                    sessionHandler = new SessionHandler();
-                }
-                sh = new SessionHandler();
-                try {
-                    Method get = ReflectionUtil.getDeclaredMethod(SessionHandler.class, "getSessionManager");
-                    Method set = ReflectionUtil.getDeclaredMethod(SessionHandler.class,
-                                                                  "setSessionManager",
-                                                                  get.getReturnType());
-                    ReflectionUtil.setAccessible(set)
-                        .invoke(sh, ReflectionUtil.setAccessible(get).invoke(sessionHandler));
-                } catch (Throwable t) {
-                    //ignore, just use the new session manager
-                }
-            } else {
-                //9.4+ stores the session id handling and cache and everything on the server, just need the handler
-                sh = new SessionHandler();
-            }
+            SessionHandler sh = configureSession();
+
             if (securityHandler != null) {
                 //use the securityHander which already wrap the jetty http handler
                 sh.setHandler(securityHandler);
@@ -545,6 +530,45 @@ public class JettyHTTPServerEngine implements ServerEngine {
 
         registedPaths.add(url.getPath());
         ++servantCount;
+    }
+
+    private SessionHandler configureSession() {
+        // If we have sessions, we need two handlers.
+        SessionHandler sh = null;
+        try {
+            if (Server.getVersion().startsWith("9.2") || Server.getVersion().startsWith("9.3")) {
+                if (sessionHandler == null) {
+                    sessionHandler = new SessionHandler();
+                }
+                sh = new SessionHandler();
+                Method get = ReflectionUtil.getDeclaredMethod(SessionHandler.class, "getSessionManager");
+                Method set = ReflectionUtil.getDeclaredMethod(SessionHandler.class, "setSessionManager",
+                                                              get.getReturnType());
+                if (this.getSessionTimeout() >= 0) {
+                    Method setMaxInactiveInterval = ReflectionUtil
+                        .getDeclaredMethod(get.getReturnType(), "setMaxInactiveInterval", int.class);
+                    ReflectionUtil.setAccessible(setMaxInactiveInterval)
+                        .invoke(ReflectionUtil.setAccessible(get).invoke(sessionHandler), 20);
+                }
+                ReflectionUtil.setAccessible(set)
+                    .invoke(sh, ReflectionUtil.setAccessible(get).invoke(sessionHandler));
+
+            } else {
+                // 9.4+ stores the session id handling and cache and everything on the server, just need
+                // the handler
+
+                sh = new SessionHandler();
+                if (this.getSessionTimeout() >= 0) {
+                    Method setMaxInactiveInterval = ReflectionUtil
+                        .getDeclaredMethod(SessionHandler.class, "setMaxInactiveInterval", int.class);
+                    ReflectionUtil.setAccessible(setMaxInactiveInterval).invoke(sh, 20);
+                }
+
+            }
+        } catch (Throwable t) {
+
+        }
+        return sh;
     }
 
     private String getHandlerName(URL url, ContextHandler context) {
@@ -598,11 +622,12 @@ public class JettyHTTPServerEngine implements ServerEngine {
         }
     }
 
-    private Connector createConnector(String hosto, int porto) {
+    
+    private Connector createConnector(String hosto, int porto, final Bus bus) {
         // now we just use the SelectChannelConnector as the default connector
-        SslContextFactory sslcf = null;
+        SslContextFactory.Server sslcf = null;
         if (tlsServerParameters != null) {
-            sslcf = new SslContextFactory() {
+            sslcf = new SslContextFactory.Server() {
                 protected void doStart() throws Exception {
                     setSslContext(createSSLContext(this));
                     super.doStart();
@@ -614,7 +639,6 @@ public class JettyHTTPServerEngine implements ServerEngine {
             };
             decorateCXFJettySslSocketConnector(sslcf);
         }
-        ServerConnector result = null;
 
         int major = 9;
         int minor = 0;
@@ -626,8 +650,7 @@ public class JettyHTTPServerEngine implements ServerEngine {
             // unparsable version
         }
 
-        result = (ServerConnector)createConnectorJetty(sslcf, hosto, porto, major, minor);
-
+        ServerConnector result = (ServerConnector)createConnectorJetty(sslcf, hosto, porto, major, minor, bus);
 
         try {
             result.setPort(porto);
@@ -644,26 +667,46 @@ public class JettyHTTPServerEngine implements ServerEngine {
         return result;
     }
 
-    AbstractConnector createConnectorJetty(SslContextFactory sslcf, String hosto, int porto, int major, int minor) {
-        AbstractConnector result = null;
+    AbstractConnector createConnectorJetty(SslContextFactory.Server sslcf, String hosto, int porto, 
+            int major, int minor, final Bus bus) {
+        final AbstractConnector result;
         try {
             HttpConfiguration httpConfig = new HttpConfiguration();
             httpConfig.setSendServerVersion(getSendServerVersion());
             HttpConnectionFactory httpFactory = new HttpConnectionFactory(httpConfig);
 
             Collection<ConnectionFactory> connectionFactories = new ArrayList<>();
+            connectionFactories.add(httpFactory);
 
             result = new org.eclipse.jetty.server.ServerConnector(server);
 
             if (tlsServerParameters != null) {
-                httpConfig.addCustomizer(new org.eclipse.jetty.server.SecureRequestCustomizer());
-                SslConnectionFactory scf = new SslConnectionFactory(sslcf, "HTTP/1.1");
-                connectionFactories.add(scf);
+                httpConfig.addCustomizer(new SecureRequestCustomizer(tlsServerParameters.isSniHostCheck()));
+
+                if (!isHttp2Enabled(bus)) {
+                    final SslConnectionFactory scf = new SslConnectionFactory(sslcf, httpFactory.getProtocol());
+                    connectionFactories.add(scf);
+                } else {
+                    // The ALPN processors are application specific (as per Jetty docs) and are pluggable as
+                    // additional dependency.
+                    final ALPNServerConnectionFactory alpn = new ALPNServerConnectionFactory();
+                    alpn.setDefaultProtocol(httpFactory.getProtocol());
+                    
+                    final SslConnectionFactory scf = new SslConnectionFactory(sslcf, alpn.getProtocol());
+                    connectionFactories.add(scf);
+                    connectionFactories.add(alpn);
+                    connectionFactories.add(new HTTP2ServerConnectionFactory(httpConfig));
+                }
+
+                // Has to be set before the default protocol change
+                result.setConnectionFactories(connectionFactories);
+
                 String proto = (major > 9 || (major == 9 && minor >= 3)) ? "SSL" : "SSL-HTTP/1.1";
                 result.setDefaultProtocol(proto);
+            } else if (isHttp2Enabled(bus)) {
+                connectionFactories.add(new HTTP2CServerConnectionFactory(httpConfig));
+                result.setConnectionFactories(connectionFactories);
             }
-            connectionFactories.add(httpFactory);
-            result.setConnectionFactories(connectionFactories);
 
             if (getMaxIdleTime() > 0) {
                 result.setIdleTimeout(Long.valueOf(getMaxIdleTime()));
@@ -702,14 +745,14 @@ public class JettyHTTPServerEngine implements ServerEngine {
         }
 
         SSLContext context = tlsServerParameters.getJsseProvider() == null
-            ? SSLContext.getInstance(proto)
-                : SSLContext.getInstance(proto, tlsServerParameters.getJsseProvider());
+            ? SSLContext.getInstance(detectProto(proto, allowSSLv3))
+                : SSLContext.getInstance(detectProto(proto, allowSSLv3), tlsServerParameters.getJsseProvider());
 
-        KeyManager keyManagers[] = tlsServerParameters.getKeyManagers();
-        org.apache.cxf.transport.https.SSLUtils.configureKeyManagersWithCertAlias(
+        KeyManager[] keyManagers = tlsServerParameters.getKeyManagers();
+        KeyManager[] configuredKeyManagers = org.apache.cxf.transport.https.SSLUtils.configureKeyManagersWithCertAlias(
             tlsServerParameters, keyManagers);
 
-        context.init(tlsServerParameters.getKeyManagers(),
+        context.init(configuredKeyManagers,
                      tlsServerParameters.getTrustManagers(),
                      tlsServerParameters.getSecureRandom());
 
@@ -737,8 +780,22 @@ public class JettyHTTPServerEngine implements ServerEngine {
 
         return context;
     }
+    
+    protected static String detectProto(String proto, boolean allowSSLv3) {
+        if (allowSSLv3 && JavaUtils.getJavaMajorVersion() >= 14) {
+            // Since Java 14, the SSLv3 aliased to TLSv1 (so SSLv3 effectively is not
+            // supported). To make it work, the custom SSL context has to be created
+            // instead along with specifying server / client properties as needed, for
+            // example:
+            //  -Djdk.tls.server.protocols=SSLv3,TLSv1
+            //  -Djdk.tls.client.protocols=SSLv3,TLSv1
+            return "SSL";
+        } else {
+            return proto;
+        }
+    }
 
-    protected void setClientAuthentication(SslContextFactory con,
+    protected void setClientAuthentication(SslContextFactory.Server con,
                                            ClientAuthentication clientAuth) {
         con.setWantClientAuth(true);
         if (clientAuth != null) {
@@ -755,11 +812,13 @@ public class JettyHTTPServerEngine implements ServerEngine {
      * of the JettySslConnector.
      */
     private void decorateCXFJettySslSocketConnector(
-            SslContextFactory con
+            SslContextFactory.Server con
     ) {
         setClientAuthentication(con,
                                 tlsServerParameters.getClientAuthentication());
         con.setCertAlias(tlsServerParameters.getCertAlias());
+        // TODO Once we switch to use SslContextFactory.Server instead, we can get rid of this line
+        con.setEndpointIdentificationAlgorithm(null);
     }
 
 
@@ -780,10 +839,7 @@ public class JettyHTTPServerEngine implements ServerEngine {
         try {
             String h = connector.getHost();
             int port = connector.getPort();
-            LOG.finer("connector.host: "
-                + h == null
-                  ? "null"
-                  : "\"" + h + "\"");
+            LOG.finer("connector.host: " + (h == null ? "null" : "\"" + h + "\""));
             LOG.finer("connector.port: " + port);
         } catch (Throwable t) {
             //ignore
@@ -850,9 +906,8 @@ public class JettyHTTPServerEngine implements ServerEngine {
 
         if (server != null && server.isRunning()) {
             for (Handler handler : contexts.getChildHandlersByClass(ContextHandler.class)) {
-                ContextHandler contextHandler = null;
                 if (handler instanceof ContextHandler) {
-                    contextHandler = (ContextHandler) handler;
+                    ContextHandler contextHandler = (ContextHandler) handler;
                     Handler jh = contextHandler.getHandler();
                     if (jh instanceof JettyHTTPHandler
                         && (contextName.equals(contextHandler.getContextPath())
@@ -897,9 +952,8 @@ public class JettyHTTPServerEngine implements ServerEngine {
         // operation should return null.
         if (server != null) {
             for (Handler handler : server.getChildHandlersByClass(ContextHandler.class)) {
-                ContextHandler contextHandler = null;
                 if (handler instanceof ContextHandler) {
-                    contextHandler = (ContextHandler) handler;
+                    ContextHandler contextHandler = (ContextHandler) handler;
                     if (contextName.equals(contextHandler.getContextPath())) {
                         ret = contextHandler.getHandler();
                         break;
@@ -923,9 +977,8 @@ public class JettyHTTPServerEngine implements ServerEngine {
         // operation should return null.
         if (server != null) {
             for (Handler handler : server.getChildHandlersByClass(ContextHandler.class)) {
-                ContextHandler contextHandler = null;
                 if (handler instanceof ContextHandler) {
-                    contextHandler = (ContextHandler) handler;
+                    ContextHandler contextHandler = (ContextHandler) handler;
                     if (contextName.equals(contextHandler.getContextPath())) {
                         ret = contextHandler;
                         break;
@@ -972,27 +1025,19 @@ public class JettyHTTPServerEngine implements ServerEngine {
      * This method is called after configure on this object.
      */
     @PostConstruct
-    public void finalizeConfig()
-        throws GeneralSecurityException,
-               IOException {
+    public void finalizeConfig() {
         retrieveListenerFactory();
         checkConnectorPort();
         this.configFinalized = true;
     }
 
-    private void checkConnectorPort() throws IOException {
-        try {
-            if (null != connector) {
-                int cp = ((ServerConnector)connector).getPort();
-                if (port != cp) {
-                    throw new IOException("Error: Connector port " + cp + " does not match"
-                                + " with the server engine port " + port);
-                }
+    private void checkConnectorPort() {
+        if (null != connector) {
+            int cp = ((ServerConnector)connector).getPort();
+            if (port != cp) {
+                throw new UncheckedIOException(new IOException("Error: Connector port " + cp + " does not match"
+                            + " with the server engine port " + port));
             }
-        } catch (IOException ioe) {
-            throw ioe;
-        } catch (Throwable t) {
-            //ignore...
         }
     }
 
@@ -1011,12 +1056,10 @@ public class JettyHTTPServerEngine implements ServerEngine {
                     connector.stop();
                     if (connector instanceof Closeable) {
                         ((Closeable)connector).close();
-                    } else {
-                        ((ServerConnector)connector).close();
                     }
                 }
             } finally {
-                if (contexts != null) {
+                if (contexts != null && contexts.getHandlers() != null) {
                     for (Handler h : contexts.getHandlers()) {
                         h.stop();
                     }
@@ -1027,7 +1070,9 @@ public class JettyHTTPServerEngine implements ServerEngine {
                 if (mBeanContainer != null) {
                     removeServerMBean();
                 }
-                server.destroy();
+                //After upgrade Jetty to 11.0.8, server.destroy() will clear all MBeans from container
+                //The old version doesn't behavior like this and this w
+                //server.destroy();
                 server = null;
             }
         }
@@ -1087,6 +1132,14 @@ public class JettyHTTPServerEngine implements ServerEngine {
 
     public Boolean getSendServerVersion() {
         return sendServerVersion;
+    }
+
+    public int getSessionTimeout() {
+        return sessionTimeout;
+    }
+
+    public void setSessionTimeout(int sessionTimeout) {
+        this.sessionTimeout = sessionTimeout;
     }
 
 }

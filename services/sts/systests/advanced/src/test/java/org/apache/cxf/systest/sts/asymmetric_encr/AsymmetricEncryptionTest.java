@@ -18,18 +18,13 @@
  */
 package org.apache.cxf.systest.sts.asymmetric_encr;
 
-import java.net.URL;
-import java.util.Arrays;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
 import org.apache.cxf.Bus;
-import org.apache.cxf.BusFactory;
-import org.apache.cxf.bus.spring.SpringBusFactory;
-import org.apache.cxf.systest.sts.common.SecurityTestUtil;
 import org.apache.cxf.systest.sts.common.TestParam;
-import org.apache.cxf.systest.sts.secure_conv.SecurityContextTokenUnitTest;
+import org.apache.cxf.systest.sts.deployment.STSServer;
+import org.apache.cxf.systest.sts.deployment.StaxSTSServer;
 import org.apache.cxf.testutil.common.AbstractBusClientServerTestBase;
 import org.apache.cxf.ws.security.SecurityConstants;
 import org.apache.cxf.ws.security.tokenstore.SecurityToken;
@@ -39,6 +34,8 @@ import org.junit.BeforeClass;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized.Parameters;
 
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 /**
  * In this test, a CXF client gets a token from the STS over the Asymmetric Binding. The STS is configured
@@ -58,47 +55,24 @@ public class AsymmetricEncryptionTest extends AbstractBusClientServerTestBase {
 
     @BeforeClass
     public static void startServers() throws Exception {
-        assertTrue(
-                "Server failed to launch",
-                // run the server in the same process
-                // set this to false to fork
-                launchServer(STSServer.class, true)
-        );
-        assertTrue(
-                   "Server failed to launch",
-                   // run the server in the same process
-                   // set this to false to fork
-                   launchServer(StaxSTSServer.class, true)
-        );
+        assertTrue(launchServer(new STSServer(
+            AsymmetricEncryptionTest.class.getResource("cxf-sts.xml"),
+            AsymmetricEncryptionTest.class.getResource("stax-cxf-sts.xml"))));
     }
 
     @Parameters(name = "{0}")
-    public static Collection<TestParam[]> data() {
-
-        return Arrays.asList(new TestParam[][] {{new TestParam("", false, STSPORT)},
-                                                {new TestParam("", false, STAX_STSPORT)},
-        });
-    }
-
-    @org.junit.AfterClass
-    public static void cleanup() throws Exception {
-        SecurityTestUtil.cleanup();
-        stopAllServers();
+    public static TestParam[] data() {
+        return new TestParam[] {new TestParam("", false, STSPORT),
+                                new TestParam("", false, STAX_STSPORT),
+        };
     }
 
     @org.junit.Test
     public void testEncryptedToken() throws Exception {
-        SpringBusFactory bf = new SpringBusFactory();
-        URL busFile = SecurityContextTokenUnitTest.class.getResource("cxf-client.xml");
+        createBus();
 
-        Bus bus = bf.createBus(busFile.toString());
-        BusFactory.setDefaultBus(bus);
-        BusFactory.setThreadDefaultBus(bus);
-
-        SecurityToken token = requestSecurityToken(bus, test.getStsPort());
-        assertTrue(token != null);
-
-        bus.shutdown(true);
+        SecurityToken token = requestSecurityToken(getBus(), test.getStsPort());
+        assertNotNull(token);
     }
 
     private SecurityToken requestSecurityToken(Bus bus, String stsPort) throws Exception {

@@ -19,6 +19,7 @@
 package org.apache.cxf.aegis.type.basic;
 
 import java.beans.PropertyDescriptor;
+import java.lang.reflect.InvocationTargetException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -126,7 +127,7 @@ public class XMLBeanTypeInfo extends BeanTypeInfo {
                 try {
                     Class<?> typeClass =
                         ClassLoaderUtils.loadClass(explicitTypeName, XMLBeanTypeInfo.class);
-                    AegisType customTypeObject = (AegisType) typeClass.newInstance();
+                    AegisType customTypeObject = (AegisType) typeClass.getDeclaredConstructor().newInstance();
                     mapType(mappedName, customTypeObject);
                     QName schemaType = mappedType;
                     if (schemaType == null) {
@@ -134,18 +135,16 @@ public class XMLBeanTypeInfo extends BeanTypeInfo {
                     }
                     customTypeObject.setTypeClass(typeClass);
                     customTypeObject.setSchemaType(schemaType);
-                } catch (ClassNotFoundException e1) {
-                    //
-                } catch (InstantiationException e2) {
-                    //
-                } catch (IllegalAccessException e3) {
+                } catch (ClassNotFoundException | InstantiationException | IllegalAccessException 
+                    | IllegalArgumentException | InvocationTargetException 
+                    | NoSuchMethodException | SecurityException e1) {
                     //
                 }
             }
 
             String nillableVal = DOMUtils.getAttributeValueEmptyNull(e, "nillable");
             if (nillableVal != null && nillableVal.length() > 0) {
-                ensurePropertyInfo(mappedName).setNillable(Boolean.valueOf(nillableVal).booleanValue());
+                ensurePropertyInfo(mappedName).setNillable(Boolean.parseBoolean(nillableVal));
             }
 
             String minOccurs = DOMUtils.getAttributeValueEmptyNull(e, "minOccurs");

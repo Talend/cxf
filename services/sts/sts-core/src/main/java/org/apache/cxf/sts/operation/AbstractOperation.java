@@ -29,12 +29,14 @@ import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import javax.xml.bind.JAXBElement;
+import javax.crypto.KeyGenerator;
+import javax.crypto.SecretKey;
 import javax.xml.namespace.QName;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
+import jakarta.xml.bind.JAXBElement;
 import org.apache.cxf.common.logging.LogUtils;
 import org.apache.cxf.helpers.DOMUtils;
 import org.apache.cxf.rt.security.claims.ClaimCollection;
@@ -77,6 +79,7 @@ import org.apache.cxf.ws.security.tokenstore.TokenStore;
 import org.apache.wss4j.common.WSS4JConstants;
 import org.apache.wss4j.common.ext.WSSecurityException;
 import org.apache.wss4j.common.util.DateUtil;
+import org.apache.wss4j.common.util.KeyUtils;
 import org.apache.wss4j.common.util.XMLUtils;
 import org.apache.wss4j.dom.WSConstants;
 import org.apache.wss4j.dom.message.WSSecEncryptedKey;
@@ -215,6 +218,13 @@ public abstract class AbstractOperation {
                                           claimsManager.getClaimParsers());
     }
 
+    protected void cleanRequest(RequestRequirements requestRequirements) {
+        if (requestRequirements.getKeyRequirements() != null
+            && requestRequirements.getKeyRequirements().getEntropy() != null) {
+            requestRequirements.getKeyRequirements().getEntropy().clean();
+        }
+    }
+
     /**
      * Create a RequestedReferenceType object using a TokenReference object
      */
@@ -311,7 +321,7 @@ public abstract class AbstractOperation {
         if (tokenCreated == null) {
             creationTime = now;
         }
-        
+
         Instant expirationTime = tokenExpires;
         if (tokenExpires == null) {
             long lifeTimeOfToken = 300L;
@@ -368,10 +378,17 @@ public abstract class AbstractOperation {
         WSSecEncryptedKey builder = new WSSecEncryptedKey(doc);
         builder.setUserInfo(name);
         builder.setKeyIdentifierType(encryptionProperties.getKeyIdentifierType());
-        builder.setEphemeralKey(secret);
         builder.setKeyEncAlgo(keyWrapAlgorithm);
 
-        builder.prepare(stsProperties.getEncryptionCrypto());
+        final SecretKey symmetricKey;
+        if (secret != null) {
+            symmetricKey = KeyUtils.prepareSecretKey(encryptionProperties.getEncryptionAlgorithm(), secret);
+        } else {
+            KeyGenerator keyGen = KeyUtils.getKeyGenerator(encryptionProperties.getEncryptionAlgorithm());
+            symmetricKey = keyGen.generateKey();
+        }
+
+        builder.prepare(stsProperties.getEncryptionCrypto(), symmetricKey);
 
         return builder.getEncryptedKeyElement();
     }
@@ -514,7 +531,7 @@ public abstract class AbstractOperation {
 
         TokenValidatorResponse tokenResponse = null;
         for (TokenValidator tokenValidator : tokenValidators) {
-            boolean canHandle = false;
+            final boolean canHandle;
             if (realm == null) {
                 canHandle = tokenValidator.canHandleToken(token);
             } else {
@@ -608,7 +625,7 @@ public abstract class AbstractOperation {
                 }
                 if (relationship == null || relationship.getType().equals(Relationship.FED_TYPE_IDENTITY)) {
                     // federate identity
-                    IdentityMapper identityMapper = null;
+                    final IdentityMapper identityMapper;
                     if (relationship == null) {
                         identityMapper = stsProperties.getIdentityMapper();
                     } else {

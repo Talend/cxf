@@ -43,8 +43,9 @@ public class MimeBodyPartInputStream extends InputStream {
         this.pbAmount = pbsize;
     }
 
-    public int read(byte buf[], int origOff, int origLen) throws IOException {
-        byte b[] = buf;
+    @Override
+    public int read(byte[] buf, int origOff, int origLen) throws IOException {
+        byte[] b = buf;
         int off = origOff;
         int len = origLen;
         if (boundaryFound || closed) {
@@ -59,11 +60,11 @@ public class MimeBodyPartInputStream extends InputStream {
             return 0;
         }
         boolean bufferCreated = false;
-        if (len < boundary.length * 2) {
+        if (len < Math.addExact(boundary.length, boundary.length)) {
             //buffer is too short to detect boundaries with it.  We'll need to create a larger buffer
             bufferCreated = true;
             if (boundaryBuffer == null) {
-                boundaryBuffer = new byte[boundary.length * 2];
+                boundaryBuffer = new byte[Math.addExact(boundary.length, boundary.length)];
             }
             b = boundaryBuffer;
             off = 0;
@@ -74,7 +75,7 @@ public class MimeBodyPartInputStream extends InputStream {
         }
         int read = 0;
         int idx = 0;
-        while (read >= 0 && idx < len && idx < (boundary.length * 2)) {
+        while (read >= 0 && idx < len && idx < Math.addExact(boundary.length, boundary.length)) {
             //make sure we read enough to detect the boundary
             read = inStream.read(b, off + idx, len - idx);
             if (read != -1) {
@@ -192,11 +193,11 @@ public class MimeBodyPartInputStream extends InputStream {
             if (needUnread0d0a) { //Pushing all,  returning 13
                 i = i - boundaryIndex;
                 i--; //for 10
-                value = 13;
+//                value = 13;
             } else {
                 i = i - boundaryIndex;
                 i++;
-                value = boundary[0];
+//                value = boundary[0];
             }
         }
         return len;
@@ -267,6 +268,7 @@ public class MimeBodyPartInputStream extends InputStream {
         return value;
     }
 
+    @Override
     public void close() throws IOException {
         this.closed = true;
     }

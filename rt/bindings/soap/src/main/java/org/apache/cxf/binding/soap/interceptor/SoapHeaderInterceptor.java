@@ -107,12 +107,19 @@ public class SoapHeaderInterceptor extends AbstractInDatabindingInterceptor {
 
         boolean supportsNode = this.supportsDataReader(message, Node.class);
         Service service = ServiceModelUtil.getService(message.getExchange());
+
+        Schema schema = null;
+        final boolean schemaValidationEnabled
+                = ServiceUtils.isSchemaValidationEnabled(SchemaValidationType.IN, message);
+        if (schemaValidationEnabled) {
+            schema = EndpointReferenceUtils.getSchema(service.getServiceInfos().get(0),
+                    message.getExchange().getBus());
+        }
+
         for (SoapHeaderInfo header : headers) {
             MessagePartInfo mpi = header.getPart();
             try {
-                if (ServiceUtils.isSchemaValidationEnabled(SchemaValidationType.IN, message)) {
-                    Schema schema = EndpointReferenceUtils.getSchema(service.getServiceInfos().get(0), message
-                                                                     .getExchange().getBus());
+                if (schemaValidationEnabled && schema != null) {
                     validateHeader(message, mpi, schema);
                 }
             } catch (Fault f) {
@@ -121,6 +128,7 @@ public class SoapHeaderInterceptor extends AbstractInDatabindingInterceptor {
                 }
                 throw f;
             }
+
             if (mpi.getTypeClass() != null) {
 
                 Header param = findHeader(message, mpi);
@@ -196,10 +204,7 @@ public class SoapHeaderInterceptor extends AbstractInDatabindingInterceptor {
                     };
                     v.setErrorHandler(errorHandler);
                     v.validate(ds);
-                } catch (SAXException e) {
-                    throw new Fault("COULD_NOT_VALIDATE_SOAP_HEADER_CAUSED_BY", LOG, e, e.getClass()
-                        .getCanonicalName(), e.getMessage());
-                } catch (IOException e) {
+                } catch (SAXException | IOException e) {
                     throw new Fault("COULD_NOT_VALIDATE_SOAP_HEADER_CAUSED_BY", LOG, e, e.getClass()
                         .getCanonicalName(), e.getMessage());
                 }

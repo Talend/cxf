@@ -29,12 +29,14 @@ import org.omg.CORBA.TCKind;
 import org.omg.CORBA.TypeCode;
 
 import org.junit.After;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 
-public class CorbaAnyHandlerTest extends Assert {
+
+public class CorbaAnyHandlerTest {
 
     private ORB orb;
 
@@ -82,6 +84,6 @@ public class CorbaAnyHandlerTest extends Assert {
 
         // Test get/set CorbaTypeMap methods
         CorbaTypeMap resultTM = anyHandler.getTypeMap();
-        assertTrue(resultTM.getTargetNamespace().equals(CorbaConstants.NU_WSDL_CORBA));
+        assertEquals(resultTM.getTargetNamespace(), CorbaConstants.NU_WSDL_CORBA);
     }
 }

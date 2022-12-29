@@ -78,7 +78,12 @@ public class IdTokenResponseFilter extends OAuthServerJoseJwtProducer implements
                 idToken.setAudience(st.getClient().getClientId());
                 idToken.setAuthorizedParty(st.getClient().getClientId());
                 // if this token was refreshed then the cloned IDToken might need to have its
-                // issuedAt and expiry time properties adjusted if it proves to be necessary
+                // issuedAt and expiry time properties adjusted
+                if (OAuthConstants.REFRESH_TOKEN_GRANT.equals(st.getGrantType())) {
+                    final long iat = st.getIssuedAt();
+                    idToken.setExpiryTime(iat + (idToken.getExpiryTime() - idToken.getIssuedAt()));
+                    idToken.setIssuedAt(iat);
+                }
                 setAtHashAndNonce(idToken, st);
                 return processJwt(new JwtToken(idToken), st.getClient());
             }
@@ -98,7 +103,7 @@ public class IdTokenResponseFilter extends OAuthServerJoseJwtProducer implements
         Message m = JAXRSUtils.getCurrentMessage();
         if (atHashRequired || cHashRequired) {
             Properties props = JwsUtils.loadSignatureOutProperties(false);
-            SignatureAlgorithm sigAlgo = null;
+            final SignatureAlgorithm sigAlgo;
             if (super.isSignWithClientSecret()) {
                 sigAlgo = OAuthUtils.getClientSecretSignatureAlgorithm(props);
             } else {
@@ -106,7 +111,8 @@ public class IdTokenResponseFilter extends OAuthServerJoseJwtProducer implements
             }
             if (sigAlgo != SignatureAlgorithm.NONE) {
                 if (atHashRequired) {
-                    String atHash = OidcUtils.calculateAccessTokenHash(st.getTokenKey(), sigAlgo);
+                    String tokenKey = st.getEncodedToken() != null ? st.getEncodedToken() : st.getTokenKey();
+                    String atHash = OidcUtils.calculateAccessTokenHash(tokenKey, sigAlgo);
                     idToken.setAccessTokenHash(atHash);
                 }
                 if (cHashRequired) {
@@ -139,7 +145,7 @@ public class IdTokenResponseFilter extends OAuthServerJoseJwtProducer implements
     @Override
     public String processJwt(JwtToken jwt, Client client) {
         if (keyServiceClient != null) {
-            List<String> opers = new LinkedList<String>();
+            List<String> opers = new LinkedList<>();
             if (super.isJwsRequired()) {
                 opers.add(JsonWebKey.KEY_OPER_SIGN);
             }

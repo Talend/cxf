@@ -23,21 +23,16 @@
   <packaging>bundle</packaging>
   <name>Apache CXF Runtime OAuth 2.0</name>
   <description>Apache CXF Runtime OAuth 2.0</description>
-  <url>http://cxf.apache.org</url>
+  <url>https://cxf.apache.org</url>
   <parent>
     <artifactId>cxf-rt-rs-security-oauth-parent</artifactId>
     <groupId>org.apache.cxf</groupId>
-    <version>3.2.5-SNAPSHOT</version>
+    <version>4.0.1-SNAPSHOT</version>
     <relativePath>../pom.xml</relativePath>
   </parent>
   <properties>
-    <cxf.osgi.import>
-      net.sf.ehcache*;resolution:=optional;version="[2.5, 3.0.0)",
-      javax.servlet*;version="${cxf.osgi.javax.servlet.version}"
-    </cxf.osgi.import>
-    <hibernate.em.version>4.1.0.Final</hibernate.em.version>
-    <hsqldb.version>2.3.4</hsqldb.version>
-    <compilerArguments>-Aopenjpa.source=7 -Aopenjpa.metamodel=true</compilerArguments>
+    <cxf.module.name>org.apache.cxf.rs.security.oauth2</cxf.module.name>
+    <compilerArguments>-Aopenjpa.source=8 -Aopenjpa.metamodel=true</compilerArguments>
   </properties>
   <dependencies>
     <dependency>
@@ -62,13 +57,6 @@
       <optional>true</optional>
     </dependency>
     <dependency>
-      <groupId>net.sf.ehcache</groupId>
-      <artifactId>ehcache</artifactId>
-      <version>${cxf.ehcache.version}</version>
-      <scope>provided</scope>
-      <optional>true</optional>
-    </dependency>
-    <dependency>
       <groupId>javax.cache</groupId>
       <artifactId>cache-api</artifactId>
       <version>${cxf.jcache.version}</version>
@@ -76,9 +64,9 @@
       <optional>true</optional>
     </dependency>
     <dependency>
-      <groupId>org.apache.geronimo.specs</groupId>
-      <artifactId>geronimo-jpa_2.0_spec</artifactId>
-      <version>${cxf.geronimo.jpa.version}</version>
+      <groupId>jakarta.persistence</groupId>
+      <artifactId>jakarta.persistence-api</artifactId>
+      <version>${cxf.persistence-api.version}</version>
       <scope>provided</scope>
       <optional>true</optional>
     </dependency>
@@ -106,33 +94,49 @@
     <dependency>
       <groupId>org.hsqldb</groupId>
       <artifactId>hsqldb</artifactId>
-      <version>${hsqldb.version}</version>
+      <version>${cxf.hsqldb.version}</version>
       <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>org.ehcache</groupId>
       <artifactId>ehcache</artifactId>
       <version>${cxf.ehcache3.version}</version>
+      <classifier>jakarta</classifier>
       <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>org.apache.openjpa</groupId>
       <artifactId>openjpa</artifactId>
       <version>${cxf.openjpa.version}</version>
+      <classifier>jakarta</classifier>
       <scope>test</scope>
       <optional>true</optional>
     </dependency>
     <dependency>
-      <groupId>org.hibernate</groupId>
-      <artifactId>hibernate-entitymanager</artifactId>
-      <version>${hibernate.em.version}</version>
+      <groupId>org.hibernate.orm</groupId>
+      <artifactId>hibernate-core</artifactId>
+      <version>${cxf.hibernate.em.version}</version>
       <scope>test</scope>
       <optional>true</optional>
+        <exclusions>
+          <exclusion>
+            <groupId>jakarta.xml.bind</groupId>
+            <artifactId>jaxb-api</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>jakarta.activation</groupId>
+            <artifactId>jakarta.activation-api</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>jakarta.persistence</groupId>
+            <artifactId>jakarta.persistence-api</artifactId>
+          </exclusion>
+        </exclusions> 
     </dependency>
     <dependency>
-      <groupId>org.hibernate</groupId>
-      <artifactId>hibernate-ehcache</artifactId>
-      <version>${hibernate.em.version}</version>
+      <groupId>org.hibernate.orm</groupId>
+      <artifactId>hibernate-jcache</artifactId>
+      <version>${cxf.hibernate.em.version}</version>
       <scope>test</scope>
       <optional>true</optional>
     </dependency>
@@ -181,17 +185,15 @@
     <dependency>
       <groupId>org.aspectj</groupId>
       <artifactId>aspectjweaver</artifactId>
-      <version>1.8.7</version>
+      <version>${cxf.aspectj.version}</version>
       <scope>test</scope>
     </dependency>
-
   </dependencies>
   <build>
     <plugins>
       <plugin>
         <groupId>org.bsc.maven</groupId>
         <artifactId>maven-processor-plugin</artifactId>
-        <version>3.2.0</version>
         <executions>
           <execution>
             <id>process</id>
@@ -234,110 +236,31 @@
           </execution>
         </executions>
       </plugin>
+        <!-- this tells maven to set a property pointing to the openjpa agent jar -->
+        <!-- where surefire can see it -->
+        <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-dependency-plugin</artifactId>
+            <executions>
+                <execution>
+                    <phase>generate-test-resources</phase>
+                    <goals>
+                        <goal>properties</goal>
+                    </goals>
+                </execution>
+            </executions>
+        </plugin>
       <!-- this configures the surefire plugin to run your tests with the javaagent enabled -->
       <!-- (openJPA loadtime weaving) -->
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-surefire-plugin</artifactId>
         <configuration>
-          <argLine>-javaagent:${project.basedir}/target/openjpa-${cxf.openjpa.version}.jar ${cxf.surefire.fork.vmargs}</argLine>
-          <workingDirectory>${project.basedir}/target</workingDirectory>
+          <argLine>-javaagent:${org.apache.openjpa:openjpa:jar:jakarta} ${cxf.surefire.fork.vmargs}</argLine>
+          <workingDirectory>${project.build.directory}</workingDirectory>
         </configuration>
-      </plugin>
-      <!-- this tells maven to copy the openjpa agent jar into your target/ directory -->
-      <!-- where surefire can see it -->
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-dependency-plugin</artifactId>
-        <executions>
-          <execution>
-            <id>copy</id>
-            <phase>process-resources</phase>
-            <goals>
-              <goal>copy</goal>
-            </goals>
-            <configuration>
-              <artifactItems>
-                <artifactItem>
-                  <groupId>org.apache.openjpa</groupId>
-                  <artifactId>openjpa</artifactId>
-                  <version>${cxf.openjpa.version}</version>
-                  <outputDirectory>${project.build.directory}</outputDirectory>
-                </artifactItem>
-              </artifactItems>
-            </configuration>
-          </execution>
-        </executions>
       </plugin>
     </plugins>
   </build>
-  <profiles>
-        <profile>
-            <id>java9</id>
-            <properties>
-                <compilerArguments>--patch-module java.xml.ws.annotation=${project.basedir}/target/java9/javax.annotation-api-${cxf.javax.annotation-api.version}.jar --add-modules java.se.ee,java.activation,java.xml.ws,java.xml.bind -Aopenjpa.source=7 -Aopenjpa.metamodel=true</compilerArguments>
-            </properties>
-            <activation>
-                <jdk>9</jdk>
-            </activation>
-            <build>
-                <plugins>
-                    <plugin>
-                        <groupId>org.apache.maven.plugins</groupId>
-                        <artifactId>maven-dependency-plugin</artifactId>
-                        <executions>
-                            <execution>
-                                <id>copy</id>
-                                <phase>validate</phase>
-                                <goals>
-                                    <goal>copy</goal>
-                                </goals>
-                                <configuration>
-                                    <artifactItems>
-                                        <artifactItem>
-                                            <groupId>javax.annotation</groupId>
-                                            <artifactId>javax.annotation-api</artifactId>
-                                            <type>jar</type>
-                                            <version>${cxf.javax.annotation-api.version}</version>
-                                            <overWrite>false</overWrite>
-                                            <outputDirectory>${project.basedir}/target/java9</outputDirectory>
-                                        </artifactItem>
-                                        <artifactItem>
-                                            <groupId>org.apache.openjpa</groupId>
-                                            <artifactId>openjpa</artifactId>
-                                            <version>${cxf.openjpa.version}</version>
-                                            <outputDirectory>${project.build.directory}</outputDirectory>
-                                        </artifactItem>
-                                    </artifactItems>
-                                    <overWriteReleases>false</overWriteReleases>
-                                    <overWriteSnapshots>true</overWriteSnapshots>
-                                </configuration>
-                            </execution>
-                            <execution>
-                                <phase>validate</phase>
-                                <goals>
-                                    <goal>unpack</goal>
-                                </goals>
-                                <configuration>
-                                    <artifactItems>
-                                        <artifactItem>
-                                            <groupId>org.apache.geronimo.specs</groupId>
-                                            <artifactId>geronimo-jta_1.1_spec</artifactId>
-                                            <type>jar</type>
-                                            <overWrite>false</overWrite>
-                                            <outputDirectory>${project.basedir}/target/java9</outputDirectory>
-                                            <excludes>**/xa/*.class</excludes>
-                                        </artifactItem>
-                                    </artifactItems>
-                                    <overWriteReleases>false</overWriteReleases>
-                                    <overWriteSnapshots>true</overWriteSnapshots>
-                                </configuration>
-                            </execution>
-                        </executions>
-                    </plugin>
-                </plugins>
-            </build>
-        </profile>
-      </profiles>
 </project>
 

@@ -21,8 +21,7 @@ package org.apache.cxf.systest.ws.rm;
 
 import java.util.logging.Logger;
 
-import javax.xml.ws.Endpoint;
-
+import jakarta.xml.ws.Endpoint;
 import org.apache.cxf.Bus;
 import org.apache.cxf.BusFactory;
 import org.apache.cxf.bus.spring.SpringBusFactory;
@@ -39,6 +38,11 @@ import org.apache.cxf.ws.rm.persistence.jdbc.RMTxStore;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
 /**
  * Tests the redelivery of the message upon a delivery error.
@@ -57,7 +61,7 @@ public class RedeliveryTest extends AbstractBusClientServerTestBase {
         String pfx;
         Endpoint ep;
 
-        public Server(String args[]) {
+        public Server(String[] args) {
             port = args[0];
             pfx = args[1];
         }

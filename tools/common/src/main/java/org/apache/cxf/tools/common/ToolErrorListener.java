@@ -46,7 +46,7 @@ public class ToolErrorListener {
             cause = t;
         }
     }
-    List<ErrorInfo> errors = new LinkedList<ErrorInfo>();
+    List<ErrorInfo> errors = new LinkedList<>();
 
     public void addError(String file, int line, int column, String message) {
         addError(file, line, column, message, null);
@@ -82,7 +82,7 @@ public class ToolErrorListener {
     public void throwToolException() {
         StringBuilder b = new StringBuilder();
         for (ErrorInfo e : errors) {
-            createMessage(b, e).append("\n");
+            createMessage(b, e).append('\n');
         }
         throw new ToolException(b.toString(), errors);
     }

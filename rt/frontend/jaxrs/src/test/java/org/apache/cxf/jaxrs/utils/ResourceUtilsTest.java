@@ -21,21 +21,21 @@ package org.apache.cxf.jaxrs.utils;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 import java.lang.reflect.Type;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import javax.validation.constraints.NotNull;
-import javax.ws.rs.ApplicationPath;
-import javax.ws.rs.GET;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.core.Application;
-import javax.ws.rs.core.UriInfo;
-import javax.xml.bind.annotation.XmlRootElement;
-
+import jakarta.validation.constraints.NotNull;
+import jakarta.ws.rs.ApplicationPath;
+import jakarta.ws.rs.GET;
+import jakarta.ws.rs.Path;
+import jakarta.ws.rs.PathParam;
+import jakarta.ws.rs.core.Application;
+import jakarta.ws.rs.core.UriInfo;
+import jakarta.xml.bind.annotation.XmlRootElement;
 import org.apache.cxf.BusFactory;
 import org.apache.cxf.jaxrs.Customer;
 import org.apache.cxf.jaxrs.JAXRSServerFactoryBean;
@@ -48,11 +48,17 @@ import org.apache.cxf.jaxrs.model.UserResource;
 import org.apache.cxf.jaxrs.resources.Book;
 import org.apache.cxf.jaxrs.resources.BookInterface;
 import org.apache.cxf.jaxrs.resources.Chapter;
+import org.apache.cxf.jaxrs.resources.SuperBook;
 
-import org.junit.Assert;
 import org.junit.Test;
 
-public class ResourceUtilsTest extends Assert {
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+
+public class ResourceUtilsTest {
 
     @Test
     public void testFindResourceConstructor() {
@@ -66,7 +72,7 @@ public class ResourceUtilsTest extends Assert {
     @Test
     public void testClassResourceInfoUserResource() throws Exception {
         UserResource ur = new UserResource();
-        ur.setName(HashMap.class.getName());
+        ur.setName(HashMap.class.getName()); //NOPMD
         ur.setPath("/hashmap");
         UserOperation op = new UserOperation();
         op.setPath("/key/{id}");
@@ -82,7 +88,7 @@ public class ResourceUtilsTest extends Assert {
         assertNotNull(cri);
         assertEquals("/hashmap", cri.getURITemplate().getValue());
         Method method =
-            HashMap.class.getMethod("get", new Class[]{Object.class});
+            HashMap.class.getMethod("get", new Class[]{Object.class}); //NOPMD
         OperationResourceInfo ori = cri.getMethodDispatcher().getOperationResourceInfo(method);
         assertNotNull(ori);
         assertEquals("/key/{id}", ori.getURITemplate().getValue());
@@ -163,6 +169,76 @@ public class ResourceUtilsTest extends Assert {
         assertNotNull(ori);
         assertEquals("GET", ori.getHttpMethod());
     }
+    
+    @Test
+    public void testClassResourceInfoWithBridgeMethod() throws Exception {
+        ClassResourceInfo cri =
+            ResourceUtils.createClassResourceInfo(ExampleBridgeImpl.class, ExampleBridgeImpl.class, true, true);
+        assertNotNull(cri);
+        assertEquals(1, cri.getMethodDispatcher().getOperationResourceInfos().size());
+        
+        Method m = ExampleBridgeImpl.class.getMethod("get");
+        OperationResourceInfo ori = cri.getMethodDispatcher().getOperationResourceInfo(m);
+        assertNotNull(ori);
+        assertEquals("GET", ori.getHttpMethod());
+        
+        m = Arrays
+            .stream(ExampleBridgeImpl.class.getMethods())
+            .filter(method -> method.getName().equals("get"))
+            .filter(Method::isBridge)
+            .findAny()
+            .orElse(null);
+        
+        ori = cri.getMethodDispatcher().getOperationResourceInfo(m);
+        assertNotNull(ori);
+        assertEquals("GET", ori.getHttpMethod());
+    }
+    
+    @Test
+    public void testGenericClassResourceInfoWithBridgeMethod() throws Exception {
+        ClassResourceInfo cri = ResourceUtils.createClassResourceInfo(GenericExampleBridgeImpl.class, 
+            GenericExampleBridgeImpl.class, true, true);
+        assertNotNull(cri);
+        assertEquals(1, cri.getMethodDispatcher().getOperationResourceInfos().size());
+        
+        Method m = GenericExampleBridgeImpl.class.getMethod("get");
+        OperationResourceInfo ori = cri.getMethodDispatcher().getOperationResourceInfo(m);
+        assertNotNull(ori);
+        assertEquals("GET", ori.getHttpMethod());
+        
+        m = Arrays
+            .stream(GenericExampleBridgeImpl.class.getMethods())
+            .filter(method -> method.getName().equals("get"))
+            .filter(Method::isBridge)
+            .findAny()
+            .orElse(null);
+        
+        ori = cri.getMethodDispatcher().getOperationResourceInfo(m);
+        assertNotNull(ori);
+        assertEquals("GET", ori.getHttpMethod());
+    }
+    
+    @Test
+    public void testGenericClassResourceInfo() throws Exception {
+        ClassResourceInfo cri = ResourceUtils.createClassResourceInfo(GenericExampleImpl.class, 
+                GenericExampleImpl.class, true, true);
+        assertNotNull(cri);
+        assertEquals(1, cri.getMethodDispatcher().getOperationResourceInfos().size());
+        
+        Method m = GenericExampleImpl.class.getMethod("get");
+        OperationResourceInfo ori = cri.getMethodDispatcher().getOperationResourceInfo(m);
+        assertNotNull(ori);
+        assertEquals("GET", ori.getHttpMethod());
+        
+        m = Arrays
+            .stream(GenericExampleImpl.class.getMethods())
+            .filter(method -> method.getName().equals("get"))
+            .filter(Method::isBridge)
+            .findAny()
+            .orElse(null);
+        
+        assertNull(m);
+    }
 
     @Path("/synth-hello")
     protected interface SyntheticHelloInterface<T> {
@@ -183,7 +259,7 @@ public class ResourceUtilsTest extends Assert {
             return "Hello " + name + "!";
         }
     }
-    
+
     @Test
     public void testClassResourceInfoWithSyntheticMethod() throws Exception {
         ClassResourceInfo cri =
@@ -216,17 +292,17 @@ public class ResourceUtilsTest extends Assert {
     protected interface OverriddenInterfaceString extends OverriddenInterface<String> {
         @NotNull @Override
         String read(String key);
-        
+
         @NotNull
         Set<String> read(String key, String type);
     }
-    
+
     public static class OverriddenInterfaceImpl implements OverriddenInterfaceString {
         @Override
         public String read(String key) {
             return key;
         }
-        
+
         @Override
         public Set<String> read(String key, String type) {
             return Collections.singleton(key);
@@ -251,7 +327,7 @@ public class ResourceUtilsTest extends Assert {
         assertEquals("there must be one read method", 1, oris.size());
         assertEquals(notSynthetic, oris.iterator().next().getMethodToInvoke());
     }
-    
+
     @Test
     public void shouldCreateApplicationWhichInheritsApplicationPath() throws Exception {
         JAXRSServerFactoryBean application = ResourceUtils.createApplication(
@@ -297,11 +373,42 @@ public class ResourceUtilsTest extends Assert {
         @GET
         Book get();
     }
+    
+    @Path("example")
+    public interface GenericExample<T extends Book> {
+
+        @GET
+        T get();
+    }
 
     public static class ExampleImpl implements Example {
 
         @Override
         public Book get() {
+            return null;
+        }
+    }
+    
+    public static class ExampleBridgeImpl implements Example {
+
+        @Override
+        public SuperBook get() {
+            return null;
+        }
+    }
+    
+    public static class GenericExampleImpl implements GenericExample<Book> {
+
+        @Override
+        public Book get() {
+            return null;
+        }
+    }
+    
+    public static class GenericExampleBridgeImpl implements GenericExample<Book> {
+
+        @Override
+        public SuperBook get() {
             return null;
         }
     }

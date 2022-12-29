@@ -24,11 +24,11 @@
     <packaging>pom</packaging>
     <name>Apache CXF XKMS</name>
     <description>Apache CXF XKMS service</description>
-    <url>http://cxf.apache.org</url>
+    <url>https://cxf.apache.org</url>
     <parent>
         <groupId>org.apache.cxf.services</groupId>
         <artifactId>cxf-services</artifactId>
-        <version>3.2.5-SNAPSHOT</version>
+        <version>4.0.1-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
     <modules>
@@ -36,10 +36,7 @@
         <module>xkms-x509-handlers</module>
         <module>xkms-service</module>
         <module>xkms-client</module>
-        <module>xkms-features</module>
-        <module>xkms-osgi</module>
         <module>xkms-war</module>
-        <module>xkms-itests</module>
         <module>xkms-x509-repo-ldap</module>
     </modules>
 </project>

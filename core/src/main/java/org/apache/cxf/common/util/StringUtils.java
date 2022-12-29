@@ -19,49 +19,22 @@
 
 package org.apache.cxf.common.util;
 
-import java.io.File;
 import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.function.Predicate;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.stream.Stream;
 
 public final class StringUtils {
-    public static final Map<String, Pattern> PATTERN_MAP = new HashMap<>();
-    static {
-        String patterns[] = {"/", " ", ":", ",", ";", "=", "\\.", "\\+"};
-        for (String p : patterns) {
-            PATTERN_MAP.put(p, Pattern.compile(p));
-        }
-    }
+
     private static final Predicate<String> NOT_EMPTY = (String s) -> !s.isEmpty();
 
+    private static final char[] HEX = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f'};
+
     private StringUtils() {
-    }
-
-    public static String[] split(String s, String regex) {
-        return split(s, regex, 0);
-    }
-    public static String[] split(String s, String regex, int limit) {
-        Pattern p = PATTERN_MAP.getOrDefault(regex, Pattern.compile(regex));
-        return p.split(s, limit);
-    }
-    
-    public static Stream<String> splitAsStream(String s, String regex) {
-        Pattern p = PATTERN_MAP.getOrDefault(regex, Pattern.compile(regex));
-        return p.splitAsStream(s);
-    }
-
-    public static boolean isFileExist(String file) {
-        return new File(file).exists() && new File(file).isFile();
     }
 
     public static boolean isEmpty(String str) {
@@ -75,7 +48,7 @@ public final class StringUtils {
         }
         return true;
     }
-    
+
     public static Predicate<String> notEmpty() {
         return NOT_EMPTY;
     }
@@ -95,63 +68,21 @@ public final class StringUtils {
         return str1;
     }
 
-    public static List<String> getParts(String str, String separator) {
-        String[] parts = split(str, separator);
-        List<String> ret = new ArrayList<>(parts.length);
-        for (String part : parts) {
-            if (!isEmpty(part)) {
-                ret.add(part);
-            }
-        }
-        return ret;
-    }
-
-    public static String getFirstNotEmpty(String str, String separator) {
-        List<String> parts = Arrays.asList(split(str, separator));
-        for (String part : parts) {
-            if (!isEmpty(part)) {
-                return part;
-            }
-        }
-        return str;
-    }
-
-    public static String getFirstNotEmpty(List<String> list) {
-        if (isEmpty(list)) {
-            return null;
-        }
-        for (String item : list) {
-            if (!isEmpty(item)) {
-                return item;
-            }
-        }
-        return null;
-    }
-
-    public static List<String> getFound(String contents, String regex) {
+    public static String getFirstFound(String contents, String regex) {
         if (isEmpty(regex) || isEmpty(contents)) {
             return null;
         }
-        List<String> results = new ArrayList<>();
         Pattern pattern = Pattern.compile(regex, Pattern.UNICODE_CASE);
         Matcher matcher = pattern.matcher(contents);
 
-        while (matcher.find()) {
+        if (matcher.find()) {
             if (matcher.groupCount() > 0) {
-                results.add(matcher.group(1));
+                return matcher.group(1);
             } else {
-                results.add(matcher.group());
+                return matcher.group();
             }
         }
-        return results;
-    }
-
-    public static String getFirstFound(String contents, String regex) {
-        List<String> founds = getFound(contents, regex);
-        if (isEmpty(founds)) {
-            return null;
-        }
-        return founds.get(0);
+        return null;
     }
 
     public static String addDefaultPortIfMissing(String urlString) {
@@ -159,21 +90,19 @@ public final class StringUtils {
     }
 
     public static String addDefaultPortIfMissing(String urlString, String defaultPort) {
-        URL url = null;
         try {
-            url = new URL(urlString);
+            if (new URL(urlString).getPort() != -1) {
+                return urlString;
+            }
         } catch (MalformedURLException e) {
-            return urlString;
-        }
-        if (url.getPort() != -1) {
             return urlString;
         }
         String regex = "http://([^/]+)";
         String found = StringUtils.getFirstFound(urlString, regex);
-        String replacer = "http://" + found + ":" + defaultPort;
 
         if (!StringUtils.isEmpty(found)) {
-            urlString = urlString.replaceFirst(regex, replacer);
+            String replacer = "http://" + found + ':' + defaultPort;
+            return urlString.replaceFirst(regex, replacer);
         }
         return urlString;
     }
@@ -184,22 +113,25 @@ public final class StringUtils {
      * @return capitalized form.
      */
     public static String capitalize(String name) {
-        if (name == null || name.length() == 0) {
-            return name;
-        }
-        char chars[] = name.toCharArray();
-        chars[0] = Character.toUpperCase(chars[0]);
-        return new String(chars);
+        return changeFirstCharacterCase(name, true);
     }
 
     public static String uncapitalize(String str) {
-        if (str == null || str.length() == 0) {
+        return changeFirstCharacterCase(str, false);
+    }
+
+    private static String changeFirstCharacterCase(String str, boolean capitalize) {
+        if (str == null || str.isEmpty()) {
             return str;
         }
-        return new StringBuilder(str.length())
-            .append(Character.toLowerCase(str.charAt(0)))
-            .append(str.substring(1))
-            .toString();
+        char baseChar = str.charAt(0);
+        char updatedChar = capitalize ? Character.toUpperCase(baseChar) : Character.toLowerCase(baseChar);
+        if (baseChar == updatedChar) {
+            return str;
+        }
+        char[] chars = str.toCharArray();
+        chars[0] = updatedChar;
+        return new String(chars);
     }
 
     public static byte[] toBytesUTF8(String str) {
@@ -217,10 +149,29 @@ public final class StringUtils {
     }
 
     public static String toHexString(byte[] bytes) {
-        StringBuilder hexString = new StringBuilder();
-        for (int i = 0; i < bytes.length; i++) {
-            hexString.append(Integer.toHexString(0xFF & bytes[i]));
+        final StringBuilder sb = new StringBuilder(bytes.length * 2);
+        for (byte b : bytes) {
+            byteToHex(b, sb);
         }
-        return hexString.toString();
+        return sb.toString();
     }
+
+    static void byteToHex(byte b, StringBuilder sb) {
+        sb.append(HEX[(0xF0 & b) >> 4]);
+        sb.append(HEX[0x0F & b]);
+    }
+
+    public static String periodToSlashes(String s) {
+        char[] ch = s.toCharArray();
+        for (int x = 0; x < ch.length; x++) {
+            if (ch[x] == '.') {
+                ch[x] = '/';
+            }
+        }
+        return new String(ch);
+    }
+    public static String slashesToPeriod(String s) {
+        return s.replace('/', '.');
+    }
+
 }

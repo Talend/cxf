@@ -22,9 +22,8 @@ import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import org.apache.cxf.Bus;
 import org.apache.cxf.BusFactory;
 import org.apache.cxf.common.logging.LogUtils;
@@ -56,7 +55,6 @@ public class JAXWSHttpSpiDestination extends AbstractHTTPDestination {
     /**
      * This is called by handlers for servicing requests
      *
-     * @param context
      * @param req
      * @param resp
      * @throws IOException

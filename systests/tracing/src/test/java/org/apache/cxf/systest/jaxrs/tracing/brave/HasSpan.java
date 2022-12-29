@@ -21,11 +21,11 @@ package org.apache.cxf.systest.jaxrs.tracing.brave;
 import org.hamcrest.Description;
 import org.hamcrest.Matcher;
 import org.hamcrest.TypeSafeMatcher;
-import org.hamcrest.core.IsCollectionContaining;
-import zipkin.Annotation;
-import zipkin.Span;
+import org.hamcrest.core.IsIterableContaining;
+import zipkin2.Annotation;
+import zipkin2.Span;
 
-public class HasSpan extends IsCollectionContaining<Span> {
+public class HasSpan extends IsIterableContaining<Span> {
     public HasSpan(final String name) {
         this(name, null);
     }
@@ -47,12 +47,12 @@ public class HasSpan extends IsCollectionContaining<Span> {
 
             @Override
             protected boolean matchesSafely(Span item) {
-                if (!name.equals(item.name)) {
+                if (!name.equals(item.name())) {
                     return false;
                 }
 
                 if (matcher != null) {
-                    return matcher.matches(item.annotations);
+                    return matcher.matches(item.annotations());
                 }
 
                 return true;

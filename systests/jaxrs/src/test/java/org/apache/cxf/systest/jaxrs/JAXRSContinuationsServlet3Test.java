@@ -21,34 +21,28 @@ package org.apache.cxf.systest.jaxrs;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
-import javax.ws.rs.client.AsyncInvoker;
-import javax.ws.rs.client.ClientBuilder;
-import javax.ws.rs.client.Entity;
-import javax.ws.rs.client.WebTarget;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.Status;
-
+import jakarta.ws.rs.client.AsyncInvoker;
+import jakarta.ws.rs.client.ClientBuilder;
+import jakarta.ws.rs.client.Entity;
+import jakarta.ws.rs.client.WebTarget;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.Response;
+import jakarta.ws.rs.core.Response.Status;
 import org.apache.cxf.jaxrs.client.WebClient;
-import org.apache.cxf.jaxrs.model.AbstractResourceInfo;
 import org.apache.cxf.testutil.common.ServerLauncher;
 
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 public class JAXRSContinuationsServlet3Test extends AbstractJAXRSContinuationsTest {
-    public static final String PORT = BookContinuationServlet3Server.PORT;
-
 
     @BeforeClass
     public static void startServers() throws Exception {
-        AbstractResourceInfo.clearAllMaps();
-        createStaticBus();
         assertTrue("server did not launch correctly",
                    launchServer(BookContinuationServlet3Server.class));
-
-
     }
 
     @Test
@@ -68,7 +62,7 @@ public class JAXRSContinuationsServlet3Test extends AbstractJAXRSContinuationsTe
     public void testClientDisconnect() throws Exception {
         ServerLauncher launcher = new ServerLauncher(BookContinuationClient.class.getName());
         assertTrue("server did not launch correctly", launcher.launchServer());
-        Thread.sleep(4000);
+        Thread.sleep(4000L);
     }
 
     @Test
@@ -92,44 +86,34 @@ public class JAXRSContinuationsServlet3Test extends AbstractJAXRSContinuationsTe
     }
 
     @Test
-    public void testSuspendSetTimeoutt() throws Exception {
+    public void testSuspendSetTimeout() throws Exception {
         final String base = "http://localhost:" + getPort() + "/async/resource2/";
         Future<Response> suspend = invokeRequest(base + "suspend");
-        Thread t = new Thread(new Runnable() {
-            public void run() {
-                Future<Response> timeout = invokeRequest(base + "setTimeOut");
-                try {
-                    assertString(timeout, "true");
-                } catch (Exception ex) {
-                    ex.printStackTrace();
-                }
-            }
-        });
-        t.start();
-        t.join();
+
+        Future<Response> timeout = invokeRequest(base + "setTimeOut");
+        assertString(timeout, "true");
 
         assertEquals(503, suspend.get().getStatus());
-
     }
 
     private static void assertString(Future<Response> future, String check) throws Exception {
         Response response = future.get();
-        assertEquals(response.getStatus(), Status.OK.getStatusCode());
         String content = response.readEntity(String.class);
+        assertEquals(content, Status.OK.getStatusCode(), response.getStatus());
         assertEquals(check, content);
     }
 
-    private <T> Future<Response> invokeRequest(String resource, T entity) {
+    private static <T> Future<Response> invokeRequest(String resource, T entity) {
         AsyncInvoker async = createAsyncInvoker(resource);
         return async.post(Entity.entity(entity, MediaType.TEXT_PLAIN_TYPE));
     }
 
-    private Future<Response> invokeRequest(String resource) {
+    private static Future<Response> invokeRequest(String resource) {
         AsyncInvoker async = createAsyncInvoker(resource);
         return async.get();
     }
 
-    private AsyncInvoker createAsyncInvoker(String resource) {
+    private static AsyncInvoker createAsyncInvoker(String resource) {
         WebTarget target = ClientBuilder.newClient().target(resource);
         return target.request().async();
     }
@@ -142,6 +126,6 @@ public class JAXRSContinuationsServlet3Test extends AbstractJAXRSContinuationsTe
     }
 
     protected String getPort() {
-        return PORT;
+        return BookContinuationServlet3Server.PORT;
     }
 }

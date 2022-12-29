@@ -23,10 +23,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import javax.ws.rs.WebApplicationException;
-import javax.ws.rs.core.HttpHeaders;
-import javax.ws.rs.core.MultivaluedMap;
-
+import jakarta.ws.rs.WebApplicationException;
+import jakarta.ws.rs.core.HttpHeaders;
+import jakarta.ws.rs.core.MultivaluedMap;
 import org.apache.cxf.interceptor.Fault;
 import org.apache.cxf.jaxrs.impl.HttpHeadersImpl;
 import org.apache.cxf.jaxrs.impl.MetadataMap;
@@ -61,7 +60,7 @@ public class CustomOutInterceptor extends AbstractPhaseInterceptor<Message> {
             message.put(Message.PROTOCOL_HEADERS, headers);
         } else {
 
-            MultivaluedMap<String, Object> headers = new MetadataMap<String, Object>();
+            MultivaluedMap<String, Object> headers = new MetadataMap<>();
             headers.putSingle("BookId", "123");
             headers.putSingle("MAP-NAME", MultivaluedMap.class.getName());
             message.put(Message.PROTOCOL_HEADERS, headers);

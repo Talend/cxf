@@ -50,10 +50,15 @@ import org.apache.wss4j.common.crypto.CryptoFactory;
 import org.apache.wss4j.common.ext.WSSecurityException;
 import org.apache.wss4j.common.principal.CustomTokenPrincipal;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+
 /**
  * Some unit tests for validating a SAML token in different realms via the SAMLTokenValidator.
  */
-public class SAMLTokenValidatorRealmTest extends org.junit.Assert {
+public class SAMLTokenValidatorRealmTest {
 
     /**
      * Test a SAML 1.1 Assertion created in realm "A".
@@ -79,8 +84,8 @@ public class SAMLTokenValidatorRealmTest extends org.junit.Assert {
         // Validate the token - no realm is returned
         TokenValidatorResponse validatorResponse =
             samlTokenValidator.validateToken(validatorParameters);
-        assertTrue(validatorResponse != null);
-        assertTrue(validatorResponse.getToken() != null);
+        assertNotNull(validatorResponse);
+        assertNotNull(validatorResponse.getToken());
         assertTrue(validatorResponse.getToken().getState() == STATE.VALID);
         assertNull(validatorResponse.getTokenRealm());
 
@@ -89,10 +94,10 @@ public class SAMLTokenValidatorRealmTest extends org.junit.Assert {
         ((SAMLTokenValidator)samlTokenValidator).setSamlRealmCodec(samlRealmCodec);
 
         validatorResponse = samlTokenValidator.validateToken(validatorParameters);
-        assertTrue(validatorResponse != null);
-        assertTrue(validatorResponse.getToken() != null);
+        assertNotNull(validatorResponse);
+        assertNotNull(validatorResponse.getToken());
         assertTrue(validatorResponse.getToken().getState() == STATE.VALID);
-        assertTrue(validatorResponse.getTokenRealm().equals("A"));
+        assertEquals("A", validatorResponse.getTokenRealm());
 
         Principal principal = validatorResponse.getPrincipal();
         assertTrue(principal != null && principal.getName() != null);
@@ -122,8 +127,8 @@ public class SAMLTokenValidatorRealmTest extends org.junit.Assert {
         // Validate the token - no realm is returned
         TokenValidatorResponse validatorResponse =
             samlTokenValidator.validateToken(validatorParameters);
-        assertTrue(validatorResponse != null);
-        assertTrue(validatorResponse.getToken() != null);
+        assertNotNull(validatorResponse);
+        assertNotNull(validatorResponse.getToken());
         assertTrue(validatorResponse.getToken().getState() == STATE.VALID);
         assertNull(validatorResponse.getTokenRealm());
 
@@ -132,10 +137,10 @@ public class SAMLTokenValidatorRealmTest extends org.junit.Assert {
         ((SAMLTokenValidator)samlTokenValidator).setSamlRealmCodec(samlRealmCodec);
 
         validatorResponse = samlTokenValidator.validateToken(validatorParameters);
-        assertTrue(validatorResponse != null);
-        assertTrue(validatorResponse.getToken() != null);
+        assertNotNull(validatorResponse);
+        assertNotNull(validatorResponse.getToken());
         assertTrue(validatorResponse.getToken().getState() == STATE.VALID);
-        assertTrue(validatorResponse.getTokenRealm().equals("B"));
+        assertEquals("B", validatorResponse.getTokenRealm());
 
         Principal principal = validatorResponse.getPrincipal();
         assertTrue(principal != null && principal.getName() != null);
@@ -190,7 +195,7 @@ public class SAMLTokenValidatorRealmTest extends org.junit.Assert {
         ((SAMLTokenProvider)samlTokenProvider).setRealmMap(samlRealms);
 
         TokenProviderResponse providerResponse = samlTokenProvider.createToken(providerParameters);
-        assertTrue(providerResponse != null);
+        assertNotNull(providerResponse);
         assertTrue(providerResponse.getToken() != null && providerResponse.getTokenId() != null);
 
         return (Element)providerResponse.getToken();

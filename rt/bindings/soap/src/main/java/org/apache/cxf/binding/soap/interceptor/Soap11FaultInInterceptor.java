@@ -62,14 +62,14 @@ public class Soap11FaultInInterceptor extends AbstractSoapInterceptor {
         String lang = null;
         try {
             while (reader.nextTag() == XMLStreamConstants.START_ELEMENT) {
-                if (reader.getLocalName().equals("faultcode")) {
+                if ("faultcode".equals(reader.getLocalName())) {
                     faultCode = StaxUtils.readQName(reader);
-                } else if (reader.getLocalName().equals("faultstring")) {
+                } else if ("faultstring".equals(reader.getLocalName())) {
                     lang = reader.getAttributeValue("http://www.w3.org/XML/1998/namespace", "lang");
                     exMessage = reader.getElementText();
-                } else if (reader.getLocalName().equals("faultactor")) {
+                } else if ("faultactor".equals(reader.getLocalName())) {
                     role = reader.getElementText();
-                } else if (reader.getLocalName().equals("detail")) {
+                } else if ("detail".equals(reader.getLocalName())) {
                     //XMLStreamReader newReader = new DepthXMLStreamReader(reader);
                     detail = StaxUtils.read(reader).getDocumentElement();
                 }
@@ -79,7 +79,7 @@ public class Soap11FaultInInterceptor extends AbstractSoapInterceptor {
                                 e,
                                 message.getVersion().getSender());
         }
-        // if the fault's content is invalid and fautlCode is not found, blame the receiver
+        // if the fault's content is invalid and faultCode is not found, blame the receiver
         if (faultCode == null) {
             faultCode = Soap11.getInstance().getReceiver();
             exMessage = new Message("INVALID_FAULT", LOG).toString();

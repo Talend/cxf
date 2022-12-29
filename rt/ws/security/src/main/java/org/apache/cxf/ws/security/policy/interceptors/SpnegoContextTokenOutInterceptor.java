@@ -19,7 +19,6 @@
 
 package org.apache.cxf.ws.security.policy.interceptors;
 
-import java.util.Base64;
 import java.util.Collection;
 
 import javax.security.auth.callback.CallbackHandler;
@@ -35,6 +34,7 @@ import org.apache.cxf.ws.policy.AssertionInfoMap;
 import org.apache.cxf.ws.security.SecurityConstants;
 import org.apache.cxf.ws.security.policy.PolicyUtils;
 import org.apache.cxf.ws.security.tokenstore.SecurityToken;
+import org.apache.cxf.ws.security.tokenstore.TokenStoreException;
 import org.apache.cxf.ws.security.tokenstore.TokenStoreUtils;
 import org.apache.cxf.ws.security.trust.STSClient;
 import org.apache.cxf.ws.security.trust.STSUtils;
@@ -43,11 +43,13 @@ import org.apache.wss4j.common.spnego.SpnegoTokenContext;
 import org.apache.wss4j.policy.SPConstants;
 import org.apache.wss4j.policy.model.Trust10;
 import org.apache.wss4j.policy.model.Trust13;
+import org.apache.xml.security.utils.XMLUtils;
 
 class SpnegoContextTokenOutInterceptor extends AbstractPhaseInterceptor<SoapMessage> {
     SpnegoContextTokenOutInterceptor() {
         super(Phase.PREPARE_SEND);
     }
+
     public void handleMessage(SoapMessage message) throws Fault {
         AssertionInfoMap aim = message.get(AssertionInfoMap.class);
         // extract Assertion information
@@ -60,27 +62,29 @@ class SpnegoContextTokenOutInterceptor extends AbstractPhaseInterceptor<SoapMess
             if (isRequestor(message)) {
                 String tokId = (String)message.getContextualProperty(SecurityConstants.TOKEN_ID);
                 SecurityToken tok = null;
-                if (tokId != null) {
-                    tok = TokenStoreUtils.getTokenStore(message).getToken(tokId);
+                try {
+                    if (tokId != null) {
+                        tok = TokenStoreUtils.getTokenStore(message).getToken(tokId);
 
-                    if (tok != null && tok.isExpired()) {
-                        message.getExchange().getEndpoint().remove(SecurityConstants.TOKEN_ID);
-                        message.getExchange().remove(SecurityConstants.TOKEN_ID);
-                        TokenStoreUtils.getTokenStore(message).remove(tokId);
-                        tok = null;
+                        if (tok != null && tok.isExpired()) {
+                            message.getExchange().getEndpoint().remove(SecurityConstants.TOKEN_ID);
+                            message.getExchange().remove(SecurityConstants.TOKEN_ID);
+                            TokenStoreUtils.getTokenStore(message).remove(tokId);
+                            tok = null;
+                        }
                     }
-                }
 
-                if (tok == null) {
-                    tok = issueToken(message, aim);
-                }
-                if (tok != null) {
+                    if (tok == null) {
+                        tok = issueToken(message, aim);
+                    }
                     for (AssertionInfo ai : ais) {
                         ai.setAsserted(true);
                     }
                     message.getExchange().getEndpoint().put(SecurityConstants.TOKEN_ID, tok.getId());
                     message.getExchange().put(SecurityConstants.TOKEN_ID, tok.getId());
                     TokenStoreUtils.getTokenStore(message).add(tok);
+                } catch (TokenStoreException ex) {
+                    throw new Fault(ex);
                 }
             } else {
                 // server side should be checked on the way in
@@ -124,9 +128,9 @@ class SpnegoContextTokenOutInterceptor extends AbstractPhaseInterceptor<SoapMess
         //
         STSClient client = STSUtils.getClient(message, "spnego");
         AddressingProperties maps =
-            (AddressingProperties)message.get("javax.xml.ws.addressing.context.outbound");
+            (AddressingProperties)message.get("jakarta.xml.ws.addressing.context.outbound");
         if (maps == null) {
-            maps = (AddressingProperties)message.get("javax.xml.ws.addressing.context");
+            maps = (AddressingProperties)message.get("jakarta.xml.ws.addressing.context");
         }
         synchronized (client) {
             try {
@@ -135,7 +139,7 @@ class SpnegoContextTokenOutInterceptor extends AbstractPhaseInterceptor<SoapMess
                     client.setAddressingNamespace(maps.getNamespaceURI());
                 }
                 SecurityToken tok =
-                    client.requestSecurityToken(s, Base64.getMimeEncoder().encodeToString(spnegoToken.getToken()));
+                    client.requestSecurityToken(s, XMLUtils.encodeToString(spnegoToken.getToken()));
 
                 byte[] wrappedTok = spnegoToken.unwrapKey(tok.getSecret());
                 tok.setSecret(wrappedTok);

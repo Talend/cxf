@@ -28,8 +28,7 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import javax.jws.WebService;
-
+import jakarta.jws.WebService;
 import org.apache.cxf.common.i18n.Message;
 import org.apache.cxf.common.logging.LogUtils;
 import org.apache.cxf.common.util.PackageUtils;
@@ -172,7 +171,7 @@ public class JAXWSFrontEndProcessor implements Processor {
     private boolean isImplRmiRemote(Class<?> claz) {
         for (Method method : claz.getMethods()) {
             if (Modifier.isPublic(method.getModifiers()) && !Modifier.isStatic(method.getModifiers())
-                && !method.getDeclaringClass().getName().equals("java.lang.Object")) {
+                && !"java.lang.Object".equals(method.getDeclaringClass().getName())) {
                 Class<?>[] paraClasses = method.getParameterTypes();
                 for (Class<?> clz : paraClasses) {
                     getInfClass(clz);

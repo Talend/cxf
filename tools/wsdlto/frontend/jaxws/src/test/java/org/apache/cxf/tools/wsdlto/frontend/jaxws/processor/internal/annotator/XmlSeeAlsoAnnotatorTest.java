@@ -25,10 +25,12 @@ import org.apache.cxf.tools.common.model.JavaInterface;
 import org.apache.cxf.tools.util.ClassCollector;
 import org.apache.cxf.tools.wsdlto.frontend.jaxws.processor.internal.annotator.types.ObjectFactory;
 
-import org.junit.Assert;
 import org.junit.Test;
 
-public class XmlSeeAlsoAnnotatorTest extends Assert {
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+
+public class XmlSeeAlsoAnnotatorTest {
 
     @Test
     public void testAddXmlSeeAlsoAnnotation() throws Exception {
@@ -40,7 +42,7 @@ public class XmlSeeAlsoAnnotatorTest extends Assert {
         intf.annotate(new XmlSeeAlsoAnnotator(collector));
 
         Iterator<String> iter = intf.getImports();
-        assertEquals("javax.xml.bind.annotation.XmlSeeAlso", iter.next());
+        assertEquals("jakarta.xml.bind.annotation.XmlSeeAlso", iter.next());
 
         assertEquals("@XmlSeeAlso({" + ObjectFactory.class.getName() + ".class})",
                      intf.getAnnotations().iterator().next().toString());

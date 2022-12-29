@@ -19,8 +19,8 @@
 
 package demo.restful.server;
 
-import javax.xml.ws.Endpoint;
-import javax.xml.ws.http.HTTPBinding;
+import jakarta.xml.ws.Endpoint;
+import jakarta.xml.ws.http.HTTPBinding;
 
 public class Server {
 
@@ -31,7 +31,7 @@ public class Server {
         e.publish(address);
     }
 
-    public static void main(String args[]) throws Exception {
+    public static void main(String[] args) throws Exception {
         new Server();
         System.out.println("Server ready...");
 

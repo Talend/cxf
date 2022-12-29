@@ -26,15 +26,21 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import javax.ws.rs.core.HttpHeaders;
-import javax.ws.rs.core.MultivaluedMap;
-import javax.ws.rs.core.UriInfo;
-
+import jakarta.ws.rs.core.HttpHeaders;
+import jakarta.ws.rs.core.MultivaluedMap;
+import jakarta.ws.rs.core.UriInfo;
 import org.apache.cxf.common.util.StringUtils;
 import org.apache.cxf.jaxrs.utils.HttpUtils;
 import org.apache.cxf.message.Message;
+import org.apache.cxf.message.MessageUtils;
 
 public class RequestPreprocessor {
+
+    /**
+     * Whether to allow the client to override the HTTP method via either METHOD_QUERY or METHOD_HEADER.
+     * The default is false.
+     */
+    private static final String ALLOW_HTTP_METHOD_OVERRIDE = "org.apache.cxf.jaxrs.allow.http.method.override";
 
     private static final String ACCEPT_QUERY = "_type";
     private static final String CTYPE_QUERY = "_ctype";
@@ -56,6 +62,8 @@ public class RequestPreprocessor {
         PATHS_TO_SKIP = new HashSet<>();
         PATHS_TO_SKIP.add("swagger.json");
         PATHS_TO_SKIP.add("swagger.yaml");
+        PATHS_TO_SKIP.add("openapi.json");
+        PATHS_TO_SKIP.add("openapi.yaml");
     }
 
     private Map<Object, Object> languageMappings;
@@ -154,15 +162,17 @@ public class RequestPreprocessor {
     private void handleMethod(Message m,
                               MultivaluedMap<String, String> queries,
                               HttpHeaders headers) {
-        String method = queries.getFirst(METHOD_QUERY);
-        if (method == null) {
-            List<String> list = headers.getRequestHeader(METHOD_HEADER);
-            if (list != null && list.size() == 1) {
-                method = list.get(0);
+        if (MessageUtils.getContextualBoolean(m, ALLOW_HTTP_METHOD_OVERRIDE, false)) {
+            String method = queries.getFirst(METHOD_QUERY);
+            if (method == null) {
+                List<String> list = headers.getRequestHeader(METHOD_HEADER);
+                if (list != null && list.size() == 1) {
+                    method = list.get(0);
+                }
             }
-        }
-        if (method != null) {
-            m.put(Message.HTTP_REQUEST_METHOD, method);
+            if (method != null) {
+                m.put(Message.HTTP_REQUEST_METHOD, method);
+            }
         }
     }
 

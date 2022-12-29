@@ -22,15 +22,15 @@ package org.apache.cxf.jaxws.support;
 import java.lang.reflect.Method;
 import java.util.Iterator;
 
-import javax.jws.WebMethod;
-import javax.jws.WebService;
-import javax.jws.soap.SOAPBinding;
 import javax.wsdl.Definition;
 import javax.wsdl.Service;
 import javax.wsdl.factory.WSDLFactory;
 import javax.wsdl.xml.WSDLReader;
 import javax.xml.namespace.QName;
 
+import jakarta.jws.WebMethod;
+import jakarta.jws.WebService;
+import jakarta.jws.soap.SOAPBinding;
 import org.apache.cxf.Bus;
 import org.apache.cxf.binding.BindingFactoryManager;
 import org.apache.cxf.service.model.MessageInfo;
@@ -42,11 +42,15 @@ import org.apache.cxf.wsdl11.WSDLServiceBuilder;
 
 import org.easymock.EasyMock;
 import org.easymock.IMocksControl;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
-public class JaxWsServiceConfigurationTest extends Assert {
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+
+public class JaxWsServiceConfigurationTest {
 
 
     @Before
@@ -175,8 +179,8 @@ public class JaxWsServiceConfigurationTest extends Assert {
     }
 
     @WebService(name = "Hello", targetNamespace = "http://cxf.com/")
-    @SOAPBinding(parameterStyle = javax.jws.soap.SOAPBinding.ParameterStyle.BARE,
-                 style = javax.jws.soap.SOAPBinding.Style.RPC, use = javax.jws.soap.SOAPBinding.Use.LITERAL)
+    @SOAPBinding(parameterStyle = jakarta.jws.soap.SOAPBinding.ParameterStyle.BARE,
+                 style = jakarta.jws.soap.SOAPBinding.Style.RPC, use = jakarta.jws.soap.SOAPBinding.Use.LITERAL)
     public interface Hello {
         @WebMethod(operationName = "sayHi", exclude = false)
         String sayHi();
@@ -194,18 +198,18 @@ public class JaxWsServiceConfigurationTest extends Assert {
         String sayHello(String asdf1, String asdf2);
     }
 
-    @SOAPBinding(style = javax.jws.soap.SOAPBinding.Style.RPC)
+    @SOAPBinding(style = jakarta.jws.soap.SOAPBinding.Style.RPC)
     public interface HelloRPC {
         String sayHi();
     }
 
-    @SOAPBinding(style = javax.jws.soap.SOAPBinding.Style.DOCUMENT)
+    @SOAPBinding(style = jakarta.jws.soap.SOAPBinding.Style.DOCUMENT)
     public interface HelloWrapped {
         String sayHi();
     }
 
-    @SOAPBinding(parameterStyle = javax.jws.soap.SOAPBinding.ParameterStyle.BARE,
-                 style = javax.jws.soap.SOAPBinding.Style.DOCUMENT)
+    @SOAPBinding(parameterStyle = jakarta.jws.soap.SOAPBinding.ParameterStyle.BARE,
+                 style = jakarta.jws.soap.SOAPBinding.Style.DOCUMENT)
     public interface HelloBare {
         String sayHi();
     }

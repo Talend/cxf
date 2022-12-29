@@ -21,13 +21,11 @@ package org.apache.cxf.rs.security.oidc.rp;
 import java.util.Arrays;
 import java.util.List;
 
-import javax.ws.rs.container.ContainerRequestContext;
-import javax.ws.rs.core.MultivaluedMap;
-import javax.ws.rs.core.SecurityContext;
-import javax.ws.rs.core.UriBuilder;
-import javax.ws.rs.core.UriInfo;
-
-import org.apache.cxf.common.util.StringUtils;
+import jakarta.ws.rs.container.ContainerRequestContext;
+import jakarta.ws.rs.core.MultivaluedMap;
+import jakarta.ws.rs.core.SecurityContext;
+import jakarta.ws.rs.core.UriBuilder;
+import jakarta.ws.rs.core.UriInfo;
 import org.apache.cxf.jaxrs.json.basic.JsonMapObjectReaderWriter;
 import org.apache.cxf.jaxrs.utils.ExceptionUtils;
 import org.apache.cxf.rs.security.oauth2.client.ClientCodeRequestFilter;
@@ -60,7 +58,7 @@ public class OidcClientCodeRequestFilter extends ClientCodeRequestFilter {
     }
 
     public void setAuthenticationContextRef(String acr) {
-        this.authenticationContextRef = Arrays.asList(StringUtils.split(acr, " "));
+        this.authenticationContextRef = Arrays.asList(acr.split(" "));
     }
 
     @Override
@@ -113,7 +111,7 @@ public class OidcClientCodeRequestFilter extends ClientCodeRequestFilter {
             throw new OAuthServiceException(OAuthConstants.INVALID_REQUEST);
         }
         if (maxAgeOffset != null) {
-            Long authTime = Long.parseLong(state.getFirst(MAX_AGE_PARAMETER));
+            long authTime = Long.parseLong(state.getFirst(MAX_AGE_PARAMETER));
             Long tokenAuthTime = idToken.getAuthenticationTime();
             if (tokenAuthTime > authTime) {
                 throw new OAuthServiceException(OAuthConstants.INVALID_REQUEST);

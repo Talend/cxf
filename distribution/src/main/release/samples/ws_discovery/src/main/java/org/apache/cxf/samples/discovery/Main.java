@@ -23,7 +23,9 @@ import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 
-import javax.xml.ws.Endpoint;
+import jakarta.xml.ws.Endpoint;
+
+import org.apache.cxf.ext.logging.LoggingFeature;
 
 public final class Main {
 
@@ -43,6 +45,6 @@ public final class Main {
 
         String address = "http://localhost:" + port + "/Greeter";
         System.out.println("Publishing on " + address);
-        Endpoint.publish(address, new GreeterImpl(port));
+        Endpoint.publish(address, new GreeterImpl(port), new LoggingFeature());
     }
 }

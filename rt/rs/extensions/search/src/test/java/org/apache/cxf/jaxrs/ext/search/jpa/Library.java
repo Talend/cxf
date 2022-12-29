@@ -21,9 +21,9 @@ package org.apache.cxf.jaxrs.ext.search.jpa;
 import java.util.LinkedList;
 import java.util.List;
 
-import javax.persistence.Entity;
-import javax.persistence.Id;
-import javax.persistence.OneToMany;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import jakarta.persistence.OneToMany;
 
 @Entity
 public class Library {
@@ -31,7 +31,7 @@ public class Library {
     private int id;
     private String address;
     @OneToMany
-    private List<Book> books = new LinkedList<Book>();
+    private List<Book> books = new LinkedList<>();
 
     public int getId() {
         return id;
