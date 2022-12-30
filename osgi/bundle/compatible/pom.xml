@@ -24,12 +24,14 @@
     <name>Apache CXF Compatibility Bundle Jar</name>
     <description>Apache CXF Compatibility Bundle Jar</description>
     <url>https://cxf.apache.org</url>
+    <version>${revision}</version>
     <parent>
         <groupId>org.apache.cxf</groupId>
         <artifactId>cxf-bundle-parent</artifactId>
         <version>3.4.10</version>
     </parent>
     <properties>
+        <revision>${cxf-bundle-compatible.tesb.version}</revision>
         <cxf.osgi.symbolic.name>${project.groupId}.bundle</cxf.osgi.symbolic.name>
         <cxf.module.name>org.apache.cxf.bundle</cxf.module.name>
     </properties>
@@ -186,7 +188,7 @@
                             org.springframework*;resolution:=optional;version="[2.5,4)",
                             javax.activation;version="[0.0,2)",
                             javax.annotation;version="[0.0,2)",
-                            javax.jms;resolution:=optional;version="[0.0,2)",
+                            javax.jms;resolution:=optional;version="[0.0,3)",
                             javax.jws*;version="[0.0,3)",
                             javax.mail*;version="[0.0,2)",
                             javax.servlet.*;version="[0.0,4)";resolution:=optional,
