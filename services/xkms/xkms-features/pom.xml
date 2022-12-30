@@ -21,6 +21,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>org.apache.cxf.services.xkms</groupId>
     <artifactId>cxf-services-xkms-features</artifactId>
+    <version>${revision}</version>
     <packaging>pom</packaging>
     <name>Apache CXF XKMS Karaf Features</name>
     <url>https://cxf.apache.org</url>
@@ -31,6 +32,7 @@
         <relativePath>../../../parent/pom.xml</relativePath>
     </parent>
     <properties>
+        <revision>${cxf-services-xkms.features.tesb.version}</revision>
         <cxf.module.name>org.apache.cxf.xkms.features</cxf.module.name>
     </properties>
     <build>

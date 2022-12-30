@@ -41,6 +41,7 @@
     <properties>
         <upstream.version>3.4.10</upstream.version>
         <apache-cxf.features.tesb.version>3.4.10.20221230</apache-cxf.features.tesb.version>
+        <cxf-services-xkms.features.tesb.version>3.4.10.20221230</cxf-services-xkms.features.tesb.version>
         <cxf-services-wsn-core.tesb.version>3.4.10.20221230</cxf-services-wsn-core.tesb.version>
         <cxf-bundle-compatible.tesb.version>3.4.10.20221230</cxf-bundle-compatible.tesb.version>
         <cxf.jakarta.mail.tesb.version>1.6.6</cxf.jakarta.mail.tesb.version>
@@ -444,6 +445,7 @@
                             <my.custom.property>${my.custom.property}</my.custom.property>
                             -->
                             <apache-cxf.features.tesb.version>${apache-cxf.features.tesb.version}</apache-cxf.features.tesb.version>
+                            <cxf-services-xkms.features.tesb.version>${cxf-services-xkms.features.tesb.version}</cxf-services-xkms.features.tesb.version>
                             <cxf-services-wsn-core.tesb.version>${cxf-services-wsn-core.tesb.version}</cxf-services-wsn-core.tesb.version>
                             <cxf-bundle-compatible.tesb.version>${cxf-bundle-compatible.tesb.version}</cxf-bundle-compatible.tesb.version>
                             <cxf.jakarta.mail.tesb.version>${cxf.jakarta.mail.tesb.version}</cxf.jakarta.mail.tesb.version>

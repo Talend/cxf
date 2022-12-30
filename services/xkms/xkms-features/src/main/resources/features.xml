@@ -26,7 +26,8 @@
         <feature>cxf-ws-security</feature>
         <bundle start-level="40" dependency="true">wrap:mvn:org.ehcache/ehcache/${cxf.ehcache3.version}$overwrite=merge&amp;Import-Package=javax.xml.bind*,*;resolution:=optional</bundle>
         <bundle>mvn:${project.groupId}/cxf-services-xkms-common/${upstream.version}</bundle>
-        <bundle>mvn:${project.groupId}/cxf-services-xkms-client/${upstream.version}</bundle>
+        <!-- <bundle>mvn:${project.groupId}/cxf-services-xkms-client/${upstream.version}</bundle> -->
+        <bundle>wrap:mvn:${project.groupId}/cxf-services-xkms-client/${upstream.version}$overwrite=merge&amp;Import-Package=*,redis.clients.jedis;resolution:=optional</bundle>
         <configfile finalname="/etc/org.apache.cxf.xkms.client.cfg">
             mvn:${project.groupId}/cxf-services-xkms-features/${upstream.version}/cfg/org.apache.cxf.xkms.client
         </configfile>
