@@ -21,10 +21,10 @@
    <featureReplacements>
         <replacement mode="merge">
             <feature name="pax-http-undertow" version="7.2.29">
-                <f:bundle start-level="35">mvn:org.apache.cxf/cxf-servlet-compatible/${project.version}</f:bundle>
+                <f:bundle start-level="35">mvn:org.apache.cxf/cxf-servlet-compatible/${upstream.version}</f:bundle>
             </feature>
             <feature name="pax-http-jetty" version="7.2.29">
-                <f:bundle start-level="35">mvn:org.apache.cxf/cxf-servlet-compatible/${project.version}</f:bundle>
+                <f:bundle start-level="35">mvn:org.apache.cxf/cxf-servlet-compatible/${upstream.version}</f:bundle>
             </feature>
         </replacement>
     </featureReplacements>

@@ -29,7 +29,7 @@
         <version>3.4.10</version>
     </parent>
     <properties>
-        <cxf.version>${project.version}</cxf.version>
+        <cxf.version>${upstream.version}</cxf.version>
         <cxf.release.base>${basedir}/../..</cxf.release.base>
         <wsdl.dir>${basedir}/src/main/config</wsdl.dir>
     </properties>
@@ -47,7 +47,7 @@
             <plugin>
                 <groupId>org.apache.cxf</groupId>
                 <artifactId>cxf-codegen-plugin</artifactId>
-                <version>${project.version}</version>
+                <version>${upstream.version}</version>
                 <executions>
                     <execution>
                         <id>generate-sources</id>

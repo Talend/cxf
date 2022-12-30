@@ -30,7 +30,7 @@
         <version>3.4.10</version>
     </parent>
     <properties>
-        <cxf.version>${project.version}</cxf.version>
+        <cxf.version>${upstream.version}</cxf.version>
         <cxf.release.base>${basedir}/../..</cxf.release.base>
     </properties>
     <dependencies>
@@ -61,7 +61,7 @@
             <plugin>
                 <groupId>org.apache.cxf</groupId>
                 <artifactId>cxf-codegen-plugin</artifactId>
-                <version>${project.version}</version>
+                <version>${upstream.version}</version>
                 <executions>
                     <execution>
                         <id>generate-sources</id>
@@ -88,7 +88,7 @@
                 <dependency>
                     <groupId>org.apache.cxf</groupId>
                     <artifactId>cxf-rt-transports-http-jetty</artifactId>
-                    <version>${project.version}</version>
+                    <version>${upstream.version}</version>
                 </dependency>
             </dependencies>
             <build>

@@ -28,7 +28,7 @@
         <version>3.4.10</version>
     </parent>
     <properties>
-        <cxf.version>${project.version}</cxf.version>
+        <cxf.version>${upstream.version}</cxf.version>
         <wsdl.file>${basedir}/src/main/resources/hello_world.wsdl</wsdl.file>
     </properties>
     <build>
@@ -36,7 +36,7 @@
             <plugin>
                 <groupId>org.apache.cxf</groupId>
                 <artifactId>cxf-codegen-plugin</artifactId>
-                <version>${project.version}</version>
+                <version>${upstream.version}</version>
                 <executions>
                     <execution>
                         <id>generate-SOAPService1</id>
