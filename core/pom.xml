@@ -24,6 +24,7 @@
     <name>Apache CXF Core</name>
     <description>Apache CXF Core</description>
     <url>https://cxf.apache.org</url>
+    <version>${revision}</version>
     <parent>
         <groupId>org.apache.cxf</groupId>
         <artifactId>cxf-parent</artifactId>
@@ -31,6 +32,7 @@
         <relativePath>../parent/pom.xml</relativePath>
     </parent>
     <properties>
+        <revision>${cxf-core.tesb.version}</revision>
         <cxf.module.name>org.apache.cxf.core</cxf.module.name>
         <cxf.bundle.activator>org.apache.cxf.bus.osgi.CXFActivator</cxf.bundle.activator>
         <cxf.osgi.export>
