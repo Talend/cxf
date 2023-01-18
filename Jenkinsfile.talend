@@ -1,5 +1,5 @@
 @Library('esb') _
 
 Fork(
-        MVN_MODULES: 'org.apache.cxf.services.wsn:cxf-services-wsn-core,org.apache.cxf.karaf:apache-cxf,org.apache.cxf.services.xkms:cxf-services-xkms-features'
+        MVN_MODULES: 'org.apache.cxf:cxf-core,org.apache.cxf.services.wsn:cxf-services-wsn-core,org.apache.cxf.karaf:apache-cxf,org.apache.cxf.services.xkms:cxf-services-xkms-features'
 )
