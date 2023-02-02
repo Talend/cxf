@@ -22,7 +22,7 @@
     <dependency>
       <groupId>${project.groupId}</groupId>
       <artifactId>cxf-rt-frontend-jaxws</artifactId>
-      <version>${project.version}</version>
+      <version>${upstream.version}</version>
     </dependency>
     <dependency>
       <groupId>junit</groupId>
@@ -32,7 +32,7 @@
     <dependency>
       <groupId>${project.groupId}</groupId>
       <artifactId>cxf-rt-transports-local</artifactId>
-      <version>${project.version}</version>
+      <version>${upstream.version}</version>
       <scope>test</scope>
     </dependency>
     <dependency>

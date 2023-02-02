@@ -28,7 +28,7 @@
         <version>3.5.5</version>
     </parent>
     <properties>
-        <cxf.version>${project.version}</cxf.version>
+        <cxf.version>${upstream.version}</cxf.version>
         <useJaxws>-jaxws</useJaxws>
     </properties>
     <profiles>

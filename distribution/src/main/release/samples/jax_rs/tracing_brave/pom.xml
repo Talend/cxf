@@ -29,7 +29,7 @@
         <relativePath>../..</relativePath>
     </parent>
     <properties>
-        <cxf.version>${project.version}</cxf.version>
+        <cxf.version>${upstream.version}</cxf.version>
         <cxf.brave.version>5.12.6</cxf.brave.version>
     </properties>
     <profiles>
