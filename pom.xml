@@ -41,8 +41,8 @@
     <properties>
         <upstream.version>3.5.5</upstream.version>
         <apache-cxf.features.tesb.version>3.5.5.20230201</apache-cxf.features.tesb.version>
-        <cxf-services-xkms.features.tesb.version>3.4.10.20221230</cxf-services-xkms.features.tesb.version>
-        <cxf-services-wsn-core.tesb.version>3.4.10.20221230</cxf-services-wsn-core.tesb.version>
+        <cxf-services-xkms.features.tesb.version>3.5.5.20230201</cxf-services-xkms.features.tesb.version>
+        <cxf-services-wsn-core.tesb.version>3.5.5.20230201</cxf-services-wsn-core.tesb.version>
 	    <cxf.geronimo.jms2.tesb.version>1.0-alpha-2</cxf.geronimo.jms2.tesb.version>
         <cxf.compiler.fork>false</cxf.compiler.fork>
         <cxf.build-utils.version>3.4.4</cxf.build-utils.version>
