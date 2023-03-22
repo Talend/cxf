@@ -40,11 +40,11 @@
     </issueManagement>
     <properties>
         <upstream.version>3.4.10</upstream.version>
-        <apache-cxf.features.tesb.version>3.4.10.20221230</apache-cxf.features.tesb.version>
-        <cxf-services-xkms.features.tesb.version>3.4.10.20221230</cxf-services-xkms.features.tesb.version>
-        <cxf-core.tesb.version>3.4.10.20221230</cxf-core.tesb.version>
-        <cxf-services-wsn-core.tesb.version>3.4.10.20221230</cxf-services-wsn-core.tesb.version>
-        <cxf-bundle-compatible.tesb.version>3.4.10.20221230</cxf-bundle-compatible.tesb.version>
+        <apache-cxf.features.tesb.version>3.4.10.20230322</apache-cxf.features.tesb.version>
+        <cxf-services-xkms.features.tesb.version>3.4.10.20230322</cxf-services-xkms.features.tesb.version>
+        <cxf-core.tesb.version>3.4.10.20230322</cxf-core.tesb.version>
+        <cxf-services-wsn-core.tesb.version>3.4.10.20230322</cxf-services-wsn-core.tesb.version>
+        <cxf-bundle-compatible.tesb.version>3.4.10.20230322</cxf-bundle-compatible.tesb.version>
         <cxf.jakarta.mail.tesb.version>1.6.6</cxf.jakarta.mail.tesb.version>
         <cxf.geronimo.jms2.tesb.version>1.0-alpha-2</cxf.geronimo.jms2.tesb.version>
 
