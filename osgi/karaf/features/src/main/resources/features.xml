@@ -247,7 +247,7 @@
         <feature version="${upstream.version}">cxf-http</feature>
         <feature version="${upstream.version}">cxf-jackson</feature>
         <feature version="${upstream.version}">cxf-rt-security</feature>
-        <bundle start-level="30" dependency="true">mvn:org.codehaus.jettison/jettison/${cxf.jettison.version}</bundle>
+        <bundle start-level="30" dependency="true">mvn:org.codehaus.jettison/jettison/${cxf.jettison.tesb.version}</bundle>
         <bundle start-level="40">mvn:org.apache.cxf/cxf-rt-rs-extension-providers/${upstream.version}</bundle>
         <bundle start-level="40">mvn:org.apache.cxf/cxf-rt-rs-extension-search/${upstream.version}</bundle>
         <bundle start-level="40">mvn:org.apache.cxf/cxf-rt-rs-json-basic/${upstream.version}</bundle>
