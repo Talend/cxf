@@ -47,6 +47,7 @@
         <cxf-bundle-compatible.tesb.version>3.4.10.20230322</cxf-bundle-compatible.tesb.version>
         <cxf.jakarta.mail.tesb.version>1.6.6</cxf.jakarta.mail.tesb.version>
         <cxf.geronimo.jms2.tesb.version>1.0-alpha-2</cxf.geronimo.jms2.tesb.version>
+        <cxf.netty.tesb.version>5.1.86.Final</cxf.netty.tesb.version>
         <cxf.jettison.tesb.version>1.5.4</cxf.jettison.tesb.version>
 
         <cxf.compiler.fork>false</cxf.compiler.fork>
@@ -453,6 +454,7 @@
                             <cxf-bundle-compatible.tesb.version>${cxf-bundle-compatible.tesb.version}</cxf-bundle-compatible.tesb.version>
                             <cxf.jakarta.mail.tesb.version>${cxf.jakarta.mail.tesb.version}</cxf.jakarta.mail.tesb.version>
                             <cxf.geronimo.jms2.tesb.version>${cxf.geronimo.jms2.tesb.version}</cxf.geronimo.jms2.tesb.version>
+                            <cxf.netty.tesb.version>${cxf.netty.tesb.version}</cxf.netty.tesb.version>
                             <cxf.jettison.tesb.version>${cxf.jettison.tesb.version}</cxf.jettison.tesb.version>
                         </properties>
                     </configuration>
