@@ -40,10 +40,16 @@
     </issueManagement>
     <properties>
         <upstream.version>3.5.5</upstream.version>
-        <apache-cxf.features.tesb.version>3.5.5.20230201</apache-cxf.features.tesb.version>
-        <cxf-services-xkms.features.tesb.version>3.4.10.20221230</cxf-services-xkms.features.tesb.version>
-        <cxf-services-wsn-core.tesb.version>3.4.10.20221230</cxf-services-wsn-core.tesb.version>
-	    <cxf.geronimo.jms2.tesb.version>1.0-alpha-2</cxf.geronimo.jms2.tesb.version>
+        <apache-cxf.features.tesb.version>3.5.5.20230330</apache-cxf.features.tesb.version>
+        <cxf-services-xkms.features.tesb.version>3.5.5.20230330</cxf-services-xkms.features.tesb.version>
+        <cxf-core.tesb.version>3.5.5.20230330</cxf-core.tesb.version>
+        <cxf-services-wsn-core.tesb.version>3.5.5.20230330</cxf-services-wsn-core.tesb.version>
+        <cxf-bundle-compatible.tesb.version>3.5.5.20230330</cxf-bundle-compatible.tesb.version>
+        <!-- <cxf.jakarta.mail.tesb.version>1.6.7</cxf.jakarta.mail.tesb.version> -->
+        <cxf.geronimo.jms2.tesb.version>1.0-alpha-2</cxf.geronimo.jms2.tesb.version>
+        <cxf.netty.tesb.version>4.1.89.Final</cxf.netty.tesb.version>
+        <cxf.jettison.tesb.version>1.5.4</cxf.jettison.tesb.version>
+
         <cxf.compiler.fork>false</cxf.compiler.fork>
         <cxf.build-utils.version>3.4.4</cxf.build-utils.version>
         <cxf.xjc-utils.version>3.3.2</cxf.xjc-utils.version>
@@ -443,8 +449,13 @@
                             -->
                             <apache-cxf.features.tesb.version>${apache-cxf.features.tesb.version}</apache-cxf.features.tesb.version>
                             <cxf-services-xkms.features.tesb.version>${cxf-services-xkms.features.tesb.version}</cxf-services-xkms.features.tesb.version>
+                            <cxf-core.tesb.version>${cxf-core.tesb.version}</cxf-core.tesb.version>
                             <cxf-services-wsn-core.tesb.version>${cxf-services-wsn-core.tesb.version}</cxf-services-wsn-core.tesb.version>
+                            <cxf-bundle-compatible.tesb.version>${cxf-bundle-compatible.tesb.version}</cxf-bundle-compatible.tesb.version>
+                            <!-- <cxf.jakarta.mail.tesb.version>${cxf.jakarta.mail.tesb.version}</cxf.jakarta.mail.tesb.version> -->
                             <cxf.geronimo.jms2.tesb.version>${cxf.geronimo.jms2.tesb.version}</cxf.geronimo.jms2.tesb.version>
+                            <cxf.netty.tesb.version>${cxf.netty.tesb.version}</cxf.netty.tesb.version>
+                            <cxf.jettison.tesb.version>${cxf.jettison.tesb.version}</cxf.jettison.tesb.version>
                         </properties>
                     </configuration>
                     <executions>
