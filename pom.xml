@@ -49,6 +49,8 @@
         <cxf.geronimo.jms2.tesb.version>1.0-alpha-2</cxf.geronimo.jms2.tesb.version>
         <cxf.netty.tesb.version>4.1.89.Final</cxf.netty.tesb.version>
         <cxf.jettison.tesb.version>1.5.4</cxf.jettison.tesb.version>
+        <cxf.jaxb.bundle-runtime.tesb.version>2.3.2_3</cxf.jaxb.bundle-runtime.tesb.version>
+        <cxf.jaxb.bundle-xjc.tesb.version>2.3.2_2</cxf.jaxb.bundle-xjc.tesb.version>
 
         <cxf.compiler.fork>false</cxf.compiler.fork>
         <cxf.build-utils.version>3.4.4</cxf.build-utils.version>
@@ -456,6 +458,8 @@
                             <cxf.geronimo.jms2.tesb.version>${cxf.geronimo.jms2.tesb.version}</cxf.geronimo.jms2.tesb.version>
                             <cxf.netty.tesb.version>${cxf.netty.tesb.version}</cxf.netty.tesb.version>
                             <cxf.jettison.tesb.version>${cxf.jettison.tesb.version}</cxf.jettison.tesb.version>
+                            <cxf.jaxb.bundle-runtime.tesb.version>${cxf.jaxb.bundle-runtime.tesb.version}</cxf.jaxb.bundle-runtime.tesb.version>
+                            <cxf.jaxb.bundle-xjc.tesb.version>${cxf.jaxb.bundle-xjc.tesb.version}</cxf.jaxb.bundle-xjc.tesb.version>
                         </properties>
                     </configuration>
                     <executions>
