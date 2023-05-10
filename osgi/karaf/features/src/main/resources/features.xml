@@ -194,9 +194,9 @@
     <feature name="cxf-http-netty-client" version="${upstream.version}">
         <feature version="${upstream.version}">cxf-http</feature>
         <bundle dependency="true" start-level="40">mvn:${cxf.servlet-api.group}/${cxf.servlet-api.artifact}/${cxf.servlet-api.version}</bundle>
-        <bundle start-level="40">mvn:org.bouncycastle/bcprov-jdk15on/${cxf.bcprov.version}</bundle>
-        <bundle start-level="40">mvn:org.bouncycastle/bcutil-jdk15on/${cxf.bcprov.version}</bundle>
-        <bundle start-level="40">mvn:org.bouncycastle/bctls-jdk15on/${cxf.bcprov.version}</bundle>
+        <bundle start-level="40">mvn:org.bouncycastle/bcprov-jdk18on/${cxf.bcprov.tesb.version}</bundle>
+        <bundle start-level="40">mvn:org.bouncycastle/bcutil-jdk18on/${cxf.bcprov.tesb.version}</bundle>
+        <bundle start-level="40">mvn:org.bouncycastle/bctls-jdk18on/${cxf.bcprov.tesb.version}</bundle>
         <bundle start-level="40">mvn:io.netty/netty-tcnative-classes/${cxf.netty.tcnative.version}</bundle>
         <bundle start-level="40">mvn:io.netty/netty-common/${cxf.netty.tesb.version}</bundle>
         <bundle start-level="40">mvn:io.netty/netty-transport-native-unix-common/${cxf.netty.tesb.version}</bundle>
@@ -210,9 +210,9 @@
     </feature>
     <feature name="cxf-http-netty-server" version="${upstream.version}">
         <feature version="${upstream.version}">cxf-http</feature>
-        <bundle start-level="40">mvn:org.bouncycastle/bcprov-jdk15on/${cxf.bcprov.version}</bundle>
-        <bundle start-level="40">mvn:org.bouncycastle/bcutil-jdk15on/${cxf.bcprov.version}</bundle>
-        <bundle start-level="40">mvn:org.bouncycastle/bctls-jdk15on/${cxf.bcprov.version}</bundle>
+        <bundle start-level="40">mvn:org.bouncycastle/bcprov-jdk18on/${cxf.bcprov.tesb.version}</bundle>
+        <bundle start-level="40">mvn:org.bouncycastle/bcutil-jdk18on/${cxf.bcprov.tesb.version}</bundle>
+        <bundle start-level="40">mvn:org.bouncycastle/bctls-jdk18on/${cxf.bcprov.tesb.version}</bundle>
         <bundle start-level="40">mvn:io.netty/netty-tcnative-classes/${cxf.netty.tcnative.version}</bundle>
         <bundle start-level="40">mvn:io.netty/netty-common/${cxf.netty.tesb.version}</bundle>
         <bundle start-level="40">mvn:io.netty/netty-transport-native-unix-common/${cxf.netty.tesb.version}</bundle>
@@ -327,7 +327,7 @@
         <bundle start-level="35" dependency="true">mvn:com.fasterxml.jackson.datatype/jackson-datatype-jsr310/${cxf.jackson.version}</bundle>
         <bundle start-level="10" dependency="true">mvn:jakarta.validation/jakarta.validation-api/${cxf.validation.api.version}</bundle>
         <bundle start-level="35" dependency="true">mvn:org.apache.commons/commons-lang3/${cxf.commons-lang3.version}</bundle>
-        <bundle start-level="30" dependency="true">mvn:org.javassist/javassist/${cxf.javassist.version}</bundle>
+        <bundle start-level="30" dependency="true">mvn:org.javassist/javassist/${cxf.javassist.tesb.version}</bundle>
         <!-- <bundle start-level="30" dependency="true">mvn:org.apache.servicemix.bundles/org.apache.servicemix.bundles.reflections/${cxf.reflections.bundle.version}</bundle> -->
         <bundle start-level="30" dependency="true">wrap:mvn:org.apache.servicemix.bundles/org.apache.servicemix.bundles.reflections/${cxf.reflections.bundle.version}$overwrite=merge&amp;Import-Package=com.google.common.*;version="[20.0,32)";resolution:=optional,*;resolution:=optional</bundle>
         <bundle start-level="25" dependency="true">mvn:com.google.guava/failureaccess/${cxf.swagger2.guava.failureaccess.version}</bundle>
@@ -348,7 +348,7 @@
         <bundle start-level="10" dependency="true">mvn:jakarta.validation/jakarta.validation-api/${cxf.validation.api.version}</bundle>
         <bundle start-level="35" dependency="true">mvn:org.apache.commons/commons-lang3/${cxf.commons-lang3.version}</bundle>
         <bundle start-level="30" dependency="true">mvn:io.github.classgraph/classgraph/${cxf.classgraph.version}</bundle>
-        <bundle start-level="30" dependency="true">mvn:org.javassist/javassist/${cxf.javassist.version}</bundle>
+        <bundle start-level="30" dependency="true">mvn:org.javassist/javassist/${cxf.javassist.tesb.version}</bundle>
         <bundle start-level="35" dependency="true">mvn:io.swagger.core.v3/swagger-annotations/${cxf.swagger.v3.version}</bundle>
         <bundle start-level="35" dependency="true">mvn:io.swagger.core.v3/swagger-models/${cxf.swagger.v3.version}</bundle>
         <bundle start-level="35" dependency="true">mvn:io.swagger.core.v3/swagger-core/${cxf.swagger.v3.version}</bundle>
