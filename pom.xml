@@ -51,6 +51,8 @@
         <cxf.jettison.tesb.version>1.5.4</cxf.jettison.tesb.version>
         <cxf.jaxb.bundle-runtime.tesb.version>2.3.2_3</cxf.jaxb.bundle-runtime.tesb.version>
         <cxf.jaxb.bundle-xjc.tesb.version>2.3.2_2</cxf.jaxb.bundle-xjc.tesb.version>
+        <cxf.javassist.tesb.version>3.28.0-GA</cxf.javassist.tesb.version>
+        <cxf.bcprov.tesb.version>1.73</cxf.bcprov.tesb.version>
 
         <cxf.compiler.fork>false</cxf.compiler.fork>
         <cxf.build-utils.version>3.4.4</cxf.build-utils.version>
@@ -460,6 +462,8 @@
                             <cxf.jettison.tesb.version>${cxf.jettison.tesb.version}</cxf.jettison.tesb.version>
                             <cxf.jaxb.bundle-runtime.tesb.version>${cxf.jaxb.bundle-runtime.tesb.version}</cxf.jaxb.bundle-runtime.tesb.version>
                             <cxf.jaxb.bundle-xjc.tesb.version>${cxf.jaxb.bundle-xjc.tesb.version}</cxf.jaxb.bundle-xjc.tesb.version>
+                            <cxf.javassist.tesb.version>${cxf.javassist.tesb.version}</cxf.javassist.tesb.version>
+                            <cxf.bcprov.tesb.version>${cxf.bcprov.tesb.version}</cxf.bcprov.tesb.version>
                         </properties>
                     </configuration>
                     <executions>
