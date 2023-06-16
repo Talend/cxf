@@ -40,7 +40,7 @@
     </issueManagement>
     <properties>
         <upstream.version>3.4.10</upstream.version>
-        <apache-cxf.features.tesb.version>3.4.10.tesb2</apache-cxf.features.tesb.version>
+        <apache-cxf.features.tesb.version>3.4.10.tesb3</apache-cxf.features.tesb.version>
         <cxf-services-xkms.features.tesb.version>3.4.10.tesb1</cxf-services-xkms.features.tesb.version>
         <cxf-core.tesb.version>3.4.10.tesb1</cxf-core.tesb.version>
         <cxf-services-wsn-core.tesb.version>3.4.10.tesb1</cxf-services-wsn-core.tesb.version>
