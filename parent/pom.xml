@@ -2054,6 +2054,12 @@
                 <artifactId>ehcache</artifactId>
                 <version>${cxf.ehcache3.version}</version>
             </dependency>
+            <!-- Override guava dependency for a security fix -->
+            <dependency>
+                <groupId>com.google.guava</groupId>
+                <artifactId>guava</artifactId>
+                <version>${guava.version}</version>
+            </dependency>
         </dependencies>
     </dependencyManagement>
     <profiles>
