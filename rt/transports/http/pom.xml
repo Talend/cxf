@@ -27,11 +27,25 @@
     <parent>
         <groupId>org.apache.cxf</groupId>
         <artifactId>cxf-parent</artifactId>
-        <version>4.0.1-SNAPSHOT</version>
+        <version>4.0.3-SNAPSHOT</version>
         <relativePath>../../../parent/pom.xml</relativePath>
     </parent>
     <properties>
         <cxf.module.name>org.apache.cxf.transport.http</cxf.module.name>
+        <cxf.osgi.import>
+            javax.net,
+            jakarta.servlet*;version="${cxf.osgi.jakarta.servlet.version}",
+            org.springframework*;resolution:="optional";version="${cxf.osgi.spring.version}",
+            jakarta.xml.bind*;version="${cxf.osgi.jakarta.bind.version}",
+            jakarta.activation;version="${cxf.osgi.jakarta.activation.version}",
+            com.sun.activation.registries;resolution:=optional
+        </cxf.osgi.import>
+        <cxf.osgi.export>
+            org.apache.cxf.transports.http*,
+            org.apache.cxf.transport.http.*,
+            org.apache.cxf.transport.https.*,
+            org.apache.cxf.transport.servlet.*
+        </cxf.osgi.export>
         <cxf.public.suffix.list.url>
             https://publicsuffix.org/list/effective_tld_names.dat
         </cxf.public.suffix.list.url>
@@ -151,7 +165,7 @@
             <plugin>
                 <groupId>com.googlecode.maven-download-plugin</groupId>
                 <artifactId>download-maven-plugin</artifactId>
-                <version>1.6.8</version>
+                <version>1.7.0</version>
                 <executions>
                     <execution>
                         <id>download-public-suffix-list</id>

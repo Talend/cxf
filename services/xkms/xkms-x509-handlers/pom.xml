@@ -27,11 +27,14 @@
     <parent>
         <groupId>org.apache.cxf</groupId>
         <artifactId>cxf-parent</artifactId>
-        <version>4.0.1-SNAPSHOT</version>
+        <version>4.0.3-SNAPSHOT</version>
         <relativePath>../../../parent/pom.xml</relativePath>
     </parent>
     <properties>
         <cxf.module.name>org.apache.cxf.xkms.x509.handlers</cxf.module.name>
+        <cxf.osgi.import>
+            jakarta.xml.bind*;version="${cxf.osgi.jakarta.bind.version}"
+        </cxf.osgi.import>
     </properties>
     <dependencies>
         <dependency>
@@ -59,22 +62,4 @@
             <scope>test</scope>
         </dependency>
     </dependencies>
-    <build>
-        <plugins>
-            <plugin>
-                <groupId>org.eclipse.tycho</groupId>
-                <artifactId>tycho-packaging-plugin</artifactId>
-                <version>0.26.0</version>
-                <executions>
-                    <execution>
-                        <id>timestamp</id>
-                        <phase>validate</phase>
-                        <goals>
-                            <goal>build-qualifier</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
-        </plugins>
-    </build>
 </project>

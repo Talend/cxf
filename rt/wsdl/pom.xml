@@ -27,11 +27,15 @@
     <parent>
         <groupId>org.apache.cxf</groupId>
         <artifactId>cxf-parent</artifactId>
-        <version>4.0.1-SNAPSHOT</version>
+        <version>4.0.3-SNAPSHOT</version>
         <relativePath>../../parent/pom.xml</relativePath>
     </parent>
     <properties>
         <cxf.module.name>org.apache.cxf.wsdl</cxf.module.name>
+        <cxf.osgi.import>
+           jakarta.xml.bind*;version="${cxf.osgi.jakarta.bind.version}",
+           jakarta.annotation*;version="${cxf.osgi.jakarta.annotation.version}"
+        </cxf.osgi.import>
     </properties>
     <dependencies>
         <dependency>
@@ -52,8 +56,9 @@
             <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>org.easymock</groupId>
-            <artifactId>easymock</artifactId>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-core</artifactId>
+            <version>${cxf.mockito.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>

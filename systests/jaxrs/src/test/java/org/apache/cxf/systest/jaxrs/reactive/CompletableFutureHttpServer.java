@@ -17,17 +17,21 @@
  * under the License.
  */
 
-package org.apache.cxf.transport.http.asyncclient.hc5;
+package org.apache.cxf.systest.jaxrs.reactive;
 
-import org.apache.hc.client5.http.auth.AuthScope;
+import org.apache.cxf.testutil.common.TestUtil;
 
-class AnyAuthScope extends AuthScope {
-    AnyAuthScope() {
-        super(null, null, 1, null, null);
-    }
+public class CompletableFutureHttpServer extends AbstractCompletableFutureServer {
+    public static final String PORT = TestUtil.getPortNumber("reactive-http");
+
 
     @Override
-    public int match(AuthScope that) {
-        return 1;
+    public String getPort() {
+        return PORT;
+    }
+    
+    @Override
+    public String getProtocol() {
+        return "http";
     }
 }

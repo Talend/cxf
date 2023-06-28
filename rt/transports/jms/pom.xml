@@ -19,11 +19,16 @@
     <parent>
         <groupId>org.apache.cxf</groupId>
         <artifactId>cxf-parent</artifactId>
-        <version>4.0.1-SNAPSHOT</version>
+        <version>4.0.3-SNAPSHOT</version>
         <relativePath>../../../parent/pom.xml</relativePath>
     </parent>
     <properties>
         <cxf.spi-dir>spi-2.1</cxf.spi-dir>
+        <cxf.osgi.import>
+            jakarta.jms;version="${cxf.osgi.jakarta.jms.version}",
+            jakarta.transaction;version="${cxf.osgi.jakarta.transaction.version}",
+            jakarta.xml.bind*;version="${cxf.osgi.jakarta.bind.version}"
+        </cxf.osgi.import>
         <cxf.module.name>org.apache.cxf.transport.jms</cxf.module.name>
     </properties>
     <dependencies>
@@ -120,6 +125,11 @@
         <dependency>
             <groupId>org.jboss.narayana.jta</groupId>
             <artifactId>narayana-jta-jakarta</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.jboss.logging</groupId>
+            <artifactId>jboss-logging</artifactId>
             <scope>test</scope>
         </dependency>
     </dependencies>

@@ -22,103 +22,108 @@ package org.apache.cxf.systest.http2.netty;
 import jakarta.ws.rs.core.Response;
 import org.apache.cxf.configuration.jsse.TLSClientParameters;
 import org.apache.cxf.jaxrs.client.WebClient;
-import org.apache.cxf.systest.http2.netty.Http2TestClient.ClientResponse;
 import org.apache.cxf.testutil.common.AbstractBusClientServerTestBase;
 import org.apache.cxf.transport.http.HTTPConduit;
+import org.apache.cxf.transport.http.netty.client.NettyHttpConduit;
 import org.apache.cxf.transport.https.InsecureTrustManager;
 
 import org.junit.Test;
 
 import static org.hamcrest.CoreMatchers.equalTo;
+import static org.hamcrest.CoreMatchers.instanceOf;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.Assert.assertEquals;
 
 abstract class AbstractNettyClientServerHttp2Test extends AbstractBusClientServerTestBase {
     @Test
     public void testBookNotFoundWithHttp2() throws Exception {
-        final Http2TestClient client = new Http2TestClient(isSecure());
-        
-        final ClientResponse response = client
-            .request(getAddress())
+        final WebClient client = createWebClient("/web/bookstore/notFound", true);
+        assertThat(WebClient.getConfig(client).getHttpConduit(), instanceOf(NettyHttpConduit.class));
+
+        final Response response = client
             .accept("text/plain")
-            .path(getContext() + "/web/bookstore/notFound")
-            .http2()
             .get();
         
-        assertThat(response.getResponseCode(), equalTo(404));
-        assertThat(response.getProtocol(), equalTo("HTTP/2.0"));
+        assertThat(response.getStatus(), equalTo(404));
+        client.close();
     }
     
     @Test
     public void testBookTraceWithHttp2() throws Exception {
-        final Http2TestClient client = new Http2TestClient(isSecure());
-        
-        final ClientResponse response = client
-            .request(getAddress())
+        final WebClient client = createWebClient("/web/bookstore/trace", true);
+        assertThat(WebClient.getConfig(client).getHttpConduit(), instanceOf(NettyHttpConduit.class));
+
+        final Response response = client
             .accept("text/plain")
-            .path(getContext() + "/web/bookstore/trace")
-            .http2()
-            .trace();
+            .invoke("TRACE", null);
         
-        assertThat(response.getResponseCode(), equalTo(406));
-        assertThat(response.getProtocol(), equalTo("HTTP/2.0"));
+        assertThat(response.getStatus(), equalTo(406));
+
+        client.close();
     }
     
     @Test
     public void testBookWithHttp2() throws Exception {
-        final Http2TestClient client = new Http2TestClient(isSecure());
+        final WebClient client = createWebClient("/web/bookstore/booknames", true);
+        assertThat(WebClient.getConfig(client).getHttpConduit(), instanceOf(NettyHttpConduit.class));
         
-        final ClientResponse response = client
-            .request(getAddress())
+        final Response response = client
             .accept("text/plain")
-            .path(getContext() + "/web/bookstore/booknames")
-            .http2()
             .get();
         
-        assertThat(response.getResponseCode(), equalTo(200));
-        assertThat(response.getProtocol(), equalTo("HTTP/2.0"));
-        assertEquals("CXF in Action", response.getBody());
+        assertThat(response.getStatus(), equalTo(200));
+        assertEquals("CXF in Action", response.readEntity(String.class));
+
+        client.close();
     }
 
     @Test
     public void testGetBookStreamHttp2() throws Exception {
-        final Http2TestClient client = new Http2TestClient(isSecure());
+        final WebClient client = createWebClient("/web/bookstore/bookstream", true);
+        assertThat(WebClient.getConfig(client).getHttpConduit(), instanceOf(NettyHttpConduit.class));
         
-        final ClientResponse response = client
-            .request(getAddress())
+        final Response response = client
             .accept("application/xml")
-            .path(getContext() + "/web/bookstore/bookstream")
-            .http2()
             .get();
 
-        assertThat(response.getResponseCode(), equalTo(200));
-        assertThat(response.getProtocol(), equalTo("HTTP/2.0"));
+        assertThat(response.getStatus(), equalTo(200));
         assertEquals("<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>"
-            + "<Book><id>1</id><name>Book1</name></Book>", response.getBody());
+            + "<Book><id>1</id><name>Book1</name></Book>", response.readEntity(String.class));
+
+        client.close();
     }
 
     @Test
     public void testBookWithHttp() throws Exception {
-        final WebClient wc = createWebClient("/web/bookstore/booknames");
-        try (Response resp = wc.get()) {
+        final WebClient client = createWebClient("/web/bookstore/booknames", false);
+        
+        try (Response resp = client.get()) {
             assertThat(resp.getStatus(), equalTo(200));
             assertEquals("CXF in Action", resp.readEntity(String.class));
         }
+        
+        client.close();
     }
 
     @Test
     public void testBookTraceWithHttp() throws Exception {
-        final WebClient wc = createWebClient("/web/bookstore/trace");
-        try (Response response = wc.invoke("TRACE", null)) {
+        final WebClient client = createWebClient("/web/bookstore/trace", false);
+
+        try (Response response = client.invoke("TRACE", null)) {
             assertThat(response.getStatus(), equalTo(406));
-        }        
+        }
+
+        client.close();
     }
 
-    private WebClient createWebClient(final String path) {
+    private WebClient createWebClient(final String path, final boolean enableHttp2) {
         final WebClient wc = WebClient
             .create(getAddress() + getContext() + path)
             .accept("text/plain");
-        
+
+        WebClient.getConfig(wc).getRequestContext().put(NettyHttpConduit.ENABLE_HTTP2, enableHttp2);
+        WebClient.getConfig(wc).getRequestContext().put(NettyHttpConduit.USE_ASYNC, "ALWAYS");
+
         if (isSecure()) {
             final HTTPConduit conduit = WebClient.getConfig(wc).getHttpConduit();
             TLSClientParameters params = conduit.getTlsClientParameters();

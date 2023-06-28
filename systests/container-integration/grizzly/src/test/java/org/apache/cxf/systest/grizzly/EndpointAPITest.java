@@ -33,9 +33,9 @@ import jakarta.xml.ws.Service;
 import jakarta.xml.ws.soap.MTOMFeature;
 import jakarta.xml.ws.spi.http.HttpContext;
 import org.apache.cxf.testutil.common.TestUtil;
-
 import org.glassfish.grizzly.http.server.HttpServer;
 import org.glassfish.grizzly.http.server.NetworkListener;
+
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -52,6 +52,8 @@ public class EndpointAPITest {
 
     @Before
     public void setUp() {
+        //grizzly gets confused with the 2.0 "Connect: upgrade" header
+        System.setProperty("org.apache.cxf.transport.http.forceVersion", "1.1");
         currentPort = Integer.valueOf(TestUtil.getPortNumber(EndpointAPITest.class, counter++));
         server = new HttpServer();
         NetworkListener networkListener = new NetworkListener("jaxwslistener", "0.0.0.0", currentPort);

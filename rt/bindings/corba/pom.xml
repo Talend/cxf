@@ -27,12 +27,18 @@
     <parent>
         <groupId>org.apache.cxf</groupId>
         <artifactId>cxf-parent</artifactId>
-        <version>4.0.1-SNAPSHOT</version>
+        <version>4.0.3-SNAPSHOT</version>
         <relativePath>../../../parent/pom.xml</relativePath>
     </parent>
     <properties>
         <cxf.module.name>org.apache.cxf.binding.corba</cxf.module.name>
         <cxf.checkstyle.extension>-corba</cxf.checkstyle.extension>
+        <cxf.osgi.import>
+            jakarta.xml.ws*;version="${cxf.osgi.jakarta.xml.ws.version}",
+            jakarta.annotation*;version="${cxf.osgi.jakarta.annotation.version}",
+            jakarta.xml.bind*;version="${cxf.osgi.jakarta.bind.version}",
+            org.apache.yoko.orb.*;resolution:=optional
+        </cxf.osgi.import>
     </properties>
     <dependencies>
         <dependency>

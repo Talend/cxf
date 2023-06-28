@@ -27,12 +27,17 @@
     <parent>
         <groupId>org.apache.cxf</groupId>
         <artifactId>cxf-parent</artifactId>
-        <version>4.0.1-SNAPSHOT</version>
+        <version>4.0.3-SNAPSHOT</version>
         <relativePath>../../../parent/pom.xml</relativePath>
     </parent>
     
     <properties>
         <cxf.module.name>org.apache.cxf.tracing.opentracing</cxf.module.name>
+        <cxf.osgi.export>
+            org.apache.cxf.tracing,
+            org.apache.cxf.tracing.opentracing,
+            org.apache.cxf.tracing.opentracing.jaxrs
+        </cxf.osgi.export>
     </properties>
     
     <dependencies>

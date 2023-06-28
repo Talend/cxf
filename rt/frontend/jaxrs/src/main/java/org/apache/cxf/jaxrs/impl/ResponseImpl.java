@@ -208,7 +208,7 @@ public final class ResponseImpl extends Response {
 
     @Override
     public MultivaluedMap<String, String> getStringHeaders() {
-        MetadataMap<String, String> headers = new MetadataMap<>(metadata.size());
+        MetadataMap<String, String> headers = new MetadataMap<>(false, true);
         for (Map.Entry<String, List<Object>> entry : metadata.entrySet()) {
             String headerName = entry.getKey();
             headers.put(headerName, toListOfStrings(entry.getValue()));
@@ -556,10 +556,10 @@ public final class ResponseImpl extends Response {
     protected void autoClose(Class<?> cls, boolean exception) {
         autoCloseWithHint(cls, false, exception);
     }
-    
+
     protected void autoCloseWithHint(Class<?> cls, boolean autoCloseHint, boolean exception) {
         if (!entityBufferred && !JAXRSUtils.isStreamingOutType(cls)
-            && (exception || MessageUtils.getContextualBoolean(outMessage, 
+            && (exception || MessageUtils.getContextualBoolean(outMessage,
                 RESPONSE_STREAM_AUTO_CLOSE, autoCloseHint))) {
             close();
         }
@@ -631,5 +631,12 @@ public final class ResponseImpl extends Response {
     private static boolean isBasicType(Class<?> type) {
         return type.isPrimitive() || Number.class.isAssignableFrom(type) || Boolean.class.isAssignableFrom(type)
             || Character.class.isAssignableFrom(type);
+    }
+
+    @Override
+    public String toString() {
+        return "ResponseImpl{"
+                + "status=" + (status == null ? "null" : status.getStatusCode())
+                + "}";
     }
 }

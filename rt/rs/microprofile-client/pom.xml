@@ -27,11 +27,14 @@
     <parent>
         <groupId>org.apache.cxf</groupId>
         <artifactId>cxf-parent</artifactId>
-        <version>4.0.1-SNAPSHOT</version>
+        <version>4.0.3-SNAPSHOT</version>
         <relativePath>../../../parent/pom.xml</relativePath>
     </parent>
     <properties>
         <cxf.module.name>org.apache.cxf.rs.client.mp</cxf.module.name>
+        <cxf.osgi.import>
+            jakarta.annotation*;version="${cxf.osgi.jakarta.annotation.version}"
+        </cxf.osgi.import>
     </properties>
     <dependencies>
         <dependency>
@@ -166,10 +169,9 @@
             <version>${cxf.commons-jcs-jcache.version}</version>
             <scope>test</scope>
         </dependency>
-        <!--TODO: after wiremock jakarta version is ready change back to com.github.tomakehurst:wiremock -->
         <dependency>
             <groupId>com.github.tomakehurst</groupId>
-            <artifactId>wiremock-standalone</artifactId>
+            <artifactId>wiremock</artifactId>
             <version>${cxf.wiremock.version}</version>
             <scope>test</scope>
             <exclusions>
@@ -180,6 +182,24 @@
             </exclusions>
         </dependency>
     </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.felix</groupId>
+                <artifactId>maven-bundle-plugin</artifactId>
+                <configuration>
+                    <instructions>
+                        <Require-Capability>osgi.extender; filter:="(osgi.extender=osgi.serviceloader.registrar)"; resolution:=optional</Require-Capability>
+                        <Provide-Capability>
+                            osgi.serviceloader; osgi.serviceloader=org.eclipse.microprofile.rest.client.spi.RestClientBuilderResolver;
+                            register:=org.apache.cxf.microprofile.client.spi.CxfRestClientBuilderResolver
+                        </Provide-Capability>
+                    </instructions>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
 
     <profiles>
         <profile>

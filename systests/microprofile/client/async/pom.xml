@@ -21,7 +21,7 @@
     <parent>
         <artifactId>cxf-microprofile-tck</artifactId>
         <groupId>org.apache.cxf.systests</groupId>
-        <version>4.0.1-SNAPSHOT</version>
+        <version>4.0.3-SNAPSHOT</version>
         <relativePath>../../pom.xml</relativePath>
     </parent>
     <modelVersion>4.0.0</modelVersion>
@@ -32,7 +32,6 @@
     <url>https://cxf.apache.org</url>
     <properties>
         <cxf.module.name>org.apache.cxf.systests.microprofile.async</cxf.module.name>
-        <cxf.wiremock.params>--port=8765</cxf.wiremock.params>
     </properties>
         <dependencies>
             <dependency>
@@ -143,10 +142,9 @@
                     </exclusion>
                 </exclusions>
             </dependency>
-            <!--TODO: after wiremock jakarta version is ready change back to com.github.tomakehurst:wiremock -->
             <dependency>
                 <groupId>com.github.tomakehurst</groupId>
-                <artifactId>wiremock-standalone</artifactId>
+                <artifactId>wiremock</artifactId>
                 <version>${cxf.wiremock.version}</version>
                 <scope>test</scope>
                 <exclusions>

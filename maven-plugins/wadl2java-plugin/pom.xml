@@ -27,7 +27,7 @@
     <parent>
         <groupId>org.apache.cxf</groupId>
         <artifactId>cxf-maven-plugins</artifactId>
-        <version>4.0.1-SNAPSHOT</version>
+        <version>4.0.3-SNAPSHOT</version>
     </parent>
     <properties>
         <cxf.module.name>org.apache.cxf.plugin.wadl2java</cxf.module.name>
@@ -138,6 +138,7 @@
                             <settingsFile>src/it/settings.xml</settingsFile>
                             <cloneProjectsTo>${project.build.directory}/it</cloneProjectsTo>
                             <skipInvocation>${maven.test.skip.exec}</skipInvocation>
+                            <localRepositoryPath>${project.build.directory}/it-repo</localRepositoryPath>
                         </configuration>
                     </execution>
                 </executions>

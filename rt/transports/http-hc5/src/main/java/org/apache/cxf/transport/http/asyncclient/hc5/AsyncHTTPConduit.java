@@ -64,7 +64,7 @@ import org.apache.cxf.message.MessageUtils;
 import org.apache.cxf.service.model.EndpointInfo;
 import org.apache.cxf.transport.http.Address;
 import org.apache.cxf.transport.http.Headers;
-import org.apache.cxf.transport.http.URLConnectionHTTPConduit;
+import org.apache.cxf.transport.http.HttpClientHTTPConduit;
 import org.apache.cxf.transport.http.asyncclient.hc5.AsyncHTTPConduitFactory.UseAsyncPolicy;
 import org.apache.cxf.transport.https.HttpsURLConnectionInfo;
 import org.apache.cxf.transports.http.configuration.HTTPClientPolicy;
@@ -97,7 +97,11 @@ import org.apache.hc.core5.util.Timeout;
 /**
  * Async HTTP Conduit using Apache HttpClient 5
  */
-public class AsyncHTTPConduit extends URLConnectionHTTPConduit {
+public class AsyncHTTPConduit extends HttpClientHTTPConduit {
+    /**
+     * Enable HTTP/2 support
+     */
+    public static final String ENABLE_HTTP2 = "org.apache.cxf.transports.http2.enabled";
     public static final String USE_ASYNC = "use.async.http.conduit";
 
     private final AsyncHTTPConduitFactory factory;
@@ -137,7 +141,10 @@ public class AsyncHTTPConduit extends URLConnectionHTTPConduit {
             super.setupConnection(message, address, csPolicy);
             return;
         }
+
         propagateJaxwsSpecTimeoutSettings(message, csPolicy);
+        propagateProtocolSettings(message, csPolicy);
+
         boolean addressChanged = false;
         // need to do some clean up work on the URI address
         URI uri = address.getURI();
@@ -201,10 +208,17 @@ public class AsyncHTTPConduit extends URLConnectionHTTPConduit {
             super.setupConnection(message, addressChanged ? new Address(uriString, uri) : address, csPolicy);
             return;
         }
-        
+
         if (StringUtils.isEmpty(uri.getPath())) {
-            //hc needs to have the path be "/"
-            uri = uri.resolve("/");
+            try {
+                //hc needs to have the path be "/"
+                uri = new URI(uri.getScheme(),
+                    uri.getUserInfo(), uri.getHost(), uri.getPort(),
+                    uri.resolve("/").getPath(), uri.getQuery(),
+                    uri.getFragment());
+            } catch (final URISyntaxException ex) {
+                throw new IOException(ex);
+            }
         }
 
         message.put(USE_ASYNC, Boolean.TRUE);
@@ -243,6 +257,15 @@ public class AsyncHTTPConduit extends URLConnectionHTTPConduit {
         e.setConfig(b.build());
 
         message.put(CXFHttpRequest.class, e);
+    }
+
+    private void propagateProtocolSettings(Message message, HTTPClientPolicy csPolicy) {
+        if (message != null) {
+            final Object o = message.getContextualProperty(ENABLE_HTTP2);
+            if (o != null) {
+                csPolicy.setVersion("2.0");
+            }
+        }
     }
 
     private void propagateJaxwsSpecTimeoutSettings(Message message, HTTPClientPolicy csPolicy) {
@@ -583,7 +606,7 @@ public class AsyncHTTPConduit extends URLConnectionHTTPConduit {
             final HttpAsyncClient c = getHttpAsyncClient(tlsStrategy);
             final Credentials creds = (Credentials)outMessage.getContextualProperty(Credentials.class.getName());
             if (creds != null) {
-                credsProvider.setCredentials(new AnyAuthScope(), creds);
+                credsProvider.setCredentials(new AuthScope(url.getHost(), url.getPort()), creds);
                 ctx.setUserToken(creds.getUserPrincipal());
             }
             @SuppressWarnings("unchecked")

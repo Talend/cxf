@@ -22,7 +22,7 @@
     <groupId>org.apache.cxf.samples</groupId>
     <artifactId>cxf-samples</artifactId>
     <packaging>pom</packaging>
-    <version>4.0.1-SNAPSHOT</version>
+    <version>4.0.3-SNAPSHOT</version>
     <name>Apache CXF Samples</name>
     <description>Apache CXF Samples</description>
     <url>https://cxf.apache.org</url>
@@ -31,24 +31,24 @@
         <!-- don't deploy the samples, kind of pointless -->
         <maven.deploy.skip>true</maven.deploy.skip>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <spring.boot.version>3.0.1</spring.boot.version>
-        <spring.cloud.eureka.version>4.0.0</spring.cloud.eureka.version>
-        <cxf.jetty11.version>11.0.13</cxf.jetty11.version>
-        <cxf.netty.version>4.1.86.Final</cxf.netty.version>
-        <cxf.httpcomponents.client.version>4.5.13</cxf.httpcomponents.client.version>
-        <cxf.swagger.ui.version>4.15.5</cxf.swagger.ui.version>
-        <cxf.tika.version>2.6.0</cxf.tika.version>
-        <cxf.tomcat.version>10.1.4</cxf.tomcat.version>
-        <cxf.jboss.weld.version>4.0.2.Final</cxf.jboss.weld.version>
-        <cxf.gson.version>2.8.5</cxf.gson.version>
-        <cxf.lucene.version>9.4.2</cxf.lucene.version>
+        <spring.boot.version>3.0.8</spring.boot.version>
+        <spring.cloud.eureka.version>4.0.2</spring.cloud.eureka.version>
+        <cxf.jetty11.version>11.0.15</cxf.jetty11.version>
+        <cxf.netty.version>4.1.94.Final</cxf.netty.version>
+        <cxf.httpcomponents.client.version>4.5.14</cxf.httpcomponents.client.version>
+        <cxf.swagger.ui.version>5.1.0</cxf.swagger.ui.version>
+        <cxf.tika.version>2.7.0</cxf.tika.version>
+        <cxf.tomcat.version>10.1.10</cxf.tomcat.version>
+        <cxf.jboss.weld.version>4.0.3.Final</cxf.jboss.weld.version>
+        <cxf.gson.version>2.10.1</cxf.gson.version>
+        <cxf.lucene.version>9.7.0</cxf.lucene.version>
         <cxf.olingo.server.version>4.9.0</cxf.olingo.server.version>
-        <cxf.aspectj.version>1.9.1</cxf.aspectj.version>
-        <cxf.brave.version>5.14.1</cxf.brave.version>
+        <cxf.aspectj.version>1.9.19</cxf.aspectj.version>
+        <cxf.brave.version>5.16.0</cxf.brave.version>
         <cxf.zest.version>2.1</cxf.zest.version>
-        <cxf.activemq.artemis.version>2.26.0</cxf.activemq.artemis.version>
+        <cxf.activemq.artemis.version>2.27.1</cxf.activemq.artemis.version>
         <cxf.h2.version>2.1.214</cxf.h2.version>
-        <cxf.jboss.narayana.version>5.12.7.Final</cxf.jboss.narayana.version>
+        <cxf.jboss.narayana.version>5.13.1.Final</cxf.jboss.narayana.version>
         <cxf.narayana.spring.boot.version>2.6.7</cxf.narayana.spring.boot.version>
     </properties>
     <dependencies>
@@ -174,7 +174,7 @@
             <dependency>
                 <groupId>org.glassfish.corba</groupId>
                 <artifactId>glassfish-corba-orb</artifactId>
-                <version>4.2.2</version>
+                <version>4.2.4</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
@@ -185,7 +185,7 @@
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-compiler-plugin</artifactId>
-                    <version>3.10.1</version>
+                    <version>3.11.0</version>
                     <configuration>
                         <source>${cxf.jdk.version}</source>
                         <target>${cxf.jdk.version}</target>
@@ -194,17 +194,17 @@
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-jar-plugin</artifactId>
-                    <version>3.2.0</version>
+                    <version>3.3.0</version>
                 </plugin>
                 <plugin>
                     <groupId>org.codehaus.mojo</groupId>
                     <artifactId>exec-maven-plugin</artifactId>
-                    <version>1.6.0</version>
+                    <version>3.1.0</version>
                 </plugin>
                 <plugin>
                     <groupId>org.apache.felix</groupId>
                     <artifactId>maven-bundle-plugin</artifactId>
-                    <version>5.1.1</version>
+                    <version>5.1.8</version>
                 </plugin>
                 <plugin>
                     <groupId>org.eclipse.jetty</groupId>
@@ -214,17 +214,17 @@
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-war-plugin</artifactId>
-                    <version>3.3.1</version>
+                    <version>3.3.2</version>
                 </plugin>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-surefire-plugin</artifactId>
-                    <version>3.0.0-M7</version>
+                    <version>3.1.2</version>
                 </plugin>
                 <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-enforcer-plugin</artifactId>
-                    <version>3.1.0</version>
+                    <version>3.3.0</version>
                     <executions>
                         <execution>
                             <goals>

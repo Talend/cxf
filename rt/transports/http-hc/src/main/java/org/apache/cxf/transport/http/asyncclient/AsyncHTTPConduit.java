@@ -64,7 +64,7 @@ import org.apache.cxf.message.MessageUtils;
 import org.apache.cxf.service.model.EndpointInfo;
 import org.apache.cxf.transport.http.Address;
 import org.apache.cxf.transport.http.Headers;
-import org.apache.cxf.transport.http.URLConnectionHTTPConduit;
+import org.apache.cxf.transport.http.HttpClientHTTPConduit;
 import org.apache.cxf.transport.http.asyncclient.AsyncHTTPConduitFactory.UseAsyncPolicy;
 import org.apache.cxf.transport.https.HttpsURLConnectionInfo;
 import org.apache.cxf.transports.http.configuration.HTTPClientPolicy;
@@ -96,7 +96,7 @@ import org.apache.http.nio.util.HeapByteBufferAllocator;
 /**
  *
  */
-public class AsyncHTTPConduit extends URLConnectionHTTPConduit {
+public class AsyncHTTPConduit extends HttpClientHTTPConduit {
     public static final String USE_ASYNC = "use.async.http.conduit";
 
     final AsyncHTTPConduitFactory factory;
@@ -190,9 +190,17 @@ public class AsyncHTTPConduit extends URLConnectionHTTPConduit {
             super.setupConnection(message, addressChanged ? new Address(uriString, uri) : address, csPolicy);
             return;
         }
+
         if (StringUtils.isEmpty(uri.getPath())) {
-            //hc needs to have the path be "/"
-            uri = uri.resolve("/");
+            try {
+                //hc needs to have the path be "/"
+                uri = new URI(uri.getScheme(),
+                    uri.getUserInfo(), uri.getHost(), uri.getPort(),
+                    uri.resolve("/").getPath(), uri.getQuery(),
+                    uri.getFragment());
+            } catch (final URISyntaxException ex) {
+                throw new IOException(ex);
+            }
         }
 
         message.put(USE_ASYNC, Boolean.TRUE);

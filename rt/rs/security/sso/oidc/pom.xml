@@ -27,12 +27,15 @@
   <parent>
     <groupId>org.apache.cxf</groupId>
     <artifactId>cxf-parent</artifactId>
-    <version>4.0.1-SNAPSHOT</version>
+    <version>4.0.3-SNAPSHOT</version>
     <relativePath>../../../../../parent/pom.xml</relativePath>
   </parent>
   <properties>
     <compilerArguments>-Aopenjpa.source=7 -Aopenjpa.metamodel=true</compilerArguments>
     <cxf.module.name>org.apache.cxf.rs.security.sso.oidc</cxf.module.name>
+    <cxf.osgi.import>
+        jakarta.annotation*;version="${cxf.osgi.jakarta.annotation.version}"
+    </cxf.osgi.import>
   </properties>
   <dependencies>
     <dependency>
