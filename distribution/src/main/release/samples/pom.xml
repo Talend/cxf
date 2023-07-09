@@ -32,13 +32,14 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <spring.boot.version>2.6.14</spring.boot.version>
         <spring.cloud.eureka.version>3.1.4</spring.cloud.eureka.version>
-        <cxf.jetty9.version>9.4.49.v20220914</cxf.jetty9.version>
-        <cxf.netty.version>4.1.85.Final</cxf.netty.version>
-        <cxf.httpcomponents.client.version>4.5.13</cxf.httpcomponents.client.version>
-        <cxf.swagger.ui.version>4.15.5</cxf.swagger.ui.version>
-        <cxf.tika.version>2.6.0</cxf.tika.version>
-        <cxf.tomcat.version>9.0.70</cxf.tomcat.version>
+        <cxf.jetty9.version>9.4.51.v20230217</cxf.jetty9.version>
+        <cxf.netty.version>4.1.91.Final</cxf.netty.version>
+        <cxf.httpcomponents.client.version>4.5.14</cxf.httpcomponents.client.version>
+        <cxf.swagger.ui.version>4.18.2</cxf.swagger.ui.version>
+        <cxf.tika.version>2.7.0</cxf.tika.version>
+        <cxf.tomcat.version>9.0.74</cxf.tomcat.version>
         <graalvm.version>21.1.0</graalvm.version>
+        <cxf.brave.version>5.15.1</cxf.brave.version>
     </properties>
     <dependencies>
         <dependency>
@@ -183,7 +184,7 @@
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-compiler-plugin</artifactId>
-                    <version>3.8.1</version>
+                    <version>3.11.0</version>
                     <configuration>
                         <source>1.8</source>
                         <target>1.8</target>
@@ -192,17 +193,17 @@
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-jar-plugin</artifactId>
-                    <version>3.2.0</version>
+                    <version>3.3.0</version>
                 </plugin>
                 <plugin>
                     <groupId>org.codehaus.mojo</groupId>
                     <artifactId>exec-maven-plugin</artifactId>
-                    <version>1.6.0</version>
+                    <version>3.1.0</version>
                 </plugin>
                 <plugin>
                     <groupId>org.apache.felix</groupId>
                     <artifactId>maven-bundle-plugin</artifactId>
-                    <version>5.1.1</version>
+                    <version>5.1.8</version>
                 </plugin>
                 <plugin>
                     <groupId>org.eclipse.jetty</groupId>
@@ -212,12 +213,12 @@
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-war-plugin</artifactId>
-                    <version>3.3.1</version>
+                    <version>3.3.2</version>
                 </plugin>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-surefire-plugin</artifactId>
-                    <version>3.0.0-M7</version>
+                    <version>3.0.0</version>
                 </plugin>
             </plugins>
         </pluginManagement>

@@ -16,26 +16,30 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package demo.spring.client;
 
-import org.springframework.context.support.ClassPathXmlApplicationContext;
+package org.apache.cxf.systest.jaxrs.cdi;
 
-import demo.spring.service.HelloWorld;
+import java.util.stream.Collectors;
 
+import javax.inject.Singleton;
 
-public final class Client {
+import org.apache.cxf.jaxrs.JAXRSServerFactoryBean;
+import org.apache.cxf.jaxrs.ext.JAXRSServerFactoryCustomizationExtension;
 
-    private Client() {
+@Singleton
+public class ServerFactoryDebugExtension implements JAXRSServerFactoryCustomizationExtension {
+    private String providers; 
+
+    @Override
+    public void customize(JAXRSServerFactoryBean bean) {
+        providers = bean.getProviders()
+            .stream()
+            .map(t -> t.getClass().getSimpleName())
+            .sorted()
+            .collect(Collectors.joining(","));
     }
 
-    public static void main(String[] args) throws Exception {
-        // START SNIPPET: client
-        try (ClassPathXmlApplicationContext context
-            = new ClassPathXmlApplicationContext(new String[] {"client-beans.xml"})) {
-            HelloWorld client = (HelloWorld)context.getBean("client");
-            String response = client.sayHi("Joe");
-            System.out.println("Response: " + response);
-        }
-        // END SNIPPET: client
+    String providers() {
+        return providers;
     }
 }
