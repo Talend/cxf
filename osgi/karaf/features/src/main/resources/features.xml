@@ -335,7 +335,7 @@
         <bundle start-level="25" dependency="true">mvn:com.google.guava/guava/${cxf.swagger2.guava.tesb.version}</bundle>
         <bundle start-level="35" dependency="true">mvn:io.swagger/swagger-annotations/${cxf.swagger2.version}</bundle>
         <bundle start-level="35" dependency="true">mvn:io.swagger/swagger-models/${cxf.swagger2.version}</bundle>
-        <bundle start-level="35" dependency="true">wrap:mvn:io.swagger/swagger-core/${cxf.swagger2.version}</bundle>
+        <bundle start-level="35" dependency="true">wrap:mvn:io.swagger/swagger-core/${cxf.swagger2.version}$overwrite=merge&amp;Import-Package=com.google.common.*;version="${cxf.guava.tesb.version-range}";resolution:=optional,*;resolution:=optional</bundle>
         <bundle start-level="35" dependency="true">wrap:mvn:io.swagger/swagger-jaxrs/${cxf.swagger2.version}$overwrite=merge&amp;Import-Package=com.google.common.*;version="${cxf.guava.tesb.version-range}";resolution:=optional,*;resolution:=optional</bundle>
     </feature>
     <feature name="cxf-rs-description-openapi-v3" version="${upstream.version}">
