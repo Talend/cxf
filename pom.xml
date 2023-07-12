@@ -60,6 +60,7 @@
         <cxf.ehcache3.tesb.version>3.10.8</cxf.ehcache3.tesb.version>
         <cxf.guava.tesb.version>32.1.1-jre</cxf.guava.tesb.version>
         <cxf.swagger2.guava.tesb.version>${cxf.guava.tesb.version}</cxf.swagger2.guava.tesb.version>
+        <cxf.guava.tesb.version-range>[31,40)</cxf.guava.tesb.version-range>
 
         <cxf.compiler.fork>false</cxf.compiler.fork>
         <cxf.build-utils.version>3.4.4</cxf.build-utils.version>
@@ -478,6 +479,7 @@
                             <cxf.ehcache3.tesb.version>${cxf.ehcache3.tesb.version}</cxf.ehcache3.tesb.version>
                             <cxf.guava.tesb.version>${cxf.guava.tesb.version}</cxf.guava.tesb.version>
                             <cxf.swagger2.guava.tesb.version>${cxf.swagger2.guava.tesb.version}</cxf.swagger2.guava.tesb.version>
+                            <cxf.guava.tesb.version-range>${cxf.guava.tesb.version-range}</cxf.guava.tesb.version-range>
                         </properties>
                     </configuration>
                     <executions>
