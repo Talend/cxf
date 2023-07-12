@@ -58,6 +58,8 @@
         <cxf.javassist.tesb.version>3.28.0-GA</cxf.javassist.tesb.version>
         <cxf.bcprov.tesb.version>1.73</cxf.bcprov.tesb.version>
         <cxf.ehcache3.tesb.version>3.10.8</cxf.ehcache3.tesb.version>
+        <cxf.guava.tesb.version>32.1.1-jre</cxf.guava.tesb.version>
+        <cxf.swagger2.guava.tesb.version>${cxf.guava.tesb.version}</cxf.swagger2.guava.tesb.version>
 
         <cxf.compiler.fork>false</cxf.compiler.fork>
         <cxf.build-utils.version>3.4.4</cxf.build-utils.version>
@@ -474,6 +476,8 @@
                             <cxf.javassist.tesb.version>${cxf.javassist.tesb.version}</cxf.javassist.tesb.version>
                             <cxf.bcprov.tesb.version>${cxf.bcprov.tesb.version}</cxf.bcprov.tesb.version>
                             <cxf.ehcache3.tesb.version>${cxf.ehcache3.tesb.version}</cxf.ehcache3.tesb.version>
+                            <cxf.guava.tesb.version>${cxf.guava.tesb.version}</cxf.guava.tesb.version>
+                            <cxf.swagger2.guava.tesb.version>${cxf.swagger2.guava.tesb.version}</cxf.swagger2.guava.tesb.version>
                         </properties>
                     </configuration>
                     <executions>
