@@ -59,6 +59,7 @@
         <cxf.bcprov.tesb.version>1.73</cxf.bcprov.tesb.version>
         <cxf.ehcache3.tesb.version>3.10.8</cxf.ehcache3.tesb.version>
         <cxf.james.mime4j.tesb.version>0.8.3</cxf.james.mime4j.tesb.version>
+        <cxf.jdom.bundle.tesb.version>2.0.6_1</cxf.jdom.bundle.tesb.version>
         <cxf.guava.tesb.version>32.1.1-jre</cxf.guava.tesb.version>
         <cxf.swagger2.guava.tesb.version>${cxf.guava.tesb.version}</cxf.swagger2.guava.tesb.version>
         <cxf.guava.tesb.version-range>[31,40)</cxf.guava.tesb.version-range>
@@ -479,6 +480,7 @@
                             <cxf.bcprov.tesb.version>${cxf.bcprov.tesb.version}</cxf.bcprov.tesb.version>
                             <cxf.ehcache3.tesb.version>${cxf.ehcache3.tesb.version}</cxf.ehcache3.tesb.version>
                             <cxf.james.mime4j.tesb.version>${cxf.james.mime4j.tesb.version}</cxf.james.mime4j.tesb.version>
+                            <cxf.jdom.bundle.tesb.version>${cxf.jdom.bundle.tesb.version}</cxf.jdom.bundle.tesb.version>
                             <cxf.guava.tesb.version>${cxf.guava.tesb.version}</cxf.guava.tesb.version>
                             <cxf.swagger2.guava.tesb.version>${cxf.swagger2.guava.tesb.version}</cxf.swagger2.guava.tesb.version>
                             <cxf.guava.tesb.version-range>${cxf.guava.tesb.version-range}</cxf.guava.tesb.version-range>
