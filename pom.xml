@@ -59,6 +59,8 @@
         <cxf.bcprov.tesb.version>1.74</cxf.bcprov.tesb.version>
         <cxf.ehcache3.tesb.version>3.10.8</cxf.ehcache3.tesb.version>
         <cxf.hazelcast.tesb.version>5.2.4</cxf.hazelcast.tesb.version>
+        <cxf.httpcomponents.client.tesb.version>4.5.14</cxf.httpcomponents.client.tesb.version>
+        <cxf.httpcomponents.core.tesb.version>4.4.16</cxf.httpcomponents.core.tesb.version>
         <cxf.james.mime4j.tesb.version>0.8.3</cxf.james.mime4j.tesb.version>
         <cxf.jdom1.bundle.tesb.version>1.1_4</cxf.jdom1.bundle.tesb.version>
         <cxf.guava.tesb.version>32.1.1-jre</cxf.guava.tesb.version>
@@ -481,6 +483,8 @@
                             <cxf.bcprov.tesb.version>${cxf.bcprov.tesb.version}</cxf.bcprov.tesb.version>
                             <cxf.ehcache3.tesb.version>${cxf.ehcache3.tesb.version}</cxf.ehcache3.tesb.version>
                             <cxf.hazelcast.tesb.version>${cxf.hazelcast.tesb.version}</cxf.hazelcast.tesb.version>
+                            <cxf.httpcomponents.client.tesb.version>§{cxf.httpcomponents.client.tesb.version}</cxf.httpcomponents.client.tesb.version>
+                            <cxf.httpcomponents.core.tesb.version>${cxf.httpcomponents.core.tesb.version}</cxf.httpcomponents.core.tesb.version>
                             <cxf.james.mime4j.tesb.version>${cxf.james.mime4j.tesb.version}</cxf.james.mime4j.tesb.version>
                             <cxf.jdom1.bundle.tesb.version>${cxf.jdom1.bundle.tesb.version}</cxf.jdom1.bundle.tesb.version>
                             <cxf.guava.tesb.version>${cxf.guava.tesb.version}</cxf.guava.tesb.version>
