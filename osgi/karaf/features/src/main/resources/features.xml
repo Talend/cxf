@@ -299,9 +299,9 @@
         <bundle start-level="35">mvn:com.fasterxml.jackson.jaxrs/jackson-jaxrs-json-provider/${cxf.jackson.tesb.version}</bundle>
     </feature>
     <feature name="cxf-jsr-json" version="${upstream.version}">
-        <bundle dependency="true" start-level="30">mvn:org.apache.aries.spifly/org.apache.aries.spifly.dynamic.bundle/${cxf.aries.fly.version}</bundle>
+        <bundle dependency="true" start-level="30">mvn:org.apache.aries.spifly/org.apache.aries.spifly.dynamic.bundle/${cxf.aries.fly.tesb.version}</bundle>
         <bundle dependency="true" start-level="35">mvn:org.apache.geronimo.specs/geronimo-json_1.1_spec/${cxf.geronimo.json.version}</bundle>
-        <bundle start-level="35">mvn:org.apache.johnzon/johnzon-core/${cxf.johnzon.version}</bundle>
+        <bundle start-level="35">mvn:org.apache.johnzon/johnzon-core/${cxf.johnzon.tesb.version}</bundle>
     </feature>
     <feature name="cxf-tracing-brave" version="${upstream.version}">
         <feature version="${upstream.version}">cxf-core</feature>
