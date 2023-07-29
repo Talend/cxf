@@ -49,15 +49,20 @@
         <!-- <cxf.jakarta.mail.tesb.version>1.6.7</cxf.jakarta.mail.tesb.version> -->
         <cxf.activemq-osgi.tesb.version>5.17.4.20230530</cxf.activemq-osgi.tesb.version>
         <cxf.geronimo.jms2.tesb.version>1.0-alpha-2</cxf.geronimo.jms2.tesb.version>
+        <cxf.aries.fly.tesb.version>1.2</cxf.aries.fly.tesb.version>
         <cxf.netty.tesb.version>4.1.94.Final</cxf.netty.tesb.version>
         <cxf.jackson.tesb.version>2.14.3</cxf.jackson.tesb.version>
         <cxf.jackson.databind.tesb.version>${cxf.jackson.tesb.version}</cxf.jackson.databind.tesb.version>
         <cxf.jettison.tesb.version>1.5.4</cxf.jettison.tesb.version>
+        <cxf.johnzon.tesb.version>1.2.21</cxf.johnzon.tesb.version>
         <cxf.jaxb.bundle-runtime.tesb.version>2.3.2_3</cxf.jaxb.bundle-runtime.tesb.version>
         <cxf.jaxb.bundle-xjc.tesb.version>2.3.2_2</cxf.jaxb.bundle-xjc.tesb.version>
         <cxf.javassist.tesb.version>3.28.0-GA</cxf.javassist.tesb.version>
         <cxf.bcprov.tesb.version>1.74</cxf.bcprov.tesb.version>
         <cxf.ehcache3.tesb.version>3.10.8</cxf.ehcache3.tesb.version>
+        <cxf.hazelcast.tesb.version>5.2.4</cxf.hazelcast.tesb.version>
+        <cxf.httpcomponents.client.tesb.version>4.5.14</cxf.httpcomponents.client.tesb.version>
+        <cxf.httpcomponents.core.tesb.version>4.4.16</cxf.httpcomponents.core.tesb.version>
         <cxf.james.mime4j.tesb.version>0.8.3</cxf.james.mime4j.tesb.version>
         <cxf.jdom1.bundle.tesb.version>1.1_4</cxf.jdom1.bundle.tesb.version>
         <cxf.guava.tesb.version>32.1.1-jre</cxf.guava.tesb.version>
@@ -470,15 +475,20 @@
                             <!-- <cxf.jakarta.mail.tesb.version>${cxf.jakarta.mail.tesb.version}</cxf.jakarta.mail.tesb.version> -->
                             <cxf.activemq-osgi.tesb.version>${cxf.activemq-osgi.tesb.version}</cxf.activemq-osgi.tesb.version>
                             <cxf.geronimo.jms2.tesb.version>${cxf.geronimo.jms2.tesb.version}</cxf.geronimo.jms2.tesb.version>
+                            <cxf.aries.fly.tesb.version>${cxf.aries.fly.tesb.version}</cxf.aries.fly.tesb.version>
                             <cxf.netty.tesb.version>${cxf.netty.tesb.version}</cxf.netty.tesb.version>
                             <cxf.jackson.tesb.version>${cxf.jackson.tesb.version}</cxf.jackson.tesb.version>
                             <cxf.jackson.databind.tesb.version>${cxf.jackson.databind.tesb.version}</cxf.jackson.databind.tesb.version>
                             <cxf.jettison.tesb.version>${cxf.jettison.tesb.version}</cxf.jettison.tesb.version>
+                            <cxf.johnzon.tesb.version>${cxf.johnzon.tesb.version}</cxf.johnzon.tesb.version>
                             <cxf.jaxb.bundle-runtime.tesb.version>${cxf.jaxb.bundle-runtime.tesb.version}</cxf.jaxb.bundle-runtime.tesb.version>
                             <cxf.jaxb.bundle-xjc.tesb.version>${cxf.jaxb.bundle-xjc.tesb.version}</cxf.jaxb.bundle-xjc.tesb.version>
                             <cxf.javassist.tesb.version>${cxf.javassist.tesb.version}</cxf.javassist.tesb.version>
                             <cxf.bcprov.tesb.version>${cxf.bcprov.tesb.version}</cxf.bcprov.tesb.version>
                             <cxf.ehcache3.tesb.version>${cxf.ehcache3.tesb.version}</cxf.ehcache3.tesb.version>
+                            <cxf.hazelcast.tesb.version>${cxf.hazelcast.tesb.version}</cxf.hazelcast.tesb.version>
+                            <cxf.httpcomponents.client.tesb.version>§{cxf.httpcomponents.client.tesb.version}</cxf.httpcomponents.client.tesb.version>
+                            <cxf.httpcomponents.core.tesb.version>${cxf.httpcomponents.core.tesb.version}</cxf.httpcomponents.core.tesb.version>
                             <cxf.james.mime4j.tesb.version>${cxf.james.mime4j.tesb.version}</cxf.james.mime4j.tesb.version>
                             <cxf.jdom1.bundle.tesb.version>${cxf.jdom1.bundle.tesb.version}</cxf.jdom1.bundle.tesb.version>
                             <cxf.guava.tesb.version>${cxf.guava.tesb.version}</cxf.guava.tesb.version>
