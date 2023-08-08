@@ -71,7 +71,7 @@ public class Activator implements BundleActivator {
         }
     }
 
-    public static final class ConfigUpdater implements ManagedService {
+    private static final class ConfigUpdater implements ManagedService {
         private BundleContext bundleContext;
         private ServiceRegistration<?> serviceReg;
         private ServiceRegistration<?> intentReg;
