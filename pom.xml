@@ -453,6 +453,7 @@
                             <apache-cxf.features.tesb.version>${apache-cxf.features.tesb.version}</apache-cxf.features.tesb.version>
                             <cxf-services-xkms.features.tesb.version>${cxf-services-xkms.features.tesb.version}</cxf-services-xkms.features.tesb.version>
                             <cxf-core.tesb.version>${cxf-core.tesb.version}</cxf-core.tesb.version>
+                            <cxf-logging.tesb.version>${cxf-logging.tesb.version}</cxf-logging.tesb.version>
                             <cxf-services-wsn-core.tesb.version>${cxf-services-wsn-core.tesb.version}</cxf-services-wsn-core.tesb.version>
                             <cxf-bundle-compatible.tesb.version>${cxf-bundle-compatible.tesb.version}</cxf-bundle-compatible.tesb.version>
                             <cxf.jakarta.mail.tesb.version>${cxf.jakarta.mail.tesb.version}</cxf.jakarta.mail.tesb.version>
