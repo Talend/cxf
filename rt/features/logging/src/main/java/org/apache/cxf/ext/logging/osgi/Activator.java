@@ -18,20 +18,21 @@
  */
 package org.apache.cxf.ext.logging.osgi;
 
-import java.util.Arrays;
-import java.util.Dictionary;
-import java.util.HashSet;
-import java.util.Hashtable;
-import java.util.Set;
+import java.io.IOException;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import org.apache.cxf.ext.logging.LoggingFeature;
 import org.apache.cxf.feature.AbstractFeature;
 import org.apache.cxf.feature.Feature;
+import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.Constants;
+import org.osgi.framework.FrameworkUtil;
 import org.osgi.framework.ServiceRegistration;
+import org.osgi.service.cm.Configuration;
+import org.osgi.service.cm.ConfigurationAdmin;
 import org.osgi.service.cm.ConfigurationException;
 import org.osgi.service.cm.ManagedService;
 import org.slf4j.Logger;
@@ -52,6 +53,23 @@ public class Activator implements BundleActivator {
     public void stop(BundleContext context) throws Exception {
 
     }
+    public static void configureLoggingFeature(LoggingFeature loggingFeature) {
+        Bundle bundle = FrameworkUtil.getBundle(Activator.class);
+        if (bundle != null) {
+            try {
+                BundleContext bundleContext = bundle.getBundleContext();
+                ConfigurationAdmin configAdmin = (ConfigurationAdmin) bundleContext.
+                        getService(bundleContext.getServiceReference(ConfigurationAdmin.class.getName()));
+                Configuration configF = configAdmin.getConfiguration(CONFIG_PID);
+                if (configF != null) {
+                    Dictionary<String, Object> config = configF.getProperties();
+                    updated(config, loggingFeature);
+                }
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        }
+    }
 
     private static final class ConfigUpdater implements ManagedService {
         private BundleContext bundleContext;
@@ -64,49 +82,9 @@ public class Activator implements BundleActivator {
             this.bundleContext = bundleContext;
         }
 
-        @SuppressWarnings("rawtypes")
         @Override
         public void updated(Dictionary config) throws ConfigurationException {
-            boolean enabled = Boolean.valueOf(getValue(config, "enabled", "false"));
-            LOG.info("CXF message logging feature " + (enabled ? "enabled" : "disabled"));
-            Integer limit = Integer.valueOf(getValue(config, "limit", "65536"));
-            Boolean pretty = Boolean.valueOf(getValue(config, "pretty", "false"));
-            Boolean verbose = Boolean.valueOf(getValue(config, "verbose", "true"));
-            Long inMemThreshold = Long.valueOf(getValue(config, "inMemThresHold", "-1"));
-            Boolean logMultipart = Boolean.valueOf(getValue(config, "logMultipart", "true"));
-            Boolean logBinary = Boolean.valueOf(getValue(config, "logBinary", "false"));
-            Set<String> sensitiveElementNames = getTrimmedSet(config, "sensitiveElementNames");
-            Set<String> sensitiveProtocolHeaderNames = getTrimmedSet(config, "sensitiveProtocolHeaderNames");
-            
-            if (limit != null) {
-                logging.setLimit(limit);
-            }
-            if (inMemThreshold != null) {
-                logging.setInMemThreshold(inMemThreshold);
-            }
-            if (pretty != null) {
-                logging.setPrettyLogging(pretty);
-            }
-            
-            if (verbose != null) {
-                logging.setVerbose(verbose);
-            }
-            if (logMultipart != null) {                       
-                logging.setLogMultipart(logMultipart);
-            }
-            if (logBinary != null) {
-                logging.setLogBinary(logBinary);
-            }
-            
-            logging.setSensitiveElementNames(sensitiveElementNames);
-            logging.setSensitiveProtocolHeaderNames(sensitiveProtocolHeaderNames);
-
-            if (intentReg == null) {
-                Dictionary<String, Object> properties = new Hashtable<>();
-                properties.put("org.apache.cxf.dosgi.IntentName", "logging");
-                bundleContext.registerService(AbstractFeature.class.getName(), logging, properties);
-            }
-
+            boolean enabled = Activator.updated(config, logging);
             if (enabled) {
                 if (serviceReg == null) {
                     Dictionary<String, Object> properties = new Hashtable<>();
@@ -119,26 +97,70 @@ public class Activator implements BundleActivator {
                     serviceReg = null;
                 }
             }
-        }
-
-        @SuppressWarnings("rawtypes")
-        private Set<String> getTrimmedSet(Dictionary config, String propertyKey) {
-            return new HashSet<>(
-                    Arrays.stream(String.valueOf(getValue(config, propertyKey, "")).split(","))
-                            .map(String::trim)
-                            .filter(s -> !s.isEmpty())
-                            .collect(Collectors.toSet()));
-        }
-
-        @SuppressWarnings("rawtypes")
-        private String getValue(Dictionary config, String key, String defaultValue) {
-            if (config == null) {
-                return defaultValue;
+            if (intentReg == null) {
+                Dictionary<String, Object> properties = new Hashtable<>();
+                properties.put("org.apache.cxf.dosgi.IntentName", "logging");
+                bundleContext.registerService(AbstractFeature.class.getName(), logging, properties);
             }
-            String value = (String)config.get(key);
-            return value != null ? value : defaultValue;
         }
 
+    }
+
+    @SuppressWarnings("rawtypes")
+    private static Set<String> getTrimmedSet(Dictionary config, String propertyKey) {
+        return new HashSet<>(
+                Arrays.stream(String.valueOf(getValue(config, propertyKey, "")).split(","))
+                        .map(String::trim)
+                        .filter(s -> !s.isEmpty())
+                        .collect(Collectors.toSet()));
+    }
+
+    @SuppressWarnings("rawtypes")
+    private static String getValue(Dictionary config, String key, String defaultValue) {
+        if (config == null) {
+            return defaultValue;
+        }
+        String value = (String)config.get(key);
+        return value != null ? value : defaultValue;
+    }
+
+    @SuppressWarnings("rawtypes")
+    private static boolean updated(Dictionary config, LoggingFeature logging) {
+        boolean enabled = Boolean.valueOf(getValue(config, "enabled", "false"));
+        LOG.info("CXF message logging feature " + (enabled ? "enabled" : "disabled"));
+        Integer limit = Integer.valueOf(getValue(config, "limit", "65536"));
+        Boolean pretty = Boolean.valueOf(getValue(config, "pretty", "false"));
+        Boolean verbose = Boolean.valueOf(getValue(config, "verbose", "true"));
+        Long inMemThreshold = Long.valueOf(getValue(config, "inMemThresHold", "-1"));
+        Boolean logMultipart = Boolean.valueOf(getValue(config, "logMultipart", "true"));
+        Boolean logBinary = Boolean.valueOf(getValue(config, "logBinary", "false"));
+        Set<String> sensitiveElementNames = getTrimmedSet(config, "sensitiveElementNames");
+        Set<String> sensitiveProtocolHeaderNames = getTrimmedSet(config, "sensitiveProtocolHeaderNames");
+
+        if (limit != null) {
+            logging.setLimit(limit);
+        }
+        if (inMemThreshold != null) {
+            logging.setInMemThreshold(inMemThreshold);
+        }
+        if (pretty != null) {
+            logging.setPrettyLogging(pretty);
+        }
+
+        if (verbose != null) {
+            logging.setVerbose(verbose);
+        }
+        if (logMultipart != null) {
+            logging.setLogMultipart(logMultipart);
+        }
+        if (logBinary != null) {
+            logging.setLogBinary(logBinary);
+        }
+
+        logging.setSensitiveElementNames(sensitiveElementNames);
+        logging.setSensitiveProtocolHeaderNames(sensitiveProtocolHeaderNames);
+
+        return enabled;
     }
 
 }

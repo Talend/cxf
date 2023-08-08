@@ -369,7 +369,7 @@
     </feature>
     <feature name="cxf-features-logging" version="${upstream.version}">
         <feature version="${upstream.version}">cxf-core</feature>
-        <bundle start-level="40">mvn:org.apache.cxf/cxf-rt-features-logging/${upstream.version}</bundle>
+        <bundle start-level="40">mvn:org.apache.cxf/cxf-rt-features-logging/${cxf-logging.tesb.version}</bundle>
     </feature>
     <feature name="cxf-features-throttling" version="${upstream.version}">
         <feature version="${upstream.version}">cxf-core</feature>

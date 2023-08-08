@@ -26,6 +26,7 @@ import org.apache.cxf.annotations.Provider.Type;
 import org.apache.cxf.common.injection.NoJSR250Annotations;
 import org.apache.cxf.ext.logging.event.LogEventSender;
 import org.apache.cxf.ext.logging.event.PrettyLoggingFilter;
+import org.apache.cxf.ext.logging.osgi.Activator;
 import org.apache.cxf.ext.logging.slf4j.Slf4jEventSender;
 import org.apache.cxf.ext.logging.slf4j.Slf4jVerboseEventSender;
 import org.apache.cxf.feature.AbstractPortableFeature;
@@ -52,6 +53,7 @@ import org.apache.cxf.interceptor.InterceptorProvider;
 public class LoggingFeature extends DelegatingFeature<LoggingFeature.Portable> {
     public LoggingFeature() {
         super(new Portable());
+        Activator.configureLoggingFeature(this);
     }
 
     public void setLimit(int limit) {
