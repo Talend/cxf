@@ -22,7 +22,7 @@
     <parent>
         <artifactId>cxf-microprofile-tck</artifactId>
         <groupId>org.apache.cxf.systests</groupId>
-        <version>4.0.3-SNAPSHOT</version>
+        <version>4.0.4-SNAPSHOT</version>
         <relativePath>../../pom.xml</relativePath>
     </parent>
     
@@ -178,7 +178,7 @@
                     <dependency>
                         <groupId>com.github.tomakehurst</groupId>
                         <artifactId>wiremock-jre8-standalone</artifactId>
-                        <version>2.35.0</version>
+                        <version>2.35.1</version>
                     </dependency>
                 </dependencies>
             </plugin>

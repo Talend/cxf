@@ -25,7 +25,7 @@
     <parent>
         <groupId>org.apache.cxf.samples</groupId>
         <artifactId>cxf-samples</artifactId>
-        <version>4.0.3-SNAPSHOT</version>
+        <version>4.0.4-SNAPSHOT</version>
     </parent>
     <packaging>pom</packaging>
     <properties>
@@ -75,7 +75,7 @@
         <dependency>
             <groupId>org.jboss.ws</groupId>
             <artifactId>jbossws-api</artifactId>
-            <version>2.0.0.Final</version>
+            <version>3.0.0.Final</version>
         </dependency>
         <dependency>
             <groupId>org.jboss.ws.cxf</groupId>
@@ -91,7 +91,7 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-data-jpa</artifactId>
-            <version>${spring.boot.version}</version>
+            <version>${cxf.spring.boot.version}</version>
         </dependency>
         <dependency>
             <groupId>com.h2database</groupId>
@@ -105,13 +105,13 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>
-            <version>${spring.boot.version}</version>
+            <version>${cxf.spring.boot.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web-services</artifactId>
-            <version>${spring.boot.version}</version>
+            <version>${cxf.spring.boot.version}</version>
             <scope>test</scope>
         </dependency>
     </dependencies>

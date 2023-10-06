@@ -16,28 +16,26 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-package org.apache.cxf.systest.jaxrs.tracing.brave;
+package org.apache.cxf.systest.jaxrs.tracing.opentelemetry;
 
 import org.hamcrest.Description;
 import org.hamcrest.Matcher;
 import org.hamcrest.TypeSafeMatcher;
 import org.hamcrest.core.IsIterableContaining;
-import zipkin2.Annotation;
-import zipkin2.Span;
 
-public class HasSpan extends IsIterableContaining<Span> {
+import io.opentelemetry.sdk.trace.data.EventData;
+import io.opentelemetry.sdk.trace.data.SpanData;
+
+public class HasSpan extends IsIterableContaining<SpanData> {
     public HasSpan(final String name) {
         this(name, null);
     }
 
-    public HasSpan(final String name, final Matcher<Iterable<? super Annotation>> matcher) {
-        super(new TypeSafeMatcher<Span>() {
+    public HasSpan(final String name, final Matcher<Iterable<? super EventData>> matcher) {
+        super(new TypeSafeMatcher<SpanData>() {
             @Override
             public void describeTo(Description description) {
-                description
-                    .appendText("span with name ")
-                    .appendValue(name)
-                    .appendText(" ");
+                description.appendText("span with name ").appendValue(name).appendText(" ");
 
                 if (matcher != null) {
                     description.appendText(" and ");
@@ -46,13 +44,13 @@ public class HasSpan extends IsIterableContaining<Span> {
             }
 
             @Override
-            protected boolean matchesSafely(Span item) {
-                if (!name.equals(item.name())) {
+            protected boolean matchesSafely(SpanData item) {
+                if (!name.equals(item.getName())) {
                     return false;
                 }
 
                 if (matcher != null) {
-                    return matcher.matches(item.annotations());
+                    return matcher.matches(item.getEvents());
                 }
 
                 return true;
@@ -64,7 +62,7 @@ public class HasSpan extends IsIterableContaining<Span> {
         return new HasSpan(name);
     }
 
-    public static HasSpan hasSpan(final String name, final Matcher<Iterable<? super Annotation>> matcher) {
+    public static HasSpan hasSpan(final String name, final Matcher<Iterable<? super EventData>> matcher) {
         return new HasSpan(name, matcher);
     }
 }

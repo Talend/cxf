@@ -46,8 +46,11 @@ import java.net.http.HttpResponse.BodyHandlers;
 import java.net.http.HttpTimeoutException;
 import java.nio.ByteBuffer;
 import java.nio.channels.UnresolvedAddressException;
+import java.security.AccessController;
 import java.security.GeneralSecurityException;
 import java.security.Principal;
+import java.security.PrivilegedActionException;
+import java.security.PrivilegedExceptionAction;
 import java.security.cert.Certificate;
 import java.time.Duration;
 import java.util.Arrays;
@@ -74,6 +77,7 @@ import org.apache.cxf.common.util.PropertyUtils;
 import org.apache.cxf.configuration.jsse.TLSClientParameters;
 import org.apache.cxf.helpers.HttpHeaderHelper;
 import org.apache.cxf.helpers.JavaUtils;
+import org.apache.cxf.interceptor.Fault;
 import org.apache.cxf.io.CacheAndWriteOutputStream;
 import org.apache.cxf.message.Message;
 import org.apache.cxf.message.MessageUtils;
@@ -89,10 +93,6 @@ public class HttpClientHTTPConduit extends URLConnectionHTTPConduit {
     volatile HttpClient client;
     volatile int lastTlsHash = -1;
     volatile URI sslURL;
-    
-    public HttpClientHTTPConduit(Bus b, EndpointInfo ei) throws IOException {
-        super(b, ei);
-    }
 
     public HttpClientHTTPConduit(Bus b, EndpointInfo ei, EndpointReferenceType t) throws IOException {
         super(b, ei, t);
@@ -110,11 +110,23 @@ public class HttpClientHTTPConduit extends URLConnectionHTTPConduit {
                 || lastURL.getPort() != url.getPort();
     }
     
+    @Override
+    public void close(Message msg) throws IOException {
+        super.close(msg);
+        msg.remove(HttpClient.class);
+    }
+    
     /**
      * Close the conduit
      */
     public void close() {
-        if (client != null) {
+        if (client instanceof AutoCloseable) {
+            try {
+                ((AutoCloseable)client).close();
+            } catch (Exception e) {
+                //ignore
+            }                
+        } else if (client != null) {
             String name = client.toString();
             client = null;
             tryToShutdownSelector(name);
@@ -205,17 +217,7 @@ public class HttpClientHTTPConduit extends URLConnectionHTTPConduit {
         HttpClient cl = client;
         if (cl == null) {
             int ctimeout = determineConnectionTimeout(message, csPolicy);        
-            ProxySelector ps = new ProxySelector() {
-                public List<Proxy> select(URI uri) {
-                    Proxy proxy = proxyFactory.createProxy(csPolicy, uri);
-                    if (proxy !=  null) {
-                        return Arrays.asList(proxy);
-                    }
-                    return ProxySelector.getDefault().select(uri);
-                }
-                public void connectFailed(URI uri, SocketAddress sa, IOException ioe) {
-                }
-            };
+            ProxySelector ps = new ProxyFactoryProxySelector(proxyFactory, csPolicy);
             
             HttpClient.Builder cb = HttpClient.newBuilder()
                 .proxy(ps)
@@ -308,6 +310,49 @@ public class HttpClientHTTPConduit extends URLConnectionHTTPConduit {
     }
 
 
+    /**
+     * This class <i>must</i> be static so it doesn't capture a reference to {@code HttpClientHTTPConduit.this} and
+     * through that to {@link HttpClientHTTPConduit#client}. Otherwise the client can never be garbage collected, which
+     * means that the companion "SelectorManager" thread keeps running indefinitely (see CXF-8885).
+     */
+    private static final class ProxyFactoryProxySelector extends ProxySelector {
+        private final ProxyFactory proxyFactory;
+        private final HTTPClientPolicy csPolicy;
+
+        ProxyFactoryProxySelector(ProxyFactory proxyFactory, HTTPClientPolicy csPolicy) {
+            this.proxyFactory = proxyFactory;
+            this.csPolicy = csPolicy;
+        }
+
+        @Override
+        public List<Proxy> select(URI uri) {
+            Proxy proxy = proxyFactory.createProxy(csPolicy, uri);
+            if (proxy !=  null) {
+                return Arrays.asList(proxy);
+            }
+            List<Proxy> listProxy;
+            if (System.getSecurityManager() != null) {
+                try {
+                    listProxy = AccessController.doPrivileged(new PrivilegedExceptionAction<List<Proxy>>() {
+                        @Override
+                        public List<Proxy> run() throws IOException {
+                            return ProxySelector.getDefault().select(uri);
+                        }
+                    });
+                } catch (PrivilegedActionException e) {
+                    throw new RuntimeException(e);
+                }
+            } else {
+                listProxy = ProxySelector.getDefault().select(uri);
+            }
+            return listProxy;
+        }
+
+        @Override
+        public void connectFailed(URI uri, SocketAddress sa, IOException ioe) {
+        }
+    }
+
     class HttpClientWrappedOutputStream extends WrappedOutputStream {
         List<Flow.Subscriber<? super ByteBuffer>> subscribers = new LinkedList<>();
         CompletableFuture<HttpResponse<InputStream>> future;
@@ -315,7 +360,6 @@ public class HttpClientHTTPConduit extends URLConnectionHTTPConduit {
         int rtimeout;
         volatile Throwable exception;
         volatile boolean connectionComplete;
-        PipedInputStream pin;
         PipedOutputStream pout;
         HttpRequest request;
         
@@ -340,7 +384,9 @@ public class HttpClientHTTPConduit extends URLConnectionHTTPConduit {
         @Override
         protected void handleNoOutput() throws IOException {
             contentLen = 0;
-            pout.close();
+            if (pout != null) {
+                pout.close();
+            }
             if (exception != null) {
                 if (exception instanceof IOException) {
                     throw (IOException)exception;
@@ -379,34 +425,93 @@ public class HttpClientHTTPConduit extends URLConnectionHTTPConduit {
             }            
         }
         
+        private boolean isConnectionAttemptCompleted(HTTPClientPolicy csPolicy, PipedOutputStream out)
+            throws IOException {
+            if (!connectionComplete) {
+                // if we haven't connected yet, we'll see if an exception is the reason
+                // why we haven't connected.  Otherwise, wait for the connection
+                // to complete.
+                if (future.isDone()) {
+                    try {
+                        future.get();
+                    } catch (InterruptedException | ExecutionException e) {
+                        if (e.getCause() instanceof IOException) {
+                            throw new Fault("Could not send Message.", LOG, (IOException)e.getCause());
+                        }
+                    }
+                    return false;
+                }
+                try {
+                    out.wait(csPolicy.getConnectionTimeout());
+                } catch (InterruptedException e) {
+                    //ignore
+                }
+                if (future.isDone()) {
+                    try {
+                        future.get();
+                    } catch (InterruptedException | ExecutionException e) {
+                        if (e.getCause() instanceof IOException) {
+                            throw new Fault("Could not send Message.", LOG, (IOException)e.getCause());
+                        }
+                    }
+                    return false;
+                }
+            }
+            return true;
+        }
+        
         @Override
         protected void setProtocolHeaders() throws IOException {
             HttpClient cl = outMessage.get(HttpClient.class);
             Address address = (Address)outMessage.get(KEY_HTTP_CONNECTION_ADDRESS);
-            HTTPClientPolicy csPolicy = getClient(outMessage);
+            final HTTPClientPolicy csPolicy = getClient(outMessage);
             String httpRequestMethod =
                 (String)outMessage.get(Message.HTTP_REQUEST_METHOD);
 
-            pin = new PipedInputStream(csPolicy.getChunkLength() <= 0
-                                        ? 4096 : csPolicy.getChunkLength());
-            pout = new PipedOutputStream(pin);
-            
-            
             
             if (KNOWN_HTTP_VERBS_WITH_NO_CONTENT.contains(httpRequestMethod)
                 || PropertyUtils.isTrue(outMessage.get(Headers.EMPTY_REQUEST_PROPERTY))) {
                 contentLen = 0;
             }
 
+            final PipedInputStream pin = new PipedInputStream(csPolicy.getChunkLength() <= 0
+                ? 4096 : csPolicy.getChunkLength());
+            if (contentLen != 0) {
+                pout = new PipedOutputStream(pin) {
+                    synchronized boolean canWrite() throws IOException {
+                        return isConnectionAttemptCompleted(csPolicy, this);
+                    }
+                    @Override
+                    public void write(int b) throws IOException {
+                        if (connectionComplete || canWrite()) {
+                            super.write(b);
+                        }
+                    }
+                    @Override
+                    public void write(byte[] b, int off, int len) throws IOException {
+                        if (connectionComplete || canWrite()) {
+                            super.write(b, off, len);
+                        }
+                    }
+                };
+            }
+            
             BodyPublisher bp = new BodyPublisher() {
                 @Override
                 public void subscribe(Subscriber<? super ByteBuffer> subscriber) {
                     connectionComplete = true;
-                    BodyPublishers.ofInputStream(new Supplier<InputStream>() {
-                        public InputStream get() {
-                            return pin;
-                        }                
-                    }).subscribe(subscriber);
+                    if (pout != null) {
+                        synchronized (pout) {
+                            pout.notifyAll();                       
+                        }
+                        BodyPublishers.ofInputStream(new Supplier<InputStream>() {
+                            public InputStream get() {
+                                return pin;
+                            }                
+                        }).subscribe(subscriber);
+                    } else {
+                        BodyPublishers.noBody().subscribe(subscriber);
+                    }
                 }
 
                 @Override
@@ -443,8 +548,29 @@ public class HttpClientHTTPConduit extends URLConnectionHTTPConduit {
             
             
             final BodyHandler<InputStream> handler =  BodyHandlers.ofInputStream();
-            
-            future = cl.sendAsync(request, handler);
+            if (System.getSecurityManager() != null) {
+                try {
+                    future = AccessController.doPrivileged(
+                            new PrivilegedExceptionAction<CompletableFuture<HttpResponse<InputStream>>>() {
+                                @Override
+                                public CompletableFuture<HttpResponse<InputStream>> run() throws IOException {
+                                    return cl.sendAsync(request, handler);
+                                }
+                            });
+                } catch (PrivilegedActionException e) {
+                    throw new RuntimeException(e);
+                }
+            } else {
+                future = cl.sendAsync(request, handler);
+            }
+            future.exceptionally(ex -> {
+                if (pout != null) {
+                    synchronized (pout) {
+                        pout.notifyAll();
+                    }
+                }
+                return null;
+            });
         }
         @Override
         protected void setupWrappedStream() throws IOException {
@@ -525,7 +651,9 @@ public class HttpClientHTTPConduit extends URLConnectionHTTPConduit {
             String method = (String)outMessage.get(Message.HTTP_REQUEST_METHOD);
             int sc = resp.statusCode();
             if ("HEAD".equals(method)) {
-                return null;
+                try (InputStream in = resp.body()) {
+                    return null;
+                }
             }
             if (sc == 204) {
                 //no content
@@ -537,16 +665,22 @@ public class HttpClientHTTPConduit extends URLConnectionHTTPConduit {
                 if (f.isPresent()) {
                     long l = Long.parseLong(f.get());
                     if (l == 0) {
-                        return null;
+                        try (InputStream in = resp.body()) {
+                            return null;
+                        }
                     }
                 } else if (!fChunk.isPresent() || !"chunked".equals(fChunk.get())) {
                     if (resp.version() == Version.HTTP_2) {
                         InputStream in = resp.body();
                         if (in.available() <= 0) {
-                            return null;
+                            try (in) {
+                                return null;
+                            }
                         }
                     } else {
-                        return null;
+                        try (InputStream in = resp.body()) {
+                            return null;
+                        }
                     }
                 }
             }
@@ -712,7 +846,9 @@ public class HttpClientHTTPConduit extends URLConnectionHTTPConduit {
         @Override
         protected void retransmitStream() throws IOException {
             cachedStream.writeCacheTo(pout);
-            pout.close();
+            if (pout != null) {
+                pout.close();
+            }
         }
 
         @Override

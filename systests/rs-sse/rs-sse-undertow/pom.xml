@@ -21,7 +21,7 @@
     <parent>
         <groupId>org.apache.cxf.systests</groupId>
         <artifactId>cxf-systests-rs-sse</artifactId>
-        <version>4.0.3-SNAPSHOT</version>
+        <version>4.0.4-SNAPSHOT</version>
         <relativePath>../</relativePath>
     </parent>
     <modelVersion>4.0.0</modelVersion>
@@ -43,6 +43,16 @@
         <dependency>
             <groupId>io.undertow</groupId>
             <artifactId>undertow-servlet-jakarta</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.jboss.xnio</groupId>
+            <artifactId>xnio-nio</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.jboss.xnio</groupId>
+            <artifactId>xnio-api</artifactId>
             <scope>test</scope>
         </dependency>
         <dependency>

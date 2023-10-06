@@ -4,7 +4,7 @@
     <parent>
         <groupId>org.apache.cxf.samples</groupId>
         <artifactId>cxf-samples</artifactId>
-        <version>4.0.3-SNAPSHOT</version>
+        <version>4.0.4-SNAPSHOT</version>
         <relativePath>../../..</relativePath>
     </parent>
     <artifactId>spring-boot-sample-rs-scan-client</artifactId>
@@ -37,7 +37,7 @@
         <dependency>
             <groupId>org.springframework.cloud</groupId>
             <artifactId>spring-cloud-starter-netflix-eureka-client</artifactId>
-            <version>${spring.cloud.eureka.version}</version>
+            <version>${cxf.spring.cloud.eureka.version}</version>
             <exclusions>
                 <exclusion>
                     <groupId>com.sun.jersey</groupId>
@@ -81,7 +81,7 @@
                     <plugin>
                         <groupId>org.springframework.boot</groupId>
                         <artifactId>spring-boot-maven-plugin</artifactId>
-                        <version>${spring.boot.version}</version>
+                        <version>${cxf.spring.boot.version}</version>
                         <configuration>
                             <mainClass>sample.rs.client.SampleRestClientApplication</mainClass>
                         </configuration>

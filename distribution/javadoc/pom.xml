@@ -27,7 +27,7 @@
     <parent>
         <groupId>org.apache.cxf</groupId>
         <artifactId>cxf-parent</artifactId>
-        <version>4.0.3-SNAPSHOT</version>
+        <version>4.0.4-SNAPSHOT</version>
         <relativePath>../../parent</relativePath>
     </parent>
     <properties>
@@ -261,10 +261,6 @@
             <artifactId>wsdl4j</artifactId>
         </dependency>
         <dependency>
-            <groupId>xerces</groupId>
-            <artifactId>xercesImpl</artifactId>
-        </dependency>
-        <dependency>
             <groupId>cglib</groupId>
             <artifactId>cglib-nodep</artifactId>
         </dependency>
@@ -393,6 +389,14 @@
         <dependency>
             <groupId>io.dropwizard.metrics</groupId>
             <artifactId>metrics-jmx</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>io.opentelemetry</groupId>
+            <artifactId>opentelemetry-api</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>io.opentelemetry</groupId>
+            <artifactId>opentelemetry-semconv</artifactId>
         </dependency>
         <dependency>
             <groupId>io.opentracing</groupId>

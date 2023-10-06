@@ -27,13 +27,15 @@
     <parent>
         <groupId>org.apache.cxf</groupId>
         <artifactId>cxf</artifactId>
-        <version>4.0.3-SNAPSHOT</version>
+        <version>4.0.4-SNAPSHOT</version>
     </parent>
     <modules>
         <module>jca</module>
         <module>cdi</module>
         <module>tracing/tracing-brave</module>
         <module>tracing/tracing-opentracing</module>
+        <module>tracing/tracing-opentelemetry</module>
+        <module>tracing/tracing-micrometer</module>
         <module>spring-boot</module>
     </modules>
 </project>

@@ -858,8 +858,8 @@ public class BookStore {
             throw new RuntimeException();
         }
         MultivaluedMap<String, String> map = segment.getMatrixParameters();
-        String s1 = map.getFirst("first").toString();
-        String s2 = map.getFirst("second").toString();
+        String s1 = map.getFirst("first");
+        String s2 = map.getFirst("second");
         return doGetBook(s1 + s2);
     }
 
@@ -1959,7 +1959,7 @@ public class BookStore {
         }
 
     }
-    private class ResponseStreamingOutputImpl implements StreamingOutput {
+    private final class ResponseStreamingOutputImpl implements StreamingOutput {
         public void write(OutputStream output) throws IOException, WebApplicationException {
             if (!"text/plain".equals(BookStore.this.messageContext.get("Content-Type"))) {
                 throw new RuntimeException();

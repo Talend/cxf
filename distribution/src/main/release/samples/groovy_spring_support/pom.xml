@@ -26,7 +26,7 @@
     <parent>
         <groupId>org.apache.cxf.samples</groupId>
         <artifactId>cxf-samples</artifactId>
-        <version>4.0.3-SNAPSHOT</version>
+        <version>4.0.4-SNAPSHOT</version>
     </parent>
 
     <build>
@@ -124,7 +124,7 @@
         <dependency>
             <groupId>org.codehaus.groovy</groupId>
             <artifactId>groovy</artifactId>
-            <version>3.0.17</version>
+            <version>3.0.19</version>
         </dependency>
         <dependency>
             <groupId>org.springframework</groupId>

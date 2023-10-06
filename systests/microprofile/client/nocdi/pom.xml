@@ -21,7 +21,7 @@
     <parent>
         <artifactId>cxf-microprofile-tck</artifactId>
         <groupId>org.apache.cxf.systests</groupId>
-        <version>4.0.3-SNAPSHOT</version>
+        <version>4.0.4-SNAPSHOT</version>
         <relativePath>../../pom.xml</relativePath>
     </parent>
     <modelVersion>4.0.0</modelVersion>
@@ -139,7 +139,7 @@
             </exclusions>
         </dependency>
         <dependency>
-            <groupId>com.github.tomakehurst</groupId>
+            <groupId>org.wiremock</groupId>
             <artifactId>wiremock</artifactId>
             <version>${cxf.wiremock.version}</version>
             <scope>test</scope>

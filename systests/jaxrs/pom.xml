@@ -21,7 +21,7 @@
     <parent>
         <artifactId>cxf-parent</artifactId>
         <groupId>org.apache.cxf</groupId>
-        <version>4.0.3-SNAPSHOT</version>
+        <version>4.0.4-SNAPSHOT</version>
         <relativePath>../../parent/pom.xml</relativePath>
     </parent>
     <modelVersion>4.0.0</modelVersion>
@@ -523,16 +523,10 @@
             <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>io.specto</groupId>
-            <artifactId>hoverfly-java</artifactId>
-            <version>${cxf.hoverfly.version}</version>
+            <groupId>org.wiremock</groupId>
+            <artifactId>wiremock-standalone</artifactId>
+            <version>${cxf.wiremock.version}</version>
             <scope>test</scope>
-            <exclusions>
-                <exclusion>
-                    <groupId>ch.qos.logback</groupId>
-                    <artifactId>logback-classic</artifactId>
-                </exclusion>
-            </exclusions>
         </dependency>
         <dependency>
             <groupId>jakarta.json.bind</groupId>

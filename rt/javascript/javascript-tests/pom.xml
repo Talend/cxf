@@ -27,7 +27,7 @@
     <parent>
         <groupId>org.apache.cxf</groupId>
         <artifactId>cxf-runtime-javascript</artifactId>
-        <version>4.0.3-SNAPSHOT</version>
+        <version>4.0.4-SNAPSHOT</version>
     </parent>
     <properties>
         <cxf.module.name>org.apache.cxf.js.tests</cxf.module.name>
@@ -65,11 +65,6 @@
             <groupId>org.springframework</groupId>
             <artifactId>${cxf.spring.mock}</artifactId>
             <version>${cxf.spring.version}</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>xerces</groupId>
-            <artifactId>xercesImpl</artifactId>
             <scope>test</scope>
         </dependency>
         <dependency>
