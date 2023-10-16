@@ -50,7 +50,7 @@
         <cxf.activemq-osgi.tesb.version>5.17.4.20230530</cxf.activemq-osgi.tesb.version>
         <cxf.geronimo.jms2.tesb.version>1.0-alpha-2</cxf.geronimo.jms2.tesb.version>
         <cxf.aries.fly.tesb.version>1.2</cxf.aries.fly.tesb.version>
-        <cxf.netty.tesb.version>4.1.94.Final</cxf.netty.tesb.version>
+        <cxf.netty.tesb.version>4.1.100.Final</cxf.netty.tesb.version>
         <cxf.jackson.tesb.version>2.14.3</cxf.jackson.tesb.version>
         <cxf.jackson.databind.tesb.version>${cxf.jackson.tesb.version}</cxf.jackson.databind.tesb.version>
         <cxf.jettison.tesb.version>1.5.4</cxf.jettison.tesb.version>
