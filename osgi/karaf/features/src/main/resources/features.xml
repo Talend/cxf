@@ -546,7 +546,7 @@
         <!-- <bundle dependency="true">mvn:org.apache.geronimo.specs/geronimo-jms_1.1_spec/${cxf.geronimo.jms.version}</bundle> -->
         <bundle dependency="true">mvn:org.apache.geronimo.specs/geronimo-jms_2.0_spec/${cxf.geronimo.jms2.tesb.version}</bundle>
         <bundle dependency="true">mvn:org.apache.geronimo.specs/geronimo-j2ee-management_1.1_spec/${cxf.geronimo.j2ee.management.version}</bundle>
-        <bundle dependency="true">mvn:org.apache.activemq/activemq-osgi/${cxf.activemq.version}</bundle>
+        <bundle dependency="true">mvn:org.apache.activemq/activemq-osgi/${cxf.activemq.tesb.version}</bundle>
         <bundle>mvn:org.apache.cxf.services.wsn/cxf-services-wsn-core/${cxf-services-wsn-core.tesb.version}</bundle>
     </feature>
     <feature name="cxf-ws-discovery-api" version="${upstream.version}">
