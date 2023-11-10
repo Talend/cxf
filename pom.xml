@@ -40,11 +40,11 @@
     </issueManagement>
     <properties>
         <upstream.version>3.4.10</upstream.version>
-        <apache-cxf.features.tesb.version>3.4.10.tesb5</apache-cxf.features.tesb.version>
+        <apache-cxf.features.tesb.version>3.4.10.tesb6</apache-cxf.features.tesb.version>
         <cxf-services-xkms.features.tesb.version>3.4.10.tesb1</cxf-services-xkms.features.tesb.version>
         <cxf-core.tesb.version>3.4.10.tesb1</cxf-core.tesb.version>
         <cxf-logging.tesb.version>3.4.10.tesb1</cxf-logging.tesb.version>
-        <cxf-services-wsn-core.tesb.version>3.4.10.tesb1</cxf-services-wsn-core.tesb.version>
+        <cxf-services-wsn-core.tesb.version>3.4.10.tesb2</cxf-services-wsn-core.tesb.version>
         <cxf-bundle-compatible.tesb.version>3.4.10.tesb1</cxf-bundle-compatible.tesb.version>
         <cxf.jakarta.mail.tesb.version>1.6.6</cxf.jakarta.mail.tesb.version>
         <cxf.geronimo.jms2.tesb.version>1.0-alpha-2</cxf.geronimo.jms2.tesb.version>
@@ -52,6 +52,8 @@
         <cxf.ehcache3.tesb.version>3.10.8</cxf.ehcache3.tesb.version>
         <cxf.netty.tesb.version>4.1.100.Final</cxf.netty.tesb.version>
         <cxf.jettison.tesb.version>1.5.4</cxf.jettison.tesb.version>
+        <cxf.activemq.tesb.version>5.15.16</cxf.activemq.tesb.version>
+        <cxf.xmlsec.bundle.tesb.version>2.2.6</cxf.xmlsec.bundle.tesb.version>
 
         <cxf.compiler.fork>false</cxf.compiler.fork>
         <cxf.build-utils.version>3.4.4</cxf.build-utils.version>
@@ -462,6 +464,8 @@
                             <cxf.ehcache3.tesb.version>${cxf.ehcache3.tesb.version}</cxf.ehcache3.tesb.version>
                             <cxf.netty.tesb.version>${cxf.netty.tesb.version}</cxf.netty.tesb.version>
                             <cxf.jettison.tesb.version>${cxf.jettison.tesb.version}</cxf.jettison.tesb.version>
+                            <cxf.activemq.tesb.version>${cxf.activemq.tesb.version}</cxf.activemq.tesb.version>
+                            <cxf.xmlsec.bundle.tesb.version>${cxf.xmlsec.bundle.tesb.version}</cxf.xmlsec.bundle.tesb.version>
                         </properties>
                     </configuration>
                     <executions>
