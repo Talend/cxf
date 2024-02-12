@@ -41,7 +41,7 @@
     <properties>
         <upstream.version>3.5.6</upstream.version>
         <apache-cxf.features.tesb.version>3.5.6.20240209</apache-cxf.features.tesb.version>
-        <cxf-services-xkms.features.tesb.version>3.5.6.20240209</cxf-services-xkms.features.tesb.version>
+        <cxf-services-xkms.features.tesb.version>${apache-cxf.features.tesb.version}</cxf-services-xkms.features.tesb.version>
         <cxf-core.tesb.version>3.5.6.20230530</cxf-core.tesb.version>
         <cxf-rt-frontend-jaxrs.tesb.version>3.5.6.20230530</cxf-rt-frontend-jaxrs.tesb.version>
         <cxf-services-wsn-core.tesb.version>3.5.6.20230530</cxf-services-wsn-core.tesb.version>
