@@ -294,7 +294,7 @@
         <bundle start-level="35">mvn:com.fasterxml.jackson.core/jackson-core/${cxf.jackson.tesb.version}</bundle>
         <bundle start-level="35">mvn:com.fasterxml.jackson.core/jackson-annotations/${cxf.jackson.tesb.version}</bundle>
         <bundle start-level="35">mvn:com.fasterxml.jackson.core/jackson-databind/${cxf.jackson.databind.tesb.version}</bundle>
-        <bundle start-level="35">mvn:com.fasterxml.jackson.dataformat/jackson-dataformat-yaml/${cxf.jackson.tesb.version}</bundle>
+        <bundle start-level="35">mvn:com.fasterxml.jackson.dataformat/jackson-dataformat-yaml/${cxf.jackson.dataformat.yaml.tesb.version}</bundle>
         <bundle start-level="35">mvn:com.fasterxml.jackson.jaxrs/jackson-jaxrs-base/${cxf.jackson.tesb.version}</bundle>
         <bundle start-level="35">mvn:com.fasterxml.jackson.jaxrs/jackson-jaxrs-json-provider/${cxf.jackson.tesb.version}</bundle>
     </feature>
