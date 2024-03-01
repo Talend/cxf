@@ -55,6 +55,7 @@
         <bundle start-level="35">mvn:org.apache.servicemix.bundles/org.apache.servicemix.bundles.abdera-parser/${cxf.abdera.osgi.version}</bundle>
         <bundle>mvn:org.apache.servicemix.bundles/org.apache.servicemix.bundles.jdom/${cxf.jdom1.bundle.tesb.version}</bundle>
         <bundle dependency="true">mvn:org.apache.servicemix.bundles/org.apache.servicemix.bundles.dom4j/${cxf.dom4j.bundle.version}</bundle>
+        <bundle dependency='true'>mvn:commons-io/commons-io/${cxf.commons-io1.tesb.version}</bundle>
         <!-- bundle start-level='35'>mvn:org.apache.abdera/abdera-extensions-html/${cxf.abdera.version}</bundle> -->
         <!-- <bundle start-level='35'>mvn:org.apache.abdera/abdera-extensions-json/${cxf.abdera.version}</bundle> -->
     </feature>
