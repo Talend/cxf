@@ -68,7 +68,7 @@ public final class AttachmentUtil {
             id = id.substring(4).trim();
         }
 
-       for (Iterator<Attachment> iter = attachments.iterator(); iter.hasNext();) {
+        for (Iterator<Attachment> iter = attachments.iterator(); iter.hasNext();) {
             Attachment a = iter.next();
             if (a.getId().equals(id)) {
                 return a;
