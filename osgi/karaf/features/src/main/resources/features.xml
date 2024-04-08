@@ -55,6 +55,7 @@
         <bundle start-level="35">mvn:org.apache.servicemix.bundles/org.apache.servicemix.bundles.abdera-parser/${cxf.abdera.osgi.version}</bundle>
         <bundle>mvn:org.apache.servicemix.bundles/org.apache.servicemix.bundles.jdom/${cxf.jdom1.bundle.tesb.version}</bundle>
         <bundle dependency="true">mvn:org.apache.servicemix.bundles/org.apache.servicemix.bundles.dom4j/${cxf.dom4j.bundle.version}</bundle>
+        <bundle dependency='true'>mvn:commons-io/commons-io/${cxf.commons-io1.tesb.version}</bundle>
         <!-- bundle start-level='35'>mvn:org.apache.abdera/abdera-extensions-html/${cxf.abdera.version}</bundle> -->
         <!-- <bundle start-level='35'>mvn:org.apache.abdera/abdera-extensions-json/${cxf.abdera.version}</bundle> -->
     </feature>
@@ -258,7 +259,7 @@
         <bundle start-level="40">mvn:org.apache.cxf/cxf-rt-rs-extension-providers/${upstream.version}</bundle>
         <bundle start-level="40">mvn:org.apache.cxf/cxf-rt-rs-extension-search/${upstream.version}</bundle>
         <bundle start-level="40">mvn:org.apache.cxf/cxf-rt-rs-json-basic/${upstream.version}</bundle>
-        <bundle start-level="40">mvn:org.apache.cxf/cxf-rt-rs-service-description/${upstream.version}</bundle>
+        <bundle start-level="40">mvn:org.apache.cxf/cxf-rt-rs-service-description/${cxf-rt-rs-service-description.tesb.version}</bundle>
         <bundle start-level="40">mvn:org.apache.cxf/cxf-rt-frontend-jaxrs/${cxf-rt-frontend-jaxrs.tesb.version}</bundle>
         <bundle start-level="40">mvn:org.apache.cxf/cxf-rt-rs-client/${upstream.version}</bundle>
     </feature>
@@ -359,7 +360,7 @@
     <feature name="cxf-databinding-aegis" version="${upstream.version}">
         <feature version="${upstream.version}">cxf-wsdl</feature>
         <feature version="${upstream.version}">cxf-bindings-soap</feature>
-        <bundle start-level="40">mvn:org.apache.cxf/cxf-rt-databinding-aegis/${upstream.version}</bundle>
+        <bundle start-level="40">mvn:org.apache.cxf/cxf-rt-databinding-aegis/${cxf-rt-databinding-aegis.tesb.version}</bundle>
     </feature>
     <feature name="cxf-databinding-jaxb" version="${upstream.version}">
         <feature version="${upstream.version}">cxf-core</feature>

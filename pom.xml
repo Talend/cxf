@@ -40,17 +40,20 @@
     </issueManagement>
     <properties>
         <upstream.version>3.5.6</upstream.version>
-        <apache-cxf.features.tesb.version>3.5.6.20240209</apache-cxf.features.tesb.version>
+        <apache-cxf.features.tesb.version>3.5.6.20240320</apache-cxf.features.tesb.version>
         <cxf-services-xkms.features.tesb.version>${apache-cxf.features.tesb.version}</cxf-services-xkms.features.tesb.version>
         <cxf-core.tesb.version>3.5.6.20230530</cxf-core.tesb.version>
         <cxf-rt-frontend-jaxrs.tesb.version>3.5.6.20230530</cxf-rt-frontend-jaxrs.tesb.version>
         <cxf-services-wsn-core.tesb.version>3.5.6.20230530</cxf-services-wsn-core.tesb.version>
         <cxf-bundle-compatible.tesb.version>3.5.6.20230530</cxf-bundle-compatible.tesb.version>
+        <cxf-rt-databinding-aegis.tesb.version>3.5.6.20240320</cxf-rt-databinding-aegis.tesb.version>
+        <cxf-rt-rs-service-description.tesb.version>3.5.6.20240320</cxf-rt-rs-service-description.tesb.version>
         <!-- <cxf.jakarta.mail.tesb.version>1.6.7</cxf.jakarta.mail.tesb.version> -->
         <cxf.activemq-osgi.tesb.version>5.17.6.20231031</cxf.activemq-osgi.tesb.version>
         <cxf.geronimo.jms2.tesb.version>1.0-alpha-2</cxf.geronimo.jms2.tesb.version>
         <cxf.aries.fly.tesb.version>1.2</cxf.aries.fly.tesb.version>
-        <cxf.netty.tesb.version>4.1.101.Final</cxf.netty.tesb.version>
+        <cxf.netty.tesb.version>4.1.108.Final</cxf.netty.tesb.version>
+        <cxf.commons-io1.tesb.version>1.4</cxf.commons-io1.tesb.version>
         <cxf.jackson.tesb.version>2.16.0</cxf.jackson.tesb.version>
         <cxf.jackson.databind.tesb.version>${cxf.jackson.tesb.version}</cxf.jackson.databind.tesb.version>
         <cxf.jackson.dataformat.yaml.tesb.version>2.14.3</cxf.jackson.dataformat.yaml.tesb.version>
@@ -64,7 +67,7 @@
         <cxf.hazelcast.tesb.version>5.3.5</cxf.hazelcast.tesb.version>
         <cxf.httpcomponents.client.tesb.version>4.5.14</cxf.httpcomponents.client.tesb.version>
         <cxf.httpcomponents.core.tesb.version>4.4.16</cxf.httpcomponents.core.tesb.version>
-        <cxf.james.mime4j.tesb.version>0.8.3</cxf.james.mime4j.tesb.version>
+        <cxf.james.mime4j.tesb.version>0.8.10</cxf.james.mime4j.tesb.version>
         <cxf.jdom1.bundle.tesb.version>1.1_4</cxf.jdom1.bundle.tesb.version>
         <cxf.joda.time.tesb.version>2.11.1</cxf.joda.time.tesb.version>
         <cxf.xmlsec.bundle.tesb.version>2.3.4</cxf.xmlsec.bundle.tesb.version>
@@ -475,11 +478,14 @@
                             <cxf-rt-frontend-jaxrs.tesb.version>${cxf-rt-frontend-jaxrs.tesb.version>}</cxf-rt-frontend-jaxrs.tesb.version>
                             <cxf-services-wsn-core.tesb.version>${cxf-services-wsn-core.tesb.version}</cxf-services-wsn-core.tesb.version>
                             <cxf-bundle-compatible.tesb.version>${cxf-bundle-compatible.tesb.version}</cxf-bundle-compatible.tesb.version>
+                            <cxf-rt-databinding-aegis.tesb.version>${cxf-rt-databinding-aegis.tesb.version}</cxf-rt-databinding-aegis.tesb.version>
+                            <cxf-rt-rs-service-description.tesb.version>${cxf-rt-rs-service-description.tesb.version}</cxf-rt-rs-service-description.tesb.version>
                             <!-- <cxf.jakarta.mail.tesb.version>${cxf.jakarta.mail.tesb.version}</cxf.jakarta.mail.tesb.version> -->
                             <cxf.activemq-osgi.tesb.version>${cxf.activemq-osgi.tesb.version}</cxf.activemq-osgi.tesb.version>
                             <cxf.geronimo.jms2.tesb.version>${cxf.geronimo.jms2.tesb.version}</cxf.geronimo.jms2.tesb.version>
                             <cxf.aries.fly.tesb.version>${cxf.aries.fly.tesb.version}</cxf.aries.fly.tesb.version>
                             <cxf.netty.tesb.version>${cxf.netty.tesb.version}</cxf.netty.tesb.version>
+                            <cxf.commons-io1.tesb.version>${cxf.commons-io1.tesb.version}</cxf.commons-io1.tesb.version>
                             <cxf.jackson.tesb.version>${cxf.jackson.tesb.version}</cxf.jackson.tesb.version>
                             <cxf.jackson.databind.tesb.version>${cxf.jackson.databind.tesb.version}</cxf.jackson.databind.tesb.version>
                             <cxf.jackson.dataformat.yaml.tesb.version>${cxf.jackson.dataformat.yaml.tesb.version}</cxf.jackson.dataformat.yaml.tesb.version>

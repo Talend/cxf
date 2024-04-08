@@ -30,8 +30,10 @@
         <version>3.5.6</version>
         <relativePath>../../../parent/pom.xml</relativePath>
     </parent>
-    
+    <version>${revision}</version>
+
     <properties>
+        <revision>${cxf-rt-databinding-aegis.tesb.version}</revision>
         <cxf.module.name>org.apache.cxf.databinding.aegis</cxf.module.name>
         <cxf.osgi.import>
             javax.jws*;version="${cxf.osgi.jws.version}",
