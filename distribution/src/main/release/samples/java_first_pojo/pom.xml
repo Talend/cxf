@@ -28,7 +28,7 @@
         <version>3.5.8</version>
     </parent>
     <properties>
-        <cxf.version>${project.version}</cxf.version>
+        <cxf.version>${upstream.version}</cxf.version>
     </properties>
     <profiles>
         <profile>

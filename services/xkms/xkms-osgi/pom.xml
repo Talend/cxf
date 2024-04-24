@@ -37,17 +37,17 @@
         <dependency>
             <groupId>org.apache.cxf.services.xkms</groupId>
             <artifactId>cxf-services-xkms-common</artifactId>
-            <version>${project.version}</version>
+            <version>${upstream.version}</version>
         </dependency>
         <dependency>
             <groupId>org.apache.cxf.services.xkms</groupId>
             <artifactId>cxf-services-xkms-x509-handlers</artifactId>
-            <version>${project.version}</version>
+            <version>${upstream.version}</version>
         </dependency>
         <dependency>
             <groupId>org.apache.cxf.services.xkms</groupId>
             <artifactId>cxf-services-xkms-service</artifactId>
-            <version>${project.version}</version>
+            <version>${upstream.version}</version>
         </dependency>
     </dependencies>
 </project>

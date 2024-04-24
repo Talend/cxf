@@ -30,7 +30,7 @@
         <relativePath>../..</relativePath>
     </parent>
     <properties>
-        <cxf.version>${project.version}</cxf.version>
+        <cxf.version>${upstream.version}</cxf.version>
         <cxf.tomcat.version>7.0.96</cxf.tomcat.version>
     </properties>
     <build>
