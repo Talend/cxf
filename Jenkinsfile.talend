@@ -1,0 +1,6 @@
+@Library('esb') _
+
+Fork(
+        MVN_MODULES: 'org.apache.cxf:cxf-core,org.apache.cxf:cxf-rt-frontend-jaxrs,org.apache.cxf:cxf-rt-rs-service-description,org.apache.cxf.services.wsn:cxf-services-wsn-core,org.apache.cxf.karaf:apache-cxf,org.apache.cxf.services.xkms:cxf-services-xkms-features',
+        USE_JAVA11: 'true'
+)
