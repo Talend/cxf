@@ -69,6 +69,7 @@
         <cxf.james.mime4j.tesb.version>0.8.11</cxf.james.mime4j.tesb.version>
         <cxf.jdom1.bundle.tesb.version>1.1_4</cxf.jdom1.bundle.tesb.version>
         <cxf.joda.time.tesb.version>2.11.1</cxf.joda.time.tesb.version>
+        <cxf.mina.tesb.version>2.1.8</cxf.mina.tesb.version>
         <!-- <cxf.xmlsec.bundle.tesb.version>2.3.4</cxf.xmlsec.bundle.tesb.version> -->
         <cxf.guava.tesb.version>32.1.3-jre</cxf.guava.tesb.version>
         <cxf.swagger2.guava.tesb.version>${cxf.guava.tesb.version}</cxf.swagger2.guava.tesb.version>
@@ -508,6 +509,7 @@
                             <cxf.james.mime4j.tesb.version>${cxf.james.mime4j.tesb.version}</cxf.james.mime4j.tesb.version>
                             <cxf.jdom1.bundle.tesb.version>${cxf.jdom1.bundle.tesb.version}</cxf.jdom1.bundle.tesb.version>
                             <cxf.joda.time.tesb.version>${cxf.joda.time.tesb.version}</cxf.joda.time.tesb.version>
+                            <cxf.mina.tesb.version>${cxf.mina.tesb.version}</cxf.mina.tesb.version>
                             <!-- <cxf.xmlsec.bundle.tesb.version>${cxf.xmlsec.bundle.tesb.version}</cxf.xmlsec.bundle.tesb.version> -->
                             <cxf.guava.tesb.version>${cxf.guava.tesb.version}</cxf.guava.tesb.version>
                             <cxf.swagger2.guava.tesb.version>${cxf.swagger2.guava.tesb.version}</cxf.swagger2.guava.tesb.version>
