@@ -40,13 +40,14 @@
     </issueManagement>
     <properties>
         <upstream.version>3.5.8</upstream.version>
-        <apache-cxf.features.tesb.version>3.5.8.20240425</apache-cxf.features.tesb.version>
+        <apache-cxf.features.tesb.version>3.5.8.20240515</apache-cxf.features.tesb.version>
         <cxf-services-xkms.features.tesb.version>${apache-cxf.features.tesb.version}</cxf-services-xkms.features.tesb.version>
         <cxf-core.tesb.version>3.5.8.20240425</cxf-core.tesb.version>
         <cxf-rt-frontend-jaxrs.tesb.version>3.5.8.20240425</cxf-rt-frontend-jaxrs.tesb.version>
         <cxf-services-wsn-core.tesb.version>3.5.8.20240425</cxf-services-wsn-core.tesb.version>
         <cxf-bundle-compatible.tesb.version>3.5.8.20240425</cxf-bundle-compatible.tesb.version>
         <cxf-rt-rs-service-description.tesb.version>3.5.8.20240425</cxf-rt-rs-service-description.tesb.version>
+        <cxf.tesb.version-range>[3.5,3.6)</cxf.tesb.version-range>
         <!-- <cxf.jakarta.mail.tesb.version>1.6.7</cxf.jakarta.mail.tesb.version> -->
         <cxf.activemq-osgi.tesb.version>5.17.6.20231031</cxf.activemq-osgi.tesb.version>
         <cxf.geronimo.jms2.tesb.version>1.0-alpha-2</cxf.geronimo.jms2.tesb.version>
@@ -487,6 +488,7 @@
                             <cxf-services-wsn-core.tesb.version>${cxf-services-wsn-core.tesb.version}</cxf-services-wsn-core.tesb.version>
                             <cxf-bundle-compatible.tesb.version>${cxf-bundle-compatible.tesb.version}</cxf-bundle-compatible.tesb.version>
                             <cxf-rt-rs-service-description.tesb.version>${cxf-rt-rs-service-description.tesb.version}</cxf-rt-rs-service-description.tesb.version>
+                            <cxf.tesb.version-range>${cxf.tesb.version-range}</cxf.tesb.version-range>
                             <!-- <cxf.jakarta.mail.tesb.version>${cxf.jakarta.mail.tesb.version}</cxf.jakarta.mail.tesb.version> -->
                             <cxf.activemq-osgi.tesb.version>${cxf.activemq-osgi.tesb.version}</cxf.activemq-osgi.tesb.version>
                             <cxf.geronimo.jms2.tesb.version>${cxf.geronimo.jms2.tesb.version}</cxf.geronimo.jms2.tesb.version>
