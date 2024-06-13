@@ -49,6 +49,7 @@
     <feature name="cxf-abdera" version="${upstream.version}">
         <feature version="${upstream.version}">cxf-specs</feature>
         <bundle start-level="25" dependency="true">mvn:commons-codec/commons-codec/${cxf.commons-codec.version}</bundle>
+        <bundle dependency='true'>mvn:commons-io/commons-io/${cxf.commons-io.tesb.version}</bundle>
         <bundle start-level="35">mvn:org.apache.abdera/abdera-core/${cxf.abdera.version}</bundle>
         <bundle start-level="35">mvn:org.apache.abdera/abdera-extensions-main/${cxf.abdera.version}</bundle>
         <bundle start-level="35">mvn:org.apache.abdera/abdera-i18n/${cxf.abdera.version}</bundle>
