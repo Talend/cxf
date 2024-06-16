@@ -41,7 +41,7 @@
     <properties>
         <upstream.version>3.4.10</upstream.version>
         <apache-cxf.features.tesb.version>3.4.10.tesb8</apache-cxf.features.tesb.version>
-        <cxf-services-xkms.features.tesb.version>3.4.10.tesb1</cxf-services-xkms.features.tesb.version>
+        <cxf-services-xkms.features.tesb.version>${apache-cxf.features.tesb.version}</cxf-services-xkms.features.tesb.version>
         <cxf-core.tesb.version>3.4.10.tesb1</cxf-core.tesb.version>
         <cxf-logging.tesb.version>3.4.10.tesb1</cxf-logging.tesb.version>
         <cxf-services-wsn-core.tesb.version>3.4.10.tesb2</cxf-services-wsn-core.tesb.version>
@@ -56,6 +56,7 @@
         <cxf.activemq.tesb.version>5.15.16</cxf.activemq.tesb.version>
         <cxf.james.mime4j.tesb.version>0.8.11</cxf.james.mime4j.tesb.version>
         <cxf.xmlsec.bundle.tesb.version>2.2.6</cxf.xmlsec.bundle.tesb.version>
+        <cxf.xerces.bundle.tesb.version>2.12.2.tesb1_1</cxf.xerces.bundle.tesb.version>
 
         <cxf.compiler.fork>false</cxf.compiler.fork>
         <cxf.build-utils.version>3.4.4</cxf.build-utils.version>
@@ -469,6 +470,7 @@
                             <cxf.activemq.tesb.version>${cxf.activemq.tesb.version}</cxf.activemq.tesb.version>
                             <cxf.james.mime4j.tesb.version>${cxf.james.mime4j.tesb.version}</cxf.james.mime4j.tesb.version>
                             <cxf.xmlsec.bundle.tesb.version>${cxf.xmlsec.bundle.tesb.version}</cxf.xmlsec.bundle.tesb.version>
+                            <cxf.xerces.bundle.tesb.version>${cxf.xerces.bundle.tesb.version}</cxf.xerces.bundle.tesb.version>
                             <cxf.commons-io.tesb.version>${cxf.commons-io.tesb.version}</cxf.commons-io.tesb.version>
                         </properties>
                     </configuration>
