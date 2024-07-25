@@ -130,12 +130,12 @@
         <dependency>
             <groupId>io.github.openfeign</groupId>
             <artifactId>feign-core</artifactId>
-            <version>13.2.1</version>
+            <version>13.3</version>
         </dependency>
         <dependency>
             <groupId>io.github.openfeign</groupId>
             <artifactId>feign-httpclient</artifactId>
-            <version>13.2.1</version>
+            <version>13.3</version>
         </dependency>
         <dependency>
             <groupId>io.github.openfeign.opentracing</groupId>
@@ -153,6 +153,10 @@
         <dependency>
             <groupId>io.opentelemetry.semconv</groupId>
             <artifactId>opentelemetry-semconv</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>io.opentelemetry.semconv</groupId>
+            <artifactId>opentelemetry-semconv-incubating</artifactId>
         </dependency>
         <dependency>
             <groupId>io.opentelemetry</groupId>
