@@ -324,10 +324,10 @@
     </feature>
     <feature name="cxf-tracing-opentelemetry" version="${upstream.version}">
         <feature version="${cxf.tesb.version-range}">cxf-core</feature>
-        <bundle start-level="35">wrap:mvn:io.opentelemetry/opentelemetry-api/${cxf.opentelemetry.version}</bundle>
-        <bundle start-level="35">wrap:mvn:io.opentelemetry/opentelemetry-context/${cxf.opentelemetry.version}</bundle>
-        <bundle start-level="35">wrap:mvn:io.opentelemetry.semconv/opentelemetry-semconv/${cxf.opentelemetry.semconv.version}</bundle>
-        <bundle start-level="35">wrap:mvn:io.opentelemetry.semconv/opentelemetry-semconv-incubating/${cxf.opentelemetry.semconv.version}</bundle>
+        <bundle start-level="35">wrap:mvn:io.opentelemetry/opentelemetry-api/${cxf.opentelemetry.version}$Bundle-SymbolicName=opentelemetry-api&amp;Bundle-Version=${cxf.opentelemetry.version}</bundle>
+        <bundle start-level="35">wrap:mvn:io.opentelemetry/opentelemetry-context/${cxf.opentelemetry.version}$Bundle-SymbolicName=opentelemetry-context&amp;Bundle-Version=${cxf.opentelemetry.version}</bundle>
+        <bundle start-level="35">wrap:mvn:io.opentelemetry.semconv/opentelemetry-semconv/${cxf.opentelemetry.semconv.version}$Bundle-SymbolicName=opentelemetry-semconv&amp;Bundle-Version=${cxf.opentelemetry.semconv.version}</bundle>
+        <bundle start-level="35">wrap:mvn:io.opentelemetry.semconv/opentelemetry-semconv-incubating/${cxf.opentelemetry.semconv.version}$Bundle-SymbolicName=opentelemetry-semconv-incubating&amp;Bundle-Version=${cxf.opentelemetry.semconv.version}</bundle>
         <bundle start-level="40">mvn:org.apache.cxf/cxf-integration-tracing-opentelemetry/${upstream.version}</bundle>
     </feature>
     <feature name="cxf-rs-description-swagger2" version="${upstream.version}">
@@ -593,7 +593,7 @@
         <bundle start-level="30" dependency="true">mvn:org.codehaus.woodstox/stax2-api/${cxf.woodstox.stax2-api.version}</bundle>
         <bundle start-level="30" dependency="true">mvn:com.fasterxml.woodstox/woodstox-core/${cxf.woodstox.core.version}</bundle>
         <bundle start-level="30" dependency="true">mvn:org.apache.servicemix.bundles/org.apache.servicemix.bundles.cglib/${cxf.servicemix.cglib.version}</bundle>
-        <bundle start-level="30" dependency="true">mvn:org.apache.servicemix.bundles/org.apache.servicemix.bundles.aspectj/${cxf.servicemix.aspectj.version}</bundle>
+        <bundle start-level="30" dependency="true">mvn:org.apache.servicemix.bundles/org.apache.servicemix.bundles.aspectj/${cxf.servicemix.aspectj.tesb.version}</bundle>
     </feature>
 
     <feature name="cxf-bean-validation" version="${upstream.version}">
