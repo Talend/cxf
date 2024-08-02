@@ -593,7 +593,7 @@
         <bundle start-level="30" dependency="true">mvn:org.codehaus.woodstox/stax2-api/${cxf.woodstox.stax2-api.version}</bundle>
         <bundle start-level="30" dependency="true">mvn:com.fasterxml.woodstox/woodstox-core/${cxf.woodstox.core.version}</bundle>
         <bundle start-level="30" dependency="true">mvn:org.apache.servicemix.bundles/org.apache.servicemix.bundles.cglib/${cxf.servicemix.cglib.version}</bundle>
-        <bundle start-level="30" dependency="true">mvn:org.apache.servicemix.bundles/org.apache.servicemix.bundles.aspectj/${cxf.servicemix.aspectj.version}</bundle>
+        <bundle start-level="30" dependency="true">mvn:org.apache.servicemix.bundles/org.apache.servicemix.bundles.aspectj/${cxf.servicemix.aspectj.tesb.version}</bundle>
     </feature>
 
     <feature name="cxf-bean-validation" version="${upstream.version}">
