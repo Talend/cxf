@@ -58,7 +58,7 @@
         <dependency>
             <groupId>org.apache.cxf.systests</groupId>
             <artifactId>cxf-systests-rs-sse-base</artifactId>
-            <version>${project.version}</version>
+            <version>${upstream.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>

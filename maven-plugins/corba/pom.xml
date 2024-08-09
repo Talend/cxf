@@ -75,7 +75,7 @@
         <dependency>
             <groupId>org.apache.cxf</groupId>
             <artifactId>cxf-tools-corba</artifactId>
-            <version>${project.version}</version>
+            <version>${upstream.version}</version>
         </dependency>
     </dependencies>
     <build>

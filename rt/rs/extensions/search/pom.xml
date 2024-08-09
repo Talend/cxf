@@ -47,7 +47,7 @@
         <dependency>
             <groupId>org.apache.cxf</groupId>
             <artifactId>cxf-rt-frontend-jaxrs</artifactId>
-            <version>${project.version}</version>
+            <version>${upstream.version}</version>
             <exclusions>
                <exclusion>
                     <groupId>jakarta.validation</groupId>
@@ -58,7 +58,7 @@
         <dependency>
             <groupId>org.apache.cxf</groupId>
             <artifactId>cxf-rt-rs-client</artifactId>
-            <version>${project.version}</version>
+            <version>${upstream.version}</version>
             <optional>true</optional>
         </dependency>
         <dependency>
