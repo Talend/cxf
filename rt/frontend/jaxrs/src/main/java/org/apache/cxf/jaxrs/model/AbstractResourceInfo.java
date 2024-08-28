@@ -27,6 +27,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.WeakHashMap;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Logger;
 
@@ -40,10 +41,39 @@ import org.apache.cxf.jaxrs.impl.tl.ThreadLocalProxy;
 import org.apache.cxf.jaxrs.utils.InjectionUtils;
 
 public abstract class AbstractResourceInfo {
-    public static final String CONSTRUCTOR_PROXY_MAP = "jaxrs-constructor-proxy-map";
+
+    private static final class ProxyMapHolder {
+        private Map<Class<?>, Map<Field, ThreadLocalProxy<?>>> fieldProxyMap;
+        private Map<Class<?>, Map<Method, ThreadLocalProxy<?>>> setterProxyMap;
+        private Map<Class<?>, Map<Class<?>, ThreadLocalProxy<?>>> constructorProxyMap;
+
+        public Map<Class<?>, Map<Field, ThreadLocalProxy<?>>> getFieldProxyMap(boolean create) {
+            if (fieldProxyMap == null && create) {
+                fieldProxyMap = new ConcurrentHashMap<>(2);
+            }
+            return fieldProxyMap;
+        }
+
+        public Map<Class<?>, Map<Method, ThreadLocalProxy<?>>> getSetterProxyMap(boolean create) {
+            if (setterProxyMap == null && create) {
+                setterProxyMap = new ConcurrentHashMap<>();
+            }
+            return setterProxyMap;
+        }
+
+        public Map<Class<?>, Map<Class<?>, ThreadLocalProxy<?>>> getConstructorProxyMap(boolean create) {
+            if (constructorProxyMap == null && create) {
+                constructorProxyMap = new ConcurrentHashMap<>();
+            }
+            return constructorProxyMap;
+        }
+    }
+
+    // public static final String CONSTRUCTOR_PROXY_MAP = "jaxrs-constructor-proxy-map";
     private static final Logger LOG = LogUtils.getL7dLogger(AbstractResourceInfo.class);
-    private static final String FIELD_PROXY_MAP = "jaxrs-field-proxy-map";
-    private static final String SETTER_PROXY_MAP = "jaxrs-setter-proxy-map";
+    // private static final String FIELD_PROXY_MAP = "jaxrs-field-proxy-map";
+    // private static final String SETTER_PROXY_MAP = "jaxrs-setter-proxy-map";
+    private static final Map<Bus, ProxyMapHolder> PROXY_MAP_HOLDERS = new WeakHashMap<>();
 
     protected boolean root;
     protected Class<?> resourceClass;
@@ -85,7 +115,7 @@ public abstract class AbstractResourceInfo {
         findContextFields(cls, provider);
         findContextSetterMethods(cls, provider);
         if (constructorProxies != null) {
-            Map<Class<?>, Map<Class<?>, ThreadLocalProxy<?>>> proxies = getConstructorProxyMap();
+            Map<Class<?>, Map<Class<?>, ThreadLocalProxy<?>>> proxies = getConstructorProxyMap(true);
             proxies.put(serviceClass, constructorProxies);
             constructorProxiesAvailable = true;
         }
@@ -174,6 +204,7 @@ public abstract class AbstractResourceInfo {
         return InjectionUtils.createThreadLocalProxy(m.getParameterTypes()[0]);
     }
 
+    /*
     @SuppressWarnings("unchecked")
     private <T> Map<Class<?>, Map<T, ThreadLocalProxy<?>>> getProxyMap(String prop, boolean create) {
         // Avoid synchronizing on the bus for a ConcurrentHashMAp
@@ -195,32 +226,46 @@ public abstract class AbstractResourceInfo {
         }
         return (Map<Class<?>, Map<T, ThreadLocalProxy<?>>>)property;
     }
+    */
 
     public Map<Class<?>, ThreadLocalProxy<?>> getConstructorProxies() {
         if (constructorProxiesAvailable) {
-            return getConstructorProxyMap().get(serviceClass);
+            return getConstructorProxyMap(true).get(serviceClass);
         }
         return null;
     }
 
-    @SuppressWarnings("unchecked")
-    private Map<Class<?>, Map<Class<?>, ThreadLocalProxy<?>>> getConstructorProxyMap() {
+    // @SuppressWarnings("unchecked")
+    private Map<Class<?>, Map<Class<?>, ThreadLocalProxy<?>>> getConstructorProxyMap(boolean create) {
+        return getConstructorProxyMap(bus, create);
+        /*
         Object property = bus.getProperty(CONSTRUCTOR_PROXY_MAP);
         if (property == null) {
-            Map<Class<?>, Map<Class<?>, ThreadLocalProxy<?>>> map
-                = new ConcurrentHashMap<>(2);
+            // Map<Class<?>, Map<Class<?>, ThreadLocalProxy<?>>> map
+            //     = new ConcurrentHashMap<>(2);
+            Map<Class<?>, Map<Class<?>, ThreadLocalProxy<?>>> map;
+            synchronized (PROXY_MAP_HOLDERS) {
+                map = getProxyMapHolder(bus).getConstructorProxyMap(true);
+            }
             bus.setProperty(CONSTRUCTOR_PROXY_MAP, map);
             property = map;
         }
         return (Map<Class<?>, Map<Class<?>, ThreadLocalProxy<?>>>)property;
+        */
     }
 
     private Map<Class<?>, Map<Field, ThreadLocalProxy<?>>> getFieldProxyMap(boolean create) {
-        return getProxyMap(FIELD_PROXY_MAP, create);
+        // return getProxyMap(FIELD_PROXY_MAP, create);
+        synchronized (PROXY_MAP_HOLDERS) {
+            return getProxyMapHolder(bus).getFieldProxyMap(create);
+        }
     }
 
     private Map<Class<?>, Map<Method, ThreadLocalProxy<?>>> getSetterProxyMap(boolean create) {
-        return getProxyMap(SETTER_PROXY_MAP, create);
+        // return getProxyMap(SETTER_PROXY_MAP, create);
+        synchronized (PROXY_MAP_HOLDERS) {
+            return getProxyMapHolder(bus).getSetterProxyMap(create);
+        }
     }
 
     private void findContextSetterMethods(Class<?> cls, Object provider) {
@@ -299,10 +344,11 @@ public abstract class AbstractResourceInfo {
 
     public abstract boolean isSingleton();
 
-    @SuppressWarnings("rawtypes")
+    // @SuppressWarnings("rawtypes")
     public static void clearAllMaps() {
         Bus bus = BusFactory.getThreadDefaultBus(false);
         if (bus != null) {
+            /*
             Object property = bus.getProperty(FIELD_PROXY_MAP);
             if (property != null) {
                 ((Map)property).clear();
@@ -315,13 +361,21 @@ public abstract class AbstractResourceInfo {
             if (property != null) {
                 ((Map)property).clear();
             }
+            */
+            synchronized (PROXY_MAP_HOLDERS) {
+                PROXY_MAP_HOLDERS.remove(bus);
+            }
         }
     }
 
     public void clearThreadLocalProxies() {
         clearProxies(getFieldProxyMap(false));
         clearProxies(getSetterProxyMap(false));
-        clearProxies(getConstructorProxyMap());
+        clearProxies(getConstructorProxyMap(false));
+    }
+
+    public static Map<Class<?>, Map<Class<?>, ThreadLocalProxy<?>>> getConstructorProxyMap(Bus bus) {
+        return getConstructorProxyMap(bus, true);
     }
 
     private <T> void clearProxies(Map<Class<?>, Map<T, ThreadLocalProxy<?>>> tlps) {
@@ -385,4 +439,18 @@ public abstract class AbstractResourceInfo {
         }
         return ret;
     }
+
+    private static ProxyMapHolder getProxyMapHolder(Bus bus) {
+        if (bus == null) {
+            return null;
+        }
+        return PROXY_MAP_HOLDERS.computeIfAbsent(bus, (Bus b) -> new ProxyMapHolder());
+    }
+
+    private static Map<Class<?>, Map<Class<?>, ThreadLocalProxy<?>>> getConstructorProxyMap(Bus bus, boolean create) {
+        synchronized (PROXY_MAP_HOLDERS) {
+            return getProxyMapHolder(bus).getConstructorProxyMap(create);
+        }
+    }
+
 }

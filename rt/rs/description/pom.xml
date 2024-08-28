@@ -24,6 +24,7 @@
     <name>Apache CXF JAX-RS Service Description</name>
     <description>Apache CXF JAX-RS Service Description</description>
     <url>https://cxf.apache.org</url>
+    <version>${revision}</version>
     <parent>
         <groupId>org.apache.cxf</groupId>
         <artifactId>cxf-parent</artifactId>
@@ -31,6 +32,7 @@
         <relativePath>../../../parent/pom.xml</relativePath>
     </parent>
     <properties>
+        <revision>${cxf-rt-rs-service-description.tesb.version}</revision>
         <cxf.module.name>org.apache.cxf.rs.wadl</cxf.module.name>
         <cxf.osgi.import>
             jakarta.servlet*;version="${cxf.osgi.jakarta.servlet.version}",

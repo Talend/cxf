@@ -1266,7 +1266,8 @@ public abstract class ProviderFactory {
 
 
         Map<Class<?>, Map<Class<?>, ThreadLocalProxy<?>>> proxiesMap =
-            CastUtils.cast((Map<?, ?>)theBus.getProperty(AbstractResourceInfo.CONSTRUCTOR_PROXY_MAP));
+            AbstractResourceInfo.getConstructorProxyMap(theBus);
+            // CastUtils.cast((Map<?, ?>)theBus.getProperty(AbstractResourceInfo.CONSTRUCTOR_PROXY_MAP));
         Map<Class<?>, ThreadLocalProxy<?>> existingProxies = null;
         if (proxiesMap != null) {
             existingProxies = proxiesMap.get(c.getDeclaringClass());
