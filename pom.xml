@@ -51,6 +51,7 @@
         <!-- <cxf.jakarta.mail.tesb.version>1.6.7</cxf.jakarta.mail.tesb.version> -->
         <cxf.activemq-osgi.tesb.version>5.17.6.20231031</cxf.activemq-osgi.tesb.version>
         <cxf.geronimo.jms2.tesb.version>1.0-alpha-2</cxf.geronimo.jms2.tesb.version>
+        <cxf.geronimo.jms2.bundle.override.tesb.version>1.0.0.tp20240209</cxf.geronimo.jms2.bundle.override.tesb.version>
         <!-- <cxf.aries.fly.tesb.version>1.2</cxf.aries.fly.tesb.version> -->
         <!-- <cxf.netty.tesb.version>4.1.111.Final</cxf.netty.tesb.version> -->
         <!-- <cxf.commons-io.tesb.version>2.16.1</cxf.commons-io.tesb.version> -->
@@ -495,6 +496,7 @@
                             <!-- <cxf.jakarta.mail.tesb.version>${cxf.jakarta.mail.tesb.version}</cxf.jakarta.mail.tesb.version> -->
                             <cxf.activemq-osgi.tesb.version>${cxf.activemq-osgi.tesb.version}</cxf.activemq-osgi.tesb.version>
                             <cxf.geronimo.jms2.tesb.version>${cxf.geronimo.jms2.tesb.version}</cxf.geronimo.jms2.tesb.version>
+                            <cxf.geronimo.jms2.bundle.override.tesb.version>${cxf.geronimo.jms2.bundle.override.tesb.version}</cxf.geronimo.jms2.bundle.override.tesb.version>
                             <!-- <cxf.aries.fly.tesb.version>${cxf.aries.fly.tesb.version}</cxf.aries.fly.tesb.version> -->
                             <!-- <cxf.netty.tesb.version>${cxf.netty.tesb.version}</cxf.netty.tesb.version> -->
                             <!-- <cxf.commons-io.tesb.version>${cxf.commons-io.tesb.version}</cxf.commons-io.tesb.version> -->
