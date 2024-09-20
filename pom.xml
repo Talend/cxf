@@ -40,7 +40,7 @@
     </issueManagement>
     <properties>
         <upstream.version>3.5.9</upstream.version>
-        <apache-cxf.features.tesb.version>3.5.9.20240725</apache-cxf.features.tesb.version>
+        <apache-cxf.features.tesb.version>3.5.9.20240920</apache-cxf.features.tesb.version>
         <cxf-services-xkms.features.tesb.version>${apache-cxf.features.tesb.version}</cxf-services-xkms.features.tesb.version>
         <cxf-core.tesb.version>3.5.9.20240725</cxf-core.tesb.version>
         <cxf-rt-frontend-jaxrs.tesb.version>3.5.9.20240725</cxf-rt-frontend-jaxrs.tesb.version>
