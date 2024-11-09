@@ -673,7 +673,7 @@
                     <minmemory>256M</minmemory>
                     <maxmemory>1G</maxmemory>
                     <header>Apache CXF API</header>
-                    <doctitle>Apache CXF ${project.version} API</doctitle>
+                    <doctitle>Apache CXF ${upstream.version} API</doctitle>
                     <notimestamp>true</notimestamp>
                 </configuration>
             </plugin>

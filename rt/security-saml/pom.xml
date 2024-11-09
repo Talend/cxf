@@ -33,14 +33,14 @@
     <properties>
         <cxf.module.name>org.apache.cxf.security.saml</cxf.module.name>
         <cxf.osgi.import>
-            org.opensaml*;version="${cxf.opensaml.osgi.version}",
+            org.opensaml*;version="${cxf.opensaml.tesb.version-range}",
         </cxf.osgi.import>
     </properties>
     <dependencies>
         <dependency>
             <groupId>org.apache.cxf</groupId>
             <artifactId>cxf-rt-security</artifactId>
-            <version>${project.version}</version>
+            <version>${upstream.version}</version>
         </dependency>
         <dependency>
             <groupId>org.apache.wss4j</groupId>

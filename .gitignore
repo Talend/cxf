@@ -22,3 +22,4 @@ derby.log
 **/.factorypath
 .vscode/
 *.xml.bak
+.resolved-pom.xml

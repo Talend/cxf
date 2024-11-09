@@ -32,7 +32,7 @@
     </parent>
     <properties>
         <maven.test.skip>true</maven.test.skip>
-        <cxf.version>${project.version}</cxf.version>
+        <cxf.version>${upstream.version}</cxf.version>
         <cxf.checkstyle.extension>-corba</cxf.checkstyle.extension>
         <tar.long.file.mode>gnu</tar.long.file.mode>
     </properties>
@@ -451,7 +451,7 @@
                                 <artifactItem>
                                     <groupId>${project.groupId}</groupId>
                                     <artifactId>cxf-integration-jca</artifactId>
-                                    <version>${project.version}</version>
+                                    <version>${upstream.version}</version>
                                     <outputDirectory>${project.build.directory}/additional-libs</outputDirectory>
                                 </artifactItem>
                             </artifactItems>
@@ -513,7 +513,7 @@
                                 <property name="output.ext" value="" />
                                 <echo file="${basedir}/target/srcbuild_env${output.ext}" message="${output.cp}" />
                                 <echo file="${basedir}/target/srcbuild_env.ant" message="${cp}" />
-                                <echo file="${basedir}/target/version.properties" message="cxf.version=${project.version}" />
+                                <echo file="${basedir}/target/version.properties" message="cxf.version=${upstream.version}" />
                                 <delete file="build.xml" />
                             </target>
                         </configuration>

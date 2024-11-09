@@ -24,6 +24,7 @@
     <name>Apache CXF Test Utilities</name>
     <description>Apache CXF Test Utilities</description>
     <url>https://cxf.apache.org</url>
+    <version>${revision}</version>
     <parent>
         <groupId>org.apache.cxf</groupId>
         <artifactId>cxf-parent</artifactId>
@@ -31,6 +32,7 @@
         <relativePath>../parent/pom.xml</relativePath>
     </parent>
     <properties>
+        <revision>${cxf-testutils.tesb.version}</revision>
         <cxf.module.name>org.apache.cxf.testutils</cxf.module.name>
         <cxf.osgi.import>
             jakarta.xml.soap;version="${cxf.osgi.saaj.version}",
@@ -68,12 +70,12 @@
         <dependency>
             <groupId>org.apache.cxf</groupId>
             <artifactId>cxf-core</artifactId>
-            <version>${project.version}</version>
+            <version>${upstream.version}</version>
         </dependency>
         <dependency>
             <groupId>org.apache.cxf</groupId>
             <artifactId>cxf-rt-wsdl</artifactId>
-            <version>${project.version}</version>
+            <version>${upstream.version}</version>
         </dependency>
         <dependency>
             <groupId>org.apache.activemq</groupId>
@@ -173,7 +175,7 @@
             <!--plugin>
                 <groupId>org.apache.cxf</groupId>
                 <artifactId>cxf-wsdl-validator-plugin</artifactId>
-                <version>${project.version}</version>
+                <version>${upstream.version}</version>
                 <executions>
                     <execution>
                         <phase>validate</phase>
@@ -186,7 +188,7 @@
             <plugin>
                 <groupId>org.apache.cxf</groupId>
                 <artifactId>cxf-codegen-plugin</artifactId>
-                <version>${project.version}</version>
+                <version>${upstream.version}</version>
                 <dependencies>
                     <dependency>
                         <groupId>org.apache.cxf.xjcplugins</groupId>

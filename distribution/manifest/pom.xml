@@ -32,7 +32,7 @@
     </parent>
     <properties>
         <maven.test.skip>true</maven.test.skip>
-        <cxf.version>${project.version}</cxf.version>
+        <cxf.version>${upstream.version}</cxf.version>
         <cxf.module.name>org.apache.cxf.manifest</cxf.module.name>
     </properties>
     <dependencies>

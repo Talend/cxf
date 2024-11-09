@@ -28,7 +28,7 @@
         <version>4.1.0-SNAPSHOT</version>
     </parent>
     <properties>
-        <cxf.version>${project.version}</cxf.version>
+        <cxf.version>${upstream.version}</cxf.version>
     </properties>
     <build>
         <plugins>

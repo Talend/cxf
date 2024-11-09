@@ -29,7 +29,7 @@
         <relativePath>../..</relativePath>
     </parent>
     <properties>
-        <cxf.version>${project.version}</cxf.version>
+        <cxf.version>${upstream.version}</cxf.version>
         <cxf.jetty.version>${cxf.jetty12.version}</cxf.jetty.version>
     </properties>
     <profiles>

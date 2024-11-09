@@ -238,23 +238,30 @@ public class WadlGenerator implements ContainerRequestFilter {
 
         UriInfo ui = context.getUriInfo();
         if (!ui.getQueryParameters().containsKey(WADL_QUERY)) {
-            if (stylesheetReference != null || !docLocationMap.isEmpty()) {
-                String path = ui.getPath(false);
-                if (path.startsWith("/") && !path.isEmpty()) {
-                    path = path.substring(1);
+            if (stylesheetReference == null && docLocationMap.isEmpty()) {
+                return;
+            }
+            String path = ui.getPath(false);
+            if (path.startsWith("/") && path.length() > 1) {
+                path = path.substring(1);
+            }
+            if (docLocationMap.containsKey(path)) {
+                context.abortWith(getExistingResource(m, ui, path));
+                return;
+            }
+            if (stylesheetReference == null) {
+                return;
+            }
+            String theStylesheetReference = stylesheetReference;
+            if (theStylesheetReference.startsWith("/")) {
+                if (theStylesheetReference.length() > path.length()) {
+                    theStylesheetReference = theStylesheetReference.substring(1);
                 }
-
-                if (docLocationMap.containsKey(path)) {
-                    context.abortWith(getExistingResource(m, ui, path));
-                } else if (stylesheetReference != null) {
-                    String theStylesheetReference = stylesheetReference;
-                    if (theStylesheetReference.startsWith("/")) {
-                        theStylesheetReference = theStylesheetReference.substring(1);
-                    }
-                    if (path.endsWith(theStylesheetReference)) {
-                        context.abortWith(getExistingResource(m, ui, stylesheetReference));
-                    }
-                }
+            } else if (theStylesheetReference.length() < path.length()) {
+                theStylesheetReference = "/" + theStylesheetReference;
+            }
+            if (path.endsWith(theStylesheetReference)) {
+                context.abortWith(getExistingResource(m, ui, stylesheetReference));
             }
             return;
         }
