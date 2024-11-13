@@ -23,17 +23,22 @@
     <feature name="jakarta-servlet" version="5.0.0">
         <bundle dependency="true">mvn:jakarta.servlet/jakarta.servlet-api/5.0.0</bundle>
     </feature>
-    <feature name="jetty" version="11.0.21">
-        <feature version="[5,6)">jakarta-servlet</feature>
-        <bundle dependency="true">mvn:org.eclipse.jetty/jetty-alpn-server/11.0.21</bundle>
-        <bundle dependency="true">mvn:org.eclipse.jetty/jetty-http/11.0.21</bundle>
-        <bundle dependency="true">mvn:org.eclipse.jetty/jetty-io/11.0.21</bundle>
-        <bundle dependency="true">mvn:org.eclipse.jetty/jetty-server/11.0.21</bundle>
-        <bundle dependency="true">mvn:org.eclipse.jetty/jetty-util/11.0.21</bundle>
-        <bundle dependency="true">mvn:org.eclipse.jetty/jetty-security/11.0.21</bundle>
-        <bundle dependency="true">mvn:org.eclipse.jetty.http2/http2-hpack/11.0.21</bundle>
-        <bundle dependency="true">mvn:org.eclipse.jetty.http2/http2-common/11.0.21</bundle>
-        <bundle dependency="true">mvn:org.eclipse.jetty.http2/http2-server/11.0.21</bundle>
+    <feature name="jakarta-servlet" version="6.1.0">
+        <bundle dependency="true">mvn:jakarta.servlet/jakarta.servlet-api/6.1.0</bundle>
+    </feature>
+    <feature name="jetty" version="12.0.10">
+        <feature version="[6,7)">jakarta-servlet</feature>
+        <bundle dependency="true">mvn:org.eclipse.jetty/jetty-alpn-server/12.0.10</bundle>
+        <bundle dependency="true">mvn:org.eclipse.jetty/jetty-http/12.0.10</bundle>
+        <bundle dependency="true">mvn:org.eclipse.jetty/jetty-io/12.0.10</bundle>
+        <bundle dependency="true">mvn:org.eclipse.jetty/jetty-server/12.0.10</bundle>
+        <bundle dependency="true">mvn:org.eclipse.jetty/jetty-session/12.0.10</bundle>
+        <bundle dependency="true">mvn:org.eclipse.jetty/jetty-jmx/12.0.10</bundle>
+        <bundle dependency="true">mvn:org.eclipse.jetty/jetty-util/12.0.10</bundle>
+        <bundle dependency="true">mvn:org.eclipse.jetty/jetty-security/12.0.10</bundle>
+        <bundle dependency="true">mvn:org.eclipse.jetty.http2/jetty-http2-hpack/12.0.10</bundle>
+        <bundle dependency="true">mvn:org.eclipse.jetty.http2/jetty-http2-common/12.0.10</bundle>
+        <bundle dependency="true">mvn:org.eclipse.jetty.http2/jetty-http2-server/12.0.10</bundle>
     </feature>
 
     <feature name="cxf-specs" version="${upstream.version}">
@@ -95,7 +100,7 @@
         <!-- <feature version="${cxf.opensaml.tesb.version}">opensaml</feature> -->
         <bundle start-level="25" dependency="true">mvn:joda-time/joda-time/${cxf.joda.time.version}</bundle>
         <bundle start-level="25" dependency="true">mvn:commons-codec/commons-codec/${cxf.commons-codec.version}</bundle>
-        <bundle start-level="25" dependency="true">mvn:org.apache.santuario/xmlsec/3.0.4</bundle>
+        <bundle start-level="25" dependency="true">mvn:org.apache.santuario/xmlsec/3.0.5.20241111</bundle>
         <bundle start-level="25" dependency="true">mvn:com.google.guava/failureaccess/1.0.1</bundle>
         <bundle start-level="25" dependency="true">mvn:com.google.guava/guava/${cxf.guava.version}</bundle>
         <bundle start-level="25" dependency='true'>mvn:io.dropwizard.metrics/metrics-core/${cxf.dropwizard4.version}</bundle>
@@ -107,6 +112,7 @@
         <bundle start-level="30" dependency="true">mvn:org.apache.servicemix.bundles/org.apache.servicemix.bundles.jasypt/${cxf.jasypt.bundle.version}</bundle>
         <bundle start-level="30">mvn:org.apache.wss4j/wss4j-bindings/${cxf.jakarta.wss4j.version}</bundle>
         <bundle start-level="30">mvn:org.apache.wss4j/wss4j-ws-security-common/${cxf.jakarta.wss4j.version}</bundle>
+        <bundle start-level="30">mvn:org.apache.wss4j/wss4j-bindings/${cxf.jakarta.wss4j.version}</bundle>
         <bundle start-level="30">mvn:org.apache.wss4j/wss4j-ws-security-dom/${cxf.jakarta.wss4j.version}</bundle>
         <bundle start-level="30">mvn:org.apache.wss4j/wss4j-policy/${cxf.jakarta.wss4j.version}</bundle>
         <bundle start-level="30">mvn:org.apache.wss4j/wss4j-ws-security-stax/${cxf.jakarta.wss4j.version}</bundle>
@@ -181,14 +187,20 @@
     <feature name="cxf-http-client" version="${upstream.version}">
         <!-- Can be used instead cxf-http for a smaller footprint -->
         <feature version="${cxf.tesb.version-range}">cxf-core</feature>
-        <feature version="[5,6)">jakarta-servlet</feature>
+        <feature version="[6,7)">jakarta-servlet</feature>
         <!-- <bundle start-level="40">mvn:${cxf.servlet-api.group}/${cxf.servlet-api.artifact}/${cxf.servlet-api.version}</bundle> -->
         <bundle start-level="40">mvn:org.apache.cxf/cxf-rt-transports-http/${upstream.version}</bundle>
     </feature>
 
     <feature name="cxf-http" version="${upstream.version}">
         <feature version="${cxf.tesb.version-range}">cxf-core</feature>
-        <feature>http</feature>
+        <feature>pax-web-http</feature>
+        <!-- javax.servlet for the http osgi service -->
+        <bundle dependency="true">mvn:javax.servlet/javax.servlet-api/3.1.0</bundle>
+        <!-- remove begin -->
+        <bundle dependency="true">mvn:org.osgi/org.osgi.service.http/1.2.2</bundle>
+        <bundle dependency="true">mvn:org.ops4j.pax.web/pax-web-jetty-bundle/9.99.0</bundle>
+        <!-- remove end -->
         <bundle start-level="40">mvn:org.apache.cxf/cxf-rt-transports-http/${upstream.version}</bundle>
     </feature>
     <!--
@@ -220,7 +232,7 @@
     </feature>
     <feature name="cxf-http-netty-client" version="${upstream.version}">
         <feature version="${cxf.tesb.version-range}">cxf-http</feature>
-        <feature version="[5,6)">jakarta-servlet</feature>
+        <feature version="[6,7)">jakarta-servlet</feature>
         <!-- <bundle dependency="true" start-level="40">mvn:${cxf.servlet-api.group}/${cxf.servlet-api.artifact}/${cxf.servlet-api.version}</bundle> -->
         <bundle start-level="40">mvn:org.bouncycastle/bcprov-jdk18on/${cxf.bcprov.version}</bundle>
         <bundle start-level="40">mvn:org.bouncycastle/bcutil-jdk18on/${cxf.bcprov.version}</bundle>
@@ -385,7 +397,7 @@
     <feature name="cxf-rs-description-openapi-v3" version="${upstream.version}">
         <feature version="${cxf.tesb.version-range}">cxf-jaxrs</feature>
         <feature version="${cxf.tesb.version-range}">cxf-jackson</feature>
-        <feature version="[5,6)">jakarta-servlet</feature>
+        <feature version="[6,7)">jakarta-servlet</feature>
         <bundle start-level="40">mvn:org.apache.cxf/cxf-rt-rs-service-description-common-openapi/${upstream.version}</bundle>
         <bundle start-level="35">mvn:org.apache.cxf/cxf-rt-rs-service-description-swagger-ui/${upstream.version}</bundle>
         <bundle start-level="40">mvn:org.apache.cxf/cxf-rt-rs-service-description-openapi-v3/${upstream.version}</bundle>

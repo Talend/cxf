@@ -82,7 +82,7 @@
         <cxf.opensaml.tesb.version-range>[4,5)</cxf.opensaml.tesb.version-range>
         <cxf.xmlsec.bundle.tesb.version>2.3.4</cxf.xmlsec.bundle.tesb.version>
         <cxf.servicemix.aspectj.tesb.version>1.9.21.1_1</cxf.servicemix.aspectj.tesb.version>
-        <cxf.staxex.tesb.version>2.0.1</cxf.staxex.tesb.version>
+        <cxf.staxex.tesb.version>2.1.0</cxf.staxex.tesb.version>
         <cxf.xerces.bundle.tesb.version>2.12.2.tesb1_1</cxf.xerces.bundle.tesb.version>
         <!-- <cxf.guava.tesb.version>32.1.3-jre</cxf.guava.tesb.version> -->
         <!-- <cxf.swagger2.guava.tesb.version>${cxf.guava.tesb.version}</cxf.swagger2.guava.tesb.version> -->
@@ -90,6 +90,7 @@
         <cxf.osgi.cmpn.tesb.version>7.0.0</cxf.osgi.cmpn.tesb.version>
         <cxf.osgi.javax.stream.tesb.version-range>[0,2)</cxf.osgi.javax.stream.tesb.version-range>
         <cxf.guava.tesb.version-range>[32,40)</cxf.guava.tesb.version-range>
+        <cxf.jakarta.bind.tesb.version-range>[4,5)</cxf.jakarta.bind.tesb.version-range>
 
         <cxf.compiler.fork>false</cxf.compiler.fork>
         <cxf.build-utils.version>4.0.1</cxf.build-utils.version>
@@ -550,6 +551,7 @@
                             <cxf.osgi.cmpn.tesb.version>${cxf.osgi.cmpn.tesb.version}</cxf.osgi.cmpn.tesb.version>
                             <cxf.osgi.javax.stream.tesb.version-range>${cxf.osgi.javax.stream.tesb.version-range}</cxf.osgi.javax.stream.tesb.version-range>
                             <cxf.guava.tesb.version-range>${cxf.guava.tesb.version-range}</cxf.guava.tesb.version-range>
+                            <cxf.jakarta.bind.tesb.version-range>${cxf.jakarta.bind.tesb.version-range}</cxf.jakarta.bind.tesb.version-range>
                         </properties>
                     </configuration>
                     <executions>

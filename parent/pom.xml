@@ -70,15 +70,16 @@
         <cxf.osgi.spring.version>[6,7)</cxf.osgi.spring.version>
         <cxf.osgi.slf4j.version>[2,3)</cxf.osgi.slf4j.version>
         <cxf.osgi.jakarta.annotation.version>[2,3)</cxf.osgi.jakarta.annotation.version>
-        <cxf.osgi.jakarta.bind.version>[3,4)</cxf.osgi.jakarta.bind.version>
+        <cxf.osgi.jakarta.bind.version>[4,5)</cxf.osgi.jakarta.bind.version>
         <cxf.osgi.jakarta.activation.version>[2,3)</cxf.osgi.jakarta.activation.version>
         <cxf.osgi.jakarta.mail.version>[2,3)</cxf.osgi.jakarta.mail.version>
-        <cxf.osgi.jakarta.servlet.version>[5,6)</cxf.osgi.jakarta.servlet.version>
-        <cxf.osgi.jakarta.xml.ws.version>[3,4)</cxf.osgi.jakarta.xml.ws.version>
+        <cxf.osgi.jakarta.servlet.version>[5,7)</cxf.osgi.jakarta.servlet.version>
+        <cxf.osgi.jakarta.xml.ws.version>[4,5)</cxf.osgi.jakarta.xml.ws.version>
         <cxf.osgi.cdi.version>[3,4)</cxf.osgi.cdi.version>
         <cxf.osgi.jakarta.jwsapi.version>[3,4)</cxf.osgi.jakarta.jwsapi.version>
-        <cxf.osgi.saaj.version>[2,3)</cxf.osgi.saaj.version>
-        <cxf.opensaml.osgi.version>[4.2,5)</cxf.opensaml.osgi.version>
+        <cxf.osgi.saaj.version>[3,4)</cxf.osgi.saaj.version>
+        <!-- <cxf.opensaml.osgi.version>[4.2,5)</cxf.opensaml.osgi.version> -->
+        <cxf.opensaml.osgi.version>[4,5)</cxf.opensaml.osgi.version>
         <cxf.ehcache.osgi.version>[3,4)</cxf.ehcache.osgi.version>
         <cxf.jetty.osgi.version>[12,13)</cxf.jetty.osgi.version>
         <cxf.osgi.netty.version>[4.1,5)</cxf.osgi.netty.version>
@@ -218,7 +219,7 @@
         <cxf.spring.mock>spring-test</cxf.spring.mock>
         <cxf.spring.security.version>6.3.4</cxf.spring.security.version>
         <cxf.spring.version>6.1.14</cxf.spring.version>
-        <cxf.stax-ex.version>1.8.3</cxf.stax-ex.version>
+        <cxf.stax-ex.version>2.1.0</cxf.stax-ex.version>
         <cxf.swagger.ui.version>5.18.1</cxf.swagger.ui.version>
         <cxf.swagger.v3.version>2.2.25</cxf.swagger.v3.version>
         <cxf.tika.version>3.0.0</cxf.tika.version>
@@ -237,7 +238,7 @@
         <cxf.woodstox.core.version>7.1.0</cxf.woodstox.core.version>
         <cxf.woodstox.stax2-api.version>4.2.1</cxf.woodstox.stax2-api.version>
         <cxf.wsdl4j.version>1.6.3</cxf.wsdl4j.version>
-        <cxf.jakarta.wss4j.version>3.0.3</cxf.jakarta.wss4j.version>
+        <cxf.jakarta.wss4j.version>3.0.3.20241111</cxf.jakarta.wss4j.version>
         <cxf.xmlschema.version>2.3.1</cxf.xmlschema.version>
         <cxf.xnio.version>3.8.16.Final</cxf.xnio.version>
         <cxf.zest.version>2.1</cxf.zest.version>
@@ -260,7 +261,9 @@
         <cxf.jaxb.bundle.version>2.3.2_1</cxf.jaxb.bundle.version>
         <cxf.jaxb.context.class.property>none</cxf.jaxb.context.class.property>
         <cxf.jdom.bundle.version>1.1_4</cxf.jdom.bundle.version>
-        <cxf.karaf.version>4.4.0</cxf.karaf.version>
+        <cxf.karaf.version>4.4.6</cxf.karaf.version>
+        <cxf.karaf.features.version>4.4.6.20240820</cxf.karaf.features.version>
+        <cxf.pax-web.features.version>9.99.0</cxf.pax-web.features.version>
         <cxf.oauth.bundle.version>20100527_1</cxf.oauth.bundle.version>
         <cxf.oro.bundle.version>2.0.8_6</cxf.oro.bundle.version>
         <cxf.pax.exam.version>4.13.5</cxf.pax.exam.version>
