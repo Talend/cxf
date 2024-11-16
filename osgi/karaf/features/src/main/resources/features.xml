@@ -108,7 +108,7 @@
         <!-- <feature version="${cxf.opensaml.tesb.version}">opensaml</feature> -->
         <bundle start-level="25" dependency="true">mvn:joda-time/joda-time/${cxf.joda.time.version}</bundle>
         <bundle start-level="25" dependency="true">mvn:commons-codec/commons-codec/${cxf.commons-codec.version}</bundle>
-        <bundle start-level="25" dependency="true">mvn:org.apache.santuario/xmlsec/3.0.4</bundle>
+        <bundle start-level="25" dependency="true">mvn:org.apache.santuario/xmlsec/3.0.5</bundle>
         <bundle start-level="25" dependency="true">mvn:com.google.guava/failureaccess/1.0.1</bundle>
         <bundle start-level="25" dependency="true">mvn:com.google.guava/guava/${cxf.guava.version}</bundle>
         <bundle start-level="25" dependency='true'>mvn:io.dropwizard.metrics/metrics-core/${cxf.dropwizard4.version}</bundle>
@@ -325,7 +325,7 @@
         <feature version="${cxf.tesb.version-range}">cxf-rs-security-xml</feature>
         <feature version="${cxf.tesb.version-range}">cxf-rs-security-jose</feature>
         <bundle start-level="25" dependency="true">mvn:commons-codec/commons-codec/${cxf.commons-codec.version}</bundle>
-        <bundle start-level="25" dependency="true">mvn:org.apache.santuario/xmlsec/3.0.4</bundle>
+        <bundle start-level="25" dependency="true">mvn:org.apache.santuario/xmlsec/3.0.5</bundle>
         <bundle start-level="25" dependency="true">mvn:com.google.guava/failureaccess/1.0.1</bundle>
         <bundle start-level="25" dependency="true">mvn:com.google.guava/guava/${cxf.guava.version}</bundle>
         <bundle start-level="25" dependency="true">mvn:joda-time/joda-time/${cxf.joda.time.version}</bundle>
