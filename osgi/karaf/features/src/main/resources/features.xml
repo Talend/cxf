@@ -22,9 +22,9 @@
 
     <feature name="jakarta-servlet" version="6.1.0">
         <bundle dependency="true">mvn:jakarta.servlet/jakarta.servlet-api/6.1.0</bundle>
-        <bundle dependency="true" start="false">mvn:org.ops4j.pax.web/pax-web-compatibility-servlet5/9.99.0</bundle>
+        <!-- <bundle dependency="true" start="false">mvn:org.ops4j.pax.web/pax-web-compatibility-servlet5/9.99.0</bundle> -->
     </feature>
-    <feature name="jetty" version="12.0.10">
+    <!-- <feature name="jetty" version="12.0.10">
         <feature version="[6,7)">jakarta-servlet</feature>
         <bundle dependency="true">mvn:org.eclipse.jetty/jetty-alpn-server/12.0.10</bundle>
         <bundle dependency="true">mvn:org.eclipse.jetty/jetty-http/12.0.10</bundle>
@@ -37,13 +37,13 @@
         <bundle dependency="true">mvn:org.eclipse.jetty.http2/jetty-http2-hpack/12.0.10</bundle>
         <bundle dependency="true">mvn:org.eclipse.jetty.http2/jetty-http2-common/12.0.10</bundle>
         <bundle dependency="true">mvn:org.eclipse.jetty.http2/jetty-http2-server/12.0.10</bundle>
-    </feature>
+    </feature> -->
 
     <feature name="cxf-specs" version="${upstream.version}">
         <bundle start-level="9">mvn:org.apache.geronimo.specs/geronimo-osgi-registry/1.1</bundle>
         <bundle start-level="10" dependency="true">mvn:jakarta.activation/jakarta.activation-api/${cxf.jakarta.activation.version}</bundle>
         <bundle start-level="10" dependency="true">mvn:jakarta.annotation/jakarta.annotation-api/${cxf.jakarta.annotation-api.version}</bundle>
-        <bundle start-level="10">mvn:jakarta.xml.bind/jakarta.xml.bind-api/4.0.2.q1</bundle>
+        <bundle start-level="10">wrap:mvn:jakarta.xml.bind/jakarta.xml.bind-api/4.0.2$overwrite=merge&amp;Bundle-SymbolicName=jakarta.xml.bind-api-40</bundle>
         <bundle start-level="10" start="false">mvn:org.ops4j.pax.web/pax-web-compatibility-jaxb3/9.99.0</bundle>
         <bundle start-level="10" dependency="true">mvn:jakarta.xml.ws/jakarta.xml.ws-api/${cxf.jakarta.wsapi.version}</bundle>
         <bundle start-level="10" dependency="true">mvn:jakarta.ws.rs/jakarta.ws.rs-api/${cxf.jakarta.ws.rs.version}</bundle>
@@ -108,7 +108,7 @@
         <!-- <feature version="${cxf.opensaml.tesb.version}">opensaml</feature> -->
         <bundle start-level="25" dependency="true">mvn:joda-time/joda-time/${cxf.joda.time.version}</bundle>
         <bundle start-level="25" dependency="true">mvn:commons-codec/commons-codec/${cxf.commons-codec.version}</bundle>
-        <bundle start-level="25" dependency="true">mvn:org.apache.santuario/xmlsec/3.0.5.20241111</bundle>
+        <bundle start-level="25" dependency="true">mvn:org.apache.santuario/xmlsec/3.0.4</bundle>
         <bundle start-level="25" dependency="true">mvn:com.google.guava/failureaccess/1.0.1</bundle>
         <bundle start-level="25" dependency="true">mvn:com.google.guava/guava/${cxf.guava.version}</bundle>
         <bundle start-level="25" dependency='true'>mvn:io.dropwizard.metrics/metrics-core/${cxf.dropwizard4.version}</bundle>
@@ -203,10 +203,6 @@
     <feature name="cxf-http" version="${upstream.version}">
         <feature version="${cxf.tesb.version-range}">cxf-core</feature>
         <feature>pax-web-http</feature>
-        <!-- remove begin -->
-        <bundle dependency="true">mvn:org.osgi/osgi.vcmpn/7.0.0</bundle>
-        <bundle dependency="true">mvn:org.ops4j.pax.web/pax-web-jetty-bundle/9.99.0</bundle>
-        <!-- remove end -->
         <bundle start-level="40">mvn:org.apache.cxf/cxf-rt-transports-http/${upstream.version}</bundle>
     </feature>
     <!--
@@ -223,7 +219,7 @@
     </feature>
     <feature name="cxf-http-jetty" version="${upstream.version}">
         <feature version="${cxf.tesb.version-range}">cxf-http</feature>
-        <feature version="[12,13)">jetty</feature>
+        <feature version="[12,13)">pax-web-jetty</feature>
         <bundle start-level="40">mvn:org.apache.cxf/cxf-rt-transports-http-jetty/${upstream.version}</bundle>
         <capability>
             cxf.http.provider;name=jetty
@@ -524,9 +520,9 @@
     <feature name="cxf-xjc-runtime" version="${upstream.version}">
         <feature version="${cxf.tesb.version-range}">cxf-jaxb</feature>
         <bundle start-level="35" dependency="true">mvn:org.apache.commons/commons-lang3/${cxf.commons-lang3.version}</bundle>
-        <bundle start-level="40">mvn:org.apache.cxf.xjc-utils/cxf-xjc-runtime/4.1.10</bundle>
+        <bundle start-level="40">mvn:org.apache.cxf.xjc-utils/cxf-xjc-runtime/4.1.0-SNAPSHOT</bundle>
     </feature>
-    <!-- <feature name="cxf-tools" version="${upstream.version}">
+    <feature name="cxf-tools" version="${upstream.version}">
         <feature version="${cxf.tesb.version-range}">cxf-core</feature>
         <feature version="${cxf.tesb.version-range}">cxf-wsdl</feature>
         <feature version="${cxf.tesb.version-range}">cxf-databinding-jaxb</feature>
@@ -541,15 +537,15 @@
         <bundle>mvn:org.apache.cxf/cxf-tools-common/${upstream.version}</bundle>
         <bundle>mvn:org.apache.cxf/cxf-tools-java2ws/${upstream.version}</bundle>
         <bundle>mvn:org.apache.cxf/cxf-tools-misctools/${upstream.version}</bundle>
-        <bundle>mvn:org.apache.cxf/cxf-tools-validator/${upstream.version}</bundle>
+        <bundle>wrap:mvn:org.apache.cxf/cxf-tools-validator/${upstream.version}$overwrite=merge&amp;Export-Package=org.apache.cxf.tools.validator.internal;version=4.1.0,org.apache.cxf.tools.validator;version=4.1.0</bundle>
         <bundle>mvn:org.apache.cxf/cxf-tools-wadlto-jaxrs/${upstream.version}</bundle>
         <bundle>mvn:org.apache.cxf/cxf-tools-wsdlto-core/${upstream.version}</bundle>
         <bundle>mvn:org.apache.cxf/cxf-tools-wsdlto-databinding-jaxb/${upstream.version}</bundle>
         <bundle>mvn:org.apache.cxf/cxf-tools-wsdlto-frontend-javascript/${upstream.version}</bundle>
         <bundle>mvn:org.apache.cxf/cxf-tools-wsdlto-frontend-jaxws/${upstream.version}</bundle>
-        < ! - - need antlr
-        <bundle>mvn:org.apache.cxf/cxf-tools-corba/${upstream.version}</bundle> - - >
-    </feature> -->
+        <!-- need antlr -->
+        <!-- <bundle>mvn:org.apache.cxf/cxf-tools-corba/${upstream.version}</bundle> -->
+    </feature>
     <feature name="cxf" version="${upstream.version}">
         <feature version="${cxf.tesb.version-range}">cxf-core</feature>
         <feature version="${cxf.tesb.version-range}">cxf-jaxws</feature>
