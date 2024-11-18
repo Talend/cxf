@@ -27,6 +27,8 @@
     <packaging>pom</packaging>
     <name>Apache CXF Karaf Features</name>
     <description>Apache CXF Karaf Features</description>
+    <version>${revision}</version>
+    <properties><revision>${apache-cxf.features.tesb.version}</revision></properties>
     <!-- The validate plugin will export these provided dependencies bundles' export packages first -->
     <dependencies>
         <!-- Framework distribution -->
