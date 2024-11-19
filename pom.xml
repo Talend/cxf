@@ -78,7 +78,8 @@
         <!-- <cxf.jdom1.bundle.tesb.version>1.1_4</cxf.jdom1.bundle.tesb.version> -->
         <cxf.joda.time.tesb.version>2.11.1</cxf.joda.time.tesb.version>
         <!-- <cxf.mina.tesb.version>2.2.1</cxf.mina.tesb.version> -->
-        <cxf.opensaml.tesb.version>4.0.1_1</cxf.opensaml.tesb.version>
+        <!-- <cxf.opensaml.tesb.version>4.0.1_1</cxf.opensaml.tesb.version> -->
+        <cxf.opensaml.tesb.version>4.3.2</cxf.opensaml.tesb.version>
         <cxf.opensaml.tesb.version-range>[4,5)</cxf.opensaml.tesb.version-range>
         <cxf.xmlsec.bundle.tesb.version>2.3.4</cxf.xmlsec.bundle.tesb.version>
         <cxf.servicemix.aspectj.tesb.version>1.9.21.1_1</cxf.servicemix.aspectj.tesb.version>
