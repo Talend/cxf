@@ -20,12 +20,12 @@
 
     <!-- <repository>mvn:org.ops4j.pax.cdi/pax-cdi-features/1.1.4/xml/features</repository> -->
 
-    <feature name="jakarta-servlet" version="6.1.0">
-        <bundle dependency="true">mvn:jakarta.servlet/jakarta.servlet-api/6.1.0</bundle>
-        <!-- <bundle dependency="true" start="false">mvn:org.ops4j.pax.web/pax-web-compatibility-servlet5/9.99.0</bundle> -->
+    <feature name="cxf-specs-jakarta-servlet" version="6.1.0">
+        <bundle start-level="10">wrap:mvn:jakarta.servlet/jakarta.servlet-api/6.1.0$overwrite=merge&amp;Bundle-SymbolicName=jakarta.servlet-api-61</bundle>
+        <bundle start-level="10" start="false">mvn:org.ops4j.pax.web/pax-web-compatibility-servlet5/9.99.0</bundle>
     </feature>
     <!-- <feature name="jetty" version="12.0.10">
-        <feature version="[6,7)">jakarta-servlet</feature>
+        <feature version="[6,7)">cxf-specs-jakarta-servlet</feature>
         <bundle dependency="true">mvn:org.eclipse.jetty/jetty-alpn-server/12.0.10</bundle>
         <bundle dependency="true">mvn:org.eclipse.jetty/jetty-http/12.0.10</bundle>
         <bundle dependency="true">mvn:org.eclipse.jetty/jetty-io/12.0.10</bundle>
@@ -195,7 +195,7 @@
     <feature name="cxf-http-client" version="${upstream.version}">
         <!-- Can be used instead cxf-http for a smaller footprint -->
         <feature version="${cxf.tesb.version-range}">cxf-core</feature>
-        <feature version="[6,7)">jakarta-servlet</feature>
+        <feature version="[6,7)">cxf-specs-jakarta-servlet</feature>
         <!-- <bundle start-level="40">mvn:${cxf.servlet-api.group}/${cxf.servlet-api.artifact}/${cxf.servlet-api.version}</bundle> -->
         <bundle start-level="40">mvn:org.apache.cxf/cxf-rt-transports-http/${upstream.version}</bundle>
     </feature>
@@ -234,7 +234,7 @@
     </feature>
     <feature name="cxf-http-netty-client" version="${upstream.version}">
         <feature version="${cxf.tesb.version-range}">cxf-http</feature>
-        <feature version="[6,7)">jakarta-servlet</feature>
+        <feature version="[6,7)">cxf-specs-jakarta-servlet</feature>
         <!-- <bundle dependency="true" start-level="40">mvn:${cxf.servlet-api.group}/${cxf.servlet-api.artifact}/${cxf.servlet-api.version}</bundle> -->
         <bundle start-level="40">mvn:org.bouncycastle/bcprov-jdk18on/${cxf.bcprov.version}</bundle>
         <bundle start-level="40">mvn:org.bouncycastle/bcutil-jdk18on/${cxf.bcprov.version}</bundle>
@@ -399,7 +399,7 @@
     <feature name="cxf-rs-description-openapi-v3" version="${upstream.version}">
         <feature version="${cxf.tesb.version-range}">cxf-jaxrs</feature>
         <feature version="${cxf.tesb.version-range}">cxf-jackson</feature>
-        <feature version="[6,7)">jakarta-servlet</feature>
+        <feature version="[6,7)">cxf-specs-jakarta-servlet</feature>
         <bundle start-level="40">mvn:org.apache.cxf/cxf-rt-rs-service-description-common-openapi/${upstream.version}</bundle>
         <bundle start-level="35">mvn:org.apache.cxf/cxf-rt-rs-service-description-swagger-ui/${upstream.version}</bundle>
         <bundle start-level="40">mvn:org.apache.cxf/cxf-rt-rs-service-description-openapi-v3/${upstream.version}</bundle>
