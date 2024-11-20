@@ -35,7 +35,7 @@
         <dependency>
             <groupId>org.apache.karaf.features</groupId>
             <artifactId>framework</artifactId>
-            <version>${cxf.karaf.version}</version>
+            <version>${cxf.karaf.tesb.version}</version>
             <type>kar</type>
             <scope>provided</scope>
             <exclusions>
@@ -53,7 +53,7 @@
         <dependency>
             <groupId>org.apache.karaf.features</groupId>
             <artifactId>standard</artifactId>
-            <version>${cxf.karaf.version}</version>
+            <version>${cxf.karaf.tesb.version}</version>
             <classifier>features</classifier>
             <type>xml</type>
             <scope>provided</scope>
@@ -151,7 +151,7 @@
             <plugin>
                 <groupId>org.apache.karaf.tooling</groupId>
                 <artifactId>karaf-maven-plugin</artifactId>
-                <version>${cxf.karaf.version}</version>
+                <version>${cxf.karaf.tesb.version}</version>
                 <executions>
                     <execution>
                         <id>verify</id>
@@ -161,10 +161,10 @@
                         </goals>
                         <configuration>
                             <descriptors>
-                                <descriptor>mvn:org.ops4j.pax.web/pax-web-features/${cxf.pax-web.features.version}/xml/features</descriptor>
-                                <descriptor>mvn:org.apache.karaf.features/framework/${cxf.karaf.version}/xml/features</descriptor>
-                                <descriptor>mvn:org.apache.karaf.features/standard/${cxf.karaf.features.version}/xml/features</descriptor>
-                                <descriptor>mvn:org.apache.karaf.features/spring/${cxf.karaf.features.version}/xml/features</descriptor>
+                                <descriptor>mvn:org.ops4j.pax.web/pax-web-features/${cxf.pax-web.features.tesb.version}/xml/features</descriptor>
+                                <descriptor>mvn:org.apache.karaf.features/framework/${cxf.karaf.tesb.version}/xml/features</descriptor>
+                                <descriptor>mvn:org.apache.karaf.features/standard/${cxf.karaf.features.tesb.version}/xml/features</descriptor>
+                                <descriptor>mvn:org.apache.karaf.features/spring/${cxf.karaf.features.tesb.version}/xml/features</descriptor>
                                 <descriptor>file:${project.build.directory}/classes/verify.xml</descriptor>
                                 <descriptor>file:${project.build.directory}/classes/features.xml</descriptor>
                             </descriptors>

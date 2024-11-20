@@ -73,13 +73,12 @@
         <cxf.osgi.jakarta.bind.version>[4,5)</cxf.osgi.jakarta.bind.version>
         <cxf.osgi.jakarta.activation.version>[2,3)</cxf.osgi.jakarta.activation.version>
         <cxf.osgi.jakarta.mail.version>[2,3)</cxf.osgi.jakarta.mail.version>
-        <cxf.osgi.jakarta.servlet.version>[5,7)</cxf.osgi.jakarta.servlet.version>
+        <cxf.osgi.jakarta.servlet.version>[6,7)</cxf.osgi.jakarta.servlet.version>
         <cxf.osgi.jakarta.xml.ws.version>[4,5)</cxf.osgi.jakarta.xml.ws.version>
         <cxf.osgi.cdi.version>[4,5)</cxf.osgi.cdi.version>
         <cxf.osgi.jakarta.jwsapi.version>[3,4)</cxf.osgi.jakarta.jwsapi.version>
         <cxf.osgi.saaj.version>[3,4)</cxf.osgi.saaj.version>
-        <!-- <cxf.opensaml.osgi.version>[4.2,5)</cxf.opensaml.osgi.version> -->
-        <cxf.opensaml.osgi.version>[4,5)</cxf.opensaml.osgi.version>
+        <cxf.opensaml.osgi.version>[4.2,5)</cxf.opensaml.osgi.version>
         <cxf.ehcache.osgi.version>[3,4)</cxf.ehcache.osgi.version>
         <cxf.jetty.osgi.version>[12,13)</cxf.jetty.osgi.version>
         <cxf.osgi.netty.version>[4.1,5)</cxf.osgi.netty.version>
@@ -239,7 +238,6 @@
         <cxf.woodstox.core.version>7.1.0</cxf.woodstox.core.version>
         <cxf.woodstox.stax2-api.version>4.2.1</cxf.woodstox.stax2-api.version>
         <cxf.wsdl4j.version>1.6.3</cxf.wsdl4j.version>
-        <!-- <cxf.jakarta.wss4j.version>3.0.4.20241111</cxf.jakarta.wss4j.version> -->
         <cxf.jakarta.wss4j.version>3.0.4</cxf.jakarta.wss4j.version>
         <cxf.xmlschema.version>2.3.1</cxf.xmlschema.version>
         <cxf.xnio.version>3.8.16.Final</cxf.xnio.version>
