@@ -218,7 +218,7 @@
         <cxf.spring.mock>spring-test</cxf.spring.mock>
         <cxf.spring.security.version>6.3.4</cxf.spring.security.version>
         <cxf.spring.version>6.2.0</cxf.spring.version>
-        <cxf.stax-ex.version>2.1.0</cxf.stax-ex.version>
+        <cxf.stax-ex.version>1.8.3</cxf.stax-ex.version>
         <cxf.swagger.ui.version>5.18.2</cxf.swagger.ui.version>
         <cxf.swagger.v3.version>2.2.25</cxf.swagger.v3.version>
         <cxf.tika.version>3.0.0</cxf.tika.version>
@@ -231,7 +231,6 @@
              with a qualifier. We do want a range. -->
         <cxf.validation.api.package.version>[3,4)</cxf.validation.api.package.version>
         <cxf.validation.api.version>3.0.2</cxf.validation.api.version>
-        <cxf.validation2.api.version>2.0.2</cxf.validation2.api.version>
         <cxf.velocity.version>2.3</cxf.velocity.version>
         <cxf.wildfly.common.version>2.0.1</cxf.wildfly.common.version>
         <cxf.wiremock.version>3.9.2</cxf.wiremock.version>
@@ -261,9 +260,7 @@
         <cxf.jaxb.bundle.version>2.3.2_1</cxf.jaxb.bundle.version>
         <cxf.jaxb.context.class.property>none</cxf.jaxb.context.class.property>
         <cxf.jdom.bundle.version>1.1_4</cxf.jdom.bundle.version>
-        <cxf.karaf.version>4.4.6</cxf.karaf.version>
-        <cxf.karaf.features.version>4.4.6.20240820</cxf.karaf.features.version>
-        <cxf.pax-web.features.version>9.99.0</cxf.pax-web.features.version>
+        <cxf.karaf.version>4.4.0</cxf.karaf.version>
         <cxf.oauth.bundle.version>20100527_1</cxf.oauth.bundle.version>
         <cxf.oro.bundle.version>2.0.8_6</cxf.oro.bundle.version>
         <cxf.pax.exam.version>4.13.5</cxf.pax.exam.version>
