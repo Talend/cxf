@@ -96,7 +96,7 @@
         <cxf.osgi.javax.stream.tesb.version-range>[0,2)</cxf.osgi.javax.stream.tesb.version-range>
         <cxf.guava.tesb.version-range>[32,40)</cxf.guava.tesb.version-range>
         <cxf.jakarta.bind.tesb.version-range>[4,5)</cxf.jakarta.bind.tesb.version-range>
-        <cxf.wss4j.tesb.version-range>[4,5)</cxf.wss4j.tesb.version-range>
+        <!-- <cxf.wss4j.tesb.version-range>[3,4)</cxf.wss4j.tesb.version-range> -->
 
         <cxf.compiler.fork>false</cxf.compiler.fork>
         <cxf.build-utils.version>4.0.1</cxf.build-utils.version>

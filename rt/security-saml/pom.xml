@@ -33,8 +33,7 @@
     <properties>
         <cxf.module.name>org.apache.cxf.security.saml</cxf.module.name>
         <cxf.osgi.import>
-            org.opensaml*;version="${cxf.opensaml.osgi.version}",
-            org.apache.wss4j*;version="${cxf.wss4j.tesb.version-range}"
+            org.opensaml*;version="${cxf.opensaml.osgi.version}"
         </cxf.osgi.import>
     </properties>
     <dependencies>
