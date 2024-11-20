@@ -41,12 +41,12 @@
         <dependency>
             <groupId>org.apache.karaf.shell</groupId>
             <artifactId>org.apache.karaf.shell.core</artifactId>
-            <version>${cxf.karaf.version}</version>
+            <version>${cxf.karaf.tesb.version}</version>
         </dependency>
         <dependency>
             <groupId>org.apache.karaf</groupId>
             <artifactId>org.apache.karaf.util</artifactId>
-            <version>${cxf.karaf.version}</version>
+            <version>${cxf.karaf.tesb.version}</version>
         </dependency>
         <dependency>
             <groupId>org.osgi</groupId>
@@ -64,7 +64,7 @@
             <plugin>
                 <groupId>org.apache.karaf.tooling</groupId>
                 <artifactId>karaf-services-maven-plugin</artifactId>
-                <version>${cxf.karaf.version}</version>
+                <version>${cxf.karaf.tesb.version}</version>
             </plugin>
             <plugin>
                 <groupId>org.apache.felix</groupId>
