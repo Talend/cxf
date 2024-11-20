@@ -51,6 +51,7 @@
         <!-- <cxf-bundle-compatible.tesb.version>4.1.0.1-SNAPSHOT</cxf-bundle-compatible.tesb.version> -->
         <cxf-rt-rs-service-description.tesb.version>4.1.0.1-SNAPSHOT</cxf-rt-rs-service-description.tesb.version>
         <cxf.tesb.version-range>[4.1,4.2)</cxf.tesb.version-range>
+        <cxf.tesb.major-version-range>[4,5)</cxf.tesb.major-version-range>
         <!-- <cxf.jakarta.mail.tesb.version>1.6.7</cxf.jakarta.mail.tesb.version> -->
         <!-- <cxf.activemq-osgi.tesb.version>5.17.6.20231031</cxf.activemq-osgi.tesb.version> -->
         <!-- <cxf.geronimo.jms2.tesb.version>1.0-alpha-2</cxf.geronimo.jms2.tesb.version> -->
@@ -80,7 +81,7 @@
         <!-- <cxf.mina.tesb.version>2.2.1</cxf.mina.tesb.version> -->
         <!-- <cxf.opensaml.tesb.version>4.0.1_1</cxf.opensaml.tesb.version> -->
         <cxf.opensaml.tesb.version>4.3.2</cxf.opensaml.tesb.version>
-        <cxf.opensaml.tesb.version-range>[4,5)</cxf.opensaml.tesb.version-range>
+        <!-- <cxf.opensaml.tesb.version-range>[4,5)</cxf.opensaml.tesb.version-range> -->
         <cxf.xmlsec.bundle.tesb.version>2.3.4</cxf.xmlsec.bundle.tesb.version>
         <cxf.servicemix.aspectj.tesb.version>1.9.21.1_1</cxf.servicemix.aspectj.tesb.version>
         <cxf.staxex.tesb.version>2.1.0</cxf.staxex.tesb.version>
@@ -92,6 +93,7 @@
         <cxf.osgi.javax.stream.tesb.version-range>[0,2)</cxf.osgi.javax.stream.tesb.version-range>
         <cxf.guava.tesb.version-range>[32,40)</cxf.guava.tesb.version-range>
         <cxf.jakarta.bind.tesb.version-range>[4,5)</cxf.jakarta.bind.tesb.version-range>
+        <cxf.wss4j.tesb.version-range>[4,5)</cxf.wss4j.tesb.version-range>
 
         <cxf.compiler.fork>false</cxf.compiler.fork>
         <cxf.build-utils.version>4.0.1</cxf.build-utils.version>
