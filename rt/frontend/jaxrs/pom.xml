@@ -37,6 +37,7 @@
         <cxf.osgi.import>
             jakarta.servlet*;version="${cxf.osgi.jakarta.servlet.version}",
             jakarta.activation;version="${cxf.osgi.jakarta.activation.version}",
+            org.apache.aries*;version="${cxf.aries.version.range}";resolution:=optional,
             org.springframework*;resolution:="optional";version="${cxf.osgi.spring.version}",
             jakarta.validation*;resolution:=optional;version="${cxf.validation.api.package.version}",
             jakarta.ws.rs.client;version="[3,4)",
@@ -47,6 +48,11 @@
         <cxf.osgi.export>
             org.apache.cxf.jaxrs*
         </cxf.osgi.export>
+        <cxf.bundle.activator>org.apache.cxf.jaxrs.blueprint.Activator</cxf.bundle.activator>
+        <!-- keep in sync with services exported in activator -->
+        <cxf.export.service>
+            org.apache.aries.blueprint.NamespaceHandler;osgi.service.blueprint.namespace="http://cxf.apache.org/blueprint/jaxrs"
+        </cxf.export.service>
     </properties>
     <dependencies>
         <dependency>
@@ -60,6 +66,21 @@
             <optional>true</optional>
         </dependency>
         <dependency>
+            <groupId>org.apache.aries.blueprint</groupId>
+            <artifactId>org.apache.aries.blueprint.core</artifactId>
+            <optional>true</optional>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.aries.blueprint</groupId>
+            <artifactId>blueprint-parser</artifactId>
+            <scope>provided</scope>
+            <optional>true</optional>
+        </dependency>
+        <dependency>
+            <groupId>org.osgi</groupId>
+            <artifactId>osgi.core</artifactId>
+        </dependency>
+        <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
             <scope>test</scope>
@@ -67,7 +88,7 @@
         <dependency>
             <groupId>org.apache.cxf</groupId>
             <artifactId>cxf-core</artifactId>
-            <version>${upstream.version}</version>
+            <version>${cxf-core.tesb.version}</version>
         </dependency>
         <dependency>
             <groupId>org.springframework</groupId>
@@ -213,10 +234,50 @@
                             <DynamicImport-Package>
                                 ${cxf.osgi.dynamic.import}
                             </DynamicImport-Package>
+                            <Bundle-Activator>${cxf.bundle.activator}</Bundle-Activator>
                         </instructions>
                     </configuration>
                 </plugin>
             </plugins>
         </pluginManagement>
     </build>
+
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>org.apache.aries.blueprint</groupId>
+                <artifactId>org.apache.aries.blueprint.api</artifactId>
+                <version>${cxf.aries.api.version}</version>
+                <scope>provided</scope>
+                <optional>true</optional>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.aries.blueprint</groupId>
+                <artifactId>org.apache.aries.blueprint.core</artifactId>
+                <version>${cxf.aries.core.version}</version>
+                <scope>provided</scope>
+                <optional>true</optional>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.aries.blueprint</groupId>
+                <artifactId>blueprint-parser</artifactId>
+                <version>${cxf.aries.parser.version}</version>
+                <scope>provided</scope>
+                <optional>true</optional>
+            </dependency>
+            <dependency>
+                <groupId>org.osgi</groupId>
+                <artifactId>osgi.core</artifactId>
+                <version>${cxf.osgi.tesb.version}</version>
+                <scope>provided</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.osgi</groupId>
+                <artifactId>osgi.cmpn</artifactId>
+                <version>${cxf.osgi.cmpn.tesb.version}</version>
+                <scope>provided</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
 </project>
