@@ -81,6 +81,9 @@
         <cxf.karaf.tesb.version>4.4.6</cxf.karaf.tesb.version>
         <cxf.karaf.features.tesb.version>4.4.6.20240820</cxf.karaf.features.tesb.version>
         <cxf.pax-web.features.tesb.version>9.99.0</cxf.pax-web.features.tesb.version>
+        <cxf.camel.tesb.version>4.8.1</cxf.camel.tesb.version>
+        <cxf.camel.cxf.tesb.version>4.8.1.20240820</cxf.camel.cxf.tesb.version>
+        <cxf.camel.features.tesb.version>4.8.1.20240820</cxf.camel.features.tesb.version>
         <!-- <cxf.mina.tesb.version>2.2.1</cxf.mina.tesb.version> -->
         <cxf.opensaml.tesb.version>4.3.2</cxf.opensaml.tesb.version>
         <!-- <cxf.opensaml.tesb.version-range>[4,5)</cxf.opensaml.tesb.version-range> -->
