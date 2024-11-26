@@ -1,6 +1,6 @@
 @Library('esb') _
 
 Fork(
-        MVN_MODULES: 'org.apache.cxf:cxf-parent,org.apache.cxf:cxf-core,org.apache.cxf:cxf-testutils,org.apache.cxf:cxf-rt-frontend-simple,org.apache.cxf:cxf-rt-frontend-jaxrs,org.apache.cxf:cxf-rt-frontend-jaxws,org.apache.cxf:cxf-rt-rs-service-description',
+        MVN_MODULES: 'org.apache.cxf:cxf -amd -Dmaven.test.skip.exec=true',
         USE_JAVA11: 'true'
 )
