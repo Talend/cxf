@@ -29,6 +29,20 @@
     <description>Apache CXF Karaf Features</description>
     <version>${revision}</version>
     <properties><revision>${apache-cxf.features.tesb.version}</revision></properties>
+
+    <repositories>
+        <repository>
+            <id>shibboleth-releases</id>
+            <name>Shibboleth Releases</name>
+            <url>https://build.shibboleth.net/maven/releases/</url>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+            <releases>
+                <enabled>true</enabled>
+            </releases>
+        </repository>
+    </repositories>
     <!-- The validate plugin will export these provided dependencies bundles' export packages first -->
     <dependencies>
         <!-- Framework distribution -->
