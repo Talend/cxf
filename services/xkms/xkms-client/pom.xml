@@ -57,6 +57,31 @@
                 </includes>
             </testResource>
         </testResources>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.felix</groupId>
+                <artifactId>maven-bundle-plugin</artifactId>
+                <extensions>true</extensions>
+                <configuration>
+                    <instructions>
+                        <Import-Package>
+                            jakarta.xml.ws*;version="${cxf.osgi.jakarta.xml.ws.version}", <!-- To workaround issue with BindingProvider interface not visible -->
+                            jakarta.xml.bind*;version="${cxf.osgi.jakarta.bind.version}",
+                            org.slf4j*;version="${cxf.osgi.slf4j.version}",
+                            *
+                        </Import-Package>
+                        <Export-Package>
+                                org.apache.cxf.xkms.crypto.provider,
+                                org.apache.cxf.xkms.cache,
+                                org.apache.cxf.xkms.client
+                                <!-- To avoid problems with existing users.
+                                         We should try to remove the exports again in the future.
+                                 -->
+                        </Export-Package>
+                    </instructions>
+                </configuration>
+            </plugin>
+        </plugins>
     </build>
     <dependencies>
         <dependency>
@@ -73,6 +98,11 @@
             <groupId>org.apache.cxf</groupId>
             <artifactId>cxf-rt-frontend-jaxws</artifactId>
             <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.cxf</groupId>
+            <artifactId>cxf-rt-frontend-simple</artifactId>
+            <version>${upstream.version}</version>
         </dependency>
         <dependency>
             <groupId>org.ehcache</groupId>
