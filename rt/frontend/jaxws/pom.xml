@@ -246,12 +246,6 @@
                 <version>${cxf.osgi.tesb.version}</version>
                 <scope>provided</scope>
             </dependency>
-            <dependency>
-                <groupId>org.osgi</groupId>
-                <artifactId>osgi.cmpn</artifactId>
-                <version>${cxf.osgi.cmpn.tesb.version}</version>
-                <scope>provided</scope>
-            </dependency>
         </dependencies>
     </dependencyManagement>
 

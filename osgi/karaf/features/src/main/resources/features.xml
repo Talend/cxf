@@ -138,6 +138,7 @@
         <bundle start-level="30" dependency="true">mvn:${cxf.asm.groupId}/${cxf.asm.artifactId}/${cxf.asm.version}</bundle>
         <!-- <bundle start-level="40">mvn:org.apache.cxf/cxf-core/${cxf-core.tesb.version}</bundle> -->
         <feature version="[4.8,4.9)">camel-cxf</feature>
+        <bundle start-level="30" dependency="true">mvn:org.ops4j.pax.web/pax-web-api/${cxf.tesb.pax-web.api.version}</bundle>
         <bundle start-level="40">mvn:org.apache.cxf/cxf-rt-management/${upstream.version}</bundle>
         <conditional>
             <condition>shell</condition>
@@ -187,6 +188,7 @@
         <feature version="${cxf.tesb.version-range}">cxf-rt-security-saml</feature>
         <feature version="${cxf.tesb.version-range}">cxf-ws-policy</feature>
         <feature version="${cxf.tesb.version-range}">cxf-ws-addr</feature>
+        <bundle dependency="true">mvn:org.ops4j.pax.web/pax-web-api/${cxf.tesb.pax-web.api.version}</bundle>
         <bundle dependency="true">mvn:org.apache.geronimo.specs/geronimo-jta_1.1_spec/${cxf.geronimo.jta.version}</bundle>
         <bundle start-level="40" dependency="true">mvn:org.ehcache/ehcache/${cxf.ehcache3.version}</bundle>
         <bundle start-level="40">mvn:org.apache.cxf/cxf-rt-ws-security/${upstream.version}</bundle>
@@ -291,6 +293,7 @@
     <feature name="cxf-bindings-soap" version="${upstream.version}">
         <feature version="${cxf.tesb.version-range}">cxf-wsdl</feature>
         <feature version="${cxf.saaj-impl.version}">saaj-impl</feature>
+        <bundle dependency="true">mvn:org.ops4j.pax.web/pax-web-api/${cxf.tesb.pax-web.api.version}</bundle>
         <!-- <bundle start-level="40">mvn:org.apache.cxf/cxf-rt-bindings-xml/${upstream.version}</bundle> -->
         <!-- <bundle start-level="40">mvn:org.apache.cxf/cxf-rt-bindings-soap/${upstream.version}</bundle> -->
         <feature version="[4.8,4.9)">camel-cxf</feature>

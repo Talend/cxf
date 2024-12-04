@@ -55,8 +55,9 @@
         </dependency>
         <dependency>
             <groupId>org.osgi</groupId>
-            <artifactId>osgi.cmpn</artifactId>
-            <version>${cxf.osgi.cmpn.tesb.version}</version>
+            <artifactId>org.osgi.service.cm</artifactId>
+            <version>${cxf.tesb.org.osgi.service.cm.version}</version>
+            <scope>provided</scope>
         </dependency>
     </dependencies>
     <build>

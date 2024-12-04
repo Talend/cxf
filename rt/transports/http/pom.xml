@@ -104,6 +104,31 @@
             <scope>provided</scope>
         </dependency>
         <dependency>
+            <groupId>org.osgi</groupId>
+            <artifactId>osgi.core</artifactId>
+            <scope>provided</scope>
+            <version>${cxf.osgi.tesb.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.osgi</groupId>
+            <artifactId>org.osgi.service.servlet</artifactId>
+            <scope>provided</scope>
+            <version>${cxf.tesb.org.osgi.service.servlet.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.osgi</groupId>
+            <artifactId>org.osgi.service.cm</artifactId>
+            <version>${cxf.tesb.org.osgi.service.cm.version}</version>
+            <scope>provided</scope>
+        </dependency>
+        <!-- temporary dependency to get the HTTPService class , maybe later use the Whiteboard to rely only on the OSGI specs -->
+        <dependency>
+            <groupId>org.ops4j.pax.web</groupId>
+            <artifactId>pax-web-api</artifactId>
+            <version>${cxf.tesb.pax-web.api.version}</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>jcl-over-slf4j</artifactId>
             <scope>test</scope>
@@ -112,6 +137,12 @@
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-jdk14</artifactId>
             <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.aries.blueprint</groupId>
+            <artifactId>org.apache.aries.blueprint.core</artifactId>
+            <version>${cxf.aries.core.version}</version>
+            <scope>provided</scope>
         </dependency>
     </dependencies>
     <build>
