@@ -194,6 +194,12 @@
             <scope>provided</scope>
         </dependency>
         <dependency>
+            <groupId>org.osgi</groupId>
+            <artifactId>org.osgi.service.cm</artifactId>
+            <version>${cxf.tesb.org.osgi.service.cm.version}</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
             <groupId>net.java.dev.msv</groupId>
             <artifactId>msv-core</artifactId>
             <optional>true</optional>
