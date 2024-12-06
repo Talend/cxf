@@ -519,10 +519,10 @@
                             <apache-cxf.features.tesb.version>${apache-cxf.features.tesb.version}</apache-cxf.features.tesb.version>
                             <cxf-services-xkms.features.tesb.version>${cxf-services-xkms.features.tesb.version}</cxf-services-xkms.features.tesb.version>
                             <cxf-core.tesb.version>${cxf-core.tesb.version}</cxf-core.tesb.version>
-                            <cxf-rt-frontend-jaxrs.tesb.version>${cxf-rt-frontend-jaxrs.tesb.version>}</cxf-rt-frontend-jaxrs.tesb.version>
-                            <cxf-rt-frontend-jaxws.tesb.version>${cxf-rt-frontend-jaxws.tesb.version>}</cxf-rt-frontend-jaxws.tesb.version>
-                            <cxf-rt-frontend-simple.tesb.version>${cxf-rt-frontend-simple.tesb.version>}</cxf-rt-frontend-simple.tesb.version>
-                            <cxf-testutils.tesb.version>${cxf-testutils.tesb.version>}</cxf-testutils.tesb.version>
+                            <cxf-rt-frontend-jaxrs.tesb.version>${cxf-rt-frontend-jaxrs.tesb.version}</cxf-rt-frontend-jaxrs.tesb.version>
+                            <cxf-rt-frontend-jaxws.tesb.version>${cxf-rt-frontend-jaxws.tesb.version}</cxf-rt-frontend-jaxws.tesb.version>
+                            <cxf-rt-frontend-simple.tesb.version>${cxf-rt-frontend-simple.tesb.version}</cxf-rt-frontend-simple.tesb.version>
+                            <cxf-testutils.tesb.version>${cxf-testutils.tesb.version}</cxf-testutils.tesb.version>
                             <!-- <cxf-services-wsn-core.tesb.version>${cxf-services-wsn-core.tesb.version}</cxf-services-wsn-core.tesb.version> -->
                             <!-- <cxf-bundle-compatible.tesb.version>${cxf-bundle-compatible.tesb.version}</cxf-bundle-compatible.tesb.version> -->
                             <cxf-rt-rs-service-description.tesb.version>${cxf-rt-rs-service-description.tesb.version}</cxf-rt-rs-service-description.tesb.version>
