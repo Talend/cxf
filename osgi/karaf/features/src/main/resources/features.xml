@@ -136,7 +136,6 @@
         <bundle start-level="25" dependency="true">mvn:org.apache.servicemix.bundles/org.apache.servicemix.bundles.xmlresolver/${cxf.xmlresolver.bundle.version}</bundle>
         <bundle start-level="30" dependency="true">mvn:org.apache.servicemix.bundles/org.apache.servicemix.bundles.fastinfoset/${cxf.fastinfoset.bundle.version}</bundle>
         <bundle start-level="30" dependency="true">mvn:${cxf.asm.groupId}/${cxf.asm.artifactId}/${cxf.asm.version}</bundle>
-        <!-- <bundle start-level="40">mvn:org.apache.cxf/cxf-core/${cxf-core.tesb.version}</bundle> -->
         <feature version="[4.8,4.9)">camel-cxf</feature>
         <bundle start-level="30" dependency="true">mvn:org.ops4j.pax.web/pax-web-api/${cxf.tesb.pax-web.api.version}</bundle>
         <bundle start-level="40">mvn:org.apache.cxf/cxf-rt-management/${upstream.version}</bundle>
@@ -153,20 +152,17 @@
     <feature name="cxf-wsdl" version="${upstream.version}">
         <feature version="${cxf.tesb.version-range}">cxf-core</feature>
         <bundle start-level="30" dependency="true">mvn:org.apache.servicemix.bundles/org.apache.servicemix.bundles.wsdl4j/${cxf.wsdl4j.bundle.version}</bundle>
-        <!-- <bundle start-level="40">mvn:org.apache.cxf/cxf-rt-wsdl/${upstream.version}</bundle> -->
         <feature version="[4.8,4.9)">camel-cxf</feature>
     </feature>
     <feature name="cxf-ws-policy" version="${upstream.version}">
         <feature version="${cxf.tesb.version-range}">cxf-wsdl</feature>
         <bundle start-level="30" dependency="true">mvn:org.apache.neethi/neethi/${cxf.neethi.version}</bundle>
-        <!-- <bundle start-level="40">mvn:org.apache.cxf/cxf-rt-ws-policy/${upstream.version}</bundle> -->
         <feature version="[4.8,4.9)">camel-cxf</feature>
     </feature>
     <feature name="cxf-ws-addr" version="${upstream.version}">
         <feature version="${cxf.tesb.version-range}">cxf-ws-policy</feature>
         <feature version="${cxf.tesb.version-range}">cxf-bindings-soap</feature>
         <feature version="${cxf.tesb.version-range}">cxf-databinding-jaxb</feature>
-        <!-- <bundle start-level="40">mvn:org.apache.cxf/cxf-rt-ws-addr/${upstream.version}</bundle> -->
         <feature version="[4.8,4.9)">camel-cxf</feature>
     </feature>
     <feature name="cxf-ws-rm" version="${upstream.version}">
@@ -206,15 +202,12 @@
         <!-- Can be used instead cxf-http for a smaller footprint -->
         <feature version="${cxf.tesb.version-range}">cxf-core</feature>
         <feature version="[6,7)">cxf-specs-jakarta-servlet</feature>
-        <!-- <bundle start-level="40">mvn:${cxf.servlet-api.group}/${cxf.servlet-api.artifact}/${cxf.servlet-api.version}</bundle> -->
-        <!-- <bundle start-level="40">mvn:org.apache.cxf/cxf-rt-transports-http/${upstream.version}</bundle> -->
         <feature version="[4.8,4.9)">camel-cxf</feature>
     </feature>
 
     <feature name="cxf-http" version="${upstream.version}">
         <feature version="${cxf.tesb.version-range}">cxf-core</feature>
         <feature>pax-web-http</feature>
-        <!-- <bundle start-level="40">mvn:org.apache.cxf/cxf-rt-transports-http/${upstream.version}</bundle> -->
         <feature version="[4.8,4.9)">camel-cxf</feature>
     </feature>
     <!--
@@ -294,8 +287,6 @@
         <feature version="${cxf.tesb.version-range}">cxf-wsdl</feature>
         <feature version="${cxf.saaj-impl.version}">saaj-impl</feature>
         <bundle dependency="true">mvn:org.ops4j.pax.web/pax-web-api/${cxf.tesb.pax-web.api.version}</bundle>
-        <!-- <bundle start-level="40">mvn:org.apache.cxf/cxf-rt-bindings-xml/${upstream.version}</bundle> -->
-        <!-- <bundle start-level="40">mvn:org.apache.cxf/cxf-rt-bindings-soap/${upstream.version}</bundle> -->
         <feature version="[4.8,4.9)">camel-cxf</feature>
     </feature>
     <feature name="cxf-jaxws" version="${upstream.version}">
@@ -303,8 +294,6 @@
         <feature version="${cxf.tesb.version-range}">cxf-databinding-jaxb</feature>
         <feature version="${cxf.tesb.version-range}">cxf-bindings-soap</feature>
         <feature version="${cxf.tesb.version-range}">cxf-http</feature>
-        <!-- <bundle start-level="40">mvn:org.apache.cxf/cxf-rt-frontend-simple/${cxf-rt-frontend-simple.tesb.version}</bundle> -->
-        <!-- <bundle start-level="40">mvn:org.apache.cxf/cxf-rt-frontend-jaxws/${cxf-rt-frontend-jaxws.tesb.version}</bundle> -->
         <feature version="[4.8,4.9)">camel-cxf</feature>
     </feature>
     <feature name="cxf-jaxrs" version="${upstream.version}">
@@ -313,13 +302,7 @@
         <feature version="${cxf.tesb.version-range}">cxf-jackson</feature>
         <feature version="${cxf.tesb.version-range}">cxf-rt-security</feature>
         <bundle start-level="30" dependency="true">mvn:org.codehaus.jettison/jettison/${cxf.jettison.version}</bundle>
-        <bundle start-level="40">mvn:org.apache.cxf/cxf-rt-rs-extension-providers/${upstream.version}</bundle>
-        <bundle start-level="40">mvn:org.apache.cxf/cxf-rt-rs-extension-search/${upstream.version}</bundle>
-        <bundle start-level="40">mvn:org.apache.cxf/cxf-rt-rs-json-basic/${upstream.version}</bundle>
-        <bundle start-level="40">mvn:org.apache.cxf/cxf-rt-rs-service-description/${cxf-rt-rs-service-description.tesb.version}</bundle>
-        <!-- <bundle start-level="40">mvn:org.apache.cxf/cxf-rt-frontend-jaxrs/${cxf-rt-frontend-jaxrs.tesb.version}</bundle> -->
         <feature version="[4.8,4.9)">camel-cxf</feature>
-        <bundle start-level="40">mvn:org.apache.cxf/cxf-rt-rs-client/${upstream.version}</bundle>
     </feature>
     <feature name="cxf-rs-security-xml" version="${upstream.version}">
         <feature version="${cxf.tesb.version-range}">cxf-jaxrs</feature>
@@ -333,7 +316,6 @@
     <feature name="cxf-rs-security-jose" version="${upstream.version}">
         <feature version="${cxf.tesb.version-range}">cxf-jaxrs</feature>
         <feature version="${cxf.tesb.version-range}">cxf-rt-security</feature>
-        <bundle start-level="40">mvn:org.apache.cxf/cxf-rt-rs-json-basic/${upstream.version}</bundle>
         <bundle start-level="40">mvn:org.apache.cxf/cxf-rt-rs-security-jose/${upstream.version}</bundle>
         <bundle start-level="40">mvn:org.apache.cxf/cxf-rt-rs-security-jose-jaxrs/${upstream.version}</bundle>
     </feature>
@@ -597,7 +579,6 @@
         <feature prerequisite="true">wrap</feature>
         <bundle start-level="40" dependency="true">mvn:com.hazelcast/hazelcast/${cxf.hazelcast.version}</bundle>
         <bundle start-level="40" dependency="true">wrap:mvn:org.ehcache/ehcache/${cxf.ehcache3.version}$overwrite=merge&amp;Import-Package=javax.xml.bind*,*;resolution:=optional</bundle>
-        <bundle start-level="40">mvn:org.apache.cxf/cxf-rt-rs-json-basic/${upstream.version}</bundle>
         <bundle start-level="40">mvn:org.apache.cxf/cxf-rt-rs-security-jose/${upstream.version}</bundle>
         <feature version="${cxf.tesb.version-range}">cxf-core</feature>
         <feature version="${cxf.tesb.version-range}">cxf-ws-security</feature>
