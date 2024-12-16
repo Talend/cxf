@@ -24,6 +24,7 @@
     <name>Apache CXF CDI Integration</name>
     <description>Apache CXF CDI Integration</description>
     <url>https://cxf.apache.org</url>
+    <version>${revision}</version>
     <parent>
         <groupId>org.apache.cxf</groupId>
         <artifactId>cxf-parent</artifactId>
@@ -32,6 +33,7 @@
     </parent>
     
     <properties>
+        <revision>${cxf-rt.tesb.version}</revision>
         <cxf.module.name>org.apache.cxf.cdi</cxf.module.name>
         <cxf.osgi.import>
             jakarta.servlet*;version="${cxf.osgi.jakarta.servlet.version}",

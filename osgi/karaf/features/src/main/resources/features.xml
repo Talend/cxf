@@ -654,6 +654,6 @@
         <feature version="${cxf.tesb.version-range}">cxf-jaxrs</feature>
         <feature>pax-cdi</feature>
         <feature version="[3,4)">jakarta-jms-api</feature>
-        <bundle start-level="40">mvn:org.apache.cxf/cxf-integration-cdi/${upstream.version}</bundle>
+        <bundle start-level="40">mvn:org.apache.cxf/cxf-integration-cdi/${cxf-rt.tesb.version}</bundle>
     </feature>
 </features>
