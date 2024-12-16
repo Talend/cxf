@@ -25,6 +25,7 @@
     <name>Apache CXF WS-Discovery API</name>
     <description>Apache CXF WS-Discovery API</description>
     <url>https://cxf.apache.org</url>
+    <version>${revision}</version>
     <parent>
         <groupId>org.apache.cxf</groupId>
         <artifactId>cxf-parent</artifactId>
@@ -32,6 +33,7 @@
         <relativePath>../../../parent/pom.xml</relativePath>
     </parent>
     <properties>
+        <revision>${cxf-rt.tesb.version}</revision>
         <cxf.module.name>org.apache.cxf.ws.discovery</cxf.module.name>
         <cxf.osgi.export>
             =org.apache.cxf.ws.discovery.internal,

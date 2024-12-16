@@ -24,6 +24,7 @@
     <name>Apache CXF Runtime WS Reliable Messaging</name>
     <description>Apache CXF Runtime WS Reliable Messaging</description>
     <url>https://cxf.apache.org</url>
+    <version>${revision}</version>
     <parent>
         <groupId>org.apache.cxf</groupId>
         <artifactId>cxf-parent</artifactId>
@@ -31,6 +32,7 @@
         <relativePath>../../../parent/pom.xml</relativePath>
     </parent>
     <properties>
+        <revision>${cxf-rt.tesb.version}</revision>
         <cxf.module.name>org.apache.cxf.ws.rm</cxf.module.name>
         <cxf.osgi.import>
             jakarta.xml.soap;version="${cxf.osgi.saaj.version}",

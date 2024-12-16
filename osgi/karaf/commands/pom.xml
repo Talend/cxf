@@ -27,7 +27,9 @@
     <packaging>bundle</packaging>
     <name>Apache CXF Karaf Commands</name>
     <description>Apache CXF Karaf Commands</description>
+    <version>${revision}</version>
     <properties>
+        <revision>${cxf-karaf-commands.tesb.version}</revision>
         <cxf.module.name>org.apache.cxf.karaf.commands</cxf.module.name>
     </properties>
     <dependencies>

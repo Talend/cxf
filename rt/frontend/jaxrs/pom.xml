@@ -24,7 +24,7 @@
     <name>Apache CXF Runtime JAX-RS Frontend</name>
     <description>Apache CXF Runtime JAX-RS Frontend</description>
     <url>https://cxf.apache.org</url>
-    <version>${revision}</version>
+    <version>4.1.0.1-SNAPSHOT</version>
     <parent>
         <groupId>org.apache.cxf</groupId>
         <artifactId>cxf-parent</artifactId>
@@ -32,7 +32,6 @@
         <relativePath>../../../parent/pom.xml</relativePath>
     </parent>
     <properties>
-        <revision>${cxf-rt-frontend-jaxrs.tesb.version}</revision>
         <cxf.module.name>org.apache.cxf.frontend.jaxrs</cxf.module.name>
         <cxf.osgi.import>
             jakarta.servlet*;version="${cxf.osgi.jakarta.servlet.version}",
@@ -58,21 +57,6 @@
             <groupId>jakarta.validation</groupId>
             <artifactId>jakarta.validation-api</artifactId>
             <optional>true</optional>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.aries.blueprint</groupId>
-            <artifactId>org.apache.aries.blueprint.core</artifactId>
-            <optional>true</optional>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.aries.blueprint</groupId>
-            <artifactId>blueprint-parser</artifactId>
-            <scope>provided</scope>
-            <optional>true</optional>
-        </dependency>
-        <dependency>
-            <groupId>org.osgi</groupId>
-            <artifactId>osgi.core</artifactId>
         </dependency>
         <dependency>
             <groupId>junit</groupId>
@@ -234,43 +218,5 @@
             </plugins>
         </pluginManagement>
     </build>
-
-    <dependencyManagement>
-        <dependencies>
-            <dependency>
-                <groupId>org.apache.aries.blueprint</groupId>
-                <artifactId>org.apache.aries.blueprint.api</artifactId>
-                <version>${cxf.aries.api.version}</version>
-                <scope>provided</scope>
-                <optional>true</optional>
-            </dependency>
-            <dependency>
-                <groupId>org.apache.aries.blueprint</groupId>
-                <artifactId>org.apache.aries.blueprint.core</artifactId>
-                <version>${cxf.aries.core.version}</version>
-                <scope>provided</scope>
-                <optional>true</optional>
-            </dependency>
-            <dependency>
-                <groupId>org.apache.aries.blueprint</groupId>
-                <artifactId>blueprint-parser</artifactId>
-                <version>${cxf.aries.parser.version}</version>
-                <scope>provided</scope>
-                <optional>true</optional>
-            </dependency>
-            <dependency>
-                <groupId>org.osgi</groupId>
-                <artifactId>osgi.core</artifactId>
-                <version>${cxf.osgi.tesb.version}</version>
-                <scope>provided</scope>
-            </dependency>
-            <dependency>
-                <groupId>org.osgi</groupId>
-                <artifactId>osgi.cmpn</artifactId>
-                <version>${cxf.osgi.cmpn.tesb.version}</version>
-                <scope>provided</scope>
-            </dependency>
-        </dependencies>
-    </dependencyManagement>
 
 </project>

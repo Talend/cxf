@@ -39,14 +39,13 @@
         <url>https://issues.apache.org/jira/browse/CXF</url>
     </issueManagement>
     <properties>
-        <upstream.version>4.1.0.1-SNAPSHOT</upstream.version>
+        <upstream.version>4.1.0</upstream.version>
         <apache-cxf.features.tesb.version>4.1.0.20241120</apache-cxf.features.tesb.version>
         <cxf-services-xkms.features.tesb.version>${apache-cxf.features.tesb.version}</cxf-services-xkms.features.tesb.version>
-        <cxf-core.tesb.version>4.1.0.1-SNAPSHOT</cxf-core.tesb.version>
-        <cxf-rt-frontend-jaxrs.tesb.version>4.1.0.1-SNAPSHOT</cxf-rt-frontend-jaxrs.tesb.version>
-        <cxf-rt-frontend-jaxws.tesb.version>4.1.0.1-SNAPSHOT</cxf-rt-frontend-jaxws.tesb.version>
-        <cxf-rt-frontend-simple.tesb.version>4.1.0.1-SNAPSHOT</cxf-rt-frontend-simple.tesb.version>
+        <cxf-core.tesb.version>4.1.0.20241216</cxf-core.tesb.version>
+        <cxf-karaf-commands.tesb.version>4.1.0.20241216</cxf-karaf-commands.tesb.version>
         <cxf-testutils.tesb.version>4.1.0.1-SNAPSHOT</cxf-testutils.tesb.version>
+        <cxf-rt.tesb.version>4.1.0.20241216</cxf-rt.tesb.version>
         <!-- <cxf-services-wsn-core.tesb.version>4.1.0.1-SNAPSHOT</cxf-services-wsn-core.tesb.version> -->
         <!-- <cxf-bundle-compatible.tesb.version>4.1.0.1-SNAPSHOT</cxf-bundle-compatible.tesb.version> -->
         <cxf-rt-rs-service-description.tesb.version>4.1.0.1-SNAPSHOT</cxf-rt-rs-service-description.tesb.version>
@@ -519,10 +518,8 @@
                             <apache-cxf.features.tesb.version>${apache-cxf.features.tesb.version}</apache-cxf.features.tesb.version>
                             <cxf-services-xkms.features.tesb.version>${cxf-services-xkms.features.tesb.version}</cxf-services-xkms.features.tesb.version>
                             <cxf-core.tesb.version>${cxf-core.tesb.version}</cxf-core.tesb.version>
-                            <cxf-rt-frontend-jaxrs.tesb.version>${cxf-rt-frontend-jaxrs.tesb.version}</cxf-rt-frontend-jaxrs.tesb.version>
-                            <cxf-rt-frontend-jaxws.tesb.version>${cxf-rt-frontend-jaxws.tesb.version}</cxf-rt-frontend-jaxws.tesb.version>
-                            <cxf-rt-frontend-simple.tesb.version>${cxf-rt-frontend-simple.tesb.version}</cxf-rt-frontend-simple.tesb.version>
                             <cxf-testutils.tesb.version>${cxf-testutils.tesb.version}</cxf-testutils.tesb.version>
+                            <cxf-rt.tesb.version>${cxf-rt.tesb.version}</cxf-rt.tesb.version>
                             <!-- <cxf-services-wsn-core.tesb.version>${cxf-services-wsn-core.tesb.version}</cxf-services-wsn-core.tesb.version> -->
                             <!-- <cxf-bundle-compatible.tesb.version>${cxf-bundle-compatible.tesb.version}</cxf-bundle-compatible.tesb.version> -->
                             <cxf-rt-rs-service-description.tesb.version>${cxf-rt-rs-service-description.tesb.version}</cxf-rt-rs-service-description.tesb.version>

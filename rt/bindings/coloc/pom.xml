@@ -24,6 +24,7 @@
     <name>Apache CXF Runtime Colocated Binding</name>
     <description>Apache CXF Runtime Colocated Binding</description>
     <url>https://cxf.apache.org</url>
+    <version>${revision}</version>
     <parent>
         <groupId>org.apache.cxf</groupId>
         <artifactId>cxf-parent</artifactId>
@@ -31,6 +32,7 @@
         <relativePath>../../../parent/pom.xml</relativePath>
     </parent>
     <properties>
+        <revision>${cxf-rt.tesb.version}</revision>
         <cxf.module.name>org.apache.cxf.binding.coloc</cxf.module.name>
         <cxf.osgi.import>
             org.springframework*;resolution:=optional;version="${cxf.osgi.spring.version}",

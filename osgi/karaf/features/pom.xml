@@ -76,7 +76,7 @@
         <dependency>
             <groupId>org.apache.cxf.karaf</groupId>
             <artifactId>cxf-karaf-commands</artifactId>
-            <version>${upstream.version}</version>
+            <version>${cxf-karaf-commands.tesb.version}</version>
         </dependency>
         <dependency>
             <groupId>org.apache.cxf.services.wsn</groupId>
