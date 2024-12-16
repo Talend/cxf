@@ -51,6 +51,7 @@ import org.apache.cxf.interceptor.StaxInEndingInterceptor;
 import org.apache.cxf.io.CachedOutputStream;
 import org.apache.cxf.message.Attachment;
 import org.apache.cxf.message.Message;
+import org.apache.cxf.message.MessageUtils;
 import org.apache.cxf.phase.Phase;
 import org.apache.cxf.service.model.MessagePartInfo;
 import org.apache.cxf.staxutils.DepthXMLStreamReader;
@@ -217,25 +218,30 @@ public class XMLStreamDataReader implements DataReader<XMLStreamReader> {
     private Element validate(XMLStreamReader input) throws XMLStreamException, IOException {
         Element rootElement;
         WoodstoxValidationImpl impl = new WoodstoxValidationImpl();
-        XMLStreamReader valInput = null;
-        if (impl.canValidate()) {
-            valInput = StaxUtils.createXMLStreamReader(getInputStream(input));
-            impl.setupValidation(valInput, message.getExchange().getEndpoint(),
-                    message.getExchange().getService().getServiceInfos().get(0));
+        XMLStreamReader inputWithoutXop = null;
+        boolean notUseMsvSchemaValidator =
+                MessageUtils.getContextualBoolean(message, SourceDataBinding.NOT_USE_MSV_SCHEMA_VALIDATOR, false);
+
+        if (impl.canValidate() && !notUseMsvSchemaValidator) {
+            //filter xop node, which causes validation to fail
+            XMLStreamReader filteredReader =
+                    StaxUtils.createFilteredReader(input, new StaxStreamFilter(XOP));
+            try (CachedOutputStream out = new CachedOutputStream()) {
+                StaxUtils.copy(filteredReader, out);
+                inputWithoutXop = StaxUtils.createXMLStreamReader(out.getInputStream());
+                impl.setupValidation(inputWithoutXop, message.getExchange().getEndpoint(),
+                        message.getExchange().getService().getServiceInfos().get(0));
+            } finally {
+                filteredReader.close();
+            }
         }
         //check if the impl can still validate after the setup, possible issue loading schemas or similar
-        if (impl.canValidate()) {
+        if (impl.canValidate() && !notUseMsvSchemaValidator) {
             //Can use the MSV libs and woodstox to handle the schema validation during
-            //parsing and processing.   Much faster and single traversal
-            //filter xop node
-
-            XMLStreamReader filteredReader =
-                    StaxUtils.createFilteredReader(valInput,
-                            new StaxStreamFilter(new QName[] {XOP}));
-
-            rootElement =  StaxUtils.read(filteredReader).getDocumentElement();
-            filteredReader.close();
+            //parsing and processing. Much faster and single traversal
+            rootElement =  StaxUtils.read(inputWithoutXop).getDocumentElement();
         } else {
+
             DOMSource ds = read(input);
             if (ds.getNode() instanceof Document) {
                 rootElement = ((Document)ds.getNode()).getDocumentElement();
