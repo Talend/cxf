@@ -326,12 +326,12 @@
         <bundle start-level="25" dependency="true">mvn:joda-time/joda-time/${cxf.joda.time.version}</bundle>
         <bundle start-level="25" dependency='true'>mvn:io.dropwizard.metrics/metrics-core/${cxf.dropwizard3.version}</bundle>
         <!-- <bundle start-level="25" dependency="true">mvn:org.apache.servicemix.bundles/org.apache.servicemix.bundles.opensaml/4.0.1_11</bundle> -->
-        <bundle start-level="40">mvn:org.apache.cxf/cxf-rt-rs-security-oauth2/${upstream.version}</bundle>
+        <bundle start-level="40">mvn:org.apache.cxf/cxf-rt-rs-security-oauth2/${cxf-rt.tesb.version}</bundle>
         <bundle start-level="40">mvn:org.apache.cxf/cxf-rt-rs-security-oauth2-saml/${upstream.version}</bundle>
     </feature>
     <feature name="cxf-rs-security-oauth2" version="${upstream.version}">
         <feature version="${cxf.tesb.version-range}">cxf-rs-security-jose</feature>
-        <bundle start-level="40">mvn:org.apache.cxf/cxf-rt-rs-security-oauth2/${upstream.version}</bundle>
+        <bundle start-level="40">mvn:org.apache.cxf/cxf-rt-rs-security-oauth2/${cxf-rt.tesb.version}</bundle>
     </feature>
     <feature name="cxf-jackson" version="${upstream.version}">
         <!-- Required by jackson-dataformat-yaml -->
