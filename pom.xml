@@ -29,10 +29,10 @@
     <url>https://cxf.apache.org</url>
     <packaging>pom</packaging>
     <scm>
-        <connection>scm:git:https://gitbox.apache.org/repos/asf/cxf.git</connection>
-        <developerConnection>scm:git:https://gitbox.apache.org/repos/asf/cxf.git</developerConnection>
-        <url>https://gitbox.apache.org/repos/asf?p=cxf.git</url>
-        <tag>cxf-4.1.0</tag>
+        <connection>scm:git:http://github.com/Talend/cxf.git</connection>
+        <developerConnection>scm:git:https://github.com/Talend/cxf.git</developerConnection>
+        <url>https://github.com/Talend/cxf</url>
+        <tag>HEAD</tag>
     </scm>
     <issueManagement>
         <system>jira</system>
