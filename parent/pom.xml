@@ -692,6 +692,7 @@
                         <Fragment-Host>${cxf.fragment.host}</Fragment-Host>
                         <_failok>true</_failok>
                         <_nouses>true</_nouses>
+                        <Export-Package>${cxf.osgi.export}</Export-Package>
                         <_versionpolicy>[$(version;==;$(@)),$(version;+;$(@)))</_versionpolicy>
                         <Import-Package>
                             ${cxf.osgi.import},
