@@ -17,41 +17,41 @@
   specific language governing permissions and limitations
   under the License.
 -->
-<features xmlns="http://karaf.apache.org/xmlns/features/v1.0.0" name="cxf-xkms" version="${upstream.version}">
-    <repository>mvn:org.apache.cxf.karaf/apache-cxf/${upstream.version}/xml/features</repository>
-    <feature name="cxf-xkms-client" version="${upstream.version}">
+<features xmlns="http://karaf.apache.org/xmlns/features/v1.0.0" name="cxf-xkms">
+    <repository>mvn:org.apache.cxf.karaf/apache-cxf/${project.version}/xml/features</repository>
+    <feature name="cxf-xkms-client" version="${project.version}">
         <feature>scr</feature>
         <feature>aries-blueprint</feature>
         <feature>cxf-jaxws</feature>
         <feature>cxf-http</feature>
         <feature>cxf-ws-security</feature>
         <bundle start-level="40" dependency="true">mvn:org.ehcache/ehcache/${cxf.ehcache3.version}</bundle>
-        <bundle>mvn:${project.groupId}/cxf-services-xkms-common/${upstream.version}</bundle>
-        <bundle>mvn:${project.groupId}/cxf-services-xkms-client/${upstream.version}</bundle>
+        <bundle>mvn:${project.groupId}/cxf-services-xkms-common/${project.version}</bundle>
+        <bundle>mvn:${project.groupId}/cxf-services-xkms-client/${project.version}</bundle>
         <configfile finalname="/etc/org.apache.cxf.xkms.client.cfg">
-            mvn:${project.groupId}/cxf-services-xkms-features/${upstream.version}/cfg/org.apache.cxf.xkms.client
+            mvn:${project.groupId}/cxf-services-xkms-features/${project.version}/cfg/org.apache.cxf.xkms.client
         </configfile>
     </feature>
-    <feature name="cxf-xkms-service" version="${upstream.version}">
+    <feature name="cxf-xkms-service" version="${project.version}">
         <feature>cxf-jaxws</feature>
         <feature>cxf-http</feature>
         <feature>http</feature>
         <feature>wss4j</feature>
         <bundle start-level="30">mvn:org.apache.servicemix.bundles/org.apache.servicemix.bundles.xerces/${cxf.xerces.bundle.version}</bundle>
-        <bundle>mvn:${project.groupId}/cxf-services-xkms-common/${upstream.version}</bundle>
-        <bundle>mvn:${project.groupId}/cxf-services-xkms-x509-handlers/${upstream.version}</bundle>
-        <bundle>mvn:${project.groupId}/cxf-services-xkms-service/${upstream.version}</bundle>
-        <bundle>mvn:${project.groupId}/cxf-services-xkms-osgi/${upstream.version}</bundle>
+        <bundle>mvn:${project.groupId}/cxf-services-xkms-common/${project.version}</bundle>
+        <bundle>mvn:${project.groupId}/cxf-services-xkms-x509-handlers/${project.version}</bundle>
+        <bundle>mvn:${project.groupId}/cxf-services-xkms-service/${project.version}</bundle>
+        <bundle>mvn:${project.groupId}/cxf-services-xkms-osgi/${project.version}</bundle>
         <configfile finalname="/etc/org.apache.cxf.xkms.cfg">
-            mvn:${project.groupId}/cxf-services-xkms-features/${upstream.version}/cfg/org.apache.cxf.xkms
+            mvn:${project.groupId}/cxf-services-xkms-features/${project.version}/cfg/org.apache.cxf.xkms
         </configfile>
     </feature>
 
-    <feature name="cxf-xkms-ldap" version="${upstream.version}">
+    <feature name="cxf-xkms-ldap" version="${project.version}">
         <feature>cxf-xkms-service</feature>
-        <bundle>mvn:${project.groupId}/cxf-services-xkms-x509-repo-ldap/${upstream.version}</bundle>
+        <bundle>mvn:${project.groupId}/cxf-services-xkms-x509-repo-ldap/${project.version}</bundle>
         <configfile finalname="/etc/org.apache.cxf.xkms.ldap.cfg">
-            mvn:${project.groupId}/cxf-services-xkms-features/${upstream.version}/cfg/org.apache.cxf.xkms.ldap
+            mvn:${project.groupId}/cxf-services-xkms-features/${project.version}/cfg/org.apache.cxf.xkms.ldap
         </configfile>
     </feature>
 </features>
