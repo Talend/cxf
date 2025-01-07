@@ -463,13 +463,13 @@
     </feature>
     <feature name="cxf-transports-udp" version="${project.version}">
         <feature version="${cxf.tesb.version-range}">cxf-core</feature>
-        <bundle dependency="true">mvn:org.apache.mina/mina-core/${cxf.mina.version}</bundle>
+        <bundle dependency="true">mvn:org.apache.mina/mina-core/${cxf.mina.tesb.version}</bundle>
         <bundle start-level="40">mvn:org.apache.cxf/cxf-rt-transports-udp/${project.version}</bundle>
     </feature>
     <feature name="cxf-transports-websocket-client" version="${project.version}">
         <feature version="${cxf.tesb.version-range}">cxf-http</feature>
-        <bundle dependency='true'>mvn:org.asynchttpclient/async-http-client/2.12.3</bundle>
-        <bundle dependency='true'>mvn:org.asynchttpclient/async-http-client-netty-utils/2.12.3</bundle>
+        <bundle dependency='true'>mvn:org.asynchttpclient/async-http-client/${cxf.async-http-client.tesb.version}</bundle>
+        <bundle dependency='true'>mvn:org.asynchttpclient/async-http-client-netty-utils/${cxf.async-http-client.tesb.version}</bundle>
         <bundle dependency='true'>mvn:io.netty/netty-common/${cxf.netty.version}</bundle>
         <bundle dependency='true'>mvn:io.netty/netty-handler/${cxf.netty.version}</bundle>
         <bundle dependency='true'>mvn:io.netty/netty-buffer/${cxf.netty.version}</bundle>
@@ -529,7 +529,7 @@
         <feature version="${cxf.tesb.version-range}">cxf-javascript</feature>
         <bundle start-level="35" dependency="true">mvn:org.apache.commons/commons-lang3/${cxf.commons-lang3.version}</bundle>
         <bundle start-level="35" dependency="true">mvn:org.apache.commons/commons-text/${cxf.commons-text.version}</bundle>
-        <bundle dependency="true">mvn:org.apache.velocity/velocity-engine-core/${cxf.velocity.version}</bundle>
+        <bundle dependency="true">mvn:org.apache.velocity/velocity-engine-core/${cxf.velocity.tesb.version}</bundle>
         <bundle>mvn:org.apache.cxf/cxf-tools-common/${project.version}</bundle>
         <bundle>mvn:org.apache.cxf/cxf-tools-java2ws/${project.version}</bundle>
         <bundle>mvn:org.apache.cxf/cxf-tools-misctools/${project.version}</bundle>
