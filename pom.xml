@@ -40,7 +40,7 @@
     </issueManagement>
     <properties>
         <upstream.version>3.5.9</upstream.version>
-        <apache-cxf.features.tesb.version>3.5.9.20240725</apache-cxf.features.tesb.version>
+        <apache-cxf.features.tesb.version>3.5.9.20250110</apache-cxf.features.tesb.version>
         <cxf-services-xkms.features.tesb.version>${apache-cxf.features.tesb.version}</cxf-services-xkms.features.tesb.version>
         <cxf-core.tesb.version>3.5.9.20240725</cxf-core.tesb.version>
         <cxf-rt-frontend-jaxrs.tesb.version>3.5.9.20240725</cxf-rt-frontend-jaxrs.tesb.version>
@@ -53,8 +53,10 @@
         <cxf.geronimo.jms2.tesb.version>1.0-alpha-2</cxf.geronimo.jms2.tesb.version>
         <cxf.geronimo.jms2.bundle.override.tesb.version>1.0.0.tp20240209</cxf.geronimo.jms2.bundle.override.tesb.version>
         <!-- <cxf.aries.fly.tesb.version>1.2</cxf.aries.fly.tesb.version> -->
-        <!-- <cxf.netty.tesb.version>4.1.111.Final</cxf.netty.tesb.version> -->
+        <cxf.netty.tesb.version>4.1.115.Final</cxf.netty.tesb.version>
         <!-- <cxf.commons-io.tesb.version>2.16.1</cxf.commons-io.tesb.version> -->
+        <cxf.commons-lang3.tesb.version>3.17.0</cxf.commons-lang3.tesb.version>
+        <cxf.ahc.tesb.version>2.12.4</cxf.ahc.tesb.version>
         <cxf.jackson.tesb.version>2.16.2</cxf.jackson.tesb.version>
         <cxf.jackson.databind.tesb.version>${cxf.jackson.tesb.version}</cxf.jackson.databind.tesb.version>
         <cxf.jackson.dataformat.yaml.tesb.version>2.14.3</cxf.jackson.dataformat.yaml.tesb.version>
@@ -72,9 +74,10 @@
         <cxf.james.mime4j.tesb.version>0.8.11</cxf.james.mime4j.tesb.version>
         <cxf.jdom1.bundle.tesb.version>1.1_4</cxf.jdom1.bundle.tesb.version>
         <cxf.joda.time.tesb.version>2.11.1</cxf.joda.time.tesb.version>
-        <cxf.mina.tesb.version>2.1.8</cxf.mina.tesb.version>
+        <cxf.mina.tesb.version>2.1.10</cxf.mina.tesb.version>
         <!-- <cxf.xmlsec.bundle.tesb.version>2.3.4</cxf.xmlsec.bundle.tesb.version> -->
         <cxf.servicemix.aspectj.tesb.version>1.9.21.1_1</cxf.servicemix.aspectj.tesb.version>
+        <cxf.velocity.tesb.version>2.4.1</cxf.velocity.tesb.version>
         <cxf.xerces.bundle.tesb.version>2.12.2.tesb1_1</cxf.xerces.bundle.tesb.version>
         <cxf.guava.tesb.version>32.1.3-jre</cxf.guava.tesb.version>
         <cxf.swagger2.guava.tesb.version>${cxf.guava.tesb.version}</cxf.swagger2.guava.tesb.version>
@@ -498,8 +501,10 @@
                             <cxf.geronimo.jms2.tesb.version>${cxf.geronimo.jms2.tesb.version}</cxf.geronimo.jms2.tesb.version>
                             <cxf.geronimo.jms2.bundle.override.tesb.version>${cxf.geronimo.jms2.bundle.override.tesb.version}</cxf.geronimo.jms2.bundle.override.tesb.version>
                             <!-- <cxf.aries.fly.tesb.version>${cxf.aries.fly.tesb.version}</cxf.aries.fly.tesb.version> -->
-                            <!-- <cxf.netty.tesb.version>${cxf.netty.tesb.version}</cxf.netty.tesb.version> -->
+                            <cxf.netty.tesb.version>${cxf.netty.tesb.version}</cxf.netty.tesb.version>
                             <!-- <cxf.commons-io.tesb.version>${cxf.commons-io.tesb.version}</cxf.commons-io.tesb.version> -->
+                            <cxf.commons-lang3.tesb.version>${cxf.commons-lang3.tesb.version}</cxf.commons-lang3.tesb.version>
+                            <cxf.ahc.tesb.version>${cxf.ahc.tesb.version}</cxf.ahc.tesb.version>
                             <cxf.jackson.tesb.version>${cxf.jackson.tesb.version}</cxf.jackson.tesb.version>
                             <cxf.jackson.databind.tesb.version>${cxf.jackson.databind.tesb.version}</cxf.jackson.databind.tesb.version>
                             <cxf.jackson.dataformat.yaml.tesb.version>${cxf.jackson.dataformat.yaml.tesb.version}</cxf.jackson.dataformat.yaml.tesb.version>
@@ -520,6 +525,7 @@
                             <cxf.mina.tesb.version>${cxf.mina.tesb.version}</cxf.mina.tesb.version>
                             <!-- <cxf.xmlsec.bundle.tesb.version>${cxf.xmlsec.bundle.tesb.version}</cxf.xmlsec.bundle.tesb.version> -->
                             <cxf.servicemix.aspectj.tesb.version>${cxf.servicemix.aspectj.tesb.version}</cxf.servicemix.aspectj.tesb.version>
+                            <cxf.velocity.tesb.version>${cxf.velocity.tesb.version}</cxf.velocity.tesb.version>
                             <cxf.xerces.bundle.tesb.version>${cxf.xerces.bundle.tesb.version}</cxf.xerces.bundle.tesb.version>
                             <cxf.guava.tesb.version>${cxf.guava.tesb.version}</cxf.guava.tesb.version>
                             <cxf.swagger2.guava.tesb.version>${cxf.swagger2.guava.tesb.version}</cxf.swagger2.guava.tesb.version>
