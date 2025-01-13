@@ -61,7 +61,7 @@
         <!-- <bundle start-level='35'>mvn:org.apache.abdera/abdera-extensions-json/${cxf.abdera.version}</bundle> -->
     </feature>
     <feature name="saaj-impl" version="${cxf.saaj-impl.version}">
-        <bundle start-level="25">mvn:org.jvnet.staxex/stax-ex/${cxf.stax-ex.version}</bundle>
+        <bundle start-level="25">wrap:mvn:org.jvnet.staxex/stax-ex/${cxf.stax-ex.version}$overwrite=merge&amp;Import-Package=org.jvnet.staxex;version="[1.8,2.0)",javax.xml.bind.attachment;resolution:=optional,*</bundle>
         <bundle start-level="25">mvn:com.sun.xml.messaging.saaj/saaj-impl/${cxf.saaj-impl.version}</bundle>
     </feature>
     <feature name="wss4j" version="${cxf.wss4j.version}">
@@ -200,15 +200,15 @@
         <bundle start-level="40">mvn:org.bouncycastle/bcutil-jdk18on/${cxf.bcprov.version}</bundle>
         <bundle start-level="40">mvn:org.bouncycastle/bctls-jdk18on/${cxf.bcprov.version}</bundle>
         <bundle start-level="40">mvn:io.netty/netty-tcnative-classes/${cxf.netty.tcnative.version}</bundle>
-        <bundle start-level="40">mvn:io.netty/netty-common/${cxf.netty.version}</bundle>
-        <bundle start-level="40">mvn:io.netty/netty-transport-native-unix-common/${cxf.netty.version}</bundle>
-        <bundle start-level="40">mvn:io.netty/netty-handler/${cxf.netty.version}</bundle>
-        <bundle start-level="40">mvn:io.netty/netty-buffer/${cxf.netty.version}</bundle>
-        <bundle start-level="40">mvn:io.netty/netty-transport/${cxf.netty.version}</bundle>
-        <bundle start-level="40">mvn:io.netty/netty-resolver/${cxf.netty.version}</bundle>
-        <bundle start-level="40">mvn:io.netty/netty-codec/${cxf.netty.version}</bundle>
-        <bundle start-level="40">mvn:io.netty/netty-codec-http/${cxf.netty.version}</bundle>
-        <bundle start-level="40">mvn:io.netty/netty-codec-http2/${cxf.netty.version}</bundle>
+        <bundle start-level="40">mvn:io.netty/netty-common/${cxf.netty.tesb.version}</bundle>
+        <bundle start-level="40">mvn:io.netty/netty-transport-native-unix-common/${cxf.netty.tesb.version}</bundle>
+        <bundle start-level="40">mvn:io.netty/netty-handler/${cxf.netty.tesb.version}</bundle>
+        <bundle start-level="40">mvn:io.netty/netty-buffer/${cxf.netty.tesb.version}</bundle>
+        <bundle start-level="40">mvn:io.netty/netty-transport/${cxf.netty.tesb.version}</bundle>
+        <bundle start-level="40">mvn:io.netty/netty-resolver/${cxf.netty.tesb.version}</bundle>
+        <bundle start-level="40">mvn:io.netty/netty-codec/${cxf.netty.tesb.version}</bundle>
+        <bundle start-level="40">mvn:io.netty/netty-codec-http/${cxf.netty.tesb.version}</bundle>
+        <bundle start-level="40">mvn:io.netty/netty-codec-http2/${cxf.netty.tesb.version}</bundle>
         <bundle start-level="40">mvn:org.apache.cxf/cxf-rt-transports-http-netty-client/${upstream.version}</bundle>
     </feature>
     <feature name="cxf-http-netty-server" version="${upstream.version}">
@@ -217,14 +217,14 @@
         <bundle start-level="40">mvn:org.bouncycastle/bcutil-jdk18on/${cxf.bcprov.version}</bundle>
         <bundle start-level="40">mvn:org.bouncycastle/bctls-jdk18on/${cxf.bcprov.version}</bundle>
         <bundle start-level="40">mvn:io.netty/netty-tcnative-classes/${cxf.netty.tcnative.version}</bundle>
-        <bundle start-level="40">mvn:io.netty/netty-common/${cxf.netty.version}</bundle>
-        <bundle start-level="40">mvn:io.netty/netty-transport-native-unix-common/${cxf.netty.version}</bundle>
-        <bundle start-level="40">mvn:io.netty/netty-handler/${cxf.netty.version}</bundle>
-        <bundle start-level="40">mvn:io.netty/netty-buffer/${cxf.netty.version}</bundle>
-        <bundle start-level="40">mvn:io.netty/netty-transport/${cxf.netty.version}</bundle>
-        <bundle start-level="40">mvn:io.netty/netty-resolver/${cxf.netty.version}</bundle>
-        <bundle start-level="40">mvn:io.netty/netty-codec/${cxf.netty.version}</bundle>
-        <bundle start-level="40">mvn:io.netty/netty-codec-http/${cxf.netty.version}</bundle>
+        <bundle start-level="40">mvn:io.netty/netty-common/${cxf.netty.tesb.version}</bundle>
+        <bundle start-level="40">mvn:io.netty/netty-transport-native-unix-common/${cxf.netty.tesb.version}</bundle>
+        <bundle start-level="40">mvn:io.netty/netty-handler/${cxf.netty.tesb.version}</bundle>
+        <bundle start-level="40">mvn:io.netty/netty-buffer/${cxf.netty.tesb.version}</bundle>
+        <bundle start-level="40">mvn:io.netty/netty-transport/${cxf.netty.tesb.version}</bundle>
+        <bundle start-level="40">mvn:io.netty/netty-resolver/${cxf.netty.tesb.version}</bundle>
+        <bundle start-level="40">mvn:io.netty/netty-codec/${cxf.netty.tesb.version}</bundle>
+        <bundle start-level="40">mvn:io.netty/netty-codec-http/${cxf.netty.tesb.version}</bundle>
         <bundle start-level="40">mvn:org.apache.cxf/cxf-rt-transports-http-netty-server/${upstream.version}</bundle>
         <capability>
             cxf.http.provider;name=netty
@@ -338,7 +338,7 @@
         <bundle start-level="40">mvn:org.apache.cxf/cxf-rt-rs-service-description-swagger/${upstream.version}</bundle>
         <bundle start-level="35" dependency="true">mvn:com.fasterxml.jackson.datatype/jackson-datatype-jsr310/${cxf.jackson.tesb.version}</bundle>
         <bundle start-level="10" dependency="true">mvn:jakarta.validation/jakarta.validation-api/${cxf.validation.api.version}</bundle>
-        <bundle start-level="35" dependency="true">mvn:org.apache.commons/commons-lang3/${cxf.commons-lang3.version}</bundle>
+        <bundle start-level="35" dependency="true">mvn:org.apache.commons/commons-lang3/${cxf.commons-lang3.tesb.version}</bundle>
         <bundle start-level="30" dependency="true">mvn:org.javassist/javassist/${cxf.javassist.version}</bundle>
         <bundle start-level="30" dependency="true">mvn:org.reflections/reflections/${cxf.reflections.version}</bundle>
         <bundle start-level="25" dependency="true">mvn:com.google.guava/failureaccess/${cxf.swagger2.guava.failureaccess.version}</bundle>
@@ -357,7 +357,7 @@
         <bundle start-level="35" dependency="true">mvn:com.fasterxml.jackson.datatype/jackson-datatype-jsr310/${cxf.jackson.tesb.version}</bundle>
         <bundle start-level="35" dependency="true">mvn:${cxf.servlet-api.group}/${cxf.servlet-api.artifact}/${cxf.servlet-api.version}</bundle>
         <bundle start-level="10" dependency="true">mvn:jakarta.validation/jakarta.validation-api/${cxf.validation.api.version}</bundle>
-        <bundle start-level="35" dependency="true">mvn:org.apache.commons/commons-lang3/${cxf.commons-lang3.version}</bundle>
+        <bundle start-level="35" dependency="true">mvn:org.apache.commons/commons-lang3/${cxf.commons-lang3.tesb.version}</bundle>
         <bundle start-level="30" dependency="true">mvn:io.github.classgraph/classgraph/${cxf.classgraph.tesb.version}</bundle>
         <bundle start-level="30" dependency="true">mvn:org.javassist/javassist/${cxf.javassist.version}</bundle>
         <bundle start-level="35" dependency="true">mvn:io.swagger.core.v3/swagger-annotations/${cxf.swagger.v3.version}</bundle>
@@ -422,20 +422,20 @@
     </feature>
     <feature name="cxf-transports-websocket-client" version="${upstream.version}">
         <feature version="${cxf.tesb.version-range}">cxf-http</feature>
-        <bundle dependency='true'>mvn:org.asynchttpclient/async-http-client/${cxf.ahc.version}</bundle>
-        <bundle dependency='true'>mvn:org.asynchttpclient/async-http-client-netty-utils/${cxf.ahc.version}</bundle>
-        <bundle dependency='true'>mvn:io.netty/netty-common/${cxf.netty.version}</bundle>
-        <bundle dependency='true'>mvn:io.netty/netty-handler/${cxf.netty.version}</bundle>
-        <bundle dependency='true'>mvn:io.netty/netty-buffer/${cxf.netty.version}</bundle>
-        <bundle dependency='true'>mvn:io.netty/netty-transport/${cxf.netty.version}</bundle>
-        <bundle dependency='true'>mvn:io.netty/netty-resolver/${cxf.netty.version}</bundle>
-        <bundle dependency='true'>mvn:io.netty/netty-codec/${cxf.netty.version}</bundle>
-        <bundle dependency='true'>mvn:io.netty/netty-codec-http/${cxf.netty.version}</bundle>
-        <bundle dependency='true'>mvn:io.netty/netty-transport-native-epoll/${cxf.netty.version}</bundle>
-        <bundle dependency='true'>mvn:io.netty/netty-transport-native-unix-common/${cxf.netty.version}</bundle>
-        <bundle dependency='true'>mvn:io.netty/netty-transport-native-kqueue/${cxf.netty.version}</bundle>
-        <bundle dependency='true'>mvn:io.netty/netty-handler-proxy/${cxf.netty.version}</bundle>
-        <bundle dependency='true'>mvn:io.netty/netty-codec-socks/${cxf.netty.version}</bundle>
+        <bundle dependency='true'>mvn:org.asynchttpclient/async-http-client/${cxf.ahc.tesb.version}</bundle>
+        <bundle dependency='true'>mvn:org.asynchttpclient/async-http-client-netty-utils/${cxf.ahc.tesb.version}</bundle>
+        <bundle dependency='true'>mvn:io.netty/netty-common/${cxf.netty.tesb.version}</bundle>
+        <bundle dependency='true'>mvn:io.netty/netty-handler/${cxf.netty.tesb.version}</bundle>
+        <bundle dependency='true'>mvn:io.netty/netty-buffer/${cxf.netty.tesb.version}</bundle>
+        <bundle dependency='true'>mvn:io.netty/netty-transport/${cxf.netty.tesb.version}</bundle>
+        <bundle dependency='true'>mvn:io.netty/netty-resolver/${cxf.netty.tesb.version}</bundle>
+        <bundle dependency='true'>mvn:io.netty/netty-codec/${cxf.netty.tesb.version}</bundle>
+        <bundle dependency='true'>mvn:io.netty/netty-codec-http/${cxf.netty.tesb.version}</bundle>
+        <bundle dependency='true'>mvn:io.netty/netty-transport-native-epoll/${cxf.netty.tesb.version}</bundle>
+        <bundle dependency='true'>mvn:io.netty/netty-transport-native-unix-common/${cxf.netty.tesb.version}</bundle>
+        <bundle dependency='true'>mvn:io.netty/netty-transport-native-kqueue/${cxf.netty.tesb.version}</bundle>
+        <bundle dependency='true'>mvn:io.netty/netty-handler-proxy/${cxf.netty.tesb.version}</bundle>
+        <bundle dependency='true'>mvn:io.netty/netty-codec-socks/${cxf.netty.tesb.version}</bundle>
         <bundle dependency='true'>mvn:org.reactivestreams/reactive-streams/${cxf.reactivestreams.version}</bundle>
         <bundle dependency='true'>mvn:com.typesafe.netty/netty-reactive-streams/2.0.4</bundle>
         <bundle start-level="40">mvn:org.apache.cxf/cxf-rt-transports-websocket/${upstream.version}</bundle>
@@ -469,7 +469,7 @@
     </feature>
     <feature name="cxf-xjc-runtime" version="${upstream.version}">
         <feature version="${cxf.tesb.version-range}">cxf-jaxb</feature>
-        <bundle start-level="35" dependency="true">mvn:org.apache.commons/commons-lang3/${cxf.commons-lang3.version}</bundle>
+        <bundle start-level="35" dependency="true">mvn:org.apache.commons/commons-lang3/${cxf.commons-lang3.tesb.version}</bundle>
         <bundle start-level="40">mvn:org.apache.cxf.xjc-utils/cxf-xjc-runtime/${cxf.xjc-utils.version}</bundle>
     </feature>
     <feature name="cxf-tools" version="${upstream.version}">
@@ -481,9 +481,9 @@
         <feature version="${cxf.tesb.version-range}">cxf-jaxrs</feature>
         <feature version="${cxf.tesb.version-range}">cxf-jaxws</feature>
         <feature version="${cxf.tesb.version-range}">cxf-javascript</feature>
-        <bundle start-level="35" dependency="true">mvn:org.apache.commons/commons-lang3/${cxf.commons-lang3.version}</bundle>
+        <bundle start-level="35" dependency="true">mvn:org.apache.commons/commons-lang3/${cxf.commons-lang3.tesb.version}</bundle>
         <bundle start-level="35" dependency="true">mvn:org.apache.commons/commons-text/${cxf.commons-text.version}</bundle>
-        <bundle dependency="true">mvn:org.apache.velocity/velocity-engine-core/${cxf.velocity.version}</bundle>
+        <bundle dependency="true">mvn:org.apache.velocity/velocity-engine-core/${cxf.velocity.tesb.version}</bundle>
         <bundle>mvn:org.apache.cxf/cxf-tools-common/${upstream.version}</bundle>
         <bundle>mvn:org.apache.cxf/cxf-tools-java2ws/${upstream.version}</bundle>
         <bundle>mvn:org.apache.cxf/cxf-tools-misctools/${upstream.version}</bundle>
