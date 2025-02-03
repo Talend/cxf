@@ -42,8 +42,9 @@
         <cxf.tesb.version-range>[4.1,4.2)</cxf.tesb.version-range>
         <cxf.tesb.major-version-range>[4,5)</cxf.tesb.major-version-range>
         <cxf.async-http-client.tesb.version>2.12.4</cxf.async-http-client.tesb.version>
+        <cxf.bcprov.tesb.version>1.78.1</cxf.bcprov.tesb.version>
         <cxf.dtd.parser.tesb.version>1.4.5</cxf.dtd.parser.tesb.version>
-        <cxf.classgraph.tesb.version>4.8.112</cxf.classgraph.tesb.version>
+        <cxf.classgraph.tesb.version>4.8.175</cxf.classgraph.tesb.version>
         <cxf.fastinfoset.tesb.version>2.0.0</cxf.fastinfoset.tesb.version>
         <cxf.istack.tesb.version>4.2.0</cxf.istack.tesb.version>
         <cxf.james.mime4j.tesb.version>0.8.11</cxf.james.mime4j.tesb.version>
