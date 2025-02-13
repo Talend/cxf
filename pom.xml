@@ -40,7 +40,7 @@
     </issueManagement>
     <properties>
         <upstream.version>3.5.9</upstream.version>
-        <apache-cxf.features.tesb.version>3.5.9.20250110</apache-cxf.features.tesb.version>
+        <apache-cxf.features.tesb.version>3.5.9.20250213</apache-cxf.features.tesb.version>
         <cxf-services-xkms.features.tesb.version>${apache-cxf.features.tesb.version}</cxf-services-xkms.features.tesb.version>
         <cxf-core.tesb.version>3.5.9.20240725</cxf-core.tesb.version>
         <cxf-rt-frontend-jaxrs.tesb.version>3.5.9.20240725</cxf-rt-frontend-jaxrs.tesb.version>
@@ -82,6 +82,8 @@
         <cxf.guava.tesb.version>32.1.3-jre</cxf.guava.tesb.version>
         <cxf.swagger2.guava.tesb.version>${cxf.guava.tesb.version}</cxf.swagger2.guava.tesb.version>
         <cxf.guava.tesb.version-range>[32,40)</cxf.guava.tesb.version-range>
+        <cxf.opentelemetry.semconv.tesb.version>1.26.0-alpha</cxf.opentelemetry.semconv.tesb.version>
+        <cxf.opentelemetry.semconv.bundle.tesb.version>1.26.0.alpha</cxf.opentelemetry.semconv.bundle.tesb.version>
 
         <cxf.compiler.fork>false</cxf.compiler.fork>
         <cxf.build-utils.version>3.4.4</cxf.build-utils.version>
@@ -530,6 +532,8 @@
                             <cxf.guava.tesb.version>${cxf.guava.tesb.version}</cxf.guava.tesb.version>
                             <cxf.swagger2.guava.tesb.version>${cxf.swagger2.guava.tesb.version}</cxf.swagger2.guava.tesb.version>
                             <cxf.guava.tesb.version-range>${cxf.guava.tesb.version-range}</cxf.guava.tesb.version-range>
+                            <cxf.opentelemetry.semconv.tesb.version>${cxf.opentelemetry.semconv.tesb.version}</cxf.opentelemetry.semconv.tesb.version>
+                            <cxf.opentelemetry.semconv.bundle.tesb.version>${cxf.opentelemetry.semconv.bundle.tesb.version}</cxf.opentelemetry.semconv.bundle.tesb.version>
                         </properties>
                     </configuration>
                     <executions>
