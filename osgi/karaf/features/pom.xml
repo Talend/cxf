@@ -27,6 +27,7 @@
     <packaging>pom</packaging>
     <name>Apache CXF Karaf Features</name>
     <description>Apache CXF Karaf Features</description>
+    <!-- <version>4.1.0.20250310</version> -->
 
     <repositories>
         <repository>
