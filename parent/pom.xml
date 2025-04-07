@@ -87,7 +87,7 @@
         <cxf.osgi.jakarta.transaction.version>[2,3)</cxf.osgi.jakarta.transaction.version>
 
         <!-- please maintain alphabetical order here -->
-        <cxf.activemq.artemis.version>2.35.0</cxf.activemq.artemis.version>
+        <cxf.activemq.artemis.version>2.40.0</cxf.activemq.artemis.version>
         <cxf.ahc.version>3.0.1</cxf.ahc.version>
         <cxf.arquillian.version>1.8.0.Final</cxf.arquillian.version>
         <cxf.arquillian.weld.container.version>3.0.2.Final</cxf.arquillian.weld.container.version>
@@ -162,7 +162,7 @@
         <cxf.jcache.version>1.1.1</cxf.jcache.version>
         <cxf.jdom.version>1.0</cxf.jdom.version>
         <cxf.jettison.version>1.5.4</cxf.jettison.version>
-        <cxf.jetty12.version>12.0.15</cxf.jetty12.version>
+        <cxf.jetty12.version>12.0.18</cxf.jetty12.version>
         <cxf.jetty.version>${cxf.jetty12.version}</cxf.jetty.version>
         <cxf.jexl.version>3.3</cxf.jexl.version>
         <cxf.joda.time.version>2.10.10</cxf.joda.time.version>
@@ -175,7 +175,7 @@
         <cxf.kerby.version>2.0.3</cxf.kerby.version>
         <cxf.ldapsdk.version>7.0.2</cxf.ldapsdk.version>
         <cxf.littleproxy.version>1.1.2</cxf.littleproxy.version>
-        <cxf.logback.classic.version>1.5.12</cxf.logback.classic.version>
+        <cxf.logback.classic.version>1.5.18</cxf.logback.classic.version>
         <cxf.lucene.version>9.12.0</cxf.lucene.version>
         <cxf.maven.core.version>3.9.8</cxf.maven.core.version>
         <cxf.micrometer.version>1.14.1</cxf.micrometer.version>
@@ -183,12 +183,12 @@
         <cxf.microprofile.config.version>3.1</cxf.microprofile.config.version>
         <cxf.microprofile.rest.client.version>3.0.1</cxf.microprofile.rest.client.version>
         <cxf.microprofile.openapi.version>3.1.2</cxf.microprofile.openapi.version>
-        <cxf.mina.version>2.2.1</cxf.mina.version>
+        <cxf.mina.version>2.2.4</cxf.mina.version>
         <cxf.mockito.version>5.14.2</cxf.mockito.version>
         <cxf.msv.version>2022.7</cxf.msv.version>
         <cxf.neethi.version>3.2.1</cxf.neethi.version>
         <cxf.netty.version.range>[4,5)</cxf.netty.version.range>
-        <cxf.netty.version>4.1.118.Final</cxf.netty.version>
+        <cxf.netty.version>4.1.119.Final</cxf.netty.version>
         <cxf.netty.tcnative.version>2.0.69.Final</cxf.netty.tcnative.version>
         <cxf.olingo.version>2.0.12</cxf.olingo.version>
         <cxf.openjpa.version>3.2.2</cxf.openjpa.version>
@@ -210,11 +210,11 @@
         <cxf.servlet-api.artifact>jakarta.servlet-api</cxf.servlet-api.artifact>
         <cxf.servlet-api.group>jakarta.servlet</cxf.servlet-api.group>
         <cxf.servlet-api.version>6.0.0</cxf.servlet-api.version>
-        <cxf.slf4j.version>2.0.16</cxf.slf4j.version>
+        <cxf.slf4j.version>2.0.17</cxf.slf4j.version>
         <cxf.snakeyaml.version>2.3</cxf.snakeyaml.version>
         <cxf.specs.jaxws.api.version>2.3_2</cxf.specs.jaxws.api.version>
         <cxf.spring.boot.version>3.4.0</cxf.spring.boot.version>
-        <cxf.spring.ldap.version>3.2.8</cxf.spring.ldap.version>
+        <cxf.spring.ldap.version>3.2.11</cxf.spring.ldap.version>
         <cxf.spring.mock>spring-test</cxf.spring.mock>
         <cxf.spring.security.version>6.4.1</cxf.spring.security.version>
         <cxf.spring.version>6.2.0</cxf.spring.version>
@@ -588,7 +588,7 @@
                         <dependency>
                             <groupId>org.apache.groovy</groupId>
                             <artifactId>groovy</artifactId>
-                            <version>4.0.24</version>
+                            <version>4.0.25</version>
                         </dependency>
                     </dependencies>
                 </plugin>
