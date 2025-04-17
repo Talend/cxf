@@ -484,7 +484,7 @@
         <bundle dependency='true'>mvn:io.netty/netty-handler-proxy/${cxf.netty.version}</bundle>
         <bundle dependency='true'>mvn:io.netty/netty-codec-socks/${cxf.netty.version}</bundle>
         <bundle dependency='true'>mvn:org.reactivestreams/reactive-streams/${cxf.reactivestreams.version}</bundle>
-        <bundle dependency='true'>mvn:com.typesafe.netty/netty-reactive-streams/2.0.4</bundle>
+        <bundle dependency='true'>mvn:com.typesafe.netty/netty-reactive-streams/2.0.5</bundle>
         <bundle start-level="40">mvn:org.apache.cxf/cxf-rt-transports-websocket/${project.version}</bundle>
     </feature>
     <feature name="cxf-transports-websocket-server" version="${project.version}">
