@@ -21,7 +21,7 @@
     <!-- <repository>mvn:org.ops4j.pax.cdi/pax-cdi-features/1.1.4/xml/features</repository> -->
 
     <feature name="cxf-specs-jakarta-servlet" version="6.1.0">
-        <bundle start-level="10">wrap:mvn:jakarta.servlet/jakarta.servlet-api/6.1.0$overwrite=merge&amp;Bundle-SymbolicName=jakarta.servlet-api-61</bundle>
+        <bundle start-level="10">wrap:mvn:jakarta.servlet/jakarta.servlet-api/6.1.0$overwrite=merge&amp;Bundle-Name=Jakarta%20Servlet&amp;Bundle-SymbolicName=jakarta.servlet-api-61&amp;Bundle-Version=6.1.0</bundle>
         <bundle start-level="10" start="false">mvn:org.ops4j.pax.web/pax-web-compatibility-servlet5/9.99.0</bundle>
     </feature>
     <!-- <feature name="jetty" version="12.0.18">
@@ -43,7 +43,7 @@
         <bundle start-level="9">mvn:org.apache.geronimo.specs/geronimo-osgi-registry/1.1</bundle>
         <bundle start-level="10" dependency="true">mvn:jakarta.activation/jakarta.activation-api/${cxf.jakarta.activation.version}</bundle>
         <bundle start-level="10" dependency="true">mvn:jakarta.annotation/jakarta.annotation-api/${cxf.jakarta.annotation-api.version}</bundle>
-        <bundle start-level="10">wrap:mvn:jakarta.xml.bind/jakarta.xml.bind-api/4.0.2$overwrite=merge&amp;Bundle-SymbolicName=jakarta.xml.bind-api-40</bundle>
+        <bundle start-level="10">wrap:mvn:jakarta.xml.bind/jakarta.xml.bind-api/4.0.2$overwrite=merge&amp;Bundle-Name=Jakarta%20XML%20Binding%20API&amp;Bundle-SymbolicName=jakarta.xml.bind-api-40&amp;Bundle-Version=4.0.2</bundle>
         <bundle start-level="10" start="false">mvn:org.ops4j.pax.web/pax-web-compatibility-jaxb3/9.99.0</bundle>
         <bundle start-level="10" dependency="true">mvn:jakarta.xml.ws/jakarta.xml.ws-api/${cxf.jakarta.wsapi.version}</bundle>
         <bundle start-level="10" dependency="true">mvn:jakarta.ws.rs/jakarta.ws.rs-api/${cxf.jakarta.ws.rs.version}</bundle>
@@ -339,9 +339,9 @@
         <bundle start-level="10" dependency="true">mvn:org.apache.servicemix.specs/org.apache.servicemix.specs.jaxrs-api-2.1/${cxf.servicemix.jaxrs.specs.version}</bundle>
         <bundle start-level="10" dependency="true">mvn:jakarta.annotation/jakarta.annotation-api/${cxf.jakarta.annotation-api.version}</bundle>
         <bundle start-level="35">mvn:org.yaml/snakeyaml/${cxf.snakeyaml.version}</bundle>
-        <bundle start-level="35">mvn:com.fasterxml.jackson.core/jackson-core/${cxf.jackson.version}</bundle>
+        <bundle start-level="35">mvn:com.fasterxml.jackson.core/jackson-core/${cxf.jackson.version}.spiprov</bundle>
         <bundle start-level="35">mvn:com.fasterxml.jackson.core/jackson-annotations/${cxf.jackson.version}</bundle>
-        <bundle start-level="35">mvn:com.fasterxml.jackson.core/jackson-databind/${cxf.jackson.databind.version}</bundle>
+        <bundle start-level="35">mvn:com.fasterxml.jackson.core/jackson-databind/${cxf.jackson.databind.version}.spiprov</bundle>
         <bundle start-level="35">mvn:com.fasterxml.jackson.dataformat/jackson-dataformat-yaml/${cxf.jackson.version}</bundle>
         <bundle start-level="35">mvn:com.fasterxml.jackson.jaxrs/jackson-jaxrs-base/${cxf.jackson.version}</bundle>
         <bundle start-level="35">mvn:com.fasterxml.jackson.jaxrs/jackson-jaxrs-json-provider/${cxf.jackson.version}</bundle>
@@ -484,7 +484,7 @@
         <bundle dependency='true'>mvn:io.netty/netty-handler-proxy/${cxf.netty.version}</bundle>
         <bundle dependency='true'>mvn:io.netty/netty-codec-socks/${cxf.netty.version}</bundle>
         <bundle dependency='true'>mvn:org.reactivestreams/reactive-streams/${cxf.reactivestreams.version}</bundle>
-        <bundle dependency='true'>mvn:com.typesafe.netty/netty-reactive-streams/2.0.4</bundle>
+        <bundle dependency='true'>mvn:com.typesafe.netty/netty-reactive-streams/2.0.5</bundle>
         <bundle start-level="40">mvn:org.apache.cxf/cxf-rt-transports-websocket/${project.version}</bundle>
     </feature>
     <feature name="cxf-transports-websocket-server" version="${project.version}">
