@@ -651,10 +651,11 @@
         <bundle start-level="10" dependency="true">mvn:jakarta.el/jakarta.el-api/4.0.0</bundle>
     </feature>
 
-    <feature name="cxf-jaxrs-cdi" version="${project.version}">
+    <!-- pax-cdi features are not included in TESB -->
+    <!-- <feature name="cxf-jaxrs-cdi" version="${project.version}">
         <feature version="${cxf.tesb.version-range}">cxf-jaxrs</feature>
         <feature>pax-cdi</feature>
         <feature version="[3,4)">jakarta-jms-api</feature>
         <bundle start-level="40">mvn:org.apache.cxf/cxf-integration-cdi/${project.version}</bundle>
-    </feature>
+    </feature> -->
 </features>
