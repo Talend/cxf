@@ -104,7 +104,7 @@
         <bundle start-level="10" dependency="true">mvn:jakarta.enterprise/jakarta.enterprise.lang-model/${cxf.cdi.api.version}</bundle>
         <bundle start-level="10" dependency="true">mvn:jakarta.inject/jakarta.inject-api/${cxf.jakarta.injectapi.version}</bundle>
         <bundle start-level="10" dependency="true">mvn:jakarta.interceptor/jakarta.interceptor-api/${cxf.jakarta.interceptorapi.version}</bundle>
-        <bundle start-level="10" dependency="true">mvn:jakarta.el/jakarta.el-api/5.0.1</bundle>
+        <bundle start-level="10" dependency="true">mvn:jakarta.el/jakarta.el-api/6.0.1</bundle>
         <bundle start-level="10" dependency="true">mvn:jakarta.jms/jakarta.jms-api/${cxf.jakarta.jms.version}</bundle>
     </feature>
     <feature name="wss4j" version="${cxf.jakarta.wss4j.version}">
@@ -609,6 +609,7 @@
         <bundle dependency="true">wrap:mvn:org.apache.activemq/artemis-core-client/${cxf.activemq.artemis.version}$Bundle-SymbolicName=artemis-core-client&amp;Bundle-Version=${cxf.activemq.artemis.version}&amp;Export-Package=org.apache.activemq.artemis.core.config.impl;version=${cxf.activemq.artemis.version},org.apache.activemq.artemis*;version=${cxf.activemq.artemis.version}</bundle>
         <bundle dependency="true">wrap:mvn:org.apache.activemq/artemis-jms-client/${cxf.activemq.artemis.version}$Bundle-SymbolicName=artemis-jms-client&amp;Bundle-Version=${cxf.activemq.artemis.version}&amp;Export-Package=org.apache.activemq.artemis*;version=${cxf.activemq.artemis.version}</bundle>
         <bundle dependency="true">wrap:mvn:org.apache.activemq/artemis-server/${cxf.activemq.artemis.version}$Bundle-SymbolicName=artemis-server&amp;Bundle-Version=${cxf.activemq.artemis.version}&amp;Export-Package=org.apache.activemq.artemis*;version=${cxf.activemq.artemis.version}</bundle>
+        <bundle dependency="true">mvn:jakarta.jws/jakarta.jws-api/3.0.0</bundle>
         <bundle>mvn:org.apache.cxf.services.wsn/cxf-services-wsn-core/${project.version}</bundle>
     </feature>
     <feature name="cxf-ws-discovery-api" version="${project.version}">

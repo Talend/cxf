@@ -176,6 +176,7 @@
                             <descriptors>
                                 <descriptor>mvn:org.ops4j.pax.web/pax-web-features/${cxf.pax-web.features.tesb.version}/xml/features</descriptor>
                                 <descriptor>mvn:org.apache.karaf.features/framework/${cxf.karaf.tesb.version}/xml/features</descriptor>
+                                <descriptor>mvn:org.apache.karaf.features/specs/${cxf.karaf.tesb.version}/xml/features</descriptor>
                                 <descriptor>mvn:org.apache.karaf.features/standard/${cxf.karaf.features.tesb.version}/xml/features</descriptor>
                                 <descriptor>mvn:org.apache.karaf.features/spring/${cxf.karaf.features.tesb.version}/xml/features</descriptor>
                                 <descriptor>mvn:org.apache.camel.karaf/apache-camel/${cxf.camel.features.tesb.version}/xml/features</descriptor>
