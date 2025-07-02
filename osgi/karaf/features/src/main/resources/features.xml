@@ -649,7 +649,8 @@
         <feature version="${cxf.tesb.version-range}">cxf-bean-validation-core</feature>
         <!-- <bundle start-level="30">mvn:org.apache.servicemix.specs/org.apache.servicemix.specs.javax-el-api-3.0.0/${cxf.servicemix.javax.el.version}</bundle> -->
         <!-- <bundle start-level="30">mvn:org.apache.servicemix.bundles/org.apache.servicemix.bundles.javax-el-impl/4.0.2_1</bundle> -->
-        <bundle start-level="10" dependency="true">mvn:jakarta.el/jakarta.el-api/4.0.0</bundle>
+        <bundle start-level="10" dependency="true">mvn:jakarta.el/jakarta.el-api/6.0.1</bundle>
+        <bundle start-level="10" dependency='true' start='false'>mvn:org.ops4j.pax.web/pax-web-compatibility-el/11.0.0</bundle>
     </feature>
 
     <!-- pax-cdi features are not included in TESB -->
