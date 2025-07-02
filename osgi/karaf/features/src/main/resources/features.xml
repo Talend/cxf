@@ -239,7 +239,6 @@
     <feature name="cxf-http-netty-client" version="${project.version}">
         <feature version="${cxf.tesb.version-range}">cxf-http</feature>
         <feature version="[6,7)">cxf-specs-jakarta-servlet</feature>
-        <!-- <bundle dependency="true" start-level="40">mvn:${cxf.servlet-api.group}/${cxf.servlet-api.artifact}/${cxf.servlet-api.version}</bundle> -->
         <bundle start-level="40">mvn:org.bouncycastle/bcprov-jdk18on/${cxf.bcprov.tesb.version}</bundle>
         <bundle start-level="40">mvn:org.bouncycastle/bcutil-jdk18on/${cxf.bcprov.tesb.version}</bundle>
         <bundle start-level="40">mvn:org.bouncycastle/bctls-jdk18on/${cxf.bcprov.tesb.version}</bundle>
@@ -400,7 +399,6 @@
         <bundle start-level="35">mvn:org.apache.cxf/cxf-rt-rs-service-description-swagger-ui/${project.version}</bundle>
         <bundle start-level="40">mvn:org.apache.cxf/cxf-rt-rs-service-description-openapi-v3/${project.version}</bundle>
         <bundle start-level="35" dependency="true">mvn:com.fasterxml.jackson.datatype/jackson-datatype-jsr310/${cxf.jackson.version}</bundle>
-        <!-- <bundle start-level="35" dependency="true">mvn:${cxf.servlet-api.group}/${cxf.servlet-api.artifact}/${cxf.servlet-api.version}</bundle> -->
         <bundle start-level="10" dependency="true">mvn:jakarta.validation/jakarta.validation-api/${cxf.validation2.api.tesb.version}</bundle>
         <bundle start-level="35" dependency="true">mvn:org.apache.commons/commons-lang3/${cxf.commons-lang3.version}</bundle>
         <bundle start-level="30" dependency="true">mvn:io.github.classgraph/classgraph/${cxf.classgraph.tesb.version}</bundle>
