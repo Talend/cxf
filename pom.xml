@@ -72,6 +72,7 @@
         <cxf.guava.tesb.version-range>[32,40)</cxf.guava.tesb.version-range>
         <cxf.jakarta.bind.tesb.version-range>[4,5)</cxf.jakarta.bind.tesb.version-range>
         <!-- <cxf.wss4j.tesb.version-range>[3,4)</cxf.wss4j.tesb.version-range> -->
+        <cxf.hazelcast.tesb.version>5.5.0.tesb1</cxf.hazelcast.tesb.version>
 
         <!-- Necessary until no need of HTTPService -->
         <cxf.tesb.pax-web.api.version>9.99.0</cxf.tesb.pax-web.api.version>
