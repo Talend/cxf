@@ -21,7 +21,7 @@
     <parent>
         <groupId>org.apache.cxf.karaf</groupId>
         <artifactId>karaf-parent</artifactId>
-        <version>4.1.0.1</version>
+        <version>4.1.0.2</version>
     </parent>
     <artifactId>apache-cxf</artifactId>
     <packaging>pom</packaging>
@@ -176,6 +176,7 @@
                             <descriptors>
                                 <descriptor>mvn:org.ops4j.pax.web/pax-web-features/${cxf.pax-web.features.tesb.version}/xml/features</descriptor>
                                 <descriptor>mvn:org.apache.karaf.features/framework/${cxf.karaf.tesb.version}/xml/features</descriptor>
+                                <descriptor>mvn:org.apache.karaf.features/specs/${cxf.karaf.tesb.version}/xml/features</descriptor>
                                 <descriptor>mvn:org.apache.karaf.features/standard/${cxf.karaf.features.tesb.version}/xml/features</descriptor>
                                 <descriptor>mvn:org.apache.karaf.features/spring/${cxf.karaf.features.tesb.version}/xml/features</descriptor>
                                 <descriptor>mvn:org.apache.camel.karaf/apache-camel/${cxf.camel.features.tesb.version}/xml/features</descriptor>

@@ -21,7 +21,7 @@
     <parent>
         <groupId>org.apache.cxf</groupId>
         <artifactId>cxf</artifactId>
-        <version>4.1.0.1</version>
+        <version>4.1.0.2</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
     <artifactId>cxf-parent</artifactId>
@@ -56,7 +56,7 @@
         <!-- stuff related to ASM -->
         <cxf.asm.groupId>org.ow2.asm</cxf.asm.groupId>
         <cxf.asm.artifactId>asm</cxf.asm.artifactId>
-        <cxf.asm.version>9.7.1</cxf.asm.version>
+        <cxf.asm.version>9.8</cxf.asm.version>
 
         <!-- OSGi related properties -->
         <cxf.fragment.host />
@@ -68,7 +68,7 @@
         <cxf.osgi.asm.version>[9.5,10)</cxf.osgi.asm.version>
         <cxf.osgi.spring.version>[6,7)</cxf.osgi.spring.version>
         <cxf.osgi.slf4j.version>[2,3)</cxf.osgi.slf4j.version>
-        <cxf.osgi.jakarta.annotation.version>[2,3)</cxf.osgi.jakarta.annotation.version>
+        <cxf.osgi.jakarta.annotation.version>[2,4)</cxf.osgi.jakarta.annotation.version>
         <cxf.osgi.jakarta.bind.version>[4,5)</cxf.osgi.jakarta.bind.version>
         <cxf.osgi.jakarta.activation.version>[2,3)</cxf.osgi.jakarta.activation.version>
         <cxf.osgi.jakarta.mail.version>[2,3)</cxf.osgi.jakarta.mail.version>
@@ -95,15 +95,15 @@
         <cxf.assertj.version>3.26.3</cxf.assertj.version>
         <cxf.atmosphere.version.range>[3.0, 4.0)</cxf.atmosphere.version.range>
         <cxf.atmosphere.version>3.0.13</cxf.atmosphere.version>
-        <cxf.bcprov.version>1.77</cxf.bcprov.version>
+        <cxf.bcprov.version>1.81</cxf.bcprov.version>
         <cxf.brave.version>6.0.3</cxf.brave.version>
-        <cxf.cdi.api.version>4.0.1</cxf.cdi.api.version>
+        <cxf.cdi.api.version>4.1.0</cxf.cdi.api.version>
         <cxf.classgraph.version>4.8.25</cxf.classgraph.version>
         <cxf.classmate.version>1.5.1</cxf.classmate.version>
-        <cxf.commons-codec.version>1.17.1</cxf.commons-codec.version>
-        <cxf.commons-io.version>2.16.1</cxf.commons-io.version>
+        <cxf.commons-codec.version>1.18.0</cxf.commons-codec.version>
+        <cxf.commons-io.version>2.19.0</cxf.commons-io.version>
         <cxf.commons-jcs-jcache.version>2.2.1</cxf.commons-jcs-jcache.version>
-        <cxf.commons-lang3.version>3.17.0</cxf.commons-lang3.version>
+        <cxf.commons-lang3.version>3.18.0</cxf.commons-lang3.version>
         <cxf.commons-logging.version>1.2</cxf.commons-logging.version>
         <cxf.commons-text.version>1.12.0</cxf.commons-text.version>
         <cxf.derby.version>10.16.1.1</cxf.derby.version>
@@ -130,16 +130,16 @@
         <cxf.httpcomponents.client.version>4.5.14</cxf.httpcomponents.client.version>
         <cxf.httpcomponents.core.version.range>[4.3,4.5.0)</cxf.httpcomponents.core.version.range>
         <cxf.httpcomponents.core.version>4.4.16</cxf.httpcomponents.core.version>
-        <cxf.httpcomponents.client5.version>5.4.1</cxf.httpcomponents.client5.version>
-        <cxf.httpcomponents.core5.version>5.3.1</cxf.httpcomponents.core5.version>
-        <cxf.jackson.version>2.18.3</cxf.jackson.version>
+        <cxf.httpcomponents.client5.version>5.5</cxf.httpcomponents.client5.version>
+        <cxf.httpcomponents.core5.version>5.3.4</cxf.httpcomponents.core5.version>
+        <cxf.jackson.version>2.19.0</cxf.jackson.version>
         <cxf.jackson.databind.version>${cxf.jackson.version}</cxf.jackson.databind.version>
         <cxf.jacorb.version>3.9</cxf.jacorb.version>
         <cxf.jaeger.version>1.8.1</cxf.jaeger.version>
         <cxf.jakarta.activation.version>2.1.3</cxf.jakarta.activation.version>
         <cxf.jakarta.mail.version>2.1.3</cxf.jakarta.mail.version>
         <cxf.jakarta.injectapi.version>2.0.1</cxf.jakarta.injectapi.version>
-        <cxf.jakarta.interceptorapi.version>2.1.0</cxf.jakarta.interceptorapi.version>
+        <cxf.jakarta.interceptorapi.version>2.2.0</cxf.jakarta.interceptorapi.version>
         <cxf.jakarta.jwsapi.version>3.0.0</cxf.jakarta.jwsapi.version>
         <cxf.jakarta.soapapi.version>3.0.2</cxf.jakarta.soapapi.version>
         <cxf.jakarta.wsapi.version>4.0.2</cxf.jakarta.wsapi.version>
@@ -150,7 +150,7 @@
         <cxf.jakarta.management.j2ee-api.version>1.1.4</cxf.jakarta.management.j2ee-api.version>
         <cxf.james.mim4j.version>0.7.2</cxf.james.mim4j.version>
         <cxf.javassist.version>3.29.2-GA</cxf.javassist.version>
-        <cxf.jakarta.annotation-api.version>2.1.1</cxf.jakarta.annotation-api.version>
+        <cxf.jakarta.annotation-api.version>3.0.0</cxf.jakarta.annotation-api.version>
         <cxf.jakarta.ws.rs.version>3.1.0</cxf.jakarta.ws.rs.version>
         <cxf.jaxb.runtime.version>4.0.5</cxf.jaxb.runtime.version>
         <cxf.jaxb.version>4.0.2</cxf.jaxb.version>
@@ -162,7 +162,7 @@
         <cxf.jcache.version>1.1.1</cxf.jcache.version>
         <cxf.jdom.version>1.0</cxf.jdom.version>
         <cxf.jettison.version>1.5.4</cxf.jettison.version>
-        <cxf.jetty12.version>12.0.18</cxf.jetty12.version>
+        <cxf.jetty12.version>12.0.22</cxf.jetty12.version>
         <cxf.jetty.version>${cxf.jetty12.version}</cxf.jetty.version>
         <cxf.jexl.version>3.3</cxf.jexl.version>
         <cxf.joda.time.version>2.10.10</cxf.joda.time.version>
@@ -211,13 +211,13 @@
         <cxf.servlet-api.group>jakarta.servlet</cxf.servlet-api.group>
         <cxf.servlet-api.version>6.0.0</cxf.servlet-api.version>
         <cxf.slf4j.version>2.0.17</cxf.slf4j.version>
-        <cxf.snakeyaml.version>2.3</cxf.snakeyaml.version>
+        <cxf.snakeyaml.version>2.4</cxf.snakeyaml.version>
         <cxf.specs.jaxws.api.version>2.3_2</cxf.specs.jaxws.api.version>
         <cxf.spring.boot.version>3.4.0</cxf.spring.boot.version>
         <cxf.spring.ldap.version>3.2.11</cxf.spring.ldap.version>
         <cxf.spring.mock>spring-test</cxf.spring.mock>
-        <cxf.spring.security.version>6.4.1</cxf.spring.security.version>
-        <cxf.spring.version>6.2.0</cxf.spring.version>
+        <cxf.spring.security.version>6.4.7</cxf.spring.security.version>
+        <cxf.spring.version>6.2.8</cxf.spring.version>
         <cxf.stax-ex.version>1.8.3</cxf.stax-ex.version>
         <cxf.swagger.ui.version>5.18.2</cxf.swagger.ui.version>
         <cxf.swagger.v3.version>2.2.26</cxf.swagger.v3.version>
@@ -230,7 +230,7 @@
              version (with the Final), but we don't want an import package with a version
              with a qualifier. We do want a range. -->
         <cxf.validation.api.package.version>[3,4)</cxf.validation.api.package.version>
-        <cxf.validation.api.version>3.0.2</cxf.validation.api.version>
+        <cxf.validation.api.version>3.1.1</cxf.validation.api.version>
         <cxf.velocity.version>2.3</cxf.velocity.version>
         <cxf.wildfly.common.version>2.0.1</cxf.wildfly.common.version>
         <cxf.wiremock.version>3.10.0</cxf.wiremock.version>
