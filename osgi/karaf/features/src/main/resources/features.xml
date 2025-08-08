@@ -22,21 +22,21 @@
 
     <feature name="cxf-specs-jakarta-servlet" version="6.1.0">
         <bundle start-level="10">mvn:jakarta.servlet/jakarta.servlet-api/6.1.0</bundle>
-        <bundle start-level="10" start="false">mvn:org.ops4j.pax.web/pax-web-compatibility-servlet/11.0.0</bundle>
+        <bundle start-level="10" start="false">mvn:org.ops4j.pax.web/pax-web-compatibility-servlet/11.0.1</bundle>
     </feature>
-    <!-- <feature name="jetty" version="12.0.22">
+    <!-- <feature name="jetty" version="12.0.23">
         <feature version="[6,7)">cxf-specs-jakarta-servlet</feature>
-        <bundle dependency="true">mvn:org.eclipse.jetty/jetty-alpn-server/12.0.22</bundle>
-        <bundle dependency="true">mvn:org.eclipse.jetty/jetty-http/12.0.22</bundle>
-        <bundle dependency="true">mvn:org.eclipse.jetty/jetty-io/12.0.22</bundle>
-        <bundle dependency="true">mvn:org.eclipse.jetty/jetty-server/12.0.22</bundle>
-        <bundle dependency="true">mvn:org.eclipse.jetty/jetty-session/12.0.22</bundle>
-        <bundle dependency="true">mvn:org.eclipse.jetty/jetty-jmx/12.0.22</bundle>
-        <bundle dependency="true">mvn:org.eclipse.jetty/jetty-util/12.0.22</bundle>
-        <bundle dependency="true">mvn:org.eclipse.jetty/jetty-security/12.0.22</bundle>
-        <bundle dependency="true">mvn:org.eclipse.jetty.http2/jetty-http2-hpack/12.0.22</bundle>
-        <bundle dependency="true">mvn:org.eclipse.jetty.http2/jetty-http2-common/12.0.22</bundle>
-        <bundle dependency="true">mvn:org.eclipse.jetty.http2/jetty-http2-server/12.0.22</bundle>
+        <bundle dependency="true">mvn:org.eclipse.jetty/jetty-alpn-server/12.0.23</bundle>
+        <bundle dependency="true">mvn:org.eclipse.jetty/jetty-http/12.0.23</bundle>
+        <bundle dependency="true">mvn:org.eclipse.jetty/jetty-io/12.0.23</bundle>
+        <bundle dependency="true">mvn:org.eclipse.jetty/jetty-server/12.0.23</bundle>
+        <bundle dependency="true">mvn:org.eclipse.jetty/jetty-session/12.0.23</bundle>
+        <bundle dependency="true">mvn:org.eclipse.jetty/jetty-jmx/12.0.23</bundle>
+        <bundle dependency="true">mvn:org.eclipse.jetty/jetty-util/12.0.23</bundle>
+        <bundle dependency="true">mvn:org.eclipse.jetty/jetty-security/12.0.23</bundle>
+        <bundle dependency="true">mvn:org.eclipse.jetty.http2/jetty-http2-hpack/12.0.23</bundle>
+        <bundle dependency="true">mvn:org.eclipse.jetty.http2/jetty-http2-common/12.0.23</bundle>
+        <bundle dependency="true">mvn:org.eclipse.jetty.http2/jetty-http2-server/12.0.23</bundle>
     </feature> -->
 
     <feature name="cxf-specs" version="${project.version}">
@@ -44,7 +44,7 @@
         <bundle start-level="10" dependency="true">mvn:jakarta.activation/jakarta.activation-api/${cxf.jakarta.activation.version}</bundle>
         <bundle start-level="10" dependency="true">mvn:jakarta.annotation/jakarta.annotation-api/${cxf.jakarta.annotation-api.version}</bundle>
         <bundle start-level="10">mvn:jakarta.xml.bind/jakarta.xml.bind-api/4.0.2</bundle>
-        <bundle start-level="10" start="false">mvn:org.ops4j.pax.web/pax-web-compatibility-jaxb3/11.0.0</bundle>
+        <bundle start-level="10" start="false">mvn:org.ops4j.pax.web/pax-web-compatibility-jaxb3/11.0.1</bundle>
         <bundle start-level="10" dependency="true">mvn:jakarta.xml.ws/jakarta.xml.ws-api/${cxf.jakarta.wsapi.version}</bundle>
         <bundle start-level="10" dependency="true">mvn:jakarta.ws.rs/jakarta.ws.rs-api/${cxf.jakarta.ws.rs.version}</bundle>
         <bundle start-level="10" dependency="true">mvn:jakarta.xml.soap/jakarta.xml.soap-api/${cxf.jakarta.soapapi.version}</bundle>
@@ -407,7 +407,7 @@
         <bundle start-level="35" dependency="true">mvn:io.swagger.core.v3/swagger-models/${cxf.swagger.v3.version}</bundle>
         <bundle start-level="35" dependency="true">mvn:io.swagger.core.v3/swagger-core/${cxf.swagger.v3.version}</bundle>
         <bundle start-level="35" dependency="true">mvn:io.swagger.core.v3/swagger-integration/${cxf.swagger.v3.version}</bundle>
-        <bundle start-level="35" dependency="true">mvn:io.swagger.core.v3/swagger-jaxrs2/${cxf.swagger.v3.version}</bundle>
+        <bundle start-level="35" dependency="true">mvn:io.swagger.core.v3/swagger-jaxrs2-jakarta/${cxf.swagger.v3.version}</bundle>
     </feature>
     <feature name="cxf-databinding-aegis" version="${project.version}">
         <feature version="${cxf.tesb.version-range}">cxf-wsdl</feature>
@@ -648,7 +648,7 @@
         <!-- <bundle start-level="30">mvn:org.apache.servicemix.specs/org.apache.servicemix.specs.javax-el-api-3.0.0/${cxf.servicemix.javax.el.version}</bundle> -->
         <!-- <bundle start-level="30">mvn:org.apache.servicemix.bundles/org.apache.servicemix.bundles.javax-el-impl/4.0.2_1</bundle> -->
         <bundle start-level="10" dependency="true">mvn:jakarta.el/jakarta.el-api/6.0.1</bundle>
-        <bundle start-level="10" dependency='true' start='false'>mvn:org.ops4j.pax.web/pax-web-compatibility-el/11.0.0</bundle>
+        <bundle start-level="10" dependency='true' start='false'>mvn:org.ops4j.pax.web/pax-web-compatibility-el/11.0.1</bundle>
     </feature>
 
     <!-- pax-cdi features are not included in TESB -->
