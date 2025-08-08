@@ -407,7 +407,7 @@
         <bundle start-level="35" dependency="true">mvn:io.swagger.core.v3/swagger-models/${cxf.swagger.v3.version}</bundle>
         <bundle start-level="35" dependency="true">mvn:io.swagger.core.v3/swagger-core/${cxf.swagger.v3.version}</bundle>
         <bundle start-level="35" dependency="true">mvn:io.swagger.core.v3/swagger-integration/${cxf.swagger.v3.version}</bundle>
-        <bundle start-level="35" dependency="true">mvn:io.swagger.core.v3/swagger-jaxrs2/${cxf.swagger.v3.version}</bundle>
+        <bundle start-level="35" dependency="true">mvn:io.swagger.core.v3/swagger-jaxrs2-jakarta/${cxf.swagger.v3.version}</bundle>
     </feature>
     <feature name="cxf-databinding-aegis" version="${project.version}">
         <feature version="${cxf.tesb.version-range}">cxf-wsdl</feature>
