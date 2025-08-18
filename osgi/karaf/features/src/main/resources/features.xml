@@ -573,7 +573,7 @@
     <feature name="cxf-sts" version="${project.version}">
         <feature prerequisite="true">wrap</feature>
         <bundle start-level="40" dependency="true">mvn:com.hazelcast/hazelcast/${cxf.hazelcast.tesb.version}</bundle>
-        <bundle start-level="40" dependency="true">wrap:mvn:org.ehcache/ehcache/${cxf.ehcache3.version}$overwrite=merge&amp;Import-Package=javax.xml.bind*,*;resolution:=optional</bundle>
+        <bundle start-level="40" dependency="true">mvn:org.ehcache/ehcache/${cxf.ehcache3.version}</bundle>
         <bundle start-level="40">mvn:org.apache.cxf/cxf-rt-rs-security-jose/${project.version}</bundle>
         <feature version="${cxf.tesb.version-range}">cxf-core</feature>
         <feature version="${cxf.tesb.version-range}">cxf-ws-security</feature>
