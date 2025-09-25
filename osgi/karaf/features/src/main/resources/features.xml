@@ -224,7 +224,12 @@
     <feature name="cxf-http-jetty" version="${project.version}">
         <feature version="${cxf.tesb.version-range}">cxf-http</feature>
         <feature version="[12,13)">pax-web-jetty</feature>
-        <bundle start-level="40">mvn:org.apache.cxf/cxf-rt-transports-http-jetty/${project.version}</bundle>
+        <!-- The feature below includes org.apache.camel.karaf/camel-cxf-transport-jetty,
+            which provides the Blueprint xmlns handler for CXF Jetty plus the CXF Jetty transport packages
+        -->
+        <feature version="[4.8,4.9)">camel-cxf-jetty</feature>
+        <!-- The bundle below provides the Spring xmlns handler for CXF Jetty plus the CXF Jetty transport packages -->
+        <!-- <bundle start-level="40">mvn:org.apache.cxf/cxf-rt-transports-http-jetty/${project.version}</bundle> -->
         <capability>
             cxf.http.provider;name=jetty
         </capability>
