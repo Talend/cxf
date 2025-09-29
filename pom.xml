@@ -145,6 +145,17 @@
                 <enabled>false</enabled>
             </releases>
         </pluginRepository>
+        <pluginRepository>
+            <id>talend-public3</id>
+            <name>Talend public snapshots</name>
+            <url>https://artifacts-zl.talend.com/nexus/content/groups/public/</url>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+            <releases>
+                <enabled>true</enabled>
+            </releases>
+        </pluginRepository>
     </pluginRepositories>
     <inceptionYear>2006</inceptionYear>
     <mailingLists>
