@@ -403,6 +403,7 @@
         <bundle start-level="40">mvn:org.apache.cxf/cxf-rt-rs-service-description-common-openapi/${project.version}</bundle>
         <bundle start-level="35">mvn:org.apache.cxf/cxf-rt-rs-service-description-swagger-ui/${cxf.rs.swagger.ui.tesb.version}</bundle>
         <bundle start-level="40">mvn:org.apache.cxf/cxf-rt-rs-service-description-openapi-v3/${cxf.rs.openapi.v3.tesb.version}</bundle>
+        <!-- This bundle is included here solely for end-user convenience -->
         <bundle start-level="45">mvn:org.webjars/swagger-ui/${cxf.swagger-ui.tesb.version}</bundle>
         <bundle start-level="35" dependency="true">mvn:com.fasterxml.jackson.datatype/jackson-datatype-jsr310/${cxf.jackson.version}</bundle>
         <bundle start-level="10" dependency="true">mvn:jakarta.validation/jakarta.validation-api/${cxf.validation2.api.tesb.version}</bundle>
