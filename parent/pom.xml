@@ -675,7 +675,7 @@
                         </goals>
                         <configuration>
                             <versions>
-                                <cxf.osgi.version.clean>${project.version}</cxf.osgi.version.clean>
+                                <cxf.osgi.version.clean>${original.version}</cxf.osgi.version.clean>
                             </versions>
                         </configuration>
                     </execution>
@@ -719,7 +719,7 @@
             <dependency>
                 <groupId>org.apache.cxf</groupId>
                 <artifactId>cxf-bom</artifactId>
-                <version>${project.version}</version>
+                <version>${original.version}</version>
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
@@ -728,32 +728,32 @@
             <dependency>
                 <groupId>org.apache.cxf</groupId>
                 <artifactId>cxf-rt-javascript-tests</artifactId>
-                <version>${project.version}</version>
+                <version>${original.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.apache.cxf</groupId>
                 <artifactId>cxf-tools-wsdlto-test</artifactId>
-                <version>${project.version}</version>
+                <version>${original.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.apache.cxf.services.sts.systests</groupId>
                 <artifactId>cxf-services-sts-systests-advanced</artifactId>
-                <version>${project.version}</version>
+                <version>${original.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.apache.cxf.services.sts.systests</groupId>
                 <artifactId>cxf-services-sts-systests-itests</artifactId>
-                <version>${project.version}</version>
+                <version>${original.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.apache.cxf.services.sts.systests</groupId>
                 <artifactId>cxf-services-sts-systests-osgi</artifactId>
-                <version>${project.version}</version>
+                <version>${original.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.apache.cxf.services.xkms</groupId>
                 <artifactId>cxf-services-xkms-itests</artifactId>
-                <version>${project.version}</version>
+                <version>${original.version}</version>
             </dependency>
 
             <dependency>
