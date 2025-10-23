@@ -417,7 +417,7 @@
         <!-- DynamicImport-Package=* is required to dynamically load JAX-RS resource classes from any Talend Studio artifact package,
             without it their endpoints are omitted from the OpenAPI output.
         -->
-        <bundle start-level="35" dependency="true">wrap:mvn:io.swagger.core.v3/swagger-jaxrs2-jakarta/${cxf.swagger.v3.version}$DynamicImport-Package=*</bundle>
+        <bundle start-level="35" dependency="true">wrap:mvn:io.swagger.core.v3/swagger-jaxrs2-jakarta/${cxf.swagger.v3.version}$overwrite=merge&amp;DynamicImport-Package=*</bundle>
     </feature>
     <feature name="cxf-databinding-aegis" version="${project.version}">
         <feature version="${cxf.tesb.version-range}">cxf-wsdl</feature>
