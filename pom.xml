@@ -39,8 +39,12 @@
         <url>https://issues.apache.org/jira/browse/CXF</url>
     </issueManagement>
     <properties>
+        <original.version>4.1.0.2</original.version>
         <cxf.tesb.version-range>[4.1,4.2)</cxf.tesb.version-range>
         <cxf.tesb.major-version-range>[4,5)</cxf.tesb.major-version-range>
+        <cxf.rs.openapi.v3.tesb.version>4.1.0.2.20251023</cxf.rs.openapi.v3.tesb.version>
+        <cxf.rs.swagger.ui.tesb.version>4.1.0.2.20251023</cxf.rs.swagger.ui.tesb.version>
+
         <cxf.async-http-client.tesb.version>2.12.4</cxf.async-http-client.tesb.version>
         <cxf.bcprov.tesb.version>1.81</cxf.bcprov.tesb.version>
         <cxf.dtd.parser.tesb.version>1.4.5</cxf.dtd.parser.tesb.version>
@@ -73,6 +77,7 @@
         <cxf.jakarta.bind.tesb.version-range>[4,5)</cxf.jakarta.bind.tesb.version-range>
         <!-- <cxf.wss4j.tesb.version-range>[3,4)</cxf.wss4j.tesb.version-range> -->
         <cxf.hazelcast.tesb.version>5.5.0.tesb1</cxf.hazelcast.tesb.version>
+        <cxf.swagger-ui.tesb.version>5.29.3</cxf.swagger-ui.tesb.version>
 
         <!-- Necessary until no need of HTTPService -->
         <cxf.tesb.pax-web.api.version>11.0.1</cxf.tesb.pax-web.api.version>
@@ -677,7 +682,7 @@
                         <dependencyDetailsEnabled>false</dependencyDetailsEnabled>
                         <dependencyLocationsEnabled>false</dependencyLocationsEnabled>
                         <stagingRepositoryId>apache.cxf.site</stagingRepositoryId>
-                        <stagingSiteURL>scp://people.apache.org/www/cxf.apache.org/maven-site-${project.version}</stagingSiteURL>
+                        <stagingSiteURL>scp://people.apache.org/www/cxf.apache.org/maven-site-${original.version}</stagingSiteURL>
                     </configuration>
                 </plugin>
                 <!--This plugin's configuration is used to store Eclipse m2e settings only. It has no influence on the Maven build itself.-->
@@ -780,7 +785,7 @@
                         </execution>
                     </executions>
                     <configuration>
-                        <outputName>${project.artifactId}-${project.version}-bom</outputName>
+                        <outputName>${project.artifactId}-${original.version}-bom</outputName>
                     </configuration>
                 </plugin>
                 <plugin>

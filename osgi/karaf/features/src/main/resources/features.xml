@@ -401,8 +401,10 @@
         <feature version="${cxf.tesb.version-range}">cxf-jackson</feature>
         <feature version="[6,7)">cxf-specs-jakarta-servlet</feature>
         <bundle start-level="40">mvn:org.apache.cxf/cxf-rt-rs-service-description-common-openapi/${project.version}</bundle>
-        <bundle start-level="35">mvn:org.apache.cxf/cxf-rt-rs-service-description-swagger-ui/${project.version}</bundle>
-        <bundle start-level="40">mvn:org.apache.cxf/cxf-rt-rs-service-description-openapi-v3/${project.version}</bundle>
+        <bundle start-level="35">mvn:org.apache.cxf/cxf-rt-rs-service-description-swagger-ui/${cxf.rs.swagger.ui.tesb.version}</bundle>
+        <bundle start-level="40">mvn:org.apache.cxf/cxf-rt-rs-service-description-openapi-v3/${cxf.rs.openapi.v3.tesb.version}</bundle>
+        <!-- This bundle is included here solely for end-user convenience -->
+        <bundle start-level="45">mvn:org.webjars/swagger-ui/${cxf.swagger-ui.tesb.version}</bundle>
         <bundle start-level="35" dependency="true">mvn:com.fasterxml.jackson.datatype/jackson-datatype-jsr310/${cxf.jackson.version}</bundle>
         <bundle start-level="10" dependency="true">mvn:jakarta.validation/jakarta.validation-api/${cxf.validation2.api.tesb.version}</bundle>
         <bundle start-level="35" dependency="true">mvn:org.apache.commons/commons-lang3/${cxf.commons-lang3.version}</bundle>
@@ -412,7 +414,10 @@
         <bundle start-level="35" dependency="true">mvn:io.swagger.core.v3/swagger-models/${cxf.swagger.v3.version}</bundle>
         <bundle start-level="35" dependency="true">mvn:io.swagger.core.v3/swagger-core/${cxf.swagger.v3.version}</bundle>
         <bundle start-level="35" dependency="true">mvn:io.swagger.core.v3/swagger-integration/${cxf.swagger.v3.version}</bundle>
-        <bundle start-level="35" dependency="true">mvn:io.swagger.core.v3/swagger-jaxrs2-jakarta/${cxf.swagger.v3.version}</bundle>
+        <!-- DynamicImport-Package=* is required to dynamically load JAX-RS resource classes from any Talend Studio artifact package,
+            without it their endpoints are omitted from the OpenAPI output.
+        -->
+        <bundle start-level="35" dependency="true">wrap:mvn:io.swagger.core.v3/swagger-jaxrs2-jakarta/${cxf.swagger.v3.version}$overwrite=merge&amp;DynamicImport-Package=*</bundle>
     </feature>
     <feature name="cxf-databinding-aegis" version="${project.version}">
         <feature version="${cxf.tesb.version-range}">cxf-wsdl</feature>

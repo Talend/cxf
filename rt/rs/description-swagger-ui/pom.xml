@@ -24,6 +24,7 @@
     <name>Apache CXF JAX-RS Service Description Swagger UI integration</name>
     <description>Apache CXF JAX-RS Service Description Swagger UI integration</description>
     <url>https://cxf.apache.org</url>
+    <version>${revision}</version>
     <parent>
         <groupId>org.apache.cxf</groupId>
         <artifactId>cxf-parent</artifactId>
@@ -31,6 +32,7 @@
         <relativePath>../../../parent/pom.xml</relativePath>
     </parent>
     <properties>
+        <revision>${cxf.rs.swagger.ui.tesb.version}</revision>
         <cxf.module.name>org.apache.cxf.rs.swagger.ui</cxf.module.name>
         <cxf.osgi.import>
             jakarta.annotation*;version="${cxf.osgi.jakarta.annotation.version}"
@@ -46,7 +48,14 @@
         <dependency>
             <groupId>org.apache.cxf</groupId>
             <artifactId>cxf-rt-frontend-jaxrs</artifactId>
-            <version>${project.version}</version>
+            <version>${original.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.osgi</groupId>
+            <artifactId>osgi.core</artifactId>
+            <version>${cxf.osgi.tesb.version}</version>
+            <scope>provided</scope>
+            <optional>true</optional>
         </dependency>
         <dependency>
             <groupId>junit</groupId>

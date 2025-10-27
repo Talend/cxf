@@ -24,6 +24,7 @@
     <name>Apache CXF JAX-RS Service Description OpenAPI v3</name>
     <description>Apache CXF JAX-RS Service Description OpenAPI v3</description>
     <url>https://cxf.apache.org</url>
+    <version>${revision}</version>
     <parent>
         <groupId>org.apache.cxf</groupId>
         <artifactId>cxf-parent</artifactId>
@@ -31,6 +32,7 @@
         <relativePath>../../../parent/pom.xml</relativePath>
     </parent>
     <properties>
+        <revision>${cxf.rs.openapi.v3.tesb.version}</revision>
         <cxf.module.name>org.apache.cxf.rs.openapi.v3</cxf.module.name>
         <cxf.osgi.import>
             jakarta.servlet*;version="${cxf.osgi.jakarta.servlet.version}",
@@ -61,12 +63,12 @@
         <dependency>
             <groupId>org.apache.cxf</groupId>
             <artifactId>cxf-rt-rs-service-description-common-openapi</artifactId>
-            <version>${project.version}</version>
+            <version>${original.version}</version>
         </dependency>
         <dependency>
             <groupId>org.apache.cxf</groupId>
             <artifactId>cxf-rt-rs-service-description-swagger-ui</artifactId>
-            <version>${project.version}</version>
+            <version>${cxf.rs.swagger.ui.tesb.version}</version>
         </dependency>
         <dependency>
             <groupId>org.apache.cxf</groupId>
