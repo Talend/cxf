@@ -135,7 +135,7 @@
         <bundle start-level="25" dependency="true">mvn:org.apache.servicemix.bundles/org.apache.servicemix.bundles.xmlresolver/${cxf.xmlresolver.bundle.version}</bundle>
         <bundle start-level="30" dependency="true">mvn:org.apache.servicemix.bundles/org.apache.servicemix.bundles.fastinfoset/${cxf.fastinfoset.bundle.version}</bundle>
         <bundle start-level="30" dependency="true">mvn:${cxf.asm.groupId}/${cxf.asm.artifactId}/${cxf.asm.version}</bundle>
-        <feature version="[4.8,4.9)">camel-cxf</feature>
+        <feature version="[4.8,4.11)">camel-cxf</feature>
         <bundle start-level="30" dependency="true">mvn:org.ops4j.pax.web/pax-web-api/${cxf.tesb.pax-web.api.version}</bundle>
         <bundle start-level="40">mvn:org.apache.cxf/cxf-rt-management/${project.version}</bundle>
         <conditional>
@@ -151,18 +151,18 @@
     <feature name="cxf-wsdl" version="${project.version}">
         <feature version="${cxf.tesb.version-range}">cxf-core</feature>
         <bundle start-level="30" dependency="true">mvn:org.apache.servicemix.bundles/org.apache.servicemix.bundles.wsdl4j/${cxf.wsdl4j.bundle.version}</bundle>
-        <feature version="[4.8,4.9)">camel-cxf</feature>
+        <feature version="[4.8,4.11)">camel-cxf</feature>
     </feature>
     <feature name="cxf-ws-policy" version="${project.version}">
         <feature version="${cxf.tesb.version-range}">cxf-wsdl</feature>
         <bundle start-level="30" dependency="true">mvn:org.apache.neethi/neethi/${cxf.neethi.version}</bundle>
-        <feature version="[4.8,4.9)">camel-cxf</feature>
+        <feature version="[4.8,4.11)">camel-cxf</feature>
     </feature>
     <feature name="cxf-ws-addr" version="${project.version}">
         <feature version="${cxf.tesb.version-range}">cxf-ws-policy</feature>
         <feature version="${cxf.tesb.version-range}">cxf-bindings-soap</feature>
         <feature version="${cxf.tesb.version-range}">cxf-databinding-jaxb</feature>
-        <feature version="[4.8,4.9)">camel-cxf</feature>
+        <feature version="[4.8,4.11)">camel-cxf</feature>
     </feature>
     <feature name="cxf-ws-rm" version="${project.version}">
         <feature version="${cxf.tesb.version-range}">cxf-ws-policy</feature>
@@ -201,13 +201,13 @@
         <!-- Can be used instead cxf-http for a smaller footprint -->
         <feature version="${cxf.tesb.version-range}">cxf-core</feature>
         <feature version="[6,7)">cxf-specs-jakarta-servlet</feature>
-        <feature version="[4.8,4.9)">camel-cxf</feature>
+        <feature version="[4.8,4.11)">camel-cxf</feature>
     </feature>
 
     <feature name="cxf-http" version="${project.version}">
         <feature version="${cxf.tesb.version-range}">cxf-core</feature>
         <feature>pax-web-http</feature>
-        <feature version="[4.8,4.9)">camel-cxf</feature>
+        <feature version="[4.8,4.11)">camel-cxf</feature>
     </feature>
     <!--
       This feature can be used to depend on the feature providing a HttpDestinationFactory extension
@@ -227,7 +227,7 @@
         <!-- The feature below includes org.apache.camel.karaf/camel-cxf-transport-jetty,
             which provides the Blueprint xmlns handler for CXF Jetty plus the CXF Jetty transport packages
         -->
-        <feature version="[4.8,4.9)">camel-cxf-jetty</feature>
+        <feature version="[4.8,4.11)">camel-cxf-jetty</feature>
         <!-- The bundle below provides the Spring xmlns handler for CXF Jetty plus the CXF Jetty transport packages -->
         <!-- <bundle start-level="40">mvn:org.apache.cxf/cxf-rt-transports-http-jetty/${project.version}</bundle> -->
         <capability>
@@ -290,14 +290,14 @@
         <feature version="${cxf.tesb.version-range}">cxf-wsdl</feature>
         <feature version="${cxf.saaj-impl.version}">saaj-impl</feature>
         <bundle dependency="true">mvn:org.ops4j.pax.web/pax-web-api/${cxf.tesb.pax-web.api.version}</bundle>
-        <feature version="[4.8,4.9)">camel-cxf</feature>
+        <feature version="[4.8,4.11)">camel-cxf</feature>
     </feature>
     <feature name="cxf-jaxws" version="${project.version}">
         <feature version="${cxf.tesb.version-range}">cxf-wsdl</feature>
         <feature version="${cxf.tesb.version-range}">cxf-databinding-jaxb</feature>
         <feature version="${cxf.tesb.version-range}">cxf-bindings-soap</feature>
         <feature version="${cxf.tesb.version-range}">cxf-http</feature>
-        <feature version="[4.8,4.9)">camel-cxf</feature>
+        <feature version="[4.8,4.11)">camel-cxf</feature>
     </feature>
     <feature name="cxf-jaxrs" version="${project.version}">
         <feature version="${cxf.tesb.version-range}">cxf-core</feature>
@@ -305,7 +305,7 @@
         <feature version="${cxf.tesb.version-range}">cxf-jackson</feature>
         <feature version="${cxf.tesb.version-range}">cxf-rt-security</feature>
         <bundle start-level="30" dependency="true">mvn:org.codehaus.jettison/jettison/${cxf.jettison.version}</bundle>
-        <feature version="[4.8,4.9)">camel-cxf</feature>
+        <feature version="[4.8,4.11)">camel-cxf</feature>
     </feature>
     <feature name="cxf-rs-security-xml" version="${project.version}">
         <feature version="${cxf.tesb.version-range}">cxf-jaxrs</feature>
@@ -436,7 +436,7 @@
     <feature name="cxf-features-logging" version="${project.version}">
         <feature version="${cxf.tesb.version-range}">cxf-core</feature>
         <!-- <bundle start-level="40">mvn:org.apache.cxf/cxf-rt-features-logging/${project.version}</bundle> -->
-        <feature version="[4.8,4.9)">camel-cxf</feature>
+        <feature version="[4.8,4.11)">camel-cxf</feature>
     </feature>
     <feature name="cxf-features-throttling" version="${project.version}">
         <feature version="${cxf.tesb.version-range}">cxf-core</feature>
