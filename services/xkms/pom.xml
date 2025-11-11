@@ -28,7 +28,7 @@
     <parent>
         <groupId>org.apache.cxf.services</groupId>
         <artifactId>cxf-services</artifactId>
-        <version>4.1.3</version>
+        <version>4.1.3.1</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
     <modules>
@@ -36,6 +36,8 @@
         <module>xkms-x509-handlers</module>
         <module>xkms-service</module>
         <module>xkms-client</module>
+        <module>xkms-features</module>
+        <module>xkms-osgi</module>
         <module>xkms-war</module>
         <module>xkms-x509-repo-ldap</module>
     </modules>
