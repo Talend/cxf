@@ -157,7 +157,7 @@ public class HttpServletRequestSnapshot extends HttpServletRequestWrapper {
     public Enumeration getHeaderNames() {
         return this.requestHeaderNames;
     }
-    
+
     @Override
     public Enumeration<String> getAttributeNames() {
         return this.attributeNames;
