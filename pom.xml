@@ -46,36 +46,27 @@
         <cxf.rs.swagger.ui.tesb.version>4.1.3.1</cxf.rs.swagger.ui.tesb.version>
 
         <cxf.async-http-client.tesb.version>2.12.4</cxf.async-http-client.tesb.version>
-        <cxf.bcprov.tesb.version>1.81</cxf.bcprov.tesb.version>
         <cxf.dtd.parser.tesb.version>1.4.5</cxf.dtd.parser.tesb.version>
         <cxf.classgraph.tesb.version>4.8.175</cxf.classgraph.tesb.version>
         <cxf.fastinfoset.tesb.version>2.0.0</cxf.fastinfoset.tesb.version>
-        <cxf.istack.tesb.version>4.2.0</cxf.istack.tesb.version>
         <cxf.james.mime4j.tesb.version>0.8.11</cxf.james.mime4j.tesb.version>
-        <!-- <cxf.jdom1.bundle.tesb.version>1.1_4</cxf.jdom1.bundle.tesb.version> -->
         <cxf.joda.time.tesb.version>2.11.1</cxf.joda.time.tesb.version>
         <cxf.karaf.tesb.version>4.4.6</cxf.karaf.tesb.version>
         <cxf.karaf.features.tesb.version>4.4.6.20250901</cxf.karaf.features.tesb.version>
         <cxf.pax-web.features.tesb.version>11.0.1</cxf.pax-web.features.tesb.version>
-        <cxf.camel.tesb.version>4.8.1</cxf.camel.tesb.version>
-        <cxf.camel.cxf.tesb.version>4.8.1.20250901</cxf.camel.cxf.tesb.version>
-        <cxf.camel.features.tesb.version>4.8.1.20250901</cxf.camel.features.tesb.version>
-        <cxf.mina.tesb.version>2.2.4</cxf.mina.tesb.version>
+        <cxf.camel.tesb.version>4.10.5</cxf.camel.tesb.version>
+        <cxf.camel.cxf.tesb.version>4.10.5.20251010</cxf.camel.cxf.tesb.version>
+        <cxf.camel.features.tesb.version>4.10.5.20251010</cxf.camel.features.tesb.version>
         <cxf.opensaml.tesb.version>4.3.2</cxf.opensaml.tesb.version>
-        <!-- <cxf.opensaml.tesb.version-range>[4,5)</cxf.opensaml.tesb.version-range> -->
         <cxf.xmlsec.bundle.tesb.version>2.3.4</cxf.xmlsec.bundle.tesb.version>
         <cxf.servicemix.aspectj.tesb.version>1.9.21.1_1</cxf.servicemix.aspectj.tesb.version>
         <cxf.stax-ex.tesb.version>2.1.0</cxf.stax-ex.tesb.version>
         <cxf.validation2.api.tesb.version>2.0.2</cxf.validation2.api.tesb.version>
-        <cxf.velocity.tesb.version>2.4.1</cxf.velocity.tesb.version>
         <cxf.xerces.bundle.tesb.version>2.12.2.tesb2_1</cxf.xerces.bundle.tesb.version>
-        <!-- <cxf.guava.tesb.version>32.1.3-jre</cxf.guava.tesb.version> -->
-        <!-- <cxf.swagger2.guava.tesb.version>${cxf.guava.tesb.version}</cxf.swagger2.guava.tesb.version> -->
         <cxf.osgi.tesb.version>8.0.0</cxf.osgi.tesb.version>
         <cxf.osgi.javax.stream.tesb.version-range>[0,2)</cxf.osgi.javax.stream.tesb.version-range>
         <cxf.guava.tesb.version-range>[32,40)</cxf.guava.tesb.version-range>
         <cxf.jakarta.bind.tesb.version-range>[4,5)</cxf.jakarta.bind.tesb.version-range>
-        <!-- <cxf.wss4j.tesb.version-range>[3,4)</cxf.wss4j.tesb.version-range> -->
         <cxf.hazelcast.tesb.version>5.5.0.tesb1</cxf.hazelcast.tesb.version>
         <cxf.swagger-ui.tesb.version>5.29.3</cxf.swagger-ui.tesb.version>
 

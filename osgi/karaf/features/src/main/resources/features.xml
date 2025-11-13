@@ -24,20 +24,6 @@
         <bundle start-level="10">mvn:jakarta.servlet/jakarta.servlet-api/6.1.0</bundle>
         <bundle start-level="10" start="false">mvn:org.ops4j.pax.web/pax-web-compatibility-servlet/11.0.1</bundle>
     </feature>
-    <!-- <feature name="jetty" version="12.0.26">
-        <feature version="[6,7)">cxf-specs-jakarta-servlet</feature>
-        <bundle dependency="true">mvn:org.eclipse.jetty/jetty-alpn-server/12.0.26</bundle>
-        <bundle dependency="true">mvn:org.eclipse.jetty/jetty-http/12.0.26</bundle>
-        <bundle dependency="true">mvn:org.eclipse.jetty/jetty-io/12.0.26</bundle>
-        <bundle dependency="true">mvn:org.eclipse.jetty/jetty-server/12.0.26</bundle>
-        <bundle dependency="true">mvn:org.eclipse.jetty/jetty-session/12.0.26</bundle>
-        <bundle dependency="true">mvn:org.eclipse.jetty/jetty-jmx/12.0.26</bundle>
-        <bundle dependency="true">mvn:org.eclipse.jetty/jetty-util/12.0.26</bundle>
-        <bundle dependency="true">mvn:org.eclipse.jetty/jetty-security/12.0.26</bundle>
-        <bundle dependency="true">mvn:org.eclipse.jetty.http2/jetty-http2-hpack/12.0.26</bundle>
-        <bundle dependency="true">mvn:org.eclipse.jetty.http2/jetty-http2-common/12.0.26</bundle>
-        <bundle dependency="true">mvn:org.eclipse.jetty.http2/jetty-http2-server/12.0.26</bundle>
-    </feature> -->
 
     <feature name="cxf-specs" version="${project.version}">
         <bundle start-level="9">mvn:org.apache.geronimo.specs/geronimo-osgi-registry/1.1</bundle>
@@ -54,14 +40,14 @@
         <bundle start-level="20" dependency="true">mvn:org.glassfish.jaxb/jaxb-core/${cxf.jaxb.runtime.version}</bundle>
         <bundle start-level="20" dependency="true">mvn:org.glassfish.jaxb/jaxb-runtime/${cxf.jaxb.runtime.version}</bundle>
         <bundle start-level="20" dependency="true">wrap:mvn:org.glassfish.jaxb/txw2/${cxf.jaxb.runtime.version}$Bundle-SymbolicName=org.glassfish.jaxb.txw2&amp;Bundle-Version=${cxf.jaxb.runtime.version}&amp;Export-Package=com.sun.xml.txw2*;version=${cxf.jaxb.runtime.version}</bundle>
-        <bundle start-level="20" dependency="true">mvn:com.sun.istack/istack-commons-runtime/${cxf.istack.tesb.version}</bundle>
+        <bundle start-level="20" dependency="true">mvn:com.sun.istack/istack-commons-runtime/${cxf.istack.version}</bundle>
         <bundle start-level="20" dependency="true">mvn:com.sun.xml.fastinfoset/FastInfoset/${cxf.fastinfoset.tesb.version}</bundle>
         <bundle start-level="20" dependency="true">mvn:org.jvnet.staxex/stax-ex/${cxf.stax-ex.tesb.version}</bundle>
         <bundle start-level="20" dependency="true">mvn:org.glassfish.jaxb/codemodel/${cxf.jaxb.runtime.version}</bundle>
         <bundle start-level="20" dependency="true">mvn:org.glassfish.jaxb/xsom/${cxf.jaxb.runtime.version}</bundle>
         <bundle start-level="20" dependency="true">wrap:mvn:org.glassfish.jaxb/jaxb-jxc/${cxf.jaxb.runtime.version}$Bundle-SymbolicName=org.glassfish.jaxb.jxc&amp;Bundle-Version=${cxf.jaxb.runtime.version}&amp;Export-Package=com.sun.tools.jxc*;version=${cxf.jaxb.runtime.version}</bundle>
         <bundle start-level="20" dependency="true">wrap:mvn:org.glassfish.jaxb/jaxb-xjc/${cxf.jaxb.runtime.version}$Bundle-SymbolicName=org.glassfish.jaxb.xjc&amp;Bundle-Version=${cxf.jaxb.runtime.version}&amp;Export-Package=com.sun.tools.xjc*;version=${cxf.jaxb.runtime.version}</bundle>
-        <bundle start-level="20" dependency="true">mvn:com.sun.istack/istack-commons-tools/${cxf.istack.tesb.version}</bundle>
+        <bundle start-level="20" dependency="true">mvn:com.sun.istack/istack-commons-tools/${cxf.istack.version}</bundle>
         <bundle start-level="20" dependency="true">mvn:com.sun.xml.bind.external/relaxng-datatype/${cxf.jaxb.runtime.version}</bundle>
         <bundle start-level="20" dependency="true">mvn:com.sun.xml.bind.external/rngom/${cxf.jaxb.runtime.version}</bundle>
         <bundle start-level="20" dependency="true">mvn:com.sun.xml.dtd-parser/dtd-parser/${cxf.dtd.parser.tesb.version}</bundle>
@@ -244,9 +230,9 @@
     <feature name="cxf-http-netty-client" version="${project.version}">
         <feature version="${cxf.tesb.version-range}">cxf-http</feature>
         <feature version="[6,7)">cxf-specs-jakarta-servlet</feature>
-        <bundle start-level="40">mvn:org.bouncycastle/bcprov-jdk18on/${cxf.bcprov.tesb.version}</bundle>
-        <bundle start-level="40">mvn:org.bouncycastle/bcutil-jdk18on/${cxf.bcprov.tesb.version}</bundle>
-        <bundle start-level="40">mvn:org.bouncycastle/bctls-jdk18on/${cxf.bcprov.tesb.version}</bundle>
+        <bundle start-level="40">mvn:org.bouncycastle/bcprov-jdk18on/${cxf.bcprov.version}</bundle>
+        <bundle start-level="40">mvn:org.bouncycastle/bcutil-jdk18on/${cxf.bcprov.version}</bundle>
+        <bundle start-level="40">mvn:org.bouncycastle/bctls-jdk18on/${cxf.bcprov.version}</bundle>
         <bundle start-level="40">mvn:io.netty/netty-tcnative-classes/${cxf.netty.tcnative.version}</bundle>
         <bundle start-level="40">mvn:io.netty/netty-common/${cxf.netty.version}</bundle>
         <bundle start-level="40">mvn:io.netty/netty-transport-native-unix-common/${cxf.netty.version}</bundle>
@@ -261,9 +247,9 @@
     </feature>
     <feature name="cxf-http-netty-server" version="${project.version}">
         <feature version="${cxf.tesb.version-range}">cxf-http</feature>
-        <bundle start-level="40">mvn:org.bouncycastle/bcprov-jdk18on/${cxf.bcprov.tesb.version}</bundle>
-        <bundle start-level="40">mvn:org.bouncycastle/bcutil-jdk18on/${cxf.bcprov.tesb.version}</bundle>
-        <bundle start-level="40">mvn:org.bouncycastle/bctls-jdk18on/${cxf.bcprov.tesb.version}</bundle>
+        <bundle start-level="40">mvn:org.bouncycastle/bcprov-jdk18on/${cxf.bcprov.version}</bundle>
+        <bundle start-level="40">mvn:org.bouncycastle/bcutil-jdk18on/${cxf.bcprov.version}</bundle>
+        <bundle start-level="40">mvn:org.bouncycastle/bctls-jdk18on/${cxf.bcprov.version}</bundle>
         <bundle start-level="40">mvn:io.netty/netty-tcnative-classes/${cxf.netty.tcnative.version}</bundle>
         <bundle start-level="40">mvn:io.netty/netty-common/${cxf.netty.version}</bundle>
         <bundle start-level="40">mvn:io.netty/netty-transport-native-unix-common/${cxf.netty.version}</bundle>
@@ -472,7 +458,7 @@
     </feature>
     <feature name="cxf-transports-udp" version="${project.version}">
         <feature version="${cxf.tesb.version-range}">cxf-core</feature>
-        <bundle dependency="true">mvn:org.apache.mina/mina-core/${cxf.mina.tesb.version}</bundle>
+        <bundle dependency="true">mvn:org.apache.mina/mina-core/${cxf.mina.version}</bundle>
         <bundle start-level="40">mvn:org.apache.cxf/cxf-rt-transports-udp/${project.version}</bundle>
     </feature>
     <feature name="cxf-transports-websocket-client" version="${project.version}">
@@ -538,7 +524,7 @@
         <feature version="${cxf.tesb.version-range}">cxf-javascript</feature>
         <bundle start-level="35" dependency="true">mvn:org.apache.commons/commons-lang3/${cxf.commons-lang3.version}</bundle>
         <bundle start-level="35" dependency="true">mvn:org.apache.commons/commons-text/${cxf.commons-text.version}</bundle>
-        <bundle dependency="true">mvn:org.apache.velocity/velocity-engine-core/${cxf.velocity.tesb.version}</bundle>
+        <bundle dependency="true">mvn:org.apache.velocity/velocity-engine-core/${cxf.velocity.version}</bundle>
         <bundle>mvn:org.apache.cxf/cxf-tools-common/${project.version}</bundle>
         <bundle>mvn:org.apache.cxf/cxf-tools-java2ws/${project.version}</bundle>
         <bundle>mvn:org.apache.cxf/cxf-tools-misctools/${project.version}</bundle>
