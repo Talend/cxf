@@ -47,7 +47,7 @@
 
         <cxf.async-http-client.tesb.version>2.12.4</cxf.async-http-client.tesb.version>
         <cxf.dtd.parser.tesb.version>1.4.5</cxf.dtd.parser.tesb.version>
-        <cxf.classgraph.tesb.version>4.8.175</cxf.classgraph.tesb.version>
+        <cxf.classgraph.tesb.version>4.8.179</cxf.classgraph.tesb.version>
         <cxf.fastinfoset.tesb.version>2.0.0</cxf.fastinfoset.tesb.version>
         <cxf.james.mime4j.tesb.version>0.8.11</cxf.james.mime4j.tesb.version>
         <cxf.joda.time.tesb.version>2.11.1</cxf.joda.time.tesb.version>

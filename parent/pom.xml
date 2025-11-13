@@ -165,7 +165,7 @@
         <cxf.jetty12.version>12.0.26</cxf.jetty12.version>
         <cxf.jetty.version>${cxf.jetty12.version}</cxf.jetty.version>
         <cxf.jexl.version>3.3</cxf.jexl.version>
-        <cxf.joda.time.version>2.10.10</cxf.joda.time.version>
+        <cxf.joda.time.version>2.13.1</cxf.joda.time.version>
         <cxf.johnzon.version>1.2.21</cxf.johnzon.version>
         <cxf.json.api.version>2.1.3</cxf.json.api.version>
         <cxf.json.bind-api.version>3.0.1</cxf.json.bind-api.version>
@@ -266,7 +266,7 @@
         <cxf.pax.exam.version>4.13.5</cxf.pax.exam.version>
         <cxf.reflections.bundle.version>0.9.11_2</cxf.reflections.bundle.version>
         <cxf.rhino.bundle.version>1.7.13_1</cxf.rhino.bundle.version>
-        <cxf.servicemix.aspectj.version>1.9.1_1</cxf.servicemix.aspectj.version>
+        <cxf.servicemix.aspectj.version>1.9.21.1_1</cxf.servicemix.aspectj.version>
         <cxf.servicemix.jakarta.el.version>3.0.0_1</cxf.servicemix.jakarta.el.version>
         <cxf.servicemix.jaxrs.specs.version>2.9.1</cxf.servicemix.jaxrs.specs.version>
         <cxf.servicemix.jodatime.version>2.3_1</cxf.servicemix.jodatime.version>

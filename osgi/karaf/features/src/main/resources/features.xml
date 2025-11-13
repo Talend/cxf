@@ -483,7 +483,7 @@
     </feature>
     <feature name="cxf-transports-websocket-server" version="${project.version}">
         <feature version="${cxf.tesb.version-range}">cxf-http</feature>
-        <bundle dependency='true'>mvn:org.atmosphere/atmosphere-runtime/${cxf.atmosphere.version}</bundle>
+        <bundle dependency='true'>wrap:mvn:org.atmosphere/atmosphere-runtime/${cxf.atmosphere.version}$overwrite=merge&amp;Import-Package=jakarta.servlet;version:="[6,7)",*;resolution:=optional&amp;SPI-Provider=*</bundle>
         <bundle start-level="40">mvn:org.apache.cxf/cxf-rt-transports-websocket/${project.version}</bundle>
         <capability>
             cxf.http.provider;name=websocket
