@@ -189,7 +189,10 @@
                                 <feature>framework</feature>
                             </framework>
                             <features>
-                                <feature>cxf-wsn*</feature>
+                                <feature>cxf-wsn</feature>
+                                <feature>cxf-ws-security</feature>
+                                <feature>cxf-rt-security</feature>
+                                <feature>cxf-rt-security-saml</feature>
                             </features>
                         </configuration>
                     </execution>
