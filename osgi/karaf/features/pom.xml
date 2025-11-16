@@ -193,6 +193,7 @@
                                 <feature>cxf-ws-security</feature>
                                 <feature>cxf-rt-security</feature>
                                 <feature>cxf-rt-security-saml</feature>
+                                <feature>cxf-rs-security-oauth2-saml</feature>
                             </features>
                         </configuration>
                     </execution>

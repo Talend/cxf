@@ -105,7 +105,6 @@
         <bundle start-level="25" dependency="true">mvn:joda-time/joda-time/${cxf.joda.time.version}</bundle>
         <bundle start-level="25" dependency="true">mvn:commons-codec/commons-codec/${cxf.commons-codec.version}</bundle>
         <bundle start-level="25" dependency="true">mvn:org.apache.santuario/xmlsec/${cxf.xmlsec.bundle.tesb.version}</bundle>
-        <!-- <bundle start-level="25" dependency="true">mvn:org.apache.santuario/xmlsec/3.0.6</bundle> -->
         <bundle start-level="25" dependency='true'>mvn:io.dropwizard.metrics/metrics-core/${cxf.dropwizard4.version}</bundle>
         <bundle start-level="25" dependency='true'>mvn:io.dropwizard.metrics/metrics-json/${cxf.dropwizard4.version}</bundle>
         <bundle start-level="25" dependency="true">mvn:org.apache.servicemix.bundles/org.apache.servicemix.bundles.opensaml/${cxf.opensaml.bundle.tesb.version}</bundle>
@@ -325,12 +324,12 @@
     <feature name="cxf-rs-security-oauth2-saml" version="${project.version}">
         <feature version="${cxf.tesb.version-range}">cxf-rs-security-xml</feature>
         <feature version="${cxf.tesb.version-range}">cxf-rs-security-jose</feature>
-        <!-- <feature version="[4.3,5)">opensaml</feature> -->
+        <!-- <feature version="[5,6)">opensaml</feature> -->
         <bundle start-level="25" dependency="true">mvn:commons-codec/commons-codec/${cxf.commons-codec.version}</bundle>
-        <bundle start-level="25" dependency="true">mvn:org.apache.santuario/xmlsec/3.0.5</bundle>
+        <bundle start-level="25" dependency="true">mvn:org.apache.santuario/xmlsec/${cxf.xmlsec.bundle.tesb.version}</bundle>
         <bundle start-level="25" dependency="true">mvn:joda-time/joda-time/${cxf.joda.time.version}</bundle>
-        <bundle start-level="25" dependency='true'>mvn:io.dropwizard.metrics/metrics-core/${cxf.dropwizard3.version}</bundle>
-        <bundle start-level="25" dependency="true">mvn:org.apache.servicemix.bundles/org.apache.servicemix.bundles.opensaml/4.3.2_1.tesb1</bundle>
+        <bundle start-level="25" dependency="true">mvn:io.dropwizard.metrics/metrics-core/${cxf.dropwizard3.version}</bundle>
+        <bundle start-level="25" dependency="true">mvn:org.apache.servicemix.bundles/org.apache.servicemix.bundles.opensaml/${cxf.opensaml.bundle.tesb.version}</bundle>
         <bundle start-level="40">mvn:org.apache.cxf/cxf-rt-rs-security-oauth2/${project.version}</bundle>
         <bundle start-level="40">mvn:org.apache.cxf/cxf-rt-rs-security-oauth2-saml/${project.version}</bundle>
     </feature>
