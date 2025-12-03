@@ -77,7 +77,7 @@
         <cxf.osgi.cdi.version>[4,5)</cxf.osgi.cdi.version>
         <cxf.osgi.jakarta.jwsapi.version>[4,5)</cxf.osgi.jakarta.jwsapi.version>
         <cxf.osgi.saaj.version>[3,4)</cxf.osgi.saaj.version>
-        <cxf.opensaml.osgi.version>[4.2,5)</cxf.opensaml.osgi.version>
+        <cxf.opensaml.osgi.version>[4.2,6)</cxf.opensaml.osgi.version>
         <cxf.ehcache.osgi.version>[3,4)</cxf.ehcache.osgi.version>
         <cxf.jetty.osgi.version>[12,13)</cxf.jetty.osgi.version>
         <cxf.osgi.netty.version>[4.1,5)</cxf.osgi.netty.version>
@@ -165,7 +165,7 @@
         <cxf.jetty12.version>12.0.26</cxf.jetty12.version>
         <cxf.jetty.version>${cxf.jetty12.version}</cxf.jetty.version>
         <cxf.jexl.version>3.3</cxf.jexl.version>
-        <cxf.joda.time.version>2.10.10</cxf.joda.time.version>
+        <cxf.joda.time.version>2.13.1</cxf.joda.time.version>
         <cxf.johnzon.version>1.2.21</cxf.johnzon.version>
         <cxf.json.api.version>2.1.3</cxf.json.api.version>
         <cxf.json.bind-api.version>3.0.1</cxf.json.bind-api.version>
@@ -216,7 +216,7 @@
         <cxf.spring.boot.version>3.4.7</cxf.spring.boot.version>
         <cxf.spring.ldap.version>3.2.13</cxf.spring.ldap.version>
         <cxf.spring.mock>spring-test</cxf.spring.mock>
-        <cxf.spring.security.version>6.4.7</cxf.spring.security.version>
+        <cxf.spring.security.version>6.4.12</cxf.spring.security.version>
         <cxf.spring.version>6.2.11</cxf.spring.version>
         <cxf.stax-ex.version>1.8.3</cxf.stax-ex.version>
         <cxf.swagger.ui.version>5.27.0</cxf.swagger.ui.version>
@@ -237,7 +237,7 @@
         <cxf.woodstox.core.version>7.1.1</cxf.woodstox.core.version>
         <cxf.woodstox.stax2-api.version>4.2.2</cxf.woodstox.stax2-api.version>
         <cxf.wsdl4j.version>1.6.3</cxf.wsdl4j.version>
-        <cxf.jakarta.wss4j.version>4.0.0</cxf.jakarta.wss4j.version>
+        <cxf.jakarta.wss4j.version>4.0.1</cxf.jakarta.wss4j.version>
         <cxf.xmlschema.version>2.3.1</cxf.xmlschema.version>
         <cxf.xnio.version>3.8.16.Final</cxf.xnio.version>
         <cxf.zest.version>2.1</cxf.zest.version>
@@ -266,7 +266,7 @@
         <cxf.pax.exam.version>4.13.5</cxf.pax.exam.version>
         <cxf.reflections.bundle.version>0.9.11_2</cxf.reflections.bundle.version>
         <cxf.rhino.bundle.version>1.7.13_1</cxf.rhino.bundle.version>
-        <cxf.servicemix.aspectj.version>1.9.1_1</cxf.servicemix.aspectj.version>
+        <cxf.servicemix.aspectj.version>1.9.21.1_1</cxf.servicemix.aspectj.version>
         <cxf.servicemix.jakarta.el.version>3.0.0_1</cxf.servicemix.jakarta.el.version>
         <cxf.servicemix.jaxrs.specs.version>2.9.1</cxf.servicemix.jaxrs.specs.version>
         <cxf.servicemix.jodatime.version>2.3_1</cxf.servicemix.jodatime.version>
