@@ -16,6 +16,6 @@
       See the License for the specific language governing permissions and
       limitations under the License.
 -->
-<features xmlns="http://karaf.apache.org/xmlns/features/v1.3.0" name="cxf-${project.version}">
+<features xmlns="http://karaf.apache.org/xmlns/features/v1.3.0" name="cxf-${upstream.version}">
     <repository>mvn:org.ops4j.pax.cdi/pax-cdi-features/1.1.4/xml/features</repository>
 </features>
