@@ -27,7 +27,16 @@
     <packaging>pom</packaging>
     <name>Apache CXF Karaf Features</name>
     <description>Apache CXF Karaf Features</description>
-    <!-- <version>4.1.0.20250310</version> -->
+    <version>${revision}</version>
+
+    <properties>
+        <revision>${cxf.features.version}</revision>
+        <upstream.version>4.1.0.2</upstream.version>
+        <cxf.features.version>4.1.0.2.20251212</cxf.features.version>
+        <cxf.commons-codec.tesb.version>1.20.0</cxf.commons-codec.tesb.version>
+        <cxf.commons-lang3.tesb.version>3.19.0</cxf.commons-lang3.tesb.version>
+        <cxf.camel.features.tesb.version>4.8.1.20251212</cxf.camel.features.tesb.version>
+    </properties>
 
     <repositories>
         <repository>
@@ -75,47 +84,47 @@
         <dependency>
             <groupId>org.apache.cxf.karaf</groupId>
             <artifactId>cxf-karaf-commands</artifactId>
-            <version>${project.version}</version>
+            <version>${upstream.version}</version>
         </dependency>
         <dependency>
             <groupId>org.apache.cxf.services.wsn</groupId>
             <artifactId>cxf-services-wsn-osgi</artifactId>
-            <version>${project.version}</version>
+            <version>${upstream.version}</version>
         </dependency>
         <dependency>
             <groupId>org.apache.cxf.services.sts</groupId>
             <artifactId>cxf-services-sts-core</artifactId>
-            <version>${project.version}</version>
+            <version>${upstream.version}</version>
         </dependency>
         <dependency>
             <groupId>org.apache.cxf.services.ws-discovery</groupId>
             <artifactId>cxf-services-ws-discovery-service</artifactId>
-            <version>${project.version}</version>
+            <version>${upstream.version}</version>
         </dependency>
         <dependency>
             <groupId>org.apache.cxf</groupId>
             <artifactId>cxf-rt-ws-addr</artifactId>
-            <version>${project.version}</version>
+            <version>${upstream.version}</version>
         </dependency>
         <dependency>
             <groupId>org.apache.cxf</groupId>
             <artifactId>cxf-rt-ws-rm</artifactId>
-            <version>${project.version}</version>
+            <version>${upstream.version}</version>
         </dependency>
         <dependency>
             <groupId>org.apache.cxf</groupId>
             <artifactId>cxf-rt-ws-policy</artifactId>
-            <version>${project.version}</version>
+            <version>${upstream.version}</version>
         </dependency>
         <dependency>
             <groupId>org.apache.cxf</groupId>
             <artifactId>cxf-rt-ws-mex</artifactId>
-            <version>${project.version}</version>
+            <version>${upstream.version}</version>
         </dependency>
         <dependency>
             <groupId>org.apache.cxf</groupId>
             <artifactId>cxf-rt-ws-security</artifactId>
-            <version>${project.version}</version>
+            <version>${upstream.version}</version>
         </dependency>
     </dependencies>
     <build>
