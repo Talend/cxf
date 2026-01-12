@@ -121,11 +121,16 @@
         <bundle start-level="30" dependency="true">mvn:org.apache.servicemix.bundles/org.apache.servicemix.bundles.jasypt/${cxf.jasypt.bundle.version}</bundle>
         <bundle start-level="30">mvn:org.apache.wss4j/wss4j-bindings/${cxf.jakarta.wss4j.version}</bundle>
         <bundle start-level="30">mvn:org.apache.wss4j/wss4j-ws-security-common/${cxf.jakarta.wss4j.version}</bundle>
-        <bundle start-level="30">mvn:org.apache.wss4j/wss4j-bindings/${cxf.jakarta.wss4j.version}</bundle>
         <bundle start-level="30">mvn:org.apache.wss4j/wss4j-ws-security-dom/${cxf.jakarta.wss4j.version}</bundle>
         <bundle start-level="30">mvn:org.apache.wss4j/wss4j-policy/${cxf.jakarta.wss4j.version}</bundle>
         <bundle start-level="30">mvn:org.apache.wss4j/wss4j-ws-security-stax/${cxf.jakarta.wss4j.version}</bundle>
         <bundle start-level="30">mvn:org.apache.wss4j/wss4j-ws-security-policy-stax/${cxf.jakarta.wss4j.version}</bundle>
+        <bundle start-level="30" start="false">mvn:org.ops4j.pax.web/pax-web-compatibility-wss4j-bindings/11.0.1</bundle>
+        <bundle start-level="30" start="false">mvn:org.ops4j.pax.web/pax-web-compatibility-wss4j-common/11.0.1</bundle>
+        <bundle start-level="30" start="false">mvn:org.ops4j.pax.web/pax-web-compatibility-wss4j-dom/11.0.1</bundle>
+        <bundle start-level="30" start="false">mvn:org.ops4j.pax.web/pax-web-compatibility-wss4j-policy/11.0.1</bundle>
+        <bundle start-level="30" start="false">mvn:org.ops4j.pax.web/pax-web-compatibility-wss4j-stax/11.0.1</bundle>
+        <bundle start-level="30" start="false">mvn:org.ops4j.pax.web/pax-web-compatibility-wss4j-policy-stax/11.0.1</bundle>
     </feature>
     <feature name="cxf-core" version="${project.version}">
         <feature version="${cxf.tesb.version-range}">cxf-specs</feature>
