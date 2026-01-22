@@ -18,7 +18,7 @@
   under the License.
 -->
 <features xmlns="http://karaf.apache.org/xmlns/features/v1.0.0" name="cxf-xkms">
-    <repository>mvn:org.apache.cxf.karaf/apache-cxf/${project.version}/xml/features</repository>
+    <!-- <repository>mvn:org.apache.cxf.karaf/apache-cxf/${cxf.features.tesb.version}/xml/features</repository> -->
     <feature name="cxf-xkms-client" version="${upstream.version}">
         <feature>scr</feature>
         <feature>aries-blueprint</feature>

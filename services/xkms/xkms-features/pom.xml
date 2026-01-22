@@ -34,7 +34,7 @@
     <properties>
         <revision>${cxf-services-xkms-features.version}</revision>
         <upstream.version>4.1.0.2</upstream.version>
-        <cxf-services-xkms-features.version>4.1.0.2.20251212</cxf-services-xkms-features.version>
+        <cxf-services-xkms-features.version>${cxf.features.tesb.version}</cxf-services-xkms-features.version>
         <cxf.module.name>org.apache.cxf.xkms.features</cxf.module.name>
     </properties>
     <build>

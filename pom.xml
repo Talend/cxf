@@ -40,6 +40,7 @@
     </issueManagement>
     <properties>
         <original.version>4.1.0.2</original.version>
+        <cxf.features.tesb.version>4.1.0.2.20260122</cxf.features.tesb.version>
         <cxf.tesb.version-range>[4.1,4.2)</cxf.tesb.version-range>
         <cxf.tesb.major-version-range>[4,5)</cxf.tesb.major-version-range>
         <cxf.rs.openapi.v3.tesb.version>4.1.0.2.20251023</cxf.rs.openapi.v3.tesb.version>
