@@ -32,7 +32,7 @@
     <properties>
         <revision>${cxf.features.version}</revision>
         <upstream.version>4.1.0.2</upstream.version>
-        <cxf.features.version>4.1.0.2.20251212</cxf.features.version>
+        <cxf.features.version>4.1.0.2.20260122</cxf.features.version>
         <cxf.commons-codec.tesb.version>1.20.0</cxf.commons-codec.tesb.version>
         <cxf.commons-lang3.tesb.version>3.19.0</cxf.commons-lang3.tesb.version>
         <cxf.camel.features.tesb.version>4.8.1.20251212</cxf.camel.features.tesb.version>
