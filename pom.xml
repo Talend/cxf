@@ -40,6 +40,7 @@
     </issueManagement>
     <properties>
         <original.version>4.1.0.2</original.version>
+        <cxf.features.tesb.version>4.1.0.2.20260122</cxf.features.tesb.version>
         <cxf.tesb.version-range>[4.1,4.2)</cxf.tesb.version-range>
         <cxf.tesb.major-version-range>[4,5)</cxf.tesb.major-version-range>
         <cxf.rs.openapi.v3.tesb.version>4.1.0.2.20251023</cxf.rs.openapi.v3.tesb.version>
@@ -112,6 +113,28 @@
     </distributionManagement>
     <repositories>
         <repository>
+            <id>talend-public</id>
+            <name>Talend Open Source Public group</name>
+            <url>https://artifacts-oss.talend.com/nexus/content/groups/public</url>
+            <snapshots>
+                <enabled>true</enabled>
+            </snapshots>
+            <releases>
+                <enabled>true</enabled>
+            </releases>
+        </repository>
+        <repository>
+            <releases>
+                <enabled>true</enabled>
+            </releases>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+            <id>thirdparty-releases</id>
+            <name>Third party releases</name>
+            <url>https://artifacts-zl.talend.com/nexus/content/repositories/thirdparty-releases</url>
+        </repository>
+        <repository>
             <id>apache.snapshots</id>
             <url>https://repository.apache.org/snapshots/</url>
             <name>Apache Snapshot Repo</name>
@@ -120,6 +143,17 @@
             </snapshots>
             <releases>
                 <enabled>false</enabled>
+            </releases>
+        </repository>
+        <repository>
+            <id>maven-central</id>
+            <url>https://repo.maven.apache.org/maven2/</url>
+            <name>Maven Central Repo</name>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+            <releases>
+                <enabled>true</enabled>
             </releases>
         </repository>
     </repositories>
@@ -154,6 +188,17 @@
             </snapshots>
             <releases>
                 <enabled>false</enabled>
+            </releases>
+        </pluginRepository>
+        <pluginRepository>
+            <id>maven-central</id>
+            <url>https://repo.maven.apache.org/maven2/</url>
+            <name>Maven Central Repo</name>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+            <releases>
+                <enabled>true</enabled>
             </releases>
         </pluginRepository>
     </pluginRepositories>
