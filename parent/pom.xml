@@ -132,7 +132,8 @@
         <cxf.httpcomponents.core.version>4.4.16</cxf.httpcomponents.core.version>
         <cxf.httpcomponents.client5.version>5.5</cxf.httpcomponents.client5.version>
         <cxf.httpcomponents.core5.version>5.3.4</cxf.httpcomponents.core5.version>
-        <cxf.jackson.version>2.19.2</cxf.jackson.version>
+        <cxf.jackson.version>2.21.2</cxf.jackson.version>
+        <cxf.jackson.annotations.version>2.21</cxf.jackson.annotations.version>
         <cxf.jackson.databind.version>${cxf.jackson.version}</cxf.jackson.databind.version>
         <cxf.jacorb.version>3.9</cxf.jacorb.version>
         <cxf.jaeger.version>1.8.1</cxf.jaeger.version>
@@ -162,7 +163,7 @@
         <cxf.jcache.version>1.1.1</cxf.jcache.version>
         <cxf.jdom.version>1.0</cxf.jdom.version>
         <cxf.jettison.version>1.5.4</cxf.jettison.version>
-        <cxf.jetty12.version>12.0.26</cxf.jetty12.version>
+        <cxf.jetty12.version>12.0.33</cxf.jetty12.version>
         <cxf.jetty.version>${cxf.jetty12.version}</cxf.jetty.version>
         <cxf.jexl.version>3.3</cxf.jexl.version>
         <cxf.joda.time.version>2.10.10</cxf.joda.time.version>
@@ -211,7 +212,7 @@
         <cxf.servlet-api.group>jakarta.servlet</cxf.servlet-api.group>
         <cxf.servlet-api.version>6.0.0</cxf.servlet-api.version>
         <cxf.slf4j.version>2.0.17</cxf.slf4j.version>
-        <cxf.snakeyaml.version>2.4</cxf.snakeyaml.version>
+        <cxf.snakeyaml.version>2.6</cxf.snakeyaml.version>
         <cxf.specs.jaxws.api.version>2.3_2</cxf.specs.jaxws.api.version>
         <cxf.spring.boot.version>3.4.0</cxf.spring.boot.version>
         <cxf.spring.ldap.version>3.2.11</cxf.spring.ldap.version>
@@ -1574,7 +1575,7 @@
             <dependency>
                 <groupId>com.fasterxml.jackson.core</groupId>
                 <artifactId>jackson-annotations</artifactId>
-                <version>${cxf.jackson.version}</version>
+                <version>${cxf.jackson.annotations.version}</version>
             </dependency>
             <dependency>
                 <groupId>com.fasterxml.jackson.module</groupId>
