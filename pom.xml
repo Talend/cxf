@@ -48,8 +48,8 @@
 
         <cxf.async-http-client.tesb.version>2.12.4</cxf.async-http-client.tesb.version>
         <cxf.camel.tesb.version>4.18.0</cxf.camel.tesb.version>
-        <cxf.camel.cxf.tesb.version>4.18.0-SNAPSHOT</cxf.camel.cxf.tesb.version>
-        <cxf.camel.features.tesb.version>4.18.0-SNAPSHOT</cxf.camel.features.tesb.version>
+        <cxf.camel.cxf.tesb.version>4.18.0</cxf.camel.cxf.tesb.version>
+        <cxf.camel.features.tesb.version>4.18.0</cxf.camel.features.tesb.version>
         <cxf.classgraph.tesb.version>4.8.179</cxf.classgraph.tesb.version>
         <cxf.dtd.parser.tesb.version>1.4.5</cxf.dtd.parser.tesb.version>
         <cxf.fastinfoset.tesb.version>2.0.0</cxf.fastinfoset.tesb.version>
