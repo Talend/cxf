@@ -497,7 +497,7 @@
                             <cxf.validateServiceSchemas>${cxf.validateServices}</cxf.validateServiceSchemas>
                             <java.awt.headless>${java.awt.headless}</java.awt.headless>
                             <java.util.logging.config.file>${basedir}/target/test-classes/logging.properties</java.util.logging.config.file>
-                            <org.apache.activemq.default.directory.prefix>${basedir}/target/ActiveMQ/</org.apache.activemq.default.directory.prefix>
+                            <org.apache.artemis.default.directory.prefix>${basedir}/target/ActiveMQ/</org.apache.artemis.default.directory.prefix>
                             <derby.system.home>${basedir}/target/derby</derby.system.home>
                             <spring.validation.mode>${cxf.spring.validation.mode}</spring.validation.mode>
                             <server.launcher.vmargs>${cxf.server.launcher.vmargs}</server.launcher.vmargs>
@@ -1739,22 +1739,22 @@
                 <version>${cxf.jakarta.ejb.version}</version>
             </dependency>
             <dependency>
-                <groupId>org.apache.activemq</groupId>
+                <groupId>org.apache.artemis</groupId>
                 <artifactId>artemis-jakarta-server</artifactId>
                 <version>${cxf.activemq.artemis.version}</version>
             </dependency>
             <dependency>
-                <groupId>org.apache.activemq</groupId>
+                <groupId>org.apache.artemis</groupId>
                 <artifactId>artemis-jakarta-client</artifactId>
                 <version>${cxf.activemq.artemis.version}</version>
             </dependency>
             <dependency>
-                <groupId>org.apache.activemq</groupId>
+                <groupId>org.apache.artemis</groupId>
                 <artifactId>artemis-jakarta-ra</artifactId>
                 <version>${cxf.activemq.artemis.version}</version>
             </dependency>
             <dependency>
-                <groupId>org.apache.activemq</groupId>
+                <groupId>org.apache.artemis</groupId>
                 <artifactId>artemis-junit</artifactId>
                 <version>${cxf.activemq.artemis.version}</version>
                 <scope>test</scope>
