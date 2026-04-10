@@ -614,9 +614,9 @@
         <bundle dependency="true">mvn:jakarta.management.j2ee/jakarta.management.j2ee-api/1.1.4</bundle>
         <!-- <bundle dependency="true">mvn:org.apache.geronimo.specs/geronimo-jta_1.1_spec/${cxf.geronimo.jta.version}</bundle> -->
         <!-- <bundle dependency="true">mvn:org.apache.activemq/activemq-osgi/6.1.3.20240820</bundle> -->
-        <bundle dependency="true">wrap:mvn:org.apache.activemq/artemis-core-client/${cxf.activemq.artemis.version}$Bundle-SymbolicName=artemis-core-client&amp;Bundle-Version=${cxf.activemq.artemis.version}&amp;Export-Package=org.apache.activemq.artemis.core.config.impl;version=${cxf.activemq.artemis.version},org.apache.activemq.artemis*;version=${cxf.activemq.artemis.version}</bundle>
-        <bundle dependency="true">wrap:mvn:org.apache.activemq/artemis-jms-client/${cxf.activemq.artemis.version}$Bundle-SymbolicName=artemis-jms-client&amp;Bundle-Version=${cxf.activemq.artemis.version}&amp;Export-Package=org.apache.activemq.artemis*;version=${cxf.activemq.artemis.version}</bundle>
-        <bundle dependency="true">wrap:mvn:org.apache.activemq/artemis-server/${cxf.activemq.artemis.version}$Bundle-SymbolicName=artemis-server&amp;Bundle-Version=${cxf.activemq.artemis.version}&amp;Export-Package=org.apache.activemq.artemis*;version=${cxf.activemq.artemis.version}</bundle>
+        <bundle dependency="true">wrap:mvn:org.apache.artemis/artemis-core-client/${cxf.activemq.artemis.version}$Bundle-SymbolicName=artemis-core-client&amp;Bundle-Version=${cxf.activemq.artemis.version}&amp;Export-Package=org.apache.activemq.artemis.core.config.impl;version=${cxf.activemq.artemis.version},org.apache.activemq.artemis*;version=${cxf.activemq.artemis.version}</bundle>
+        <bundle dependency="true">wrap:mvn:org.apache.artemis/artemis-jms-client/${cxf.activemq.artemis.version}$Bundle-SymbolicName=artemis-jms-client&amp;Bundle-Version=${cxf.activemq.artemis.version}&amp;Export-Package=org.apache.activemq.artemis*;version=${cxf.activemq.artemis.version}</bundle>
+        <bundle dependency="true">wrap:mvn:org.apache.artemis/artemis-server/${cxf.activemq.artemis.version}$Bundle-SymbolicName=artemis-server&amp;Bundle-Version=${cxf.activemq.artemis.version}&amp;Export-Package=org.apache.activemq.artemis*;version=${cxf.activemq.artemis.version}</bundle>
         <bundle dependency="true">mvn:jakarta.jws/jakarta.jws-api/3.0.0</bundle>
         <bundle>mvn:org.apache.cxf.services.wsn/cxf-services-wsn-core/${upstream.version}</bundle>
     </feature>
