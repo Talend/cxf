@@ -47,9 +47,9 @@
         <cxf.rs.swagger.ui.tesb.version>4.1.5.1</cxf.rs.swagger.ui.tesb.version>
 
         <cxf.async-http-client.tesb.version>2.12.4</cxf.async-http-client.tesb.version>
-        <cxf.camel.tesb.version>4.18.0</cxf.camel.tesb.version>
-        <cxf.camel.cxf.tesb.version>4.18.0</cxf.camel.cxf.tesb.version>
-        <cxf.camel.features.tesb.version>4.18.0</cxf.camel.features.tesb.version>
+        <cxf.camel.tesb.version>4.18.1</cxf.camel.tesb.version>
+        <cxf.camel.cxf.tesb.version>4.18.1</cxf.camel.cxf.tesb.version>
+        <cxf.camel.features.tesb.version>4.18.1.20260401</cxf.camel.features.tesb.version>
         <cxf.classgraph.tesb.version>4.8.179</cxf.classgraph.tesb.version>
         <cxf.dtd.parser.tesb.version>1.4.5</cxf.dtd.parser.tesb.version>
         <cxf.fastinfoset.tesb.version>2.0.0</cxf.fastinfoset.tesb.version>
@@ -60,10 +60,10 @@
         <cxf.james.mime4j.tesb.version>0.8.11</cxf.james.mime4j.tesb.version>
         <cxf.joda.time.tesb.version>2.11.1</cxf.joda.time.tesb.version>
         <cxf.karaf.tesb.version>4.4.6</cxf.karaf.tesb.version>
-        <cxf.karaf.features.tesb.version>4.4.6.20250901</cxf.karaf.features.tesb.version>
+        <cxf.karaf.features.tesb.version>4.4.6.20260417</cxf.karaf.features.tesb.version>
         <cxf.opensaml.bundle.tesb.version>5.1.4_1.tesb1</cxf.opensaml.bundle.tesb.version>
         <cxf.osgi.tesb.version>8.0.0</cxf.osgi.tesb.version>
-        <cxf.pax-web.features.tesb.version>11.0.1</cxf.pax-web.features.tesb.version>
+        <cxf.pax-web.features.tesb.version>11.1.0.20260420</cxf.pax-web.features.tesb.version>
         <cxf.servicemix.aspectj.tesb.version>1.9.21.1_1</cxf.servicemix.aspectj.tesb.version>
         <cxf.shibboleth.tesb.version>9.1.6</cxf.shibboleth.tesb.version>
         <cxf.stax-ex.tesb.version>2.1.0</cxf.stax-ex.tesb.version>
@@ -74,8 +74,6 @@
 
         <cxf.osgi.javax.stream.tesb.version-range>[0,2)</cxf.osgi.javax.stream.tesb.version-range>
 
-        <!-- Necessary until no need of HTTPService -->
-        <cxf.tesb.pax-web.api.version>11.0.1</cxf.tesb.pax-web.api.version>
         <cxf.tesb.org.osgi.service.cm.version>1.6.1</cxf.tesb.org.osgi.service.cm.version>
         <cxf.tesb.org.osgi.service.servlet.version>2.0.0</cxf.tesb.org.osgi.service.servlet.version>
 
@@ -107,7 +105,7 @@
     </distributionManagement>
     <repositories>
         <repository>
-            <id>talend-public</id>
+            <id>artifacts-oss</id>
             <name>Talend Open Source Public group</name>
             <url>https://artifacts-oss.talend.com/nexus/content/groups/public</url>
             <snapshots>
@@ -145,15 +143,17 @@
             <name>Maven Central Repo</name>
             <snapshots>
                 <enabled>false</enabled>
+                <updatePolicy>never</updatePolicy>
             </snapshots>
             <releases>
                 <enabled>true</enabled>
+                <updatePolicy>never</updatePolicy>
             </releases>
         </repository>
     </repositories>
     <pluginRepositories>
         <pluginRepository>
-            <id>talend-public</id>
+            <id>artifacts-oss</id>
             <name>Talend Open Source Public group</name>
             <url>https://artifacts-oss.talend.com/nexus/content/groups/public</url>
             <snapshots>

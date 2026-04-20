@@ -74,7 +74,7 @@
         <cxf.osgi.jakarta.activation.version>[2,3)</cxf.osgi.jakarta.activation.version>
         <cxf.osgi.jakarta.mail.version>[2,3)</cxf.osgi.jakarta.mail.version>
         <cxf.osgi.jakarta.servlet.version>[5,6)</cxf.osgi.jakarta.servlet.version>
-        <cxf.osgi.jakarta.xml.ws.version>[3,4)</cxf.osgi.jakarta.xml.ws.version>
+        <cxf.osgi.jakarta.xml.ws.version>[3,5)</cxf.osgi.jakarta.xml.ws.version>
         <cxf.osgi.cdi.version>[3,4)</cxf.osgi.cdi.version>
         <cxf.osgi.jakarta.jwsapi.version>[4,5)</cxf.osgi.jakarta.jwsapi.version>
         <cxf.osgi.saaj.version>[3,4)</cxf.osgi.saaj.version>
@@ -134,7 +134,7 @@
         <cxf.httpcomponents.client5.version>5.4.4</cxf.httpcomponents.client5.version>
         <cxf.httpcomponents.core5.version>5.3.6</cxf.httpcomponents.core5.version>
         <cxf.jackson.version>2.21.2</cxf.jackson.version>
-        <cxf.jackson.databind.version>2.21.0</cxf.jackson.databind.version>
+        <cxf.jackson.databind.version>2.21.2</cxf.jackson.databind.version>
         <cxf.jackson.annotations.version>2.21</cxf.jackson.annotations.version>
         <cxf.jacorb.version>3.9</cxf.jacorb.version>
         <cxf.jaeger.version>1.8.1</cxf.jaeger.version>
@@ -163,7 +163,7 @@
         <cxf.jcache.version>1.1.1</cxf.jcache.version>
         <cxf.jdom.version>1.0</cxf.jdom.version>
         <cxf.jettison.version>1.5.4</cxf.jettison.version>
-        <cxf.jetty12.version>12.0.33</cxf.jetty12.version>
+        <cxf.jetty12.version>12.1.6</cxf.jetty12.version>
         <cxf.jetty.version>${cxf.jetty12.version}</cxf.jetty.version>
         <cxf.jexl.version>3.3</cxf.jexl.version>
         <cxf.joda.time.version>2.13.1</cxf.joda.time.version>

@@ -146,7 +146,8 @@
                             *
                         </Import-Package>
                         <Export-Package>
-                            org.apache.cxf.wsn.services;version=${cxf.osgi.version.clean}
+                            org.apache.cxf.wsn.services;version=${cxf.osgi.version.clean},
+                            !org.apache.activemq.artemis*
                         </Export-Package>
                         <Private-Package>
                             org.apache.cxf.wsn.jms

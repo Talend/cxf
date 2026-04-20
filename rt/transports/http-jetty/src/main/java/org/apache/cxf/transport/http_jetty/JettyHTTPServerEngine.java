@@ -1405,15 +1405,15 @@ public class JettyHTTPServerEngine implements ServerEngine, HttpServerEngineSupp
 
                         switch (type) {
                         case TEXT_HTML:
-                            writeErrorHtml(request, writer, charset, code, message, cause, showStacks);
+                            writeErrorHtml(request, writer, charset, code, message, cause);
                             break;
                         case TEXT_JSON:
                             
                         case APPLICATION_JSON:
-                            writeErrorJson(request, writer, code, message, cause, showStacks);
+                            writeErrorJson(request, writer, code, message, cause);
                             break;
                         case TEXT_PLAIN:
-                            writeErrorPlain(request, writer, code, message, cause, showStacks);
+                            writeErrorPlain(request, writer, code, message, cause);
                             break;
                         default:
                             throw new IllegalStateException();
