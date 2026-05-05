@@ -60,7 +60,7 @@
         <cxf.joda.time.tesb.version>2.11.1</cxf.joda.time.tesb.version>
         <cxf.karaf.tesb.version>4.4.6</cxf.karaf.tesb.version>
         <cxf.karaf.features.tesb.version>4.4.6.20260417</cxf.karaf.features.tesb.version>
-        <cxf.opensaml.bundle.tesb.version>5.1.4_1.tesb1</cxf.opensaml.bundle.tesb.version>
+        <cxf.opensaml.bundle.tesb.version>5.1.4_1.tesb2</cxf.opensaml.bundle.tesb.version>
         <cxf.osgi.tesb.version>8.0.0</cxf.osgi.tesb.version>
         <cxf.pax-web.features.tesb.version>11.1.0.20260420</cxf.pax-web.features.tesb.version>
         <cxf.servicemix.aspectj.tesb.version>1.9.21.1_1</cxf.servicemix.aspectj.tesb.version>
@@ -69,7 +69,7 @@
         <cxf.swagger-ui.tesb.version>5.29.3</cxf.swagger-ui.tesb.version>
         <cxf.validation2.api.tesb.version>2.0.2</cxf.validation2.api.tesb.version>
         <cxf.xerces.bundle.tesb.version>2.12.2.tesb2_1</cxf.xerces.bundle.tesb.version>
-        <cxf.xmlsec.bundle.tesb.version>4.0.4</cxf.xmlsec.bundle.tesb.version>
+        <cxf.xmlsec.bundle.tesb.version>3.0.5</cxf.xmlsec.bundle.tesb.version>
 
         <cxf.osgi.javax.stream.tesb.version-range>[0,2)</cxf.osgi.javax.stream.tesb.version-range>
 
