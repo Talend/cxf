@@ -2221,7 +2221,7 @@
                                 <arg>-Xlint:-deprecation</arg>
                                 <arg>-Xlint:-removal</arg>
                             </compilerArgs>
-                            <fork>true</fork>
+                            <fork>false</fork>
                             <maxmem>512M</maxmem>
                         </configuration>
                     </plugin>
