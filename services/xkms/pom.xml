@@ -38,5 +38,7 @@
         <module>xkms-client</module>
         <module>xkms-war</module>
         <module>xkms-x509-repo-ldap</module>
+        <module>xkms-features</module>
+        <module>xkms-osgi</module>
     </modules>
 </project>

@@ -76,6 +76,7 @@
                         <Import-Package>
               !org.apache.cxf.karaf.commands,
               org.apache.karaf.shell*;version="[4,5)",
+              org.apache.cxf*;version="[4.1.5,4.1.6)",
               *
                         </Import-Package>
                         <_nouses>true</_nouses>
