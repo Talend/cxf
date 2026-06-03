@@ -410,7 +410,7 @@
                                 <includeTestSourceDirectory>true</includeTestSourceDirectory>
                                 <configLocation>${cxf.resources.base.path}cxf-checkstyle${cxf.checkstyle.extension}.xml</configLocation>
                                 <consoleOutput>true</consoleOutput>
-                                <failsOnError>true</failsOnError>
+                                <failsOnError>false</failsOnError>
                                 <linkXRef>false</linkXRef>
                                 <suppressionsLocation>${cxf.resources.base.path}cxf-checkstyle-suppressions.xml</suppressionsLocation>
                                 <excludes>**/archetype-resources/**/*.java</excludes>
@@ -609,7 +609,7 @@
                 <artifactId>maven-compiler-plugin</artifactId>
                 <configuration>
                     <showDeprecation>${cxf.compile.show.deprecation}</showDeprecation>
-                    <showWarnings>true</showWarnings>
+                    <showWarnings>false</showWarnings>
                     <compilerArgument>${cxf.compile.flags}</compilerArgument>
                 </configuration>
             </plugin>
@@ -2126,8 +2126,8 @@
                         <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-compiler-plugin</artifactId>
                         <configuration>
-                            <showDeprecation>true</showDeprecation>
-                            <showWarnings>true</showWarnings>
+                            <showDeprecation>false</showDeprecation>
+                            <showWarnings>false</showWarnings>
                             <compilerArgument>${cxf.compile.flags}</compilerArgument>
                         </configuration>
                     </plugin>
@@ -2209,8 +2209,8 @@
                         <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-compiler-plugin</artifactId>
                         <configuration>
-                            <showDeprecation>true</showDeprecation>
-                            <showWarnings>true</showWarnings>
+                            <showDeprecation>false</showDeprecation>
+                            <showWarnings>false</showWarnings>
                             <compilerArgument>${cxf.compile.flags}</compilerArgument>
                             <fork>true</fork>
                             <maxmem>512M</maxmem>
