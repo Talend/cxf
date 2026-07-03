@@ -45,6 +45,7 @@
         <cxf.tesb.major-version-range>[4,5)</cxf.tesb.major-version-range>
         <cxf.rs.openapi.v3.tesb.version>4.1.0.2.20251023</cxf.rs.openapi.v3.tesb.version>
         <cxf.rs.swagger.ui.tesb.version>4.1.0.2.20251023</cxf.rs.swagger.ui.tesb.version>
+        <cxf.services.xkms.x509.repo.ldap.tesb.version>4.1.0.2.20260701</cxf.services.xkms.x509.repo.ldap.tesb.version>
 
         <cxf.async-http-client.tesb.version>2.15.0</cxf.async-http-client.tesb.version>
         <cxf.bcprov.tesb.version>1.84</cxf.bcprov.tesb.version>
