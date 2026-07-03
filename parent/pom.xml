@@ -132,8 +132,8 @@
         <cxf.httpcomponents.core.version>4.4.16</cxf.httpcomponents.core.version>
         <cxf.httpcomponents.client5.version>5.5</cxf.httpcomponents.client5.version>
         <cxf.httpcomponents.core5.version>5.3.4</cxf.httpcomponents.core5.version>
-        <cxf.jackson.version>2.21.2</cxf.jackson.version>
-        <cxf.jackson.annotations.version>2.21</cxf.jackson.annotations.version>
+        <cxf.jackson.version>2.22.0</cxf.jackson.version>
+        <cxf.jackson.annotations.version>2.22</cxf.jackson.annotations.version>
         <cxf.jackson.databind.version>${cxf.jackson.version}</cxf.jackson.databind.version>
         <cxf.jacorb.version>3.9</cxf.jacorb.version>
         <cxf.jaeger.version>1.8.1</cxf.jaeger.version>
@@ -189,7 +189,7 @@
         <cxf.msv.version>2022.7</cxf.msv.version>
         <cxf.neethi.version>3.2.2</cxf.neethi.version>
         <cxf.netty.version.range>[4,5)</cxf.netty.version.range>
-        <cxf.netty.version>4.1.133.Final</cxf.netty.version>
+        <cxf.netty.version>4.1.135.Final</cxf.netty.version>
         <cxf.netty.tcnative.version>2.0.69.Final</cxf.netty.tcnative.version>
         <cxf.olingo.version>2.0.12</cxf.olingo.version>
         <cxf.openjpa.version>3.2.2</cxf.openjpa.version>
@@ -237,7 +237,7 @@
         <cxf.wildfly.common.version>2.0.1</cxf.wildfly.common.version>
         <cxf.wiremock.version>3.10.0</cxf.wiremock.version>
         <cxf.woodstox.core.version>7.1.0</cxf.woodstox.core.version>
-        <cxf.woodstox.stax2-api.version>4.2.2</cxf.woodstox.stax2-api.version>
+        <cxf.woodstox.stax2-api.version>4.3.0</cxf.woodstox.stax2-api.version>
         <cxf.wsdl4j.version>1.6.3</cxf.wsdl4j.version>
         <cxf.jakarta.wss4j.version>3.0.4</cxf.jakarta.wss4j.version>
         <cxf.xmlschema.version>2.3.1</cxf.xmlschema.version>
