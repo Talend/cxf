@@ -100,12 +100,12 @@
         <cxf.cdi.api.version>4.1.0</cxf.cdi.api.version>
         <cxf.classgraph.version>4.8.25</cxf.classgraph.version>
         <cxf.classmate.version>1.5.1</cxf.classmate.version>
-        <cxf.commons-codec.version>1.19.0</cxf.commons-codec.version>
+        <cxf.commons-codec.version>1.22.0</cxf.commons-codec.version>
         <cxf.commons-io.version>2.20.0</cxf.commons-io.version>
         <cxf.commons-jcs-jcache.version>2.2.1</cxf.commons-jcs-jcache.version>
-        <cxf.commons-lang3.version>3.18.0</cxf.commons-lang3.version>
+        <cxf.commons-lang3.version>3.20.0</cxf.commons-lang3.version>
         <cxf.commons-logging.version>1.2</cxf.commons-logging.version>
-        <cxf.commons-text.version>1.14.0</cxf.commons-text.version>
+        <cxf.commons-text.version>1.15.0</cxf.commons-text.version>
         <cxf.derby.version>10.16.1.1</cxf.derby.version>
         <cxf.dom4j.version>2.1.4</cxf.dom4j.version>
         <cxf.dropwizard3.version>3.2.6</cxf.dropwizard3.version>
@@ -132,7 +132,7 @@
         <cxf.httpcomponents.core.version>4.4.16</cxf.httpcomponents.core.version>
         <cxf.httpcomponents.client5.version>5.5</cxf.httpcomponents.client5.version>
         <cxf.httpcomponents.core5.version>5.3.4</cxf.httpcomponents.core5.version>
-        <cxf.jackson.version>2.22.0</cxf.jackson.version>
+        <cxf.jackson.version>2.22.1</cxf.jackson.version>
         <cxf.jackson.annotations.version>2.22</cxf.jackson.annotations.version>
         <cxf.jackson.databind.version>${cxf.jackson.version}</cxf.jackson.databind.version>
         <cxf.jacorb.version>3.9</cxf.jacorb.version>
@@ -184,7 +184,7 @@
         <cxf.microprofile.config.version>3.1</cxf.microprofile.config.version>
         <cxf.microprofile.rest.client.version>3.0.1</cxf.microprofile.rest.client.version>
         <cxf.microprofile.openapi.version>3.1.2</cxf.microprofile.openapi.version>
-        <cxf.mina.version>2.2.7</cxf.mina.version>
+        <cxf.mina.version>2.2.8</cxf.mina.version>
         <cxf.mockito.version>5.14.2</cxf.mockito.version>
         <cxf.msv.version>2022.7</cxf.msv.version>
         <cxf.neethi.version>3.2.2</cxf.neethi.version>
