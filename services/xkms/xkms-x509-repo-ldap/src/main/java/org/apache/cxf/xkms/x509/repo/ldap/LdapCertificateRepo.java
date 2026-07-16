@@ -30,7 +30,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.regex.Matcher;
 
 import javax.naming.NamingEnumeration;
 import javax.naming.NamingException;
@@ -39,6 +38,7 @@ import javax.naming.directory.Attributes;
 import javax.naming.directory.BasicAttribute;
 import javax.naming.directory.BasicAttributes;
 import javax.naming.directory.SearchResult;
+import javax.naming.ldap.LdapName;
 
 import org.apache.cxf.common.logging.LogUtils;
 import org.apache.cxf.xkms.handlers.Applications;
@@ -169,11 +169,10 @@ public class LdapCertificateRepo implements CertificateRepo {
     public X509Certificate findBySubjectDn(String id) {
         X509Certificate cert = null;
         try {
-            String dn = id;
-            if (rootDN != null && !rootDN.isEmpty()) {
-                dn = dn + "," + rootDN;
+            String dn = toPkixLookupDn(id);
+            if (dn != null) {
+                cert = getCertificateForDn(dn);
             }
-            cert = getCertificateForDn(dn);
         } catch (NamingException e) {
              // Not found
         }
@@ -200,7 +199,7 @@ public class LdapCertificateRepo implements CertificateRepo {
         if (cert == null) {
             // Try to find certificate by search for uid attribute
             try {
-                String filter = String.format(ldapConfig.getServiceCertUIDTemplate(), serviceName);
+                String filter = String.format(ldapConfig.getServiceCertUIDTemplate(), escapeFilterValue(serviceName));
                 Attribute attr = ldapSearch.findAttribute(rootDN, filter, ldapConfig.getAttrCrtBinary());
                 return getCert(attr);
             } catch (NamingException e) {
@@ -213,7 +212,7 @@ public class LdapCertificateRepo implements CertificateRepo {
     @Override
     public X509Certificate findByEndpoint(String endpoint) {
         X509Certificate cert = null;
-        String filter = String.format("(%s=%s)", ldapConfig.getAttrEndpoint(), endpoint);
+        String filter = String.format("(%s=%s)", ldapConfig.getAttrEndpoint(), escapeFilterValue(endpoint));
         try {
             Attribute attr = ldapSearch.findAttribute(rootDN, filter, ldapConfig.getAttrCrtBinary());
             cert = getCert(attr);
@@ -225,8 +224,50 @@ public class LdapCertificateRepo implements CertificateRepo {
 
 
     protected String getDnForIdentifier(String id) {
-        String escapedIdentifier = id.replaceAll("\\/", Matcher.quoteReplacement("\\/"));
-        return String.format(ldapConfig.getServiceCertRDNTemplate(), escapedIdentifier) + "," + rootDN;
+        return String.format(ldapConfig.getServiceCertRDNTemplate(), escapeDnValue(id)) + "," + rootDN;
+    }
+
+    /**
+     * Escapes RFC4514 special characters in an LDAP DN attribute value, plus
+     * the JNDI composite-name separator '/' to prevent namespace traversal.
+     */
+    protected String escapeDnValue(String value) {
+        if (value == null) {
+            return null;
+        }
+        StringBuilder escaped = new StringBuilder(value.length());
+        for (int i = 0; i < value.length(); i++) {
+            char ch = value.charAt(i);
+            // Leading space or '#' must be escaped per RFC4514
+            if (i == 0 && (ch == ' ' || ch == '#')) {
+                escaped.append('\\').append(ch);
+                continue;
+            }
+            switch (ch) {
+            case '\\':
+            case ',':
+            case '+':
+            case '"':
+            case '<':
+            case '>':
+            case ';':
+            case '/':
+                escaped.append('\\').append(ch);
+                break;
+            case '\0':
+                escaped.append("\\00");
+                break;
+            default:
+                escaped.append(ch);
+                break;
+            }
+        }
+        // Trailing space must be escaped per RFC4514
+        int len = escaped.length();
+        if (len > 1 && escaped.charAt(len - 1) == ' ' && escaped.charAt(len - 2) != '\\') {
+            escaped.insert(len - 1, '\\');
+        }
+        return escaped.toString();
     }
 
     protected X509Certificate getCertificateForDn(String dn) throws NamingException {
@@ -235,7 +276,7 @@ public class LdapCertificateRepo implements CertificateRepo {
     }
 
     protected X509Certificate getCertificateForUIDAttr(String uid) throws NamingException {
-        String filter = String.format(filterUIDTemplate, uid);
+        String filter = String.format(filterUIDTemplate, escapeFilterValue(uid));
         Attribute attr = ldapSearch.findAttribute(rootDN, filter, ldapConfig.getAttrCrtBinary());
         return getCert(attr);
     }
@@ -245,13 +286,48 @@ public class LdapCertificateRepo implements CertificateRepo {
         if (issuer == null || serial == null) {
             throw new IllegalArgumentException("Issuer and serial applications are expected in request");
         }
-        String filter = String.format(filterIssuerSerialTemplate, issuer, serial);
+        String filter = String.format(filterIssuerSerialTemplate, escapeFilterValue(issuer),
+                                      escapeFilterValue(serial));
         try {
             Attribute attr = ldapSearch.findAttribute(rootDN, filter, ldapConfig.getAttrCrtBinary());
             return getCert(attr);
         } catch (NamingException e) {
             throw new RuntimeException(e.getMessage(), e);
         }
+    }
+
+    /**
+     * Escapes RFC4515 special characters in an LDAP search filter assertion value.
+     */
+    protected String escapeFilterValue(String value) {
+        if (value == null) {
+            return null;
+        }
+        StringBuilder escaped = new StringBuilder(value.length());
+        for (int i = 0; i < value.length(); i++) {
+            char ch = value.charAt(i);
+            switch (ch) {
+            case '\\':
+                escaped.append("\\5c");
+                break;
+            case '*':
+                escaped.append("\\2a");
+                break;
+            case '(':
+                escaped.append("\\28");
+                break;
+            case ')':
+                escaped.append("\\29");
+                break;
+            case '\0':
+                escaped.append("\\00");
+                break;
+            default:
+                escaped.append(ch);
+                break;
+            }
+        }
+        return escaped.toString();
     }
 
     protected X509Certificate getCert(Attribute attr) {
@@ -280,7 +356,7 @@ public class LdapCertificateRepo implements CertificateRepo {
         final String dn;
         Map<String, String> attrs = new HashMap<>();
         if (application == Applications.PKIX) {
-            dn = key.getIdentifier() + "," + rootDN;
+            dn = toPkixRegistrationDn(key.getIdentifier());
         } else if (application == Applications.SERVICE_NAME) {
             dn = getDnForIdentifier(key.getIdentifier());
         } else if (application == Applications.SERVICE_ENDPOINT) {
@@ -290,6 +366,36 @@ public class LdapCertificateRepo implements CertificateRepo {
             throw new IllegalArgumentException("Unsupported Application " + application);
         }
         saveCertificate(cert, dn, attrs);
+    }
+
+    private String toPkixLookupDn(String identifier) {
+        if (identifier == null || identifier.indexOf('=') < 0 || identifier.indexOf('/') >= 0) {
+            return null;
+        }
+        try {
+            String normalized = new LdapName(identifier).toString();
+            if (rootDN != null && !rootDN.isEmpty()) {
+                normalized = normalized + "," + rootDN;
+            }
+            return new LdapName(normalized).toString();
+        } catch (NamingException ex) {
+            return null;
+        }
+    }
+
+    private String toPkixRegistrationDn(String identifier) {
+        if (identifier == null || identifier.indexOf('/') >= 0) {
+            throw new IllegalArgumentException("Invalid PKIX DN identifier");
+        }
+        try {
+            String normalized = new LdapName(identifier).toString();
+            if (rootDN != null && !rootDN.isEmpty()) {
+                normalized = normalized + "," + rootDN;
+            }
+            return new LdapName(normalized).toString();
+        } catch (NamingException ex) {
+            throw new IllegalArgumentException("Invalid PKIX DN identifier", ex);
+        }
     }
 
 }

@@ -40,11 +40,12 @@
     </issueManagement>
     <properties>
         <original.version>4.1.0.2</original.version>
-        <cxf.features.tesb.version>4.1.0.2.20260512</cxf.features.tesb.version>
+        <cxf.features.tesb.version>4.1.0.2.20260701</cxf.features.tesb.version>
         <cxf.tesb.version-range>[4.1,4.2)</cxf.tesb.version-range>
         <cxf.tesb.major-version-range>[4,5)</cxf.tesb.major-version-range>
         <cxf.rs.openapi.v3.tesb.version>4.1.0.2.20251023</cxf.rs.openapi.v3.tesb.version>
         <cxf.rs.swagger.ui.tesb.version>4.1.0.2.20251023</cxf.rs.swagger.ui.tesb.version>
+        <cxf.services.xkms.x509.repo.ldap.tesb.version>4.1.0.2.20260701</cxf.services.xkms.x509.repo.ldap.tesb.version>
 
         <cxf.async-http-client.tesb.version>2.15.0</cxf.async-http-client.tesb.version>
         <cxf.bcprov.tesb.version>1.84</cxf.bcprov.tesb.version>
@@ -61,7 +62,7 @@
         <cxf.camel.tesb.version>4.8.1</cxf.camel.tesb.version>
         <cxf.camel.cxf.tesb.version>4.8.1.20250901</cxf.camel.cxf.tesb.version>
         <cxf.camel.features.tesb.version>4.8.1.20250901</cxf.camel.features.tesb.version>
-        <cxf.mina.tesb.version>2.2.7</cxf.mina.tesb.version>
+        <cxf.mina.tesb.version>2.2.8</cxf.mina.tesb.version>
         <cxf.opensaml.tesb.version>4.3.2</cxf.opensaml.tesb.version>
         <!-- <cxf.opensaml.tesb.version-range>[4,5)</cxf.opensaml.tesb.version-range> -->
         <cxf.xmlsec.bundle.tesb.version>2.3.4</cxf.xmlsec.bundle.tesb.version>

@@ -49,7 +49,7 @@
 
     <feature name="cxf-xkms-ldap" version="${upstream.version}">
         <feature>cxf-xkms-service</feature>
-        <bundle>mvn:${project.groupId}/cxf-services-xkms-x509-repo-ldap/${upstream.version}</bundle>
+        <bundle>mvn:${project.groupId}/cxf-services-xkms-x509-repo-ldap/${cxf.services.xkms.x509.repo.ldap.tesb.version}</bundle>
         <configfile finalname="/etc/org.apache.cxf.xkms.ldap.cfg">
             mvn:${project.groupId}/cxf-services-xkms-features/${project.version}/cfg/org.apache.cxf.xkms.ldap
         </configfile>
