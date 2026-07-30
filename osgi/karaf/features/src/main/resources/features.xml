@@ -455,7 +455,7 @@
         <!-- <bundle dependency="true">mvn:org.apache.geronimo.specs/geronimo-jta_1.1_spec/${cxf.geronimo.jta.version}</bundle> -->
         <!-- <bundle dependency="true">mvn:org.apache.geronimo.specs/geronimo-jms_1.1_spec/1.1.1</bundle> -->
         <feature version="[3,4)">jakarta-jms-api</feature>
-        <bundle start-level="40">mvn:org.apache.cxf/cxf-rt-transports-jms/${upstream.version}</bundle>
+        <bundle start-level="40">mvn:org.apache.cxf/cxf-rt-transports-jms/${cxf.rt.transports.jms.tesb.version}</bundle>
     </feature>
     <feature name="cxf-transports-udp" version="${upstream.version}">
         <feature version="${cxf.tesb.version-range}">cxf-core</feature>

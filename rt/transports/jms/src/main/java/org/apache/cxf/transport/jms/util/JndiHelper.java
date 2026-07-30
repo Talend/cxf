@@ -53,11 +53,11 @@ public class JndiHelper {
         } else {
             final List<String> allowedProtocols = new ArrayList<>();
             Arrays
-                    .stream(jmsProtocols.split(","))
-                    .map(String::trim)
-                    .filter(Predicate.not(String::isEmpty))
-                    .map(s -> s + "://")
-                    .forEach(allowedProtocols::add);
+                .stream(jmsProtocols.split(","))
+                .map(String::trim)
+                .filter(Predicate.not(String::isEmpty))
+                .map(s -> s + "://")
+                .forEach(allowedProtocols::add);
             ALLOWED_PROTOCOLS = Collections.unmodifiableList(allowedProtocols);
         }
     }
@@ -70,14 +70,15 @@ public class JndiHelper {
 
         // Avoid unsafe protocols if they are somehow misconfigured
         String providerUrl = environment.getProperty(Context.PROVIDER_URL);
-        if (providerUrl != null && !ALLOWED_PROTOCOLS.stream().anyMatch(providerUrl::startsWith)) {
+        if (providerUrl != null && !providerUrl.isEmpty()
+            && !ALLOWED_PROTOCOLS.stream().anyMatch(providerUrl::startsWith)) {
             throw new IllegalArgumentException("Unsafe protocol in JNDI URL: " + providerUrl);
         }
     }
 
     @SuppressWarnings("unchecked")
     public <T> T lookup(final String name, Class<T> requiredType) throws NamingException {
-        Context ctx = new InitialContext(this.environment);
+        Context ctx = createInitialContext();
         try { // NOPMD - UseTryWithResources
             Object located = ctx.lookup(name);
             if (located == null) {
@@ -87,6 +88,10 @@ public class JndiHelper {
         } finally {
             ResourceCloser.close(ctx);
         }
+    }
+
+    public InitialContext createInitialContext() throws NamingException {
+        return new InitialContext(this.environment);
     }
 
 }
