@@ -16,6 +16,7 @@
     <name>Apache CXF Runtime JMS Transport</name>
     <description>Apache CXF Runtime JMS Transport</description>
     <url>https://cxf.apache.org</url>
+    <version>${revision}</version>
     <parent>
         <groupId>org.apache.cxf</groupId>
         <artifactId>cxf-parent</artifactId>
@@ -23,6 +24,9 @@
         <relativePath>../../../parent/pom.xml</relativePath>
     </parent>
     <properties>
+        <revision>${cxf.rt.transports.jms.version}</revision>
+        <upstream.version>4.1.0.2</upstream.version>
+        <cxf.rt.transports.jms.version>${cxf.rt.transports.jms.tesb.version}</cxf.rt.transports.jms.version>
         <cxf.spi-dir>spi-2.1</cxf.spi-dir>
         <cxf.osgi.import>
             jakarta.jms;version="${cxf.osgi.jakarta.jms.version}",
@@ -40,12 +44,12 @@
         <dependency>
             <groupId>org.apache.cxf</groupId>
             <artifactId>cxf-core</artifactId>
-            <version>${project.version}</version>
+            <version>${upstream.version}</version>
         </dependency>
         <dependency>
             <groupId>org.apache.cxf</groupId>
             <artifactId>cxf-rt-wsdl</artifactId>
-            <version>${project.version}</version>
+            <version>${upstream.version}</version>
             <optional>true</optional>
         </dependency>
         <dependency>
@@ -82,19 +86,19 @@
         <dependency>
             <groupId>org.apache.cxf</groupId>
             <artifactId>cxf-rt-management</artifactId>
-            <version>${project.version}</version>
+            <version>${upstream.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.apache.cxf</groupId>
             <artifactId>cxf-rt-bindings-soap</artifactId>
-            <version>${project.version}</version>
+            <version>${upstream.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.apache.cxf</groupId>
             <artifactId>cxf-testutils</artifactId>
-            <version>${project.version}</version>
+            <version>${upstream.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -172,7 +176,7 @@
         <profile>
             <id>jdk23</id>
             <activation>
-                <jdk>[23,)</jdk>
+                <jdk>[23,24)</jdk>
             </activation>
             <build>
                 <plugins>

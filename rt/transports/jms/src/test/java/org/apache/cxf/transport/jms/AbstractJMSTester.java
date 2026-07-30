@@ -298,28 +298,30 @@ public abstract class AbstractJMSTester {
 
 
     protected Message waitForReceiveInMessage() throws InterruptedException {
-        if (null == inMessage.get()) {
-            synchronized (inMessage) {
-                inMessage.wait(MAX_RECEIVE_TIME * 1000L);
-            }
-            if (null == inMessage.get()) {
-                assertNotNull("Can't receive the Conduit Message in " + MAX_RECEIVE_TIME + " seconds", inMessage.get());
-            }
-        }
+        waitForMessage(inMessage);
+        assertNotNull("Can't receive the Conduit Message in " + MAX_RECEIVE_TIME + " seconds", inMessage.get());
         return inMessage.getAndSet(null);
     }
 
     protected Message waitForReceiveDestMessage() throws InterruptedException {
-        if (null == destMessage.get()) {
-            synchronized (destMessage) {
-                destMessage.wait(MAX_RECEIVE_TIME * 1000L);
-            }
-            if (null == destMessage.get()) {
-                assertNotNull("Can't receive the Destination message in " + MAX_RECEIVE_TIME + " seconds",
-                    destMessage.get());
-            }
-        }
+        waitForMessage(destMessage);
+        assertNotNull("Can't receive the Destination message in " + MAX_RECEIVE_TIME + " seconds", destMessage.get());
         return destMessage.getAndSet(null);
     }
 
+    private static void waitForMessage(AtomicReference<Message> messageRef) throws InterruptedException {
+        long endTime = MAX_RECEIVE_TIME * 1000L + System.currentTimeMillis();
+        while (messageRef.get() == null) {
+            long remainingTime = endTime - System.currentTimeMillis();
+            if (remainingTime <= 0L) {
+                return;
+            }
+            if (remainingTime > 1000L) {
+                remainingTime = 1000L;
+            }
+            synchronized (messageRef) {
+                messageRef.wait(remainingTime);
+            }
+        }
+    }
 }
