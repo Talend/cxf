@@ -20,7 +20,11 @@
 package org.apache.cxf.resource;
 
 import java.io.InputStream;
+import java.io.OutputStream;
+import java.net.ServerSocket;
+import java.net.Socket;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 
 import org.apache.cxf.helpers.IOUtils;
 
@@ -31,8 +35,11 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 public class URIResolverTest {
+
+    private static final String TEST_PROTOCOL_HANDLER_PACKAGE = "org.apache.cxf.resource.protocol";
 
     private URIResolver uriResolver;
 
@@ -184,6 +191,71 @@ public class URIResolverTest {
         assertTrue(wsdlResolver.isResolved());
         resolveWithCheckingClassloader(wsdlResolver, null, "wsdl/folder%20with%20spaces/foo.wsdl", this.getClass());
         resolveWithCheckingClassloaderInConstructor(null, "wsdl/folder%20with%20spaces/foo.wsdl", this.getClass());
+    }
+
+    @Test
+    public void testFtpProtocolRejectedByDefault() throws Exception {
+        try {
+            new URIResolver("ftp://127.0.0.1:12345/example.wsdl");
+            fail("Expected IOException for disallowed ftp:// scheme");
+        } catch (java.io.IOException ex) {
+            assertTrue(ex.getMessage().contains("ftp"));
+            assertTrue(ex.getMessage().contains("not permitted"));
+        }
+    }
+
+    @Test
+    public void testHttpProtocolStillAllowed() throws Exception {
+        checkingThreadThrowable = null;
+        try (ServerSocket serverSocket = new ServerSocket(0)) {
+            Thread t = new Thread(() -> {
+                try (Socket socket = serverSocket.accept();
+                     OutputStream os = socket.getOutputStream()) {
+                    os.write(("HTTP/1.1 200 OK\r\n"
+                              + "Content-Length: 4\r\n"
+                              + "Connection: close\r\n\r\n"
+                              + "test").getBytes(StandardCharsets.US_ASCII));
+                    os.flush();
+                } catch (Throwable th) {
+                    checkingThreadThrowable = th;
+                }
+            });
+            t.start();
+
+            URIResolver resolver = new URIResolver("http://127.0.0.1:" + serverSocket.getLocalPort() + "/schema.xsd");
+            assertTrue(resolver.isResolved());
+            assertNotNull(resolver.getInputStream());
+            resolver.close();
+
+            t.join(5000);
+            assertFalse("HTTP server thread did not finish in time", t.isAlive());
+            assertNull(checkingThreadThrowable);
+        }
+    }
+
+    @Test
+    public void testVfsProtocolAllowedAndResolved() throws Exception {
+        String oldHandlers = System.getProperty("java.protocol.handler.pkgs");
+        try {
+            if (oldHandlers == null || oldHandlers.isEmpty()) {
+                System.setProperty("java.protocol.handler.pkgs", TEST_PROTOCOL_HANDLER_PACKAGE);
+            } else if (!oldHandlers.contains(TEST_PROTOCOL_HANDLER_PACKAGE)) {
+                System.setProperty("java.protocol.handler.pkgs", oldHandlers + "|" + TEST_PROTOCOL_HANDLER_PACKAGE);
+            }
+
+            URIResolver resolver = new URIResolver("vfs://test/path/schema.xsd");
+            assertTrue(resolver.isResolved());
+            assertNotNull(resolver.getInputStream());
+            String content = IOUtils.toString(resolver.getInputStream());
+            assertEquals("vfs-test-content", content);
+            resolver.close();
+        } finally {
+            if (oldHandlers == null) {
+                System.clearProperty("java.protocol.handler.pkgs");
+            } else {
+                System.setProperty("java.protocol.handler.pkgs", oldHandlers);
+            }
+        }
     }
 
     private void resolveWithCheckingClassloader(URIResolver resolver, String baseUriStr, String uriStr,

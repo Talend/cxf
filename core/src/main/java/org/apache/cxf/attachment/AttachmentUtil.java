@@ -29,6 +29,7 @@ import java.net.URL;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.security.SecureRandom;
 import java.util.AbstractMap;
 import java.util.AbstractSet;
 import java.util.ArrayList;
@@ -40,7 +41,6 @@ import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Random;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -63,6 +63,7 @@ import org.apache.cxf.io.CachedOutputStream;
 import org.apache.cxf.message.Attachment;
 import org.apache.cxf.message.Message;
 import org.apache.cxf.message.MessageUtils;
+import org.apache.cxf.resource.URIResolver;
 
 public final class AttachmentUtil {
     // The default values for {@link AttachmentDataSource} content type in case when
@@ -81,7 +82,7 @@ public final class AttachmentUtil {
     private static final AtomicInteger COUNTER = new AtomicInteger();
     private static final String ATT_UUID = UUID.randomUUID().toString();
 
-    private static final Random BOUND_RANDOM = new Random();
+    private static final SecureRandom BOUND_RANDOM = new SecureRandom();
     private static final CommandMap DEFAULT_COMMAND_MAP = CommandMap.getDefaultCommandMap();
     private static final MailcapCommandMap COMMAND_MAP = new EnhancedMailcapCommandMap();
     
@@ -214,24 +215,25 @@ public final class AttachmentUtil {
         }
 
         Object maxSize = message.getContextualProperty(AttachmentDeserializer.ATTACHMENT_MAX_SIZE);
-        if (maxSize != null) {
-            if (maxSize instanceof Number) {
-                long size = ((Number) maxSize).longValue();
-                if (size >= 0) {
-                    bos.setMaxSize(size);
-                } else {
-                    LOG.warning("Max size value overflowed long. Do not set max size!");
-                }
-            } else if (maxSize instanceof String) {
-                try {
-                    bos.setMaxSize(Long.parseLong((String) maxSize));
-                } catch (NumberFormatException e) {
-                    throw new IOException("Provided threshold String is not a number", e);
-                }
+        if (maxSize == null) {
+            maxSize = AttachmentDeserializer.DEFAULT_ATTACHMENT_MAX_SIZE;
+        }
+        if (maxSize instanceof Number) {
+            long size = ((Number) maxSize).longValue();
+            if (size >= 0) {
+                bos.setMaxSize(size);
             } else {
-                throw new IOException("The value set as " + AttachmentDeserializer.ATTACHMENT_MAX_SIZE
-                        + " should be either an instance of Number or String");
+                LOG.warning("The max size value is set to unlimited.");
             }
+        } else if (maxSize instanceof String) {
+            try {
+                bos.setMaxSize(Long.parseLong((String) maxSize));
+            } catch (NumberFormatException e) {
+                throw new IOException("Provided max size String is not a number", e);
+            }
+        } else {
+            throw new IOException("The value set as " + AttachmentDeserializer.ATTACHMENT_MAX_SIZE
+                    + " should be either an instance of Number or String");
         }
     }
 
@@ -257,9 +259,6 @@ public final class AttachmentUtil {
 
     public static String getUniqueBoundaryValue() {
         //generate a random UUID.
-        //we don't need the cryptographically secure random uuid that
-        //UUID.randomUUID() will produce.  Thus, use a faster
-        //pseudo-random thing
         long leastSigBits;
         long mostSigBits;
         synchronized (BOUND_RANDOM) {
@@ -559,7 +558,7 @@ public final class AttachmentUtil {
             if (f.exists() && f.isFile()) {
                 file = f.getName();
             }
-            att.setHeader("Content-Disposition", "attachment;name=\"" + file + "\"");
+            att.setHeader("Content-Disposition", "attachment; name=\"" + file + "\"");
         }
         att.setXOP(isXop);
         return att;
@@ -595,11 +594,15 @@ public final class AttachmentUtil {
                     final boolean followUrls = Boolean.valueOf(SystemPropertyAction
                         .getProperty(ATTACHMENT_XOP_FOLLOW_URLS_PROPERTY, "false"));
                     if (followUrls) {
-                        return new URLDataSource(new URL(contentId));
+                        final URL remoteUrl = new URL(contentId);
+                        URIResolver.checkAllowedScheme(remoteUrl);
+                        return new URLDataSource(remoteUrl);
                     } else {
                         return loadDataSource(contentId, atts);
                     }
                 } catch (MalformedURLException e) {
+                    throw new Fault(e);
+                } catch (IOException e) {
                     throw new Fault(e);
                 }
             }

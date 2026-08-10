@@ -69,6 +69,9 @@ public final class TLSParameterJaxBUtils {
     private static final Logger LOG =
         LogUtils.getL7dLogger(TLSParameterJaxBUtils.class);
 
+    private static final java.util.Set<String> ALLOWED_KEYSTORE_SCHEMES =
+        java.util.Collections.unmodifiableSet(new java.util.HashSet<>(java.util.Arrays.asList("file", "https")));
+
     private TLSParameterJaxBUtils() {
         // empty
     }
@@ -153,16 +156,17 @@ public final class TLSParameterJaxBUtils {
                 keyStore.load(kstInputStream, password);
             }
         } else if (kst.isSetResource()) {
-            final InputStream is = getResourceAsStream(kst.getResource());
-            if (is == null) {
-                final String msg =
-                    "Could not load keystore resource " + kst.getResource();
-                LOG.severe(msg);
-                throw new IOException(msg);
+            try (InputStream is = getResourceAsStream(kst.getResource())) {
+                if (is == null) {
+                    final String msg =
+                            "Could not load keystore resource " + kst.getResource();
+                    LOG.severe(msg);
+                    throw new IOException(msg);
+                }
+                keyStore.load(is, password);
             }
-            keyStore.load(is, password);
         } else if (kst.isSetUrl()) {
-            keyStore.load(new URL(kst.getUrl()).openStream(), password);
+            keyStore.load(openKeystoreUrl(kst.getUrl()), password);
         } else {
             final String loc;
             if (trustStore) {
@@ -214,9 +218,25 @@ public final class TLSParameterJaxBUtils {
             return createTrustStore(is, type);
         }
         if (pst.isSetUrl()) {
-            return createTrustStore(new URL(pst.getUrl()).openStream(), type);
+            return createTrustStore(openKeystoreUrl(pst.getUrl()), type);
         }
         throw new IllegalArgumentException("Could not create KeyStore based on information in CertStoreType");
+    }
+
+    /**
+     * Opens a URL for keystore loading after validating that its scheme is in the
+     * allowlist ({@code file}, {@code https}).  Schemes such as {@code ftp},
+     * {@code http}, {@code jar}, or {@code jndi} are rejected to prevent SSRF.
+     */
+    private static InputStream openKeystoreUrl(String urlString) throws IOException {
+        URL url = new URL(urlString);
+        String scheme = url.getProtocol();
+        if (!ALLOWED_KEYSTORE_SCHEMES.contains(scheme)) {
+            throw new IllegalArgumentException(
+                "Keystore URL scheme '" + scheme + "' is not permitted. "
+                + "Allowed schemes: " + ALLOWED_KEYSTORE_SCHEMES);
+        }
+        return url.openStream();
     }
 
     private static InputStream getResourceAsStream(String resource) {

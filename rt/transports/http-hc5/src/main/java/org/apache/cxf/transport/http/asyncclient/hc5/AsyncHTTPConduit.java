@@ -39,11 +39,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Future;
 import java.util.logging.Level;
+import java.util.stream.Collectors;
 
 import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.KeyManager;
+import javax.net.ssl.SNIHostName;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLEngine;
+import javax.net.ssl.SSLParameters;
 import javax.net.ssl.SSLSession;
 import javax.net.ssl.TrustManager;
 
@@ -75,7 +78,9 @@ import org.apache.hc.client5.http.auth.Credentials;
 import org.apache.hc.client5.http.auth.UsernamePasswordCredentials;
 import org.apache.hc.client5.http.config.RequestConfig;
 import org.apache.hc.client5.http.impl.async.CloseableHttpAsyncClient;
+import org.apache.hc.client5.http.impl.auth.BasicAuthCache;
 import org.apache.hc.client5.http.impl.auth.BasicCredentialsProvider;
+import org.apache.hc.client5.http.impl.auth.BasicScheme;
 import org.apache.hc.client5.http.protocol.HttpClientContext;
 import org.apache.hc.client5.http.ssl.DefaultClientTlsStrategy;
 import org.apache.hc.core5.concurrent.BasicFuture;
@@ -550,6 +555,11 @@ public class AsyncHTTPConduit extends HttpClientHTTPConduit {
             };
 
             ctx.setCredentialsProvider(credsProvider);
+            if (proxyAuthorizationPolicy != null && proxyAuthorizationPolicy.getUserName() != null) {
+                final BasicAuthCache cache = new BasicAuthCache();
+                cache.put(entity.getConfig().getProxy(), new BasicScheme());
+                ctx.setAuthCache(cache);
+            }
 
             TlsStrategy tlsStrategy = null;
             if ("https".equals(url.getScheme())) {
@@ -696,7 +706,10 @@ public class AsyncHTTPConduit extends HttpClientHTTPConduit {
         }
 
         protected void handleResponseAsync() throws IOException {
-            isAsync = true;
+            // The response hasn't been handled yet, should be handled asynchronously
+            if (httpResponse == null) {
+                isAsync = true;
+            }
         }
 
         protected void closeInputStream() throws IOException {
@@ -978,6 +991,13 @@ public class AsyncHTTPConduit extends HttpClientHTTPConduit {
         String[] p = findProtocols(protocol, sslengine.getSupportedProtocols());
         if (p != null) {
             sslengine.setEnabledProtocols(p);
+        }
+
+        final List<String> serverNames = tlsClientParameters.getServerNames();
+        if (serverNames != null && !serverNames.isEmpty()) {
+            final SSLParameters params = new SSLParameters();
+            params.setServerNames(serverNames.stream().map(SNIHostName::new).collect(Collectors.toList()));
+            sslengine.setSSLParameters(params);
         }
     }
     

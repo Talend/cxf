@@ -66,9 +66,11 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Queue;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Flow;
 import java.util.concurrent.Flow.Subscriber;
@@ -102,13 +104,14 @@ import org.apache.cxf.ws.addressing.EndpointReferenceType;
 public class HttpClientHTTPConduit extends URLConnectionHTTPConduit {
     private static final String FORCE_URLCONNECTION_HTTP_CONDUIT = "force.urlconnection.http.conduit";
     private static final String SHARE_HTTPCLIENT_CONDUIT = "share.httpclient.http.conduit";
+    private static final String HTTPS_RESET_HTTPCLIENT_CONDUIT = "https.reset.httpclient.http.conduit";
 
     private static final Set<String> RESTRICTED_HEADERS = getRestrictedHeaders();
     private static final HttpClientCache CLIENTS_CACHE = new HttpClientCache();
     volatile RefCount<HttpClient> clientRef;
-    volatile int lastTlsHash = -1;
     volatile URI sslURL;
     private final ReentrantLock initializationLock = new ReentrantLock();
+    private final Queue<RefCount<HttpClient>> deferredClientRefs = new ConcurrentLinkedQueue<>();
 
     private static final class RefCount<T extends HttpClient> {
         private final AtomicLong count;
@@ -290,6 +293,8 @@ public class HttpClientHTTPConduit extends URLConnectionHTTPConduit {
             clientRef.release();
             clientRef = null;
         }
+        deferredClientRefs.forEach(RefCount::release);
+        deferredClientRefs.clear();
         defaultAddress = null;
         super.close();
     }
@@ -371,9 +376,18 @@ public class HttpClientHTTPConduit extends URLConnectionHTTPConduit {
 
         if (sslURL != null && isSslTargetDifferent(sslURL, uri)) {
             sslURL = null;
-            if (clientRef != null) {
-                clientRef.release();
-                clientRef = null;
+
+            // Reset the client in case of HTTPS URL change
+            final boolean httpsResetHttpClient = MessageUtils.getContextualBoolean(message,
+                HTTPS_RESET_HTTPCLIENT_CONDUIT, true);
+            if (httpsResetHttpClient) {
+                final RefCount<HttpClient> ref = clientRef;
+                // Do not release client immediately since it could be in use, instead
+                // move it off to deferred release queue.
+                if (ref != null) {
+                    deferredClientRefs.add(ref);
+                    clientRef = null;
+                }
             }
         }
         // If the HTTP_REQUEST_METHOD is not set, the default is "POST".
@@ -841,17 +855,30 @@ public class HttpClientHTTPConduit extends URLConnectionHTTPConduit {
 
         @Override
         public void close() throws IOException {
-            super.close();
-            if (pout != null) {
-                pout.close();
-                pout = null;
+            try {
+                super.close();
+            } finally {
+                if (pout != null) {
+                    try {
+                        pout.close();
+                    } catch (IOException e) {
+                        logStackTrace(e);
+                    }
+                    pout = null;
+                }
+                if (publisher != null) {
+                    try {
+                        publisher.close();
+                    } catch (IOException e) {
+                        logStackTrace(e);
+                    }
+                    publisher = null;
+                }
+                request = null;
+                subscribers = null;
             }
-            if (publisher != null) {
-                publisher.close();
-                publisher = null;
-            }
-            request = null;
-            subscribers = null;
+            
+            
         }
         void addSubscriber(Flow.Subscriber<? super ByteBuffer> subscriber) {
             subscribers.add(subscriber);
@@ -1038,6 +1065,11 @@ public class HttpClientHTTPConduit extends URLConnectionHTTPConduit {
                         pout.notifyAll();
                     }
                 }
+                try {
+                    close();
+                } catch (IOException e) {
+                    ex.addSuppressed(e);
+                }
                 return null;
             });
         }
@@ -1115,6 +1147,7 @@ public class HttpClientHTTPConduit extends URLConnectionHTTPConduit {
         }
 
         @Override
+        @SuppressWarnings("checkstyle:NestedIfDepth")
         protected InputStream getInputStream() throws IOException {
             HttpResponse<InputStream> resp = getResponse();
             String method = (String)outMessage.get(Message.HTTP_REQUEST_METHOD);
@@ -1140,9 +1173,24 @@ public class HttpClientHTTPConduit extends URLConnectionHTTPConduit {
                     }
                 } else if (!fChunk.isPresent() || !"chunked".equals(fChunk.get())) {
                     if (resp.version() == Version.HTTP_2) {
-                        InputStream in = resp.body();
+                        final InputStream in = resp.body();
+                        // The InputStream::available is a best effort, if it returns 0, issuing
+                        // the InputStream::read will either block if data is expected or return
+                        // immediately
                         if (in.available() <= 0) {
-                            try (in) {
+                            final PushbackInputStream pbin = new PushbackInputStream(in);
+                            try {
+                                // HttpResponseInputStream will block if there is data to be read
+                                final int c = pbin.read();
+                                if (c != -1) {
+                                    pbin.unread((byte) c);
+                                    return new HttpClientFilteredInputStream(pbin);
+                                }
+                            } catch (final IOException ex) {
+                                // ignore
+                            }
+
+                            try (pbin) {
                                 return null;
                             }
                         }

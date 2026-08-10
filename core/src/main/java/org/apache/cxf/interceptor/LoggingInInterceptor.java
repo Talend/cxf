@@ -169,21 +169,19 @@ public class LoggingInInterceptor extends AbstractLoggingInterceptor {
     }
 
     protected void logReader(Message message, Reader reader, LoggingMessage buffer) {
-        try {
-            CachedWriter writer = new CachedWriter();
+        try (CachedWriter writer = new CachedWriter()) {
             IOUtils.copyAndCloseInput(reader, writer);
             message.setContent(Reader.class, writer.getReader());
 
             if (writer.getTempFile() != null) {
                 //large thing on disk...
                 buffer.getMessage().append("\nMessage (saved to tmp file):\n");
-                buffer.getMessage().append("Filename: " + writer.getTempFile().getAbsolutePath() + "\n");
+                buffer.getMessage().append("Filename: ").append(writer.getTempFile().getAbsolutePath()).append('\n');
             }
             if (writer.size() > limit && limit != -1) {
-                buffer.getMessage().append("(message truncated to " + limit + " bytes)\n");
+                buffer.getMessage().append("(message truncated to ").append(limit).append(" bytes)\n");
             }
             writer.writeCacheTo(buffer.getPayload(), limit);
-            writer.close();
         } catch (Exception e) {
             throw new Fault(e);
         }
@@ -216,11 +214,11 @@ public class LoggingInInterceptor extends AbstractLoggingInterceptor {
             if (bos.getTempFile() != null) {
                 //large thing on disk...
                 buffer.getMessage().append("\nMessage (saved to tmp file):\n");
-                buffer.getMessage().append("Filename: " + bos.getTempFile().getAbsolutePath() + "\n");
+                buffer.getMessage().append("Filename: ").append(bos.getTempFile().getAbsolutePath()).append('\n');
             }
             boolean truncated = false;
             if (bos.size() > limit && limit != -1) {
-                buffer.getMessage().append("(message truncated to " + limit + " bytes)\n");
+                buffer.getMessage().append("(message truncated to ").append(limit).append(" bytes)\n");
                 truncated = true;
             }
             writePayload(buffer.getPayload(), bos, encoding, ct, truncated);

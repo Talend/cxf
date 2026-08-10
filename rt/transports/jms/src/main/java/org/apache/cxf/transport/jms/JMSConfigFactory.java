@@ -83,6 +83,8 @@ public final class JMSConfigFactory {
         jmsConfig.setConcurrentConsumers(endpoint.getConcurrentConsumers());
         jmsConfig.setOneSessionPerConnection(endpoint.isOneSessionPerConnection());
         jmsConfig.setMessageSelector(endpoint.getMessageSelector());
+        jmsConfig.setUseObjectMessageFallback(endpoint.isUseObjectMessageFallback());
+        jmsConfig.setAllowObjectMessages(endpoint.isAllowObjectMessages());
 
         TransactionManager tm = getTransactionManager(bus, endpoint);
         jmsConfig.setTransactionManager(tm);
@@ -190,6 +192,7 @@ public final class JMSConfigFactory {
         if (transactionManagerJndiName == null) {
             return null;
         }
+        JndiHelper.validateJndiName(transactionManagerJndiName);
         try {
             InitialContext ictx = new InitialContext();
             return (TransactionManager)ictx.lookup(transactionManagerJndiName);

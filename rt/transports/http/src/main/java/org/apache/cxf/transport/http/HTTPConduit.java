@@ -1421,6 +1421,7 @@ public abstract class HTTPConduit
                 } finally {
                     if (cachingForRetransmission && cachedStream != null) {
                         cachedStream.close();
+                        cachedStream = null;
                     }
                 }
             } catch (HttpRetryException e) {
@@ -1732,8 +1733,9 @@ public abstract class HTTPConduit
                 //not going to be resending or anything, clear out the stuff in the out message
                 //to free memory
                 outMessage.removeContent(OutputStream.class);
-                if (cachingForRetransmission && cachedStream != null) {
-                    cachedStream.close();
+                final CacheAndWriteOutputStream stream = cachedStream;
+                if (cachingForRetransmission && stream != null) {
+                    stream.close();
                 }
                 cachedStream = null;
             }
