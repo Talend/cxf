@@ -44,6 +44,7 @@ import javax.crypto.CipherOutputStream;
 import org.apache.cxf.Bus;
 import org.apache.cxf.BusFactory;
 import org.apache.cxf.common.util.SystemPropertyAction;
+import org.apache.cxf.helpers.CastUtils;
 import org.apache.cxf.helpers.FileUtils;
 import org.apache.cxf.helpers.IOUtils;
 import org.apache.cxf.helpers.LoadingByteArrayOutputStream;
@@ -216,20 +217,41 @@ public class CachedOutputStream extends OutputStream {
     }
 
     public void close() throws IOException {
+        RuntimeException callbacksChainFailed = null;
         currentStream.flush();
         outputLocked = true;
         if (null != callbacks) {
             for (CachedOutputStreamCallback cb : callbacks) {
-                cb.onClose(this);
+                try {
+                    cb.onClose(this);
+                } catch (final RuntimeException ex) {
+                    if (callbacksChainFailed != null) {
+                        callbacksChainFailed.addSuppressed(ex);
+                    } else {
+                        callbacksChainFailed = ex;
+                    }
+                }
             }
         }
-        doClose();
-        currentStream.close();
-        if (ciphers != null) {
-            ciphers.clean();
+
+        try {
+            doClose();
+            currentStream.close();
+            if (ciphers != null) {
+                ciphers.clean();
+            }
+            if (!maybeDeleteTempFile(currentStream)) {
+                postClose();
+            }
+        } catch (final IOException | RuntimeException ex) {
+            if (callbacksChainFailed != null) {
+                ex.addSuppressed(callbacksChainFailed);
+            }
+            throw ex;
         }
-        if (!maybeDeleteTempFile(currentStream)) {
-            postClose();
+
+        if (callbacksChainFailed != null) {
+            throw callbacksChainFailed;
         }
     }
 
@@ -283,8 +305,10 @@ public class CachedOutputStream extends OutputStream {
                     }
                 } finally {
                     streamList.remove(currentStream);
+                    // we are not backed by file anymore, unregister from the cleaner
                     if (cachedOutputStreamCleaner != null) {
                         cachedOutputStreamCleaner.unregister(currentStream);
+                        cachedOutputStreamCleaner.unregister(this);
                     }
                     deleteTempFile();
                     inmem = true;
@@ -311,9 +335,14 @@ public class CachedOutputStream extends OutputStream {
             }
             throw new IOException("Unknown format of currentStream");
         }
+
+        if (totalLength > Integer.MAX_VALUE) {
+            throw new IOException("The total limit of " + Integer.MAX_VALUE + " bytes exceeded, data is too large");
+        }
+
         // read the file
         try (InputStream fin = createInputStream(tempFile)) {
-            return IOUtils.readBytesFromStream(fin);
+            return IOUtils.readBytesFromStream(fin, CastUtils.cast(maxSize));
         }
     }
 

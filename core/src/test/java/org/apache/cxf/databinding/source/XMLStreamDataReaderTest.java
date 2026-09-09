@@ -129,7 +129,6 @@ public class XMLStreamDataReaderTest {
     }
 
 
-
     private void testValidate(String schemaPath, String xmlPath, boolean exceptionExpected) throws Exception {
 
         //create schema
@@ -190,7 +189,6 @@ public class XMLStreamDataReaderTest {
         }
         assertEquals(exceptionExpected, exceptionCaught);
     }
-
 
     private static class TestInputStream extends ByteArrayInputStream {
         private boolean closed;

@@ -22,6 +22,12 @@ package org.apache.cxf.ws.addressing;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.text.MessageFormat;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.LinkedHashSet;
+import java.util.Locale;
+import java.util.Set;
 import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -29,6 +35,7 @@ import java.util.logging.Logger;
 import org.apache.cxf.Bus;
 import org.apache.cxf.common.logging.LogUtils;
 import org.apache.cxf.common.util.StringUtils;
+import org.apache.cxf.common.util.SystemPropertyAction;
 import org.apache.cxf.endpoint.Endpoint;
 import org.apache.cxf.message.Exchange;
 import org.apache.cxf.message.Message;
@@ -51,6 +58,52 @@ public final class ContextUtils {
 
     public static final ObjectFactory WSA_OBJECT_FACTORY = new ObjectFactory();
     public static final String ACTION = ContextUtils.class.getName() + ".ACTION";
+
+    /**
+     * System property whose value overrides the comma-separated list of URI scheme
+     * prefixes permitted in wsa:ReplyTo / wsa:FaultTo decoupled-destination addresses.
+     * Example: {@code -Dorg.apache.cxf.ws.addressing.decoupled.allowedSchemes=http://,https://,jms:}
+     */
+    public static final String ALLOWED_DECOUPLED_DEST_SCHEMES_PROPERTY =
+        "org.apache.cxf.ws.addressing.decoupled.allowedSchemes";
+
+    /**
+     * System property that enables WS-Addressing decoupled destinations (non-anonymous
+     * wsa:ReplyTo / wsa:FaultTo). Defaults to {@code false} — decoupled destinations
+     * are <em>disabled</em> by default to prevent SSRF. Set to {@code true} only when
+     * your deployment legitimately requires decoupled WS-Addressing callbacks.
+     */
+    public static final String WS_ADDRESSING_DECOUPLED_ENABLED_PROPERTY =
+        "org.apache.cxf.ws.addressing.decoupled.enabled";
+
+    /**
+     * Exchange property key that higher-level protocols (e.g. WS-RM) may set to
+     * {@code Boolean.TRUE} to pre-approve decoupled wsa:ReplyTo / wsa:FaultTo
+     * destinations for a specific exchange, bypassing the global
+     * {@value #WS_ADDRESSING_DECOUPLED_ENABLED_PROPERTY} opt-in flag.
+     *
+     * <p>The URI-scheme allowlist ({@value #ALLOWED_DECOUPLED_DEST_SCHEMES_PROPERTY} /
+     * {@link #DEFAULT_ALLOWED_DECOUPLED_DEST_SCHEMES}) is still enforced even when
+     * this flag is set, to prevent reaching dangerous URI types (e.g. {@code file://}).
+     *
+     * <p>Only trusted CXF modules should set this property.
+     */
+    public static final String DECOUPLED_DESTINATION_APPROVED_PROPERTY =
+        "org.apache.cxf.ws.addressing.decoupled.approved";
+
+    /**
+     * Default set of URI scheme prefixes permitted in wsa:ReplyTo / wsa:FaultTo
+     * decoupled-destination addresses. Schemes that can open arbitrary filesystem or
+     * OS resources (file://, corba:, IOR:, etc.) are intentionally excluded.
+     */
+    public static final Set<String> DEFAULT_ALLOWED_DECOUPLED_DEST_SCHEMES =
+        Collections.unmodifiableSet(new LinkedHashSet<>(Arrays.asList(
+            "http://", "https://",
+            "jms://", "jms:",
+            "ws://", "wss://",
+            "hc://", "hc5://",
+            "local://"
+        )));
 
     private static final EndpointReferenceType NONE_ENDPOINT_REFERENCE = new EndpointReferenceType();
 
@@ -278,7 +331,7 @@ public final class ContextUtils {
         relatesTo.setValue(uri);
         return relatesTo;
     }
-    
+
     private static boolean startsWith(String value, String ref) {
         if (StringUtils.isEmpty(value)) {
             return false;
@@ -561,47 +614,232 @@ public final class ContextUtils {
         return msg;
     }
 
+    /**
+     * Returns {@code true} if {@code uri} is permitted as a wsa:ReplyTo / wsa:FaultTo
+     * decoupled-destination address for the <em>WS-Addressing</em> path.
+     *
+     * <p>WS-Addressing decoupled destinations are <em>disabled by default</em> to
+     * prevent SSRF: any attacker who can craft a SOAP request can otherwise force
+     * the server to open an outbound connection to any URL. Enable with
+     * {@value #WS_ADDRESSING_DECOUPLED_ENABLED_PROPERTY}{@code =true}.
+     *
+     * <p>When enabled, the URI must start with a prefix from
+     * {@value #ALLOWED_DECOUPLED_DEST_SCHEMES_PROPERTY} or
+     * {@link #DEFAULT_ALLOWED_DECOUPLED_DEST_SCHEMES}.
+     */
+    public static boolean isDecoupledDestinationAllowed(String uri) {
+        if (uri == null) {
+            return false;
+        }
+        if (!Boolean.parseBoolean(
+                System.getProperty(WS_ADDRESSING_DECOUPLED_ENABLED_PROPERTY, "false"))) {
+            return false;
+        }
+        return isDecoupledDestinationSchemeAllowed(uri);
+    }
+
+    /**
+     * Log a message after {@link #isDecoupledDestinationAllowed(String)} returned {@code false}.
+     *
+     * @param logger the {@link Logger} to pass the message to
+     * @param level log {@link Level} on which the message should be logged
+     * @param destinationUri the URI banned due to the configuration
+     */
+    public static void logDisallowedDecoupledDestinationScheme(Logger logger, Level level, String destinationUri) {
+        logger.logrb(level,
+                AddressingConstants.BUNDLE,
+                "DISALLOWED_DECOUPLED_DESTINATION_SCHEME",
+                new Object[] {
+                    destinationUri,
+                    ALLOWED_DECOUPLED_DEST_SCHEMES_PROPERTY
+                });
+    }
+
+    /**
+     * Log a message after {@link #isDecoupledDestinationAllowed(String)} returned {@code false}
+     * for messages having {@value #DECOUPLED_DESTINATION_APPROVED_PROPERTY} set to {@code true}.
+     *
+     * @param logger the {@link Logger} to pass the message to
+     * @param level log {@link Level} on which the message should be logged
+     * @param destinationUri the URI banned due to the configuration
+     */
+    public static void logRejectedDecoupledDestination(Logger logger, Level level, String destinationUri) {
+        logger.logrb(level,
+                AddressingConstants.BUNDLE,
+                "REJECTED_DECOUPLED_DESTINATION",
+                new Object[] {
+                    destinationUri,
+                    WS_ADDRESSING_DECOUPLED_ENABLED_PROPERTY,
+                    ALLOWED_DECOUPLED_DEST_SCHEMES_PROPERTY
+                });
+    }
+
+    /**
+     * Log a message after {@link #isDecoupledDestinationSchemeAllowed(String)} returned {@code false}
+     * for messages having {@value #DECOUPLED_DESTINATION_APPROVED_PROPERTY} set to {@code true}.
+     *
+     * @param logger the {@link Logger} to pass the message to
+     * @param level log {@link Level} on which the message should be logged
+     * @param destinationUri the URI banned due to the configuration
+     */
+    public static void logDecoupledFaultToSchemeNotAllowed(Logger logger, Level level, String destinationUri) {
+        logger.logrb(level,
+                AddressingConstants.BUNDLE,
+                "DECOUPLED_FAULT_TO_SCHEME_NOT_ALLOWED",
+                new Object[] {
+                    destinationUri,
+                    ALLOWED_DECOUPLED_DEST_SCHEMES_PROPERTY
+                });
+    }
+
+    /**
+     * Log a message after {@link #isDecoupledDestinationAllowed(String)} returned {@code false}
+     * for {@code FaultTo} URI.
+     *
+     * @param logger the {@link Logger} to pass the message to
+     * @param level log {@link Level} on which the message should be logged
+     * @param destinationUri the URI banned due to the configuration
+     */
+    public static void logDecoupledFaultToNotAllowed(Logger logger, Level level, String destinationUri) {
+        logger.logrb(level,
+                AddressingConstants.BUNDLE,
+                "DECOUPLED_FAULT_TO_NOT_ALLOWED",
+                new Object[] {
+                    destinationUri,
+                    WS_ADDRESSING_DECOUPLED_ENABLED_PROPERTY,
+                    ALLOWED_DECOUPLED_DEST_SCHEMES_PROPERTY
+                });
+    }
+
+    /**
+     * Create a SOAP Fault reason after {@link #isDecoupledDestinationAllowed(String)} returned {@code false}.
+     *
+     * @param destinationUri the URI banned due to the configuration
+     * @return a formatted message
+     */
+    public static String formatDecoupledReplyToNotPermittedMessage(String destinationUri) {
+        return MessageFormat.format(
+                AddressingConstants.BUNDLE.getString("DECOUPLED_REPLY_TO_NOT_PERMITTED"),
+                destinationUri,
+                WS_ADDRESSING_DECOUPLED_ENABLED_PROPERTY,
+                ALLOWED_DECOUPLED_DEST_SCHEMES_PROPERTY);
+    }
+
+    /**
+     * Create a SOAP Fault reason after {@link #isDecoupledDestinationSchemeAllowed(String)} returned {@code false}.
+     *
+     * @param destinationUri the URI banned due to the configuration
+     * @return a formatted message
+     */
+    public static String formatDecoupledReplyToSchemeNotPermittedMessage(String destinationUri) {
+        return MessageFormat.format(
+                AddressingConstants.BUNDLE.getString("DECOUPLED_REPLY_TO_SCHEME_NOT_PERMITTED"),
+                destinationUri,
+                ALLOWED_DECOUPLED_DEST_SCHEMES_PROPERTY);
+    }
+
+    /**
+     * Validates the URI scheme for {@link #isDecoupledDestinationAllowed}.
+     */
+    public static boolean isDecoupledDestinationSchemeAllowed(String uri) {
+        if (uri == null) {
+            return false;
+        }
+        // Normalize the URI to lowercase for case-insensitive scheme comparison
+        // (RFC 3986 §3.1: scheme is case-insensitive).
+        String normalizedUri = uri.toLowerCase(Locale.ROOT);
+        String prop = SystemPropertyAction.getPropertyOrNull(ALLOWED_DECOUPLED_DEST_SCHEMES_PROPERTY);
+        Set<String> allowed = (prop != null)
+            ? new LinkedHashSet<>(Arrays.asList(prop.split(",")))
+            : DEFAULT_ALLOWED_DECOUPLED_DEST_SCHEMES;
+        for (String prefix : allowed) {
+            String trimmedPrefix = prefix.trim().toLowerCase(Locale.ROOT);
+            // Skip empty tokens that arise from leading/trailing/consecutive commas in
+            // the system property (e.g. ",http://" or "http://,,https://").
+            // An empty prefix would make startsWith("") return true for every URI,
+            // effectively disabling the SSRF allowlist.
+            if (trimmedPrefix.isEmpty()) {
+                continue;
+            }
+            if (normalizedUri.startsWith(trimmedPrefix)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     public static Destination createDecoupledDestination(Exchange exchange,
                                                          final EndpointReferenceType reference) {
         final EndpointInfo ei = exchange.getEndpoint().getEndpointInfo();
-        return new Destination() {
-            public EndpointReferenceType getAddress() {
-                return reference;
+        return new DecoupledDestination(ei, reference);
+    }
+
+    private static final class DecoupledDestination implements Destination {
+        private final EndpointInfo ei;
+        private final EndpointReferenceType reference;
+
+        DecoupledDestination(EndpointInfo ei, EndpointReferenceType reference) {
+            this.ei = ei;
+            this.reference = reference;
+        }
+
+        public EndpointReferenceType getAddress() {
+            return reference;
+        }
+
+        public Conduit getBackChannel(Message inMessage) throws IOException {
+            if (isNoneAddress(reference)) {
+                return null;
             }
-            public Conduit getBackChannel(Message inMessage) throws IOException {
-                Bus bus = inMessage.getExchange().getBus();
-                //this is a response targeting a decoupled endpoint.   Treat it as a oneway so
-                //we don't wait for a response.
-                inMessage.getExchange().setOneWay(true);
-                ConduitInitiator conduitInitiator
-                    = bus.getExtension(ConduitInitiatorManager.class)
-                        .getConduitInitiatorForUri(reference.getAddress().getValue());
-                if (conduitInitiator != null) {
-                    Conduit c = conduitInitiator.getConduit(ei, reference, bus);
-                    //ensure decoupled back channel input stream is closed
-                    c.setMessageObserver(new MessageObserver() {
-                        public void onMessage(Message m) {
-                            InputStream is = m.getContent(InputStream.class);
-                            if (is != null) {
-                                try {
-                                    is.close();
-                                } catch (Exception e) {
-                                    //ignore
-                                }
+            final String destinationUri = reference.getAddress().getValue();
+            boolean approved = Boolean.TRUE.equals(
+                inMessage.getExchange().get(DECOUPLED_DESTINATION_APPROVED_PROPERTY));
+            if (approved) {
+                // Higher-level protocol (e.g. WS-RM) pre-approved decoupled addressing
+                // for this exchange; still enforce the scheme allowlist.
+                if (!isDecoupledDestinationSchemeAllowed(destinationUri)) {
+                    logDisallowedDecoupledDestinationScheme(LOG, Level.WARNING, destinationUri);
+                    return null;
+                }
+            } else if (!isDecoupledDestinationAllowed(destinationUri)) {
+                logRejectedDecoupledDestination(LOG, Level.WARNING, destinationUri);
+                return null;
+            }
+            Bus bus = inMessage.getExchange().getBus();
+            //this is a response targeting a decoupled endpoint.   Treat it as a oneway so
+            //we don't wait for a response.
+            inMessage.getExchange().setOneWay(true);
+            ConduitInitiator conduitInitiator
+                = bus.getExtension(ConduitInitiatorManager.class)
+                    .getConduitInitiatorForUri(destinationUri);
+            if (conduitInitiator != null) {
+                Conduit c = conduitInitiator.getConduit(ei, reference, bus);
+                //ensure decoupled back channel input stream is closed
+                c.setMessageObserver(new MessageObserver() {
+                    public void onMessage(Message m) {
+                        InputStream is = m.getContent(InputStream.class);
+                        if (is != null) {
+                            try {
+                                is.close();
+                            } catch (Exception e) {
+                                //ignore
                             }
                         }
-                    });
-                    return c;
-                }
-                return null;
+                    }
+                });
+                return c;
             }
-            public MessageObserver getMessageObserver() {
-                return null;
-            }
-            public void shutdown() {
-            }
-            public void setMessageObserver(MessageObserver observer) {
-            }
-        };
+            return null;
+        }
+
+        public MessageObserver getMessageObserver() {
+            return null;
+        }
+
+        public void shutdown() {
+        }
+
+        public void setMessageObserver(MessageObserver observer) {
+        }
     }
 }

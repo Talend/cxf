@@ -144,7 +144,10 @@ public class HttpServletRequestSnapshot extends HttpServletRequestWrapper {
     
     @Override
     public Object getAttribute(String name) {
-        return attributesMap.get(name);
+        if (attributesMap.get(name) != null) {
+            return attributesMap.get(name);
+        }
+        return null;
     }
 
     @SuppressWarnings({
@@ -159,7 +162,7 @@ public class HttpServletRequestSnapshot extends HttpServletRequestWrapper {
     public Enumeration<String> getAttributeNames() {
         return this.attributeNames;
     }
-    
+
     @SuppressWarnings({
         "unchecked", "rawtypes"
     })

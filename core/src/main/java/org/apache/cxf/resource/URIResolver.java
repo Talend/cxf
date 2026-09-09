@@ -32,8 +32,15 @@ import java.net.URLDecoder;
 import java.nio.file.Files;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
+import java.security.PrivilegedActionException;
+import java.security.PrivilegedExceptionAction;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -56,6 +63,12 @@ import org.apache.cxf.helpers.LoadingByteArrayOutputStream;
  */
 public class URIResolver implements AutoCloseable {
     private static final Logger LOG = LogUtils.getLogger(URIResolver.class);
+    private static final String ALLOWED_URL_SCHEMES_PROPERTY =
+        "org.apache.cxf.resource.uriresolver.allowedSchemes";
+    private static final Set<String> DEFAULT_ALLOWED_URL_SCHEMES =
+        Collections.unmodifiableSet(
+            new HashSet<>(Arrays.asList("file", "http", "https", "jar", "zip", "wsjar", "local", "classpath", "vfs",
+                    "resource")));
 
     private Map<String, LoadingByteArrayOutputStream> cache = new HashMap<>();
     private File file;
@@ -168,6 +181,7 @@ public class URIResolver implements AutoCloseable {
             if (relative.isAbsolute()) {
                 uri = relative;
                 url = relative.toURL();
+                checkAllowedScheme(url);
 
                 try {
                     HttpURLConnection huc = createInputStream();
@@ -258,7 +272,17 @@ public class URIResolver implements AutoCloseable {
     }
 
     private HttpURLConnection createInputStream() throws IOException {
-        HttpURLConnection huc = (HttpURLConnection)url.openConnection();
+        checkAllowedScheme(url);
+        // Wrap the network connection in doPrivileged so that callers (including
+        // user deployments) do not need SocketPermission for the target host.
+        final HttpURLConnection huc;
+        try {
+            huc = AccessController.doPrivileged(
+                (PrivilegedExceptionAction<HttpURLConnection>) () ->
+                    (HttpURLConnection)url.openConnection());
+        } catch (PrivilegedActionException e) {
+            throw (IOException) e.getException();
+        }
 
         String host = SystemPropertyAction.getPropertyOrNull("http.proxyHost");
         if (host != null) {
@@ -344,6 +368,7 @@ public class URIResolver implements AutoCloseable {
         }
 
         url = new URL(uriStr);
+        checkAllowedScheme(url);
         try {
             is = url.openStream();
             try {
@@ -409,6 +434,7 @@ public class URIResolver implements AutoCloseable {
         try {
             LoadingByteArrayOutputStream bout = cache.get(uriStr);
             url = new URL(uriStr);
+            checkAllowedScheme(url);
             uri = new URI(url.toString());
             if (bout == null) {
                 URLConnection connection = url.openConnection();
@@ -422,6 +448,35 @@ public class URIResolver implements AutoCloseable {
         } catch (MalformedURLException | URISyntaxException e) {
             // do nothing
         }
+    }
+
+    /**
+     * Verifies that the URL scheme is permitted by URIResolver allowlist policy.
+     */
+    public static void checkAllowedScheme(URL targetUrl) throws IOException {
+        String scheme = targetUrl.getProtocol();
+        if (scheme == null) {
+            return;
+        }
+        scheme = scheme.toLowerCase(Locale.ROOT);
+        if (!getAllowedSchemes().contains(scheme)) {
+            throw new IOException("URL scheme '" + scheme + "' is not permitted for URIResolver. "
+                                  + "Allowed schemes: " + getAllowedSchemes());
+        }
+    }
+
+    public static Set<String> getAllowedSchemes() {
+        Set<String> allowed = new HashSet<>(DEFAULT_ALLOWED_URL_SCHEMES);
+        String configured = SystemPropertyAction.getPropertyOrNull(ALLOWED_URL_SCHEMES_PROPERTY);
+        if (configured != null) {
+            for (String entry : configured.split(",")) {
+                String scheme = entry.trim().toLowerCase(Locale.ROOT);
+                if (!scheme.isEmpty()) {
+                    allowed.add(scheme);
+                }
+            }
+        }
+        return allowed;
     }
 
     public URI getURI() {
@@ -450,7 +505,7 @@ public class URIResolver implements AutoCloseable {
     public boolean isResolved() {
         return is != null;
     }
-    
+
     @Override
     public void close() throws IOException {
         if (isResolved()) {

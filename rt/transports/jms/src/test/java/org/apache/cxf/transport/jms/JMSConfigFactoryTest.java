@@ -45,11 +45,11 @@ public class JMSConfigFactoryTest extends AbstractJMSTester {
         env.put(Context.PROVIDER_URL, "ldap://127.0.0.1:12345");
         // Allow following referrals (important for LDAP injection)
         env.put(Context.REFERRAL, "follow");
-        
+
         JMSConfiguration jmsConfig = new JMSConfiguration();
         jmsConfig.setJndiEnvironment(env);
         jmsConfig.setConnectionFactoryName("objectName");
-        
+
         try {
             jmsConfig.getConnectionFactory();
             Assert.fail("JNDI lookup should have failed");
@@ -104,6 +104,25 @@ public class JMSConfigFactoryTest extends AbstractJMSTester {
     }
 
     @Test
+    public void testTransactionManagerJndiInjectionRejected() {
+        // Ensure URL-style JNDI names (e.g. ldap://, rmi://) are rejected to prevent
+        // JNDI injection via getTransactionManagerFromJndi.
+        for (String malicious : new String[]{"ldap://attacker.com/exploit",
+                                             "rmi://attacker.com/exploit",
+                                             "corba://attacker.com/exploit"}) {
+            Bus testBus = BusFactory.newInstance().createBus();
+            JMSEndpoint endpoint = new JMSEndpoint("jms:queue:Foo.Bar?jndiTransactionManagerName="
+                                                   + malicious);
+            try {
+                JMSConfigFactory.createFromEndpoint(testBus, endpoint);
+                Assert.fail("Expected IllegalArgumentException for JNDI name: " + malicious);
+            } catch (IllegalArgumentException e) {
+                Assert.assertTrue(e.getMessage().contains("JNDI name must not contain a URL"));
+            }
+        }
+    }
+
+    @Test
     public void testConcurrentConsumers() {
         JMSEndpoint endpoint = new JMSEndpoint("jms:queue:Foo.Bar?concurrentConsumers=4");
         JMSConfiguration jmsConfig = JMSConfigFactory.createFromEndpoint(bus, endpoint);
@@ -116,5 +135,19 @@ public class JMSConfigFactoryTest extends AbstractJMSTester {
         EndpointInfo ei = setupServiceInfo("HelloWorldSelectorService", "HelloWorldPort");
         JMSConfiguration config = JMSConfigFactory.createFromEndpointInfo(bus, ei, null);
         Assert.assertEquals("customJMSAttribute=helloWorld", config.getMessageSelector());
+    }
+
+    @Test
+    public void testUseObjectMessageFallbackIsSet() {
+        JMSEndpoint endpoint = new JMSEndpoint("jms:queue:Foo.Bar?useObjectMessageFallback=true");
+        JMSConfiguration jmsConfig = JMSConfigFactory.createFromEndpoint(bus, endpoint);
+        Assert.assertTrue(jmsConfig.isUseObjectMessageFallback());
+    }
+
+    @Test
+    public void testAllowObjectMessagesIsSet() {
+        JMSEndpoint endpoint = new JMSEndpoint("jms:queue:Foo.Bar?allowObjectMessages=true");
+        JMSConfiguration jmsConfig = JMSConfigFactory.createFromEndpoint(bus, endpoint);
+        Assert.assertTrue(jmsConfig.isAllowObjectMessages());
     }
 }

@@ -35,6 +35,7 @@ import java.util.logging.Logger;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.ws.rs.HttpMethod;
 import jakarta.ws.rs.WebApplicationException;
+import jakarta.ws.rs.core.EntityPart;
 import jakarta.ws.rs.core.Form;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.MultivaluedMap;
@@ -53,6 +54,8 @@ import org.apache.cxf.phase.PhaseInterceptorChain;
 import org.apache.cxf.transport.http.AbstractHTTPDestination;
 
 public final class FormUtils {
+    public static final int DEFAULT_MAX_FORM_PARAM_COUNT = 500;
+
     public static final String FORM_PARAMS_FROM_HTTP_PARAMS = "set.form.parameters.from.http.parameters";
     public static final String FORM_PARAM_MAP = "org.apache.cxf.form_data";
     public static final String FORM_PARAM_MAP_DECODED = "org.apache.cxf.form_data.decoded";
@@ -231,6 +234,24 @@ public final class FormUtils {
 
         }
     }
+    
+    public static void populateMapFromEntityParts(MultivaluedMap<String, String> params,
+                                                List<EntityPart> parts,
+                                                Message m,
+                                                boolean decode) {
+        checkNumberOfParts(m, parts.size());
+        for (EntityPart part : parts) {
+            try {
+                final String value = part.getContent(String.class);
+                params.add(HttpUtils.urlDecode(part.getName()), decode ? HttpUtils.urlDecode(value) : value);
+            } catch (IllegalArgumentException ex) {
+                throw ExceptionUtils.toInternalServerErrorException(ex, null);
+            } catch (IOException ex) {
+                throw ExceptionUtils.toBadRequestException(null, null);
+            }
+        }
+    }
+
 
     public static void populateMapFromMultipart(MultivaluedMap<String, String> params,
                                                 MultipartBody body,
@@ -271,11 +292,8 @@ public final class FormUtils {
         if (m == null || m.getExchange() == null || m.getExchange().getInMessage() == null) {
             return;
         }
-        String maxPartsCountProp = (String)m.getExchange()
-            .getInMessage().getContextualProperty(MAX_FORM_PARAM_COUNT);
-        if (maxPartsCountProp == null) {
-            return;
-        }
+        final String maxPartsCountProp = MessageUtils.getContextualString(m.getExchange().getInMessage(),
+            MAX_FORM_PARAM_COUNT, Integer.toString(DEFAULT_MAX_FORM_PARAM_COUNT));
         try {
             int maxPartsCount = Integer.parseInt(maxPartsCountProp);
             if (maxPartsCount != -1 && numberOfParts >= maxPartsCount) {

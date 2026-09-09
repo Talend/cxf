@@ -28,6 +28,7 @@ import java.io.OutputStream;
 import java.io.Reader;
 import java.io.StringReader;
 import java.lang.annotation.Annotation;
+import java.nio.charset.StandardCharsets;
 
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.StreamingOutput;
@@ -38,8 +39,11 @@ import org.apache.cxf.jaxrs.impl.MetadataMap;
 
 import org.junit.Test;
 
+import static org.hamcrest.CoreMatchers.equalTo;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 
 public class BinaryDataProviderTest {
@@ -101,7 +105,7 @@ public class BinaryDataProviderTest {
     @Test
     public void testReadBytesFromUtf8() throws Exception {
         MessageBodyReader p = new BinaryDataProvider();
-        byte[] utf8Bytes = "世界ーファイル".getBytes("UTF-16");
+        byte[] utf8Bytes = "世界ーファイル".getBytes(StandardCharsets.UTF_16);
         byte[] readBytes = (byte[])p.readFrom(byte[].class, byte[].class, new Annotation[]{},
                                           MediaType.APPLICATION_OCTET_STREAM_TYPE,
                                           new MetadataMap<String, Object>(),
@@ -132,6 +136,22 @@ public class BinaryDataProviderTest {
         assertArrayEquals(os.toByteArray(), new String("hi").getBytes());
     }
 
+    @SuppressWarnings({ "unchecked", "rawtypes" })
+    @Test
+    public void testReadBytesMaxSize() throws Exception {
+        final int maxSize = 4096;
+        final BinaryDataProvider p = new BinaryDataProvider();
+        p.setMaxSize(maxSize);
+
+        final byte[] bytes = new byte[maxSize + 1]; /* maxSize + 1 byte */
+        final IOException ex = assertThrows(IOException.class, 
+            () -> p.readFrom(byte[].class, byte[].class, new Annotation[]{},
+                  MediaType.APPLICATION_OCTET_STREAM_TYPE,
+                  new MetadataMap<String, Object>(),
+                  new ByteArrayInputStream(bytes)));
+
+        assertThat(ex.getMessage(), equalTo("The total limit of 4096 bytes exceeded, data is too large"));
+    }
 
     private static final class StreamingOutputImpl implements StreamingOutput {
 
