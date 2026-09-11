@@ -28,7 +28,6 @@ import java.util.logging.Logger;
 import javax.xml.namespace.QName;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
-import javax.xml.stream.XMLStreamWriter;
 import javax.xml.transform.Source;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.sax.SAXSource;
@@ -119,7 +118,7 @@ public class XMLStreamDataReader implements DataReader<XMLStreamReader> {
             if (type != null) {
                 Object retVal = null;
                 if (SAXSource.class.isAssignableFrom(type)
-                    || StaxSource.class.isAssignableFrom(type)) {
+                        || StaxSource.class.isAssignableFrom(type)) {
                     retVal = new StaxSource(resetForStreaming(input));
                 } else if (StreamSource.class.isAssignableFrom(type)) {
                     retVal = new StreamSource(getInputStream(input));
@@ -161,7 +160,7 @@ public class XMLStreamDataReader implements DataReader<XMLStreamReader> {
             throw new Fault("COULD_NOT_READ_XML_STREAM", LOG, e);
         } catch (XMLStreamException e) {
             throw new Fault("COULD_NOT_READ_XML_STREAM_CAUSED_BY", LOG, e,
-                            e.getMessage());
+                    e.getMessage());
         }
     }
 
@@ -217,44 +216,47 @@ public class XMLStreamDataReader implements DataReader<XMLStreamReader> {
     }
 
     private Element validate(XMLStreamReader input) throws XMLStreamException, IOException {
-        DOMSource ds = read(input);
-        final Element rootElement;
-        if (ds.getNode() instanceof Document) {
-            rootElement = ((Document)ds.getNode()).getDocumentElement();
-        } else {
-            rootElement = (Element)ds.getNode();
-        }
-
+        Element rootElement;
         WoodstoxValidationImpl impl = new WoodstoxValidationImpl();
-        XMLStreamWriter nullWriter = null;
-        boolean notUseMsvSchemaValidator = 
-            MessageUtils.getContextualBoolean(message, SourceDataBinding.NOT_USE_MSV_SCHEMA_VALIDATOR, false);
-        if (impl.canValidate()
-            && !notUseMsvSchemaValidator) {
-            nullWriter = StaxUtils.createXMLStreamWriter(new NUllOutputStream());
-            impl.setupValidation(nullWriter, message.getExchange().getEndpoint(),
-                                 message.getExchange().getService().getServiceInfos().get(0));
+        XMLStreamReader inputWithoutXop = null;
+        boolean notUseMsvSchemaValidator =
+                MessageUtils.getContextualBoolean(message, SourceDataBinding.NOT_USE_MSV_SCHEMA_VALIDATOR, false);
+
+        if (impl.canValidate() && !notUseMsvSchemaValidator) {
+            //filter xop node, which causes validation to fail
+            XMLStreamReader filteredReader =
+                    StaxUtils.createFilteredReader(input, new StaxStreamFilter(XOP));
+            try (CachedOutputStream out = new CachedOutputStream()) {
+                StaxUtils.copy(filteredReader, out);
+                inputWithoutXop = StaxUtils.createXMLStreamReader(out.getInputStream());
+                impl.setupValidation(inputWithoutXop, message.getExchange().getEndpoint(),
+                        message.getExchange().getService().getServiceInfos().get(0));
+            } finally {
+                filteredReader.close();
+            }
         }
         //check if the impl can still validate after the setup, possible issue loading schemas or similar
         if (impl.canValidate() && !notUseMsvSchemaValidator) {
             //Can use the MSV libs and woodstox to handle the schema validation during
-            //parsing and processing.   Much faster and single traversal
-            //filter xop node
-            XMLStreamReader reader = StaxUtils.createXMLStreamReader(ds);
-            XMLStreamReader filteredReader =
-                StaxUtils.createFilteredReader(reader,
-                                               new StaxStreamFilter(new QName[] {XOP}));
-
-            StaxUtils.copy(filteredReader, nullWriter);
+            //parsing and processing. Much faster and single traversal
+            rootElement =  StaxUtils.read(inputWithoutXop).getDocumentElement();
         } else {
+
+            DOMSource ds = read(input);
+            if (ds.getNode() instanceof Document) {
+                rootElement = ((Document)ds.getNode()).getDocumentElement();
+            } else {
+                rootElement = (Element)ds.getNode();
+            }
+
             //MSV not available, use a slower method of cloning the data, replace the xop's, validate
             LOG.fine("NO_MSV_AVAILABLE");
             Element newElement = rootElement;
             if (DOMUtils.hasElementWithName(rootElement, "http://www.w3.org/2004/08/xop/include", "Include")) {
                 newElement = (Element)rootElement.cloneNode(true);
                 List<Element> elems = DOMUtils.findAllElementsByTagNameNS(newElement,
-                                                                          "http://www.w3.org/2004/08/xop/include",
-                                                                          "Include");
+                        "http://www.w3.org/2004/08/xop/include",
+                        "Include");
                 for (Element include : elems) {
                     Node parentNode = include.getParentNode();
                     parentNode.removeChild(include);
@@ -273,7 +275,7 @@ public class XMLStreamDataReader implements DataReader<XMLStreamReader> {
     }
 
     private InputStream getInputStream(XMLStreamReader input)
-        throws XMLStreamException, IOException {
+            throws XMLStreamException, IOException {
 
         try (CachedOutputStream out = new CachedOutputStream()) {
             StaxUtils.copy(input, out);
@@ -302,7 +304,7 @@ public class XMLStreamDataReader implements DataReader<XMLStreamReader> {
             return new DOMSource(document);
         } catch (XMLStreamException e) {
             throw new Fault("COULD_NOT_READ_XML_STREAM_CAUSED_BY", LOG, e,
-                            e.getMessage());
+                    e.getMessage());
         }
     }
 
@@ -316,16 +318,6 @@ public class XMLStreamDataReader implements DataReader<XMLStreamReader> {
     public void setProperty(String prop, Object value) {
         if (Message.class.getName().equals(prop)) {
             message = (Message)value;
-        }
-    }
-
-    static class NUllOutputStream extends OutputStream {
-        public void write(byte[] b, int off, int len) {
-        }
-        public void write(int b) {
-        }
-
-        public void write(byte[] b) throws IOException {
         }
     }
 }

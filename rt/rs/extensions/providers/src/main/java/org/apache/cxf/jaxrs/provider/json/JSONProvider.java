@@ -82,7 +82,7 @@ import org.codehaus.jettison.mapped.TypeConverter;
 import org.codehaus.jettison.util.StringIndenter;
 
 @Produces({"application/json", "application/*+json", "text/json" /* deprecated */ })
-@Consumes({"application/json", "application/*+json", "text/json"/* deprecated */ })
+@Consumes({"application/json", "application/*+json", "text/json" /* deprecated */ })
 @Provider
 public class JSONProvider<T> extends AbstractJAXBProvider<T>  {
 

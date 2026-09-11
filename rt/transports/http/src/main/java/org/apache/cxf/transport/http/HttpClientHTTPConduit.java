@@ -177,7 +177,7 @@ public class HttpClientHTTPConduit extends URLConnectionHTTPConduit {
                 }
             }
         }
-        
+
         boolean isClosed() {
             return count.get() == 0L;
         }
