@@ -56,6 +56,6 @@
         <module>transport-netty</module>
         <module>transport-hc5</module>
         <module>transport-jms</module>
-        <module>jaxrs</module>
+        <!-- <module>jaxrs</module> -->
     </modules>
 </project>

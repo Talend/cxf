@@ -29,7 +29,7 @@
         <bundle start-level="9">mvn:org.apache.geronimo.specs/geronimo-osgi-registry/1.1</bundle>
         <bundle start-level="10" dependency="true">mvn:jakarta.activation/jakarta.activation-api/${cxf.jakarta.activation.version}</bundle>
         <bundle start-level="10" dependency="true">mvn:jakarta.annotation/jakarta.annotation-api/${cxf.jakarta.annotation-api.version}</bundle>
-        <bundle start-level="10">mvn:jakarta.xml.bind/jakarta.xml.bind-api/4.0.2</bundle>
+        <bundle start-level="10">mvn:jakarta.xml.bind/jakarta.xml.bind-api/${cxf.jaxb.version}</bundle>
         <bundle start-level="10" start="false">mvn:org.ops4j.pax.web/pax-web-compatibility-jaxb3/11.0.1</bundle>
         <bundle start-level="10" dependency="true">mvn:jakarta.xml.ws/jakarta.xml.ws-api/${cxf.jakarta.wsapi.version}</bundle>
         <bundle start-level="10" dependency="true">mvn:jakarta.ws.rs/jakarta.ws.rs-api/${cxf.jakarta.ws.rs.version}</bundle>
@@ -95,13 +95,22 @@
     </feature>
     <feature name="wss4j" version="${cxf.jakarta.wss4j.version}">
         <feature version="${cxf.tesb.version-range}">cxf-specs</feature>
+        <feature version="${cxf.tesb.version-range}">cxf-jackson</feature>
         <feature version="${cxf.saaj-impl.version}">saaj-impl</feature>
-        <!-- <feature version="[4.3,5)">opensaml</feature> -->
+        <!-- <feature version="[4.3,6)">opensaml</feature> -->
         <bundle start-level="25" dependency="true">mvn:joda-time/joda-time/${cxf.joda.time.version}</bundle>
         <bundle start-level="25" dependency="true">mvn:commons-codec/commons-codec/${cxf.commons-codec.tesb.version}</bundle>
-        <bundle start-level="25" dependency="true">mvn:org.apache.santuario/xmlsec/3.0.5</bundle>
+        <bundle start-level="25" dependency="true">mvn:org.apache.santuario/xmlsec/${cxf.xmlsec.tesb.version}</bundle>
         <bundle start-level="25" dependency='true'>mvn:io.dropwizard.metrics/metrics-core/${cxf.dropwizard4.version}</bundle>
-        <bundle start-level="25" dependency="true">mvn:org.apache.servicemix.bundles/org.apache.servicemix.bundles.opensaml/4.3.2_1.tesb1</bundle>
+        <bundle start-level="25" dependency='true'>mvn:io.dropwizard.metrics/metrics-json/${cxf.dropwizard4.version}</bundle>
+        <bundle start-level="25" dependency="true">mvn:com.fasterxml.jackson.datatype/jackson-datatype-jsr310/${cxf.jackson.version}</bundle>
+        <bundle start-level="25" dependency="true">wrap:mvn:net.shibboleth/shib-networking/${cxf.shibboleth-shared.tesb.version}$Bundle-SymbolicName=net.shibboleth.shib-networking&amp;Bundle-Name=Shibboleth%20Networking&amp;Bundle-Version=${cxf.shibboleth-shared.tesb.version}&amp;Export-Package=net.shibboleth.*;version=${cxf.shibboleth-shared.tesb.version}</bundle>
+        <bundle start-level="25" dependency="true">wrap:mvn:net.shibboleth/shib-security/${cxf.shibboleth-shared.tesb.version}$Bundle-SymbolicName=net.shibboleth.shib-security&amp;Bundle-Name=Shibboleth%20Security&amp;Bundle-Version=${cxf.shibboleth-shared.tesb.version}&amp;Export-Package=net.shibboleth.*;version=${cxf.shibboleth-shared.tesb.version}</bundle>
+        <bundle start-level="25" dependency="true">wrap:mvn:net.shibboleth/shib-support/${cxf.shibboleth-shared.tesb.version}$Bundle-SymbolicName=net.shibboleth.shib-support&amp;Bundle-Name=Shibboleth%20Support&amp;Bundle-Version=${cxf.shibboleth-shared.tesb.version}&amp;Export-Package=net.shibboleth.*;version=${cxf.shibboleth-shared.tesb.version}</bundle>
+        <bundle start-level="25" dependency="true">wrap:mvn:net.shibboleth/shib-velocity/${cxf.shibboleth-shared.tesb.version}$Bundle-SymbolicName=net.shibboleth.shib-velocity&amp;Bundle-Name=Shibboleth%20Velocity&amp;Bundle-Version=${cxf.shibboleth-shared.tesb.version}&amp;Export-Package=net.shibboleth.*;version=${cxf.shibboleth-shared.tesb.version}</bundle>
+        <bundle start-level="25" dependency="true">wrap:mvn:org.apache.httpcomponents.client5/httpclient5/${cxf.httpcomponents.client5.version}$Bundle-SymbolicName=org.apache.httpclient5&amp;Bundle-Name=Apache%20HTTP%20Client%20v5&amp;Bundle-Version=${cxf.httpcomponents.client5.version}&amp;Export-Package=org.*;version=${cxf.httpcomponents.client5.version}</bundle>
+        <bundle start-level="25" dependency="true">wrap:mvn:org.apache.httpcomponents.core5/httpcore5/${cxf.httpcomponents.core5.version}$Bundle-SymbolicName=org.apache.httpcore5&amp;Bundle-Name=Apache%20HTTP%20Core%20v5&amp;Bundle-Version=${cxf.httpcomponents.core5.version}&amp;Export-Package=org.*;version=${cxf.httpcomponents.core5.version}</bundle>
+        <bundle start-level="25" dependency="true">mvn:org.apache.servicemix.bundles/org.apache.servicemix.bundles.opensaml/${cxf.smix.opensaml.tesb.version}</bundle>
         <bundle start-level="25">mvn:org.apache.servicemix.bundles/org.apache.servicemix.bundles.xmlresolver/${cxf.xmlresolver.bundle.version}</bundle>
         <bundle start-level="30" dependency="true">mvn:org.apache.servicemix.bundles/org.apache.servicemix.bundles.xerces/${cxf.xerces.bundle.tesb.version}</bundle>
         <bundle start-level="30">mvn:org.apache.servicemix.bundles/org.apache.servicemix.bundles.bcel/${cxf.bcel.bundle.version}</bundle>
@@ -171,6 +180,7 @@
         <feature version="${cxf.tesb.version-range}">cxf-ws-addr</feature>
         <bundle dependency="true">mvn:org.ops4j.pax.web/pax-web-api/${cxf.tesb.pax-web.api.version}</bundle>
         <bundle dependency="true">mvn:org.apache.geronimo.specs/geronimo-jta_1.1_spec/${cxf.geronimo.jta.version}</bundle>
+        <bundle dependency="true">mvn:javax.cache/cache-api/${cxf.jcache.version}</bundle>
         <bundle start-level="40" dependency="true">mvn:org.ehcache/ehcache/${cxf.ehcache3.version}</bundle>
         <bundle start-level="40">mvn:org.apache.cxf/cxf-rt-ws-security/${upstream.version}</bundle>
     </feature>
@@ -311,12 +321,21 @@
     <feature name="cxf-rs-security-oauth2-saml" version="${upstream.version}">
         <feature version="${cxf.tesb.version-range}">cxf-rs-security-xml</feature>
         <feature version="${cxf.tesb.version-range}">cxf-rs-security-jose</feature>
-        <!-- <feature version="[4.3,5)">opensaml</feature> -->
+        <feature version="${cxf.tesb.version-range}">cxf-jackson</feature>
+        <!-- <feature version="[4.3,6)">opensaml</feature> -->
         <bundle start-level="25" dependency="true">mvn:commons-codec/commons-codec/${cxf.commons-codec.tesb.version}</bundle>
-        <bundle start-level="25" dependency="true">mvn:org.apache.santuario/xmlsec/3.0.5</bundle>
+        <bundle start-level="25" dependency="true">mvn:org.apache.santuario/xmlsec/${cxf.xmlsec.tesb.version}</bundle>
         <bundle start-level="25" dependency="true">mvn:joda-time/joda-time/${cxf.joda.time.version}</bundle>
-        <bundle start-level="25" dependency='true'>mvn:io.dropwizard.metrics/metrics-core/${cxf.dropwizard3.version}</bundle>
-        <bundle start-level="25" dependency="true">mvn:org.apache.servicemix.bundles/org.apache.servicemix.bundles.opensaml/4.3.2_1.tesb1</bundle>
+        <bundle start-level="25" dependency='true'>mvn:io.dropwizard.metrics/metrics-core/${cxf.dropwizard4.version}</bundle>
+        <bundle start-level="25" dependency='true'>mvn:io.dropwizard.metrics/metrics-json/${cxf.dropwizard4.version}</bundle>
+        <bundle start-level="25" dependency="true">mvn:com.fasterxml.jackson.datatype/jackson-datatype-jsr310/${cxf.jackson.version}</bundle>
+        <bundle start-level="25" dependency="true">wrap:mvn:net.shibboleth/shib-networking/${cxf.shibboleth-shared.tesb.version}$Bundle-SymbolicName=net.shibboleth.shib-networking&amp;Bundle-Name=Shibboleth%20Networking&amp;Bundle-Version=${cxf.shibboleth-shared.tesb.version}&amp;Export-Package=net.shibboleth.*;version=${cxf.shibboleth-shared.tesb.version}</bundle>
+        <bundle start-level="25" dependency="true">wrap:mvn:net.shibboleth/shib-security/${cxf.shibboleth-shared.tesb.version}$Bundle-SymbolicName=net.shibboleth.shib-security&amp;Bundle-Name=Shibboleth%20Security&amp;Bundle-Version=${cxf.shibboleth-shared.tesb.version}&amp;Export-Package=net.shibboleth.*;version=${cxf.shibboleth-shared.tesb.version}</bundle>
+        <bundle start-level="25" dependency="true">wrap:mvn:net.shibboleth/shib-support/${cxf.shibboleth-shared.tesb.version}$Bundle-SymbolicName=net.shibboleth.shib-support&amp;Bundle-Name=Shibboleth%20Support&amp;Bundle-Version=${cxf.shibboleth-shared.tesb.version}&amp;Export-Package=net.shibboleth.*;version=${cxf.shibboleth-shared.tesb.version}</bundle>
+        <bundle start-level="25" dependency="true">wrap:mvn:net.shibboleth/shib-velocity/${cxf.shibboleth-shared.tesb.version}$Bundle-SymbolicName=net.shibboleth.shib-velocity&amp;Bundle-Name=Shibboleth%20Velocity&amp;Bundle-Version=${cxf.shibboleth-shared.tesb.version}&amp;Export-Package=net.shibboleth.*;version=${cxf.shibboleth-shared.tesb.version}</bundle>
+        <bundle start-level="25" dependency="true">wrap:mvn:org.apache.httpcomponents.client5/httpclient5/${cxf.httpcomponents.client5.version}$Bundle-SymbolicName=org.apache.httpclient5&amp;Bundle-Name=Apache%20HTTP%20Client%20v5&amp;Bundle-Version=${cxf.httpcomponents.client5.version}&amp;Export-Package=org.*;version=${cxf.httpcomponents.client5.version}</bundle>
+        <bundle start-level="25" dependency="true">wrap:mvn:org.apache.httpcomponents.core5/httpcore5/${cxf.httpcomponents.core5.version}$Bundle-SymbolicName=org.apache.httpcore5&amp;Bundle-Name=Apache%20HTTP%20Core%20v5&amp;Bundle-Version=${cxf.httpcomponents.core5.version}&amp;Export-Package=org.*;version=${cxf.httpcomponents.core5.version}</bundle>
+        <bundle start-level="25" dependency="true">mvn:org.apache.servicemix.bundles/org.apache.servicemix.bundles.opensaml/${cxf.smix.opensaml.tesb.version}</bundle>
         <bundle start-level="40">mvn:org.apache.cxf/cxf-rt-rs-security-oauth2/${upstream.version}</bundle>
         <bundle start-level="40">mvn:org.apache.cxf/cxf-rt-rs-security-oauth2-saml/${upstream.version}</bundle>
     </feature>

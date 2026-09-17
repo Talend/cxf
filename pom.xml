@@ -63,9 +63,10 @@
         <cxf.camel.tesb.version>4.8.1</cxf.camel.tesb.version>
         <cxf.camel.cxf.tesb.version>4.8.1.20250901</cxf.camel.cxf.tesb.version>
         <cxf.camel.features.tesb.version>4.8.1.20250901</cxf.camel.features.tesb.version>
-        <cxf.mina.tesb.version>2.2.8</cxf.mina.tesb.version>
-        <cxf.opensaml.tesb.version>4.3.2</cxf.opensaml.tesb.version>
-        <!-- <cxf.opensaml.tesb.version-range>[4,5)</cxf.opensaml.tesb.version-range> -->
+        <cxf.mina.tesb.version>2.2.9</cxf.mina.tesb.version>
+        <cxf.opensaml.tesb.version>5.1.4</cxf.opensaml.tesb.version>
+        <cxf.smix.opensaml.tesb.version>5.1.4_1.tesb1</cxf.smix.opensaml.tesb.version>
+        <!-- <cxf.opensaml.tesb.version-range>[4,6)</cxf.opensaml.tesb.version-range> -->
         <cxf.xmlsec.bundle.tesb.version>2.3.4</cxf.xmlsec.bundle.tesb.version>
         <cxf.servicemix.aspectj.tesb.version>1.9.21.1_1</cxf.servicemix.aspectj.tesb.version>
         <cxf.stax-ex.tesb.version>2.1.0</cxf.stax-ex.tesb.version>
@@ -79,8 +80,10 @@
         <cxf.guava.tesb.version-range>[32,40)</cxf.guava.tesb.version-range>
         <cxf.jakarta.bind.tesb.version-range>[4,5)</cxf.jakarta.bind.tesb.version-range>
         <!-- <cxf.wss4j.tesb.version-range>[3,4)</cxf.wss4j.tesb.version-range> -->
-        <cxf.hazelcast.tesb.version>5.5.0.tesb1</cxf.hazelcast.tesb.version>
+        <cxf.hazelcast.tesb.version>5.7.0</cxf.hazelcast.tesb.version>
+        <cxf.shibboleth-shared.tesb.version>9.1.6</cxf.shibboleth-shared.tesb.version>
         <cxf.swagger-ui.tesb.version>5.29.3</cxf.swagger-ui.tesb.version>
+        <cxf.xmlsec.tesb.version>4.0.2</cxf.xmlsec.tesb.version>
 
         <!-- Necessary until no need of HTTPService -->
         <cxf.tesb.pax-web.api.version>11.0.1</cxf.tesb.pax-web.api.version>
