@@ -65,7 +65,7 @@
         <cxf.camel.features.tesb.version>4.8.1.20250901</cxf.camel.features.tesb.version>
         <cxf.mina.tesb.version>2.2.9</cxf.mina.tesb.version>
         <cxf.opensaml.tesb.version>5.1.4</cxf.opensaml.tesb.version>
-        <cxf.smix.opensaml.tesb.version>5.1.4_1.tesb1</cxf.smix.opensaml.tesb.version>
+        <cxf.smix.opensaml.tesb.version>5.1.4_1.tesb2</cxf.smix.opensaml.tesb.version>
         <!-- <cxf.opensaml.tesb.version-range>[4,6)</cxf.opensaml.tesb.version-range> -->
         <cxf.xmlsec.bundle.tesb.version>2.3.4</cxf.xmlsec.bundle.tesb.version>
         <cxf.servicemix.aspectj.tesb.version>1.9.21.1_1</cxf.servicemix.aspectj.tesb.version>
