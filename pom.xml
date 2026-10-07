@@ -40,7 +40,8 @@
     </issueManagement>
     <properties>
         <original.version>4.1.8.1</original.version>
-        <cxf.features.tesb.version>4.1.8.1</cxf.features.tesb.version>
+        <cxf.features.tesb.version>4.1.8.1.20261007</cxf.features.tesb.version>
+        <cxf-rt-rs-security-jose.version>4.1.8.1.20261007</cxf-rt-rs-security-jose.version>
         <cxf.tesb.version-range>[4.1,4.2)</cxf.tesb.version-range>
         <cxf.tesb.major-version-range>[4,5)</cxf.tesb.major-version-range>
         <cxf.rs.openapi.v3.tesb.version>4.1.8.1</cxf.rs.openapi.v3.tesb.version>

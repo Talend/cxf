@@ -212,7 +212,7 @@
         <dependency>
             <groupId>org.apache.cxf</groupId>
             <artifactId>cxf-rt-rs-security-jose</artifactId>
-            <version>${project.version}</version>
+            <version>${cxf-rt-rs-security-jose.version}</version>
         </dependency>
         <dependency>
             <groupId>org.apache.cxf</groupId>
