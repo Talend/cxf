@@ -97,7 +97,7 @@
         <cxf.assertj.version>3.27.7</cxf.assertj.version>
         <cxf.atmosphere.version.range>[3.0, 4.0)</cxf.atmosphere.version.range>
         <cxf.atmosphere.version>3.0.15</cxf.atmosphere.version>
-        <cxf.bcprov.version>1.84</cxf.bcprov.version>
+        <cxf.bcprov.version>1.85</cxf.bcprov.version>
         <cxf.brave.version>6.3.1</cxf.brave.version>
         <cxf.cdi.api.version>4.1.0</cxf.cdi.api.version>
         <cxf.classgraph.version>4.8.25</cxf.classgraph.version>
@@ -135,7 +135,7 @@
         <cxf.httpcomponents.client5.version>5.6.4</cxf.httpcomponents.client5.version>
         <cxf.httpcomponents.core5.version>5.4.3</cxf.httpcomponents.core5.version>
         <cxf.jackson.version>2.22.3</cxf.jackson.version>
-        <cxf.jackson.databind.version>2.22.1</cxf.jackson.databind.version>
+        <cxf.jackson.databind.version>${cxf.jackson.version}</cxf.jackson.databind.version>
         <cxf.jackson.annotations.version>2.22</cxf.jackson.annotations.version>
         <cxf.jacorb.version>3.9</cxf.jacorb.version>
         <cxf.jaeger.version>1.8.1</cxf.jaeger.version>
