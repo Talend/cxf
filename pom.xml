@@ -50,7 +50,6 @@
         <cxf.rt.transports.jms.tesb.version>4.1.8.1</cxf.rt.transports.jms.tesb.version>
 
         <cxf.async-http-client.tesb.version>2.15.0</cxf.async-http-client.tesb.version>
-        <cxf.bcprov.tesb.version>1.84</cxf.bcprov.tesb.version>
         <cxf.dtd.parser.tesb.version>1.4.5</cxf.dtd.parser.tesb.version>
         <cxf.classgraph.tesb.version>4.8.175</cxf.classgraph.tesb.version>
         <cxf.fastinfoset.tesb.version>2.0.0</cxf.fastinfoset.tesb.version>
